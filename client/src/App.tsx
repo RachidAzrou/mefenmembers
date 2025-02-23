@@ -9,6 +9,7 @@ import Volunteers from "@/pages/volunteers";
 import Rooms from "@/pages/rooms";
 import Materials from "@/pages/materials";
 import Planning from "@/pages/planning";
+import PublicCalendar from "@/pages/public-calendar";
 import { Sidebar } from "@/components/layout/sidebar";
 import { auth } from "./lib/firebase";
 import { useAuthState } from "react-firebase-hooks/auth";
@@ -61,6 +62,8 @@ function Router() {
       <Route path="/volunteers" component={() => <PrivateRoute component={Volunteers} />} />
       <Route path="/rooms" component={() => <PrivateRoute component={Rooms} />} />
       <Route path="/materials" component={() => <PrivateRoute component={Materials} />} />
+      {/* Public calendar route - no authentication required */}
+      <Route path="/calendar/public" component={PublicCalendar} />
       <Route component={NotFound} />
     </Switch>
   );
