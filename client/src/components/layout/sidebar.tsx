@@ -75,9 +75,9 @@ export function Sidebar() {
         )}
       >
         {/* Logo Section */}
-        <div className="flex h-24 items-center justify-center px-4 border-b bg-white">
+        <div className="flex h-32 items-center justify-center px-4 border-b bg-white">
           {!collapsed && (
-            <img src="/static/Naamloos.png" alt="MEFEN" className="h-16" />
+            <img src="/static/Naamloos.png" alt="MEFEN" className="w-48 px-2" />
           )}
           {!isMobile && (
             <Button

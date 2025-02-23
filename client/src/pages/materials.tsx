@@ -47,11 +47,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
 
 const materialSchema = z.object({
   typeId: z.string().min(1, "Type materiaal is verplicht"),
   volunteerId: z.string().min(1, "Vrijwilliger is verplicht"),
-  number: z.number().min(1).max(100),
+  number: z.coerce.number().min(1).max(100),
 });
 
 type MaterialType = {
@@ -84,6 +85,9 @@ export default function Materials() {
 
   const form = useForm<z.infer<typeof materialSchema>>({
     resolver: zodResolver(materialSchema),
+    defaultValues: {
+      number: 1,
+    },
   });
 
   // Load data from Firebase
@@ -105,7 +109,6 @@ export default function Materials() {
         id,
         ...(material as Omit<Material, "id">),
       })) : [];
-      // Only show checked out materials
       setMaterials(materialsList.filter((m) => m.isCheckedOut));
     });
 
@@ -119,6 +122,9 @@ export default function Materials() {
       setVolunteers(volunteersList);
     });
   });
+
+  const selectedType = materialTypes.find(t => t.id === form.watch("typeId"));
+  const maxNumber = selectedType?.maxCount || 100;
 
   const onSubmit = async (data: z.infer<typeof materialSchema>) => {
     try {
@@ -276,28 +282,13 @@ export default function Materials() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Nummer</FormLabel>
-                      <Select
-                        onValueChange={(value) => field.onChange(parseInt(value))}
-                        defaultValue={field.value?.toString()}
-                      >
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Selecteer nummer" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {materialTypes.find(t => t.id === form.getValues("typeId"))?.maxCount ? 
-                            Array.from({ length: materialTypes.find(t => t.id === form.getValues("typeId"))!.maxCount }).map((_, i) => (
-                              <SelectItem key={i + 1} value={(i + 1).toString()}>
-                                {i + 1}
-                              </SelectItem>
-                            )) : 
-                            <SelectItem value="" disabled>
-                              Selecteer eerst een type
-                            </SelectItem>
-                          }
-                        </SelectContent>
-                      </Select>
+                      <Input
+                        type="number"
+                        min={1}
+                        max={maxNumber}
+                        {...field}
+                        onChange={(e) => field.onChange(parseInt(e.target.value))}
+                      />
                       <FormMessage />
                     </FormItem>
                   )}
