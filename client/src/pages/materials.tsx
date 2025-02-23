@@ -341,7 +341,7 @@ export default function Materials() {
                       {item.isCheckedOut ? "Uitgeleend" : "Beschikbaar"}
                     </Badge>
                   </TableCell>
-                  <TableCell className="space-x-2">
+                  <TableCell className="flex space-x-2">
                     <Button
                       variant="ghost"
                       size="icon"

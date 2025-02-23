@@ -228,7 +228,7 @@ export default function Volunteers() {
                 <TableCell>{volunteer.firstName}</TableCell>
                 <TableCell>{volunteer.lastName}</TableCell>
                 <TableCell>{volunteer.phoneNumber}</TableCell>
-                <TableCell className="space-x-2">
+                <TableCell className="flex space-x-2">
                   <Button
                     variant="ghost"
                     size="icon"

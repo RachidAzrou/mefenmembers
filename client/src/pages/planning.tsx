@@ -397,7 +397,7 @@ export default function Planning() {
                   <TableCell>{room ? room.name : "-"}</TableCell>
                   <TableCell>{format(new Date(planning.startDate), "d MMMM yyyy", { locale: nl })}</TableCell>
                   <TableCell>{format(new Date(planning.endDate), "d MMMM yyyy", { locale: nl })}</TableCell>
-                  <TableCell className="space-x-2">
+                  <TableCell className="flex space-x-2">
                     <Button
                       variant="ghost"
                       size="icon"

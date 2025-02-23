@@ -172,7 +172,7 @@ export default function Rooms() {
             {rooms.map((room) => (
               <TableRow key={room.id}>
                 <TableCell>{room.name}</TableCell>
-                <TableCell className="space-x-2">
+                <TableCell className="flex space-x-2">
                   <Button
                     variant="ghost"
                     size="icon"
