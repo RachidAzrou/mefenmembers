@@ -645,10 +645,10 @@ export function WeekView() {
                               key={planning.id}
                               className="p-3 rounded-lg bg-primary/5 border border-primary/10 hover:bg-primary/10 transition-colors shadow-sm"
                             >
-                              <div className="font-medium text-primary truncate">
+                              <div className="font-medium text-primary break-words">
                                 {room?.name || 'Onbekende ruimte'}
                               </div>
-                              <div className="text-sm text-gray-600 mt-1 truncate">
+                              <div className="text-sm text-gray-600 mt-1 break-words leading-normal">
                                 {volunteer
                                   ? `${volunteer.firstName} ${volunteer.lastName}`
                                   : 'Niet toegewezen'
@@ -695,13 +695,13 @@ export function WeekView() {
                       return (
                         <div
                           key={planning.id}
-                          className="flex justify-between items-center p-3 rounded-lg bg-primary/5 border border-primary/10 hover:bg-primary/10 transition-colors"
+                          className="flex justify-between items-start p-3 rounded-lg bg-primary/5 border border-primary/10 hover:bg-primary/10 transition-colors"
                         >
-                          <div>
-                            <div className="font-medium text-primary">
+                          <div className="min-w-0 flex-1">
+                            <div className="font-medium text-primary break-words">
                               {room?.name || 'Onbekende ruimte'}
                             </div>
-                            <div className="text-sm text-gray-600">
+                            <div className="text-sm text-gray-600 mt-1 break-words leading-normal">
                               {volunteer
                                 ? `${volunteer.firstName} ${volunteer.lastName}`
                                 : 'Niet toegewezen'
