@@ -221,7 +221,7 @@ export default function Materials() {
           </div>
           <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
             <DialogTrigger asChild>
-              <Button>
+              <Button className="bg-[#6BB85C] hover:bg-[#6BB85C]/90 text-white">
                 <Package2 className="h-4 w-4 mr-2" />
                 Materiaal Toewijzen
               </Button>
