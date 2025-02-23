@@ -385,7 +385,7 @@ export default function Planning() {
                     Bulk Inplannen
                   </Button>
                 </div>
-                <Button type="submit" className="w-full">
+                <Button type="submit" className="w-full bg-[#6BB85C] hover:bg-[#6BB85C]/90">
                   {editingPlanning ? "Planning Bijwerken" : "Planning Toevoegen"}
                 </Button>
               </form>
