@@ -49,21 +49,21 @@ export default function Login() {
       <div className="absolute inset-0 bg-black/50" />
 
       <div className="relative z-10 w-full max-w-[420px]">
-        {/* Logo */}
-        <div className="text-center mb-8">
-          <img 
-            src="/static/Naamloos.png" 
-            alt="MEFEN" 
-            className="w-48 h-48 mx-auto mb-6 transform hover:scale-105 transition-transform duration-300"
-          />
-          <h1 className="text-3xl font-bold text-white">
-            Welkom bij MEFEN
-          </h1>
-        </div>
-
-        {/* Login Card */}
+        {/* Login Card with Logo */}
         <Card className="bg-white/90 backdrop-blur-sm border-0 shadow-2xl">
           <CardContent className="pt-6">
+            {/* Logo */}
+            <div className="text-center mb-8">
+              <img 
+                src="/static/Naamloos.png" 
+                alt="MEFEN" 
+                className="w-48 h-48 mx-auto transform hover:scale-105 transition-transform duration-300"
+              />
+              <h1 className="text-2xl font-bold text-[#963E56] mt-4">
+                Welkom bij MEFEN
+              </h1>
+            </div>
+
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
               <div className="space-y-2">
                 <div className="relative">
