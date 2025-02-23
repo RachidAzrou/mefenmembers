@@ -15,9 +15,9 @@ export function Sidebar() {
   const menuItems = [
     { icon: Home, label: "Dashboard", href: "/" },
     { icon: Calendar, label: "Planning", href: "/planning" },
-    { icon: Users, label: "Volunteers", href: "/volunteers" },
-    { icon: Box, label: "Spaces", href: "/spaces" },
-    { icon: Settings, label: "Equipment", href: "/equipment" }
+    { icon: Users, label: "Vrijwilligers", href: "/volunteers" },
+    { icon: Box, label: "Ruimtes", href: "/rooms" },
+    { icon: Settings, label: "Materialen", href: "/materials" }
   ];
 
   return (

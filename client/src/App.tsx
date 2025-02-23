@@ -6,8 +6,9 @@ import NotFound from "@/pages/not-found";
 import Dashboard from "@/pages/dashboard";
 import Login from "@/pages/login";
 import Volunteers from "@/pages/volunteers";
-import Spaces from "@/pages/spaces";
-import Equipment from "@/pages/equipment";
+import Rooms from "@/pages/rooms";
+import Materials from "@/pages/materials";
+import Planning from "@/pages/planning";
 import { Sidebar } from "@/components/layout/sidebar";
 import { auth } from "./lib/firebase";
 import { useAuthState } from "react-firebase-hooks/auth";
@@ -27,7 +28,7 @@ function PrivateRoute({ component: Component }: { component: React.ComponentType
   const [user, loading] = useAuthState(auth);
 
   if (loading) {
-    return <div>Loading...</div>;
+    return <div>Laden...</div>;
   }
 
   if (!user) {
@@ -47,9 +48,10 @@ function Router() {
     <Switch>
       <Route path="/login" component={Login} />
       <Route path="/" component={() => <PrivateRoute component={Dashboard} />} />
+      <Route path="/planning" component={() => <PrivateRoute component={Planning} />} />
       <Route path="/volunteers" component={() => <PrivateRoute component={Volunteers} />} />
-      <Route path="/spaces" component={() => <PrivateRoute component={Spaces} />} />
-      <Route path="/equipment" component={() => <PrivateRoute component={Equipment} />} />
+      <Route path="/rooms" component={() => <PrivateRoute component={Rooms} />} />
+      <Route path="/materials" component={() => <PrivateRoute component={Materials} />} />
       <Route component={NotFound} />
     </Switch>
   );
