@@ -233,7 +233,7 @@ export default function Volunteers() {
                     variant="ghost"
                     size="icon"
                     onClick={() => handleEdit(volunteer)}
-                    className="text-[#D9A347] hover:text-[#D9A347] hover:bg-[#D9A347]/10"
+                    className="text-[#6BB85C] hover:text-[#6BB85C] hover:bg-[#6BB85C]/10"
                   >
                     <Edit2 className="h-4 w-4" />
                   </Button>
@@ -241,7 +241,7 @@ export default function Volunteers() {
                     variant="ghost"
                     size="icon"
                     onClick={() => setDeleteVolunteerId(volunteer.id)}
-                    className="text-[#D9A347] hover:text-[#D9A347] hover:bg-[#D9A347]/10"
+                    className="text-red-600 hover:text-red-700 hover:bg-red-50"
                   >
                     <Trash2 className="h-4 w-4" />
                   </Button>
