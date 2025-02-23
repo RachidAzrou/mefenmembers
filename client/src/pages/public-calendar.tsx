@@ -66,10 +66,10 @@ export default function PublicCalendar() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <header className="bg-white border-b">
-        <div className="container mx-auto px-4 py-6">
+      <header className="bg-white border-b mb-8">
+        <div className="container mx-auto px-4 py-8">
           <img src="/static/Naamloos.png" alt="MEFEN" className="h-12 mx-auto" />
-          <h1 className="text-2xl font-semibold text-center mt-4">
+          <h1 className="text-2xl font-semibold text-center mt-6">
             Planning Week van {format(weekStart, "d MMMM yyyy", { locale: nl })}
           </h1>
         </div>

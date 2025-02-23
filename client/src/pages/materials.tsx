@@ -325,7 +325,7 @@ export default function Materials() {
         </div>
       </div>
 
-      <div className="rounded-lg border bg-card">
+      <div className="mt-8 rounded-lg border bg-card">
         <Table>
           <TableHeader>
             <TableRow>
