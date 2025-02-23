@@ -7,6 +7,8 @@ import {
   LogOut, Settings, ChevronLeft, ChevronRight, Menu 
 } from "lucide-react";
 import { useState, useEffect } from "react";
+import { auth } from "@/lib/firebase";
+import { signOut } from "firebase/auth";
 
 export function Sidebar() {
   const [location] = useLocation();
@@ -25,6 +27,15 @@ export function Sidebar() {
     window.addEventListener('resize', checkMobile);
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
+
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+      window.location.href = "/login";
+    } catch (error) {
+      console.error("Logout error:", error);
+    }
+  };
 
   const menuItems = [
     { icon: Home, label: "Dashboard", href: "/" },
@@ -63,21 +74,24 @@ export function Sidebar() {
           isMobile && "shadow-xl"
         )}
       >
-        <div className="flex h-16 items-center justify-between px-4 border-b bg-primary/5">
+        {/* Logo Section */}
+        <div className="flex h-24 items-center justify-center px-4 border-b bg-white">
           {!collapsed && (
-            <img src="/static/icon-512x512.png" alt="MEFEN" className="h-8" />
+            <img src="/static/Naamloos.png" alt="MEFEN" className="h-16" />
           )}
           {!isMobile && (
             <Button
               variant="ghost"
               size="icon"
-              className="text-primary/70 hover:text-primary hover:bg-primary/10"
+              className="absolute right-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100"
               onClick={() => setCollapsed(!collapsed)}
             >
               {collapsed ? <ChevronRight /> : <ChevronLeft />}
             </Button>
           )}
         </div>
+
+        {/* Menu Items */}
         <ScrollArea className="flex-1">
           <div className="space-y-1 p-2">
             {menuItems.map((item) => (
@@ -107,6 +121,23 @@ export function Sidebar() {
             ))}
           </div>
         </ScrollArea>
+
+        {/* Logout Button */}
+        <div className="p-2 border-t">
+          <Button
+            variant="ghost"
+            className={cn(
+              "w-full justify-start h-12 md:h-11 text-red-600 hover:text-red-700 hover:bg-red-50",
+              collapsed && "justify-center"
+            )}
+            onClick={handleLogout}
+          >
+            <LogOut className="h-5 w-5" />
+            {!collapsed && (
+              <span className="ml-2">Afmelden</span>
+            )}
+          </Button>
+        </div>
       </div>
     </>
   );
