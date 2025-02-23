@@ -55,9 +55,9 @@ export default function Login() {
             {/* Logo */}
             <div className="text-center mb-8">
               <img 
-                src="/static/Naamloos.png" 
+                src="/static/moskee.png" 
                 alt="MEFEN" 
-                className="w-32 h-32 mx-auto transform hover:scale-105 transition-transform duration-300"
+                className="w-[280px] mx-auto transform hover:scale-105 transition-transform duration-300"
               />
               <h1 className="text-2xl font-bold text-[#963E56] mt-4">
                 Meld je aan
