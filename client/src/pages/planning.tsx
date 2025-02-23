@@ -195,11 +195,9 @@ export default function Planning() {
         </div>
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogTrigger asChild>
-            <Button>
+            <Button className="bg-[#6BB85C] hover:bg-[#6BB85C]/90">
               <CalendarIcon className="h-4 w-4 mr-2" />
-              <Button className="bg-[#6BB85C] hover:bg-[#6BB85C]/90">
-                Inplannen
-              </Button>
+              Inplannen
             </Button>
           </DialogTrigger>
           <DialogContent>
