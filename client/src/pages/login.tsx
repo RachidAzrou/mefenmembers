@@ -10,8 +10,8 @@ import { useToast } from "@/hooks/use-toast";
 import { useLocation } from "wouter";
 
 const loginSchema = z.object({
-  email: z.string().email(),
-  password: z.string().min(6),
+  email: z.string().email("Ongeldig e-mailadres"),
+  password: z.string().min(6, "Wachtwoord moet minimaal 6 tekens bevatten"),
 });
 
 export default function Login() {
@@ -29,8 +29,8 @@ export default function Login() {
     } catch (error) {
       toast({
         variant: "destructive",
-        title: "Error",
-        description: "Invalid email or password",
+        title: "Fout",
+        description: "Ongeldig e-mailadres of wachtwoord",
       });
     }
   };
@@ -41,10 +41,10 @@ export default function Login() {
         <div className="mb-8 text-center">
           <img src="/mefen-logo.svg" alt="MEFEN" className="h-16 mx-auto" />
           <h2 className="mt-6 text-2xl font-semibold text-gray-900">
-            Welcome Back
+            Welkom Terug
           </h2>
           <p className="mt-2 text-sm text-gray-600">
-            Please sign in to continue
+            Log in om door te gaan
           </p>
         </div>
         <Card className="backdrop-blur-sm bg-white/95">
@@ -53,7 +53,7 @@ export default function Login() {
               <div className="space-y-2">
                 <Input
                   type="email"
-                  placeholder="Email"
+                  placeholder="E-mailadres"
                   className="h-11"
                   {...form.register("email")}
                 />
@@ -66,7 +66,7 @@ export default function Login() {
               <div className="space-y-2">
                 <Input
                   type="password"
-                  placeholder="Password"
+                  placeholder="Wachtwoord"
                   className="h-11"
                   {...form.register("password")}
                 />
@@ -77,7 +77,7 @@ export default function Login() {
                 )}
               </div>
               <Button type="submit" className="w-full h-11 text-base">
-                Sign In
+                Inloggen
               </Button>
             </form>
           </CardContent>

@@ -2,6 +2,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight, Download, Share2 } from "lucide-react";
 import { format, addWeeks, startOfWeek, addDays } from "date-fns";
+import { nl } from "date-fns/locale";
 import { useState } from "react";
 
 export function WeekView() {
@@ -30,7 +31,7 @@ export function WeekView() {
           <Button variant="outline" onClick={goToPreviousWeek}>
             <ChevronLeft className="h-4 w-4" />
           </Button>
-          <Button variant="outline" onClick={goToToday}>Today</Button>
+          <Button variant="outline" onClick={goToToday}>Vandaag</Button>
           <Button variant="outline" onClick={goToNextWeek}>
             <ChevronRight className="h-4 w-4" />
           </Button>
@@ -38,11 +39,11 @@ export function WeekView() {
         <div className="flex space-x-2">
           <Button variant="outline" onClick={downloadPDF}>
             <Download className="h-4 w-4 mr-2" />
-            Export PDF
+            PDF Exporteren
           </Button>
           <Button variant="outline" onClick={publishSchedule}>
             <Share2 className="h-4 w-4 mr-2" />
-            Publish
+            Publiceren
           </Button>
         </div>
       </div>
@@ -51,12 +52,11 @@ export function WeekView() {
         {weekDays.map((day) => (
           <Card key={day.toISOString()} className="p-4">
             <div className="font-medium">
-              {format(day, "EEEE")}
+              {format(day, "EEEE", { locale: nl })}
             </div>
             <div className="text-sm text-gray-500">
-              {format(day, "MMM d")}
+              {format(day, "d MMM", { locale: nl })}
             </div>
-            {/* Schedule items would go here */}
           </Card>
         ))}
       </div>
