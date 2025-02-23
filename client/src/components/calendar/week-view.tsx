@@ -28,6 +28,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -220,15 +221,17 @@ export function WeekView() {
   }).length;
 
   return (
-    <div className="container mx-auto px-4">
-      <div className="flex justify-between items-center mb-6">
-        <div>
-          <Button variant="outline" onClick={copyPreviousWeek}>
+    <div className="container mx-auto p-4">
+      {/* Top control bar - mobile responsive */}
+      <div className="flex flex-col md:flex-row justify-between items-center gap-4 mb-6">
+        <div className="w-full md:w-auto">
+          <Button variant="outline" className="w-full md:w-auto" onClick={copyPreviousWeek}>
             <Copy className="h-4 w-4 mr-2" />
             Vorige Week Kopiëren
           </Button>
         </div>
-        <div>
+
+        <div className="flex gap-2">
           <Button variant="outline" onClick={goToPreviousWeek}>
             <ChevronLeft className="h-4 w-4" />
           </Button>
@@ -237,15 +240,16 @@ export function WeekView() {
             <ChevronRight className="h-4 w-4" />
           </Button>
         </div>
-        <div>
+
+        <div className="flex gap-2 w-full md:w-auto">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline">
+              <Button variant="outline" className="w-full md:w-auto">
                 <Share className="h-4 w-4 mr-2" />
                 Deel
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent>
+            <DropdownMenuContent align="end">
               <DropdownMenuItem asChild>
                 {downloadPDF()}
               </DropdownMenuItem>
@@ -255,9 +259,10 @@ export function WeekView() {
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
+
           <Dialog>
             <DialogTrigger asChild>
-              <Button>
+              <Button className="w-full md:w-auto">
                 <Users className="h-4 w-4 mr-2" />
                 Bulk Inplannen
               </Button>
@@ -368,42 +373,46 @@ export function WeekView() {
         </div>
       </div>
 
-      <div className="grid grid-cols-7 gap-4 mb-6">
+      {/* Calendar grid - mobile scrollable */}
+      <div className="grid grid-cols-1 md:grid-cols-7 gap-4 mb-6 overflow-x-auto">
         {weekDays.map((day) => {
           const dayPlannings = getPlanningsForDay(day);
           return (
-            <Card key={day.toISOString()} className="p-4">
-              <div className="font-medium text-lg mb-2">
-                {format(day, "EEEE", { locale: nl })}
-              </div>
-              <div className="text-sm text-gray-500">
-                {format(day, "d MMM", { locale: nl })}
-              </div>
-              <div className="space-y-2">
-                {dayPlannings.map(planning => {
-                  const volunteer = volunteers.find(v => v.id === planning.volunteerId);
-                  const room = rooms.find(r => r.id === planning.roomId);
-                  return (
-                    <div
-                      key={planning.id}
-                      className="text-xs p-2 rounded bg-primary/5 border border-primary/10"
-                    >
-                      <div className="font-medium text-primary">
-                        {room?.name}
+            <Card key={day.toISOString()} className="min-w-[280px] md:min-w-0">
+              <CardContent className="p-4">
+                <div className="font-medium text-lg mb-2">
+                  {format(day, "EEEE", { locale: nl })}
+                </div>
+                <div className="text-sm text-gray-500">
+                  {format(day, "d MMM", { locale: nl })}
+                </div>
+                <div className="space-y-2 mt-4">
+                  {dayPlannings.map(planning => {
+                    const volunteer = volunteers.find(v => v.id === planning.volunteerId);
+                    const room = rooms.find(r => r.id === planning.roomId);
+                    return (
+                      <div
+                        key={planning.id}
+                        className="text-sm p-3 rounded-lg bg-primary/5 border border-primary/10 hover:bg-primary/10 transition-colors"
+                      >
+                        <div className="font-medium text-primary">
+                          {room?.name}
+                        </div>
+                        <div className="text-gray-600">
+                          {volunteer ? `${volunteer.firstName} ${volunteer.lastName}` : '-'}
+                        </div>
                       </div>
-                      <div className="text-gray-600">
-                        {volunteer ? `${volunteer.firstName} ${volunteer.lastName}` : '-'}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
+                    );
+                  })}
+                </div>
+              </CardContent>
             </Card>
           );
         })}
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-8">
+      {/* Statistics cards - responsive grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mt-8">
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium">Uitgeleende Materialen</CardTitle>
