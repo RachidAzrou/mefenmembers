@@ -32,7 +32,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { db } from "@/lib/firebase";
 import { ref, push, remove, update, onValue } from "firebase/database";
-import { Edit2, Trash2, Plus } from "lucide-react";
+import { Edit2, Trash2, Plus, DoorOpen } from "lucide-react";
 import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
 
 const roomSchema = z.object({
@@ -120,7 +120,10 @@ export default function Rooms() {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold">Ruimtes</h1>
+        <div className="flex items-center gap-3">
+          <DoorOpen className="h-8 w-8 text-primary" />
+          <h1 className="text-3xl font-bold text-primary">Ruimtes</h1>
+        </div>
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogTrigger asChild>
             <Button>

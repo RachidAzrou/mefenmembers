@@ -32,7 +32,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { db } from "@/lib/firebase";
 import { ref, push, remove, update, onValue } from "firebase/database";
-import { UserPlus, Edit2, Trash2, Search } from "lucide-react";
+import { UserPlus, Edit2, Trash2, Search, Users } from "lucide-react";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 
 const volunteerSchema = z.object({
@@ -99,16 +99,6 @@ export default function Volunteers() {
     }
   };
 
-  const handleEdit = (volunteer: Volunteer) => {
-    setEditingVolunteer(volunteer);
-    form.reset({
-      firstName: volunteer.firstName,
-      lastName: volunteer.lastName,
-      phoneNumber: volunteer.phoneNumber,
-    });
-    setDialogOpen(true);
-  };
-
   const handleDelete = async (id: string) => {
     try {
       await remove(ref(db, `volunteers/${id}`));
@@ -126,6 +116,16 @@ export default function Volunteers() {
     }
   };
 
+  const handleEdit = (volunteer: Volunteer) => {
+    setEditingVolunteer(volunteer);
+    form.reset({
+      firstName: volunteer.firstName,
+      lastName: volunteer.lastName,
+      phoneNumber: volunteer.phoneNumber,
+    });
+    setDialogOpen(true);
+  };
+
   const filteredVolunteers = volunteers.filter(volunteer => {
     const searchString = `${volunteer.firstName} ${volunteer.lastName} ${volunteer.phoneNumber}`.toLowerCase();
     return searchString.includes(searchTerm.toLowerCase());
@@ -134,7 +134,10 @@ export default function Volunteers() {
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
-        <h1 className="text-3xl font-bold">Vrijwilligers</h1>
+        <div className="flex items-center gap-3">
+          <Users className="h-8 w-8 text-primary" />
+          <h1 className="text-3xl font-bold text-primary">Vrijwilligers</h1>
+        </div>
         <div className="flex items-center gap-2 w-full sm:w-auto">
           <div className="relative flex-1 sm:w-64">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />

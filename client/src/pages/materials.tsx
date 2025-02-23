@@ -21,7 +21,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { db } from "@/lib/firebase";
 import { ref, push, update, onValue } from "firebase/database";
-import { Package, Edit2, RotateCcw, Search } from "lucide-react";
+import { Package2, Edit2, RotateCcw, Search } from "lucide-react";
 import {
   Form,
   FormControl,
@@ -208,7 +208,10 @@ export default function Materials() {
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
-        <h1 className="text-3xl font-bold">Materiaalbeheer</h1>
+        <div className="flex items-center gap-3">
+          <Package2 className="h-8 w-8 text-primary" />
+          <h1 className="text-3xl font-bold text-primary">Materiaalbeheer</h1>
+        </div>
         <div className="flex items-center gap-2 w-full sm:w-auto">
           <div className="relative flex-1 sm:w-64">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />

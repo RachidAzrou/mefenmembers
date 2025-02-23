@@ -32,11 +32,11 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { db } from "@/lib/firebase";
 import { ref, push, remove, update, onValue } from "firebase/database";
-import { Edit2, Trash2, Plus } from "lucide-react";
+import { Edit2, Trash2, Plus, LayoutGrid } from "lucide-react";
 import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
 
 const spaceSchema = z.object({
-  name: z.string().min(1, "Space name is required"),
+  name: z.string().min(1, "Ruimtenaam is verplicht"),
 });
 
 type Space = z.infer<typeof spaceSchema> & { id: string };
@@ -45,6 +45,7 @@ export default function Spaces() {
   const [spaces, setSpaces] = useState<Space[]>([]);
   const [editingSpace, setEditingSpace] = useState<Space | null>(null);
   const [deleteSpaceId, setDeleteSpaceId] = useState<string | null>(null);
+  const [dialogOpen, setDialogOpen] = useState(false);
   const { toast } = useToast();
 
   const form = useForm<z.infer<typeof spaceSchema>>({
@@ -54,7 +55,6 @@ export default function Spaces() {
     },
   });
 
-  // Load spaces from Firebase
   useState(() => {
     const spacesRef = ref(db, "spaces");
     onValue(spacesRef, (snapshot) => {
@@ -72,40 +72,47 @@ export default function Spaces() {
       if (editingSpace) {
         await update(ref(db, `spaces/${editingSpace.id}`), data);
         toast({
-          title: "Success",
-          description: "Space updated successfully",
+          title: "Succes",
+          description: "Ruimte succesvol bijgewerkt",
         });
       } else {
         await push(ref(db, "spaces"), data);
         toast({
-          title: "Success",
-          description: "Space added successfully",
+          title: "Succes",
+          description: "Ruimte succesvol toegevoegd",
         });
       }
       form.reset();
       setEditingSpace(null);
+      setDialogOpen(false);
     } catch (error) {
       toast({
         variant: "destructive",
-        title: "Error",
-        description: "Failed to save space",
+        title: "Fout",
+        description: "Kon ruimte niet opslaan",
       });
     }
+  };
+
+  const handleEdit = (space: Space) => {
+    setEditingSpace(space);
+    form.reset(space);
+    setDialogOpen(true);
   };
 
   const handleDelete = async (id: string) => {
     try {
       await remove(ref(db, `spaces/${id}`));
       toast({
-        title: "Success",
-        description: "Space deleted successfully",
+        title: "Succes",
+        description: "Ruimte succesvol verwijderd",
       });
       setDeleteSpaceId(null);
     } catch (error) {
       toast({
         variant: "destructive",
-        title: "Error",
-        description: "Failed to delete space",
+        title: "Fout",
+        description: "Kon ruimte niet verwijderen",
       });
     }
   };
@@ -113,18 +120,21 @@ export default function Spaces() {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold">Spaces</h1>
-        <Dialog>
+        <div className="flex items-center gap-3">
+          <LayoutGrid className="h-8 w-8 text-primary" />
+          <h1 className="text-3xl font-bold text-primary">Ruimtes</h1>
+        </div>
+        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogTrigger asChild>
             <Button>
               <Plus className="h-4 w-4 mr-2" />
-              Add Space
+              Ruimte Toevoegen
             </Button>
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
               <DialogTitle>
-                {editingSpace ? "Edit Space" : "Add New Space"}
+                {editingSpace ? "Ruimte Bewerken" : "Nieuwe Ruimte"}
               </DialogTitle>
             </DialogHeader>
             <Form {...form}>
@@ -135,14 +145,14 @@ export default function Spaces() {
                   render={({ field }) => (
                     <FormItem>
                       <FormControl>
-                        <Input placeholder="Space Name" {...field} />
+                        <Input placeholder="Ruimtenaam" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
                 <Button type="submit" className="w-full">
-                  {editingSpace ? "Update" : "Add"} Space
+                  {editingSpace ? "Bijwerken" : "Toevoegen"}
                 </Button>
               </form>
             </Form>
@@ -150,40 +160,48 @@ export default function Spaces() {
         </Dialog>
       </div>
 
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Name</TableHead>
-            <TableHead className="w-24">Actions</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {spaces.map((space) => (
-            <TableRow key={space.id}>
-              <TableCell>{space.name}</TableCell>
-              <TableCell className="space-x-2">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => {
-                    setEditingSpace(space);
-                    form.reset(space);
-                  }}
-                >
-                  <Edit2 className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => setDeleteSpaceId(space.id)}
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-              </TableCell>
+      <div className="rounded-lg border bg-card">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Naam</TableHead>
+              <TableHead className="w-[100px]">Acties</TableHead>
             </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+          </TableHeader>
+          <TableBody>
+            {spaces.map((space) => (
+              <TableRow key={space.id}>
+                <TableCell>{space.name}</TableCell>
+                <TableCell className="space-x-2">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => handleEdit(space)}
+                    className="text-green-600 hover:text-green-700 hover:bg-green-50"
+                  >
+                    <Edit2 className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => setDeleteSpaceId(space.id)}
+                    className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </TableCell>
+              </TableRow>
+            ))}
+            {spaces.length === 0 && (
+              <TableRow>
+                <TableCell colSpan={2} className="text-center py-6 text-gray-500">
+                  Geen ruimtes gevonden
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+      </div>
 
       <AlertDialog
         open={!!deleteSpaceId}
@@ -191,17 +209,18 @@ export default function Spaces() {
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogTitle>Weet je het zeker?</AlertDialogTitle>
             <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete the space.
+              Deze actie kan niet ongedaan worden gemaakt. Dit zal de ruimte permanent verwijderen.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>Annuleren</AlertDialogCancel>
             <AlertDialogAction
               onClick={() => deleteSpaceId && handleDelete(deleteSpaceId)}
+              className="bg-red-600 hover:bg-red-700"
             >
-              Delete
+              Verwijderen
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
