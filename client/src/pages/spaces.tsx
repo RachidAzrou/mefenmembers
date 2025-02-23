@@ -121,8 +121,8 @@ export default function Spaces() {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div className="flex items-center gap-3">
-          <LayoutGrid className="h-8 w-8 text-primary" />
-          <h1 className="text-3xl font-bold text-primary">Ruimtes</h1>
+          <LayoutGrid className="h-8 w-8 text-amber-500" />
+          <h1 className="text-3xl font-bold text-amber-500">Ruimtes</h1>
         </div>
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogTrigger asChild>

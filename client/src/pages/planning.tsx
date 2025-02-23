@@ -31,7 +31,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { db } from "@/lib/firebase";
 import { ref, push, remove, update, onValue } from "firebase/database";
-import { CalendarIcon, Edit2, Trash2 } from "lucide-react";
+import { Calendar as CalendarIcon, Edit2, Trash2 } from "lucide-react";
 import {
   Form,
   FormControl,
@@ -148,7 +148,7 @@ export default function Planning() {
       }
       form.reset();
       setEditingPlanning(null);
-      setDialogOpen(false); // Close dialog after submission
+      setDialogOpen(false);
     } catch (error) {
       toast({
         variant: "destructive",
@@ -189,7 +189,10 @@ export default function Planning() {
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
-        <h1 className="text-3xl font-bold">Planning</h1>
+        <div className="flex items-center gap-3">
+          <CalendarIcon className="h-8 w-8 text-amber-500" />
+          <h1 className="text-3xl font-bold text-amber-500">Planning</h1>
+        </div>
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogTrigger asChild>
             <Button>
