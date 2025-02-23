@@ -289,23 +289,9 @@ export function WeekView() {
           Week van {format(weekStart, "d MMMM yyyy", { locale: nl })}
         </h2>
 
-        <div className="mt-6 flex flex-wrap justify-center gap-4">
+        <div className="mt-6 flex flex-wrap justify-between items-center gap-4">
+          {/* Left side - Filters */}
           <div className="flex items-center gap-2">
-            <Button variant="outline" size="icon" onClick={goToPreviousWeek}>
-              <ChevronLeft className="h-4 w-4" />
-            </Button>
-            <Button variant="outline" onClick={goToToday}>Vandaag</Button>
-            <Button variant="outline" size="icon" onClick={goToNextWeek}>
-              <ChevronRight className="h-4 w-4" />
-            </Button>
-          </div>
-
-          <div className="flex flex-wrap items-center gap-2">
-            <Button variant="outline" onClick={copyPreviousWeek}>
-              <Copy className="h-4 w-4 mr-2" />
-              Vorige Week Kopiëren
-            </Button>
-
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="outline">
@@ -366,43 +352,25 @@ export function WeekView() {
               </DropdownMenuContent>
             </DropdownMenu>
 
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline">
-                  <Share className="h-4 w-4 mr-2" />
-                  Delen
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56">
-                <DropdownMenuItem asChild className="flex items-center">
-                  <PDFDownloadLink
-                    document={
-                      <CalendarPDF
-                        weekStart={weekStart}
-                        plannings={filteredPlannings.map(p => ({
-                          room: rooms.find(r => r.id === p.roomId) || { name: 'Unknown' },
-                          volunteer: volunteers.find(v => v.id === p.volunteerId) || { firstName: 'Unknown', lastName: '' }
-                        }))}
-                      />
-                    }
-                    fileName={`planning-${format(weekStart, 'yyyy-MM-dd')}.pdf`}
-                    className="flex items-center w-full px-2 py-1.5"
-                  >
-                    {({ loading }) => (
-                      <>
-                        <Download className="h-4 w-4 mr-2" />
-                        {loading ? "Genereren..." : "PDF Exporteren"}
-                      </>
-                    )}
-                  </PDFDownloadLink>
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={publishSchedule}>
-                  <Share2 className="h-4 w-4 mr-2" />
-                  Publiceren
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <Button variant="outline" onClick={copyPreviousWeek}>
+              <Copy className="h-4 w-4 mr-2" />
+              Vorige Week Kopiëren
+            </Button>
+          </div>
 
+          {/* Center - Navigation */}
+          <div className="flex items-center gap-2 mx-auto">
+            <Button variant="outline" size="icon" onClick={goToPreviousWeek}>
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+            <Button variant="outline" className="px-6">Vandaag</Button>
+            <Button variant="outline" size="icon" onClick={goToNextWeek}>
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+          </div>
+
+          {/* Right side - Actions */}
+          <div className="flex items-center gap-2">
             <Dialog>
               <DialogTrigger asChild>
                 <Button className="bg-primary hover:bg-primary/90">
@@ -606,12 +574,49 @@ export function WeekView() {
                 </Form>
               </DialogContent>
             </Dialog>
+
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline">
+                  <Share className="h-4 w-4 mr-2" />
+                  Delen
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuItem asChild className="flex items-center">
+                  <PDFDownloadLink
+                    document={
+                      <CalendarPDF
+                        weekStart={weekStart}
+                        plannings={filteredPlannings.map(p => ({
+                          room: rooms.find(r => r.id === p.roomId) || { name: 'Unknown' },
+                          volunteer: volunteers.find(v => v.id === p.volunteerId) || { firstName: 'Unknown', lastName: '' }
+                        }))}
+                      />
+                    }
+                    fileName={`planning-${format(weekStart, 'yyyy-MM-dd')}.pdf`}
+                    className="flex items-center w-full px-2 py-1.5"
+                  >
+                    {({ loading }) => (
+                      <>
+                        <Download className="h-4 w-4 mr-2" />
+                        {loading ? "Genereren..." : "PDF Exporteren"}
+                      </>
+                    )}
+                  </PDFDownloadLink>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={publishSchedule}>
+                  <Share2 className="h-4 w-4 mr-2" />
+                  Publiceren
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
       </div>
 
       {view === "grid" ? (
-        <div className="relative">
+        <div className="relative mt-6">
           <div className="grid grid-cols-1 md:grid-cols-7 gap-4">
             {weekDays.map((day) => {
               const dayPlannings = getPlanningsForDay(day);
@@ -643,10 +648,10 @@ export function WeekView() {
                               key={planning.id}
                               className="p-3 rounded-lg bg-primary/5 border border-primary/10 hover:bg-primary/10 transition-colors shadow-sm"
                             >
-                              <div className="font-medium text-primary">
+                              <div className="font-medium text-primary truncate">
                                 {room?.name || 'Onbekende ruimte'}
                               </div>
-                              <div className="text-sm text-gray-600 mt-1">
+                              <div className="text-sm text-gray-600 mt-1 truncate">
                                 {volunteer
                                   ? `${volunteer.firstName} ${volunteer.lastName}`
                                   : 'Niet toegewezen'
@@ -732,7 +737,6 @@ export function WeekView() {
         </div>
       )}
 
-      {/* Enhanced statistics cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-8">
         <Card className="bg-white shadow-sm hover:shadow-md transition-shadow">
           <CardContent className="pt-6">
