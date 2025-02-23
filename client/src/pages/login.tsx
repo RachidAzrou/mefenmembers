@@ -50,16 +50,17 @@ export default function Login() {
 
       <div className="relative z-10 w-full max-w-[600px] px-4">
         {/* Login Card */}
-        <Card className="bg-white border-0 shadow-2xl">
+        <Card className="bg-white border-0 shadow-2xl overflow-hidden">
           <CardContent className="pt-6 px-8">
             {/* Logo */}
             <div className="text-center mb-8">
-              <img 
-                src="./static/moskee.png" 
-                alt="MEFEN" 
-                className="w-full h-auto object-contain transform hover:scale-105 transition-transform duration-300"
-                style={{ display: 'block' }}
-              />
+              <div className="w-full flex justify-center items-center">
+                <img 
+                  src="/static/moskee.png" 
+                  alt="MEFEN" 
+                  className="w-full h-auto"
+                />
+              </div>
               <h1 className="text-2xl font-bold text-[#963E56] mt-4">
                 Meld je aan
               </h1>
