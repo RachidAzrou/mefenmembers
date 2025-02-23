@@ -65,7 +65,7 @@ export function Sidebar() {
       >
         <div className="flex h-16 items-center justify-between px-4 border-b bg-primary/5">
           {!collapsed && (
-            <img src="/mefen-logo.svg" alt="MEFEN" className="h-8" />
+            <img src="/icon-512x512.png" alt="MEFEN" className="h-8" />
           )}
           {!isMobile && (
             <Button
