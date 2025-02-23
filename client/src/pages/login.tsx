@@ -50,7 +50,7 @@ export default function Login() {
 
       <div className="relative z-10 w-full max-w-[420px]">
         {/* Login Card with Logo */}
-        <Card className="bg-white/90 backdrop-blur-sm border-0 shadow-2xl">
+        <Card className="bg-white border-0 shadow-2xl">
           <CardContent className="pt-6">
             {/* Logo */}
             <div className="text-center mb-8">
@@ -60,7 +60,7 @@ export default function Login() {
                 className="w-48 h-48 mx-auto transform hover:scale-105 transition-transform duration-300"
               />
               <h1 className="text-2xl font-bold text-[#963E56] mt-4">
-                Welkom bij MEFEN
+                Meld je aan
               </h1>
             </div>
 
@@ -71,7 +71,7 @@ export default function Login() {
                   <Input
                     type="email"
                     placeholder="E-mailadres"
-                    className="h-12 pl-10 bg-white/80 border-gray-200 focus:border-[#963E56] focus:ring-[#963E56] transition-all duration-200"
+                    className="h-12 pl-10 border-gray-200 focus:border-[#963E56] focus:ring-[#963E56] transition-all duration-200"
                     {...form.register("email")}
                   />
                 </div>
@@ -88,7 +88,7 @@ export default function Login() {
                   <Input
                     type="password"
                     placeholder="Wachtwoord"
-                    className="h-12 pl-10 bg-white/80 border-gray-200 focus:border-[#963E56] focus:ring-[#963E56] transition-all duration-200"
+                    className="h-12 pl-10 border-gray-200 focus:border-[#963E56] focus:ring-[#963E56] transition-all duration-200"
                     {...form.register("password")}
                   />
                 </div>
