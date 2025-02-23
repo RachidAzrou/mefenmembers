@@ -38,6 +38,8 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useToast } from "@/hooks/use-toast";
+import { PDFDownloadLink } from "@react-pdf/renderer";
+import { CalendarPDF } from "../pdf/calendar-pdf";
 
 type Volunteer = {
   id: string;
@@ -151,7 +153,22 @@ export function WeekView() {
   };
 
   const downloadPDF = () => {
-    // TODO: Implement PDF download
+    const filename = `planning-${format(weekStart, 'yyyy-MM-dd')}.pdf`;
+    const pdfContent = (
+      <CalendarPDF
+        weekStart={weekStart}
+        plannings={plannings.map(p => ({
+          room: rooms.find(r => r.id === p.roomId) || { name: 'Unknown' },
+          volunteer: volunteers.find(v => v.id === p.volunteerId) || { firstName: 'Unknown', lastName: '' }
+        }))}
+      />
+    );
+
+    return (
+      <PDFDownloadLink document={pdfContent} fileName={filename}>
+        {({ loading }) => (loading ? "Genereren..." : "PDF Exporteren")}
+      </PDFDownloadLink>
+    );
   };
 
   const publishSchedule = () => {
@@ -203,8 +220,8 @@ export function WeekView() {
   }).length;
 
   return (
-    <div className="container mx-auto px-4"> {/* Added container for better spacing */}
-      <div className="flex justify-between items-center mb-6"> {/* Reorganized top section */}
+    <div className="container mx-auto px-4">
+      <div className="flex justify-between items-center mb-6">
         <div>
           <Button variant="outline" onClick={copyPreviousWeek}>
             <Copy className="h-4 w-4 mr-2" />
@@ -229,9 +246,8 @@ export function WeekView() {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent>
-              <DropdownMenuItem onClick={downloadPDF}>
-                <Download className="h-4 w-4 mr-2" />
-                PDF Exporteren
+              <DropdownMenuItem asChild>
+                {downloadPDF()}
               </DropdownMenuItem>
               <DropdownMenuItem onClick={publishSchedule}>
                 <Share2 className="h-4 w-4 mr-2" />
@@ -352,15 +368,15 @@ export function WeekView() {
         </div>
       </div>
 
-      <div className="grid grid-cols-7 gap-4 mb-6"> {/* Added margin bottom */}
+      <div className="grid grid-cols-7 gap-4 mb-6">
         {weekDays.map((day) => {
           const dayPlannings = getPlanningsForDay(day);
           return (
             <Card key={day.toISOString()} className="p-4">
-              <div className="font-medium text-lg mb-2"> {/* Improved title styling */}
+              <div className="font-medium text-lg mb-2">
                 {format(day, "EEEE", { locale: nl })}
               </div>
-              <div className="text-sm text-gray-500"> {/* Removed unnecessary margin */}
+              <div className="text-sm text-gray-500">
                 {format(day, "d MMM", { locale: nl })}
               </div>
               <div className="space-y-2">
@@ -387,7 +403,7 @@ export function WeekView() {
         })}
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-8"> {/* Statistics cards */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-8">
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium">Uitgeleende Materialen</CardTitle>
