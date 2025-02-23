@@ -121,8 +121,8 @@ export default function Rooms() {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div className="flex items-center gap-3">
-          <DoorOpen className="h-8 w-8 text-[#D9A347]" />
-          <h1 className="text-3xl font-bold text-[#D9A347]">Ruimtes</h1>
+          <DoorOpen className="h-8 w-8 text-primary" />
+          <h1 className="text-3xl font-bold text-primary">Ruimtes</h1>
         </div>
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogTrigger asChild>
@@ -177,7 +177,7 @@ export default function Rooms() {
                     variant="ghost"
                     size="icon"
                     onClick={() => handleEdit(room)}
-                    className="text-green-600 hover:text-green-700 hover:bg-green-50"
+                    className="text-[#D9A347] hover:text-[#D9A347] hover:bg-[#D9A347]/10"
                   >
                     <Edit2 className="h-4 w-4" />
                   </Button>
@@ -185,7 +185,7 @@ export default function Rooms() {
                     variant="ghost"
                     size="icon"
                     onClick={() => setDeleteRoomId(room.id)}
-                    className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                    className="text-[#D9A347] hover:text-[#D9A347] hover:bg-[#D9A347]/10"
                   >
                     <Trash2 className="h-4 w-4" />
                   </Button>

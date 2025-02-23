@@ -209,8 +209,8 @@ export default function Materials() {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
         <div className="flex items-center gap-3">
-          <Package2 className="h-8 w-8 text-[#D9A347]" />
-          <h1 className="text-3xl font-bold text-[#D9A347]">Materiaalbeheer</h1>
+          <Package2 className="h-8 w-8 text-primary" />
+          <h1 className="text-3xl font-bold text-primary">Materiaalbeheer</h1>
         </div>
         <div className="flex items-center gap-2 w-full sm:w-auto">
           <div className="relative flex-1 sm:w-64">
@@ -346,7 +346,7 @@ export default function Materials() {
                       variant="ghost"
                       size="icon"
                       onClick={() => handleEdit(item)}
-                      className="text-green-600 hover:text-green-700 hover:bg-green-50"
+                      className="text-[#D9A347] hover:text-[#D9A347] hover:bg-[#D9A347]/10"
                     >
                       <Edit2 className="h-4 w-4" />
                     </Button>
@@ -354,7 +354,7 @@ export default function Materials() {
                       variant="ghost"
                       size="icon"
                       onClick={() => handleReturn(item.id)}
-                      className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                      className="text-[#D9A347] hover:text-[#D9A347] hover:bg-[#D9A347]/10"
                     >
                       <RotateCcw className="h-4 w-4" />
                     </Button>
