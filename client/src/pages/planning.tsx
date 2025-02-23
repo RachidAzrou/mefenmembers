@@ -379,7 +379,7 @@ export default function Planning() {
                 <div className="grid grid-cols-2 gap-4">
                   <Button
                     variant="outline"
-                    className="text-[#D9A347] hover:bg-[#D9A347]/10 border-[#D9A347]"
+                    className="bg-[#D9A347] hover:bg-[#D9A347]/90 text-white border-none"
                     onClick={() => handleBulkPlan()}
                   >
                     Bulk Inplannen
