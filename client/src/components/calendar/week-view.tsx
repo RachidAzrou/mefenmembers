@@ -1,6 +1,6 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, ChevronRight, Download, Share2, Share, Copy, Users } from "lucide-react";
+import { ChevronLeft, ChevronRight, Download, Share2, Share, Copy, Users, Filter } from "lucide-react";
 import { format, addWeeks, startOfWeek, addDays, isWithinInterval } from "date-fns";
 import { nl } from "date-fns/locale";
 import { useState, useEffect } from "react";
@@ -34,6 +34,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuCheckboxItem,
 } from "@/components/ui/dropdown-menu";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -41,6 +42,10 @@ import { z } from "zod";
 import { useToast } from "@/hooks/use-toast";
 import { PDFDownloadLink } from "@react-pdf/renderer";
 import { CalendarPDF } from "../pdf/calendar-pdf";
+import { Badge } from "@/components/ui/badge";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
 
 type Volunteer = {
   id: string;
@@ -88,6 +93,9 @@ export function WeekView() {
   const [volunteers, setVolunteers] = useState<Volunteer[]>([]);
   const [rooms, setRooms] = useState<Room[]>([]);
   const [materials, setMaterials] = useState<Material[]>([]);
+  const [filterVolunteer, setFilterVolunteer] = useState<string>("");
+  const [filterRoom, setFilterRoom] = useState<string>("");
+  const [view, setView] = useState<"grid" | "list">("grid");
   const { toast } = useToast();
 
   const bulkForm = useForm<z.infer<typeof bulkPlanningSchema>>({
@@ -202,8 +210,15 @@ export function WeekView() {
     }
   };
 
+  // Filter plannings based on selected filters
+  const filteredPlannings = plannings.filter(planning => {
+    if (filterVolunteer && planning.volunteerId !== filterVolunteer) return false;
+    if (filterRoom && planning.roomId !== filterRoom) return false;
+    return true;
+  });
+
   const getPlanningsForDay = (date: Date) => {
-    return plannings.filter(planning => {
+    return filteredPlannings.filter(planning => {
       const startDate = new Date(planning.startDate);
       const endDate = new Date(planning.endDate);
       return isWithinInterval(date, { start: startDate, end: endDate });
@@ -220,12 +235,73 @@ export function WeekView() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col md:flex-row justify-between items-center gap-4 mb-6">
-        <div className="w-full md:w-auto flex flex-wrap gap-2">
+      {/* Enhanced controls section */}
+      <div className="flex flex-col space-y-4 md:space-y-0 md:flex-row md:justify-between md:items-center">
+        <div className="flex flex-wrap gap-2">
           <Button variant="outline" className="w-full sm:w-auto" onClick={copyPreviousWeek}>
             <Copy className="h-4 w-4 mr-2" />
             Vorige Week Kopiëren
           </Button>
+
+          {/* Quick filters */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" className="w-full sm:w-auto">
+                <Filter className="h-4 w-4 mr-2" />
+                Filters
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="w-56">
+              <DropdownMenuCheckboxItem
+                checked={view === "grid"}
+                onCheckedChange={() => setView("grid")}
+              >
+                Rasterweergave
+              </DropdownMenuCheckboxItem>
+              <DropdownMenuCheckboxItem
+                checked={view === "list"}
+                onCheckedChange={() => setView("list")}
+              >
+                Lijstweergave
+              </DropdownMenuCheckboxItem>
+              <div className="px-2 py-1.5">
+                <Select
+                  value={filterVolunteer}
+                  onValueChange={setFilterVolunteer}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Filter op vrijwilliger" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">Alle vrijwilligers</SelectItem>
+                    {volunteers.map(volunteer => (
+                      <SelectItem key={volunteer.id} value={volunteer.id}>
+                        {volunteer.firstName} {volunteer.lastName}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="px-2 py-1.5">
+                <Select
+                  value={filterRoom}
+                  onValueChange={setFilterRoom}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Filter op ruimte" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">Alle ruimtes</SelectItem>
+                    {rooms.map(room => (
+                      <SelectItem key={room.id} value={room.id}>
+                        {room.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
 
         <div className="flex items-center gap-2">
@@ -238,7 +314,7 @@ export function WeekView() {
           </Button>
         </div>
 
-        <div className="w-full md:w-auto flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-2">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline" className="w-full sm:w-auto">
@@ -252,7 +328,7 @@ export function WeekView() {
                   document={
                     <CalendarPDF
                       weekStart={weekStart}
-                      plannings={plannings.map(p => ({
+                      plannings={filteredPlannings.map(p => ({
                         room: rooms.find(r => r.id === p.roomId) || { name: 'Unknown' },
                         volunteer: volunteers.find(v => v.id === p.volunteerId) || { firstName: 'Unknown', lastName: '' }
                       }))}
@@ -313,14 +389,36 @@ export function WeekView() {
                             {volunteers.map((volunteer) => (
                               <SelectItem key={volunteer.id} value={volunteer.id}>
                                 {volunteer.firstName} {volunteer.lastName}
+                                {field.value?.includes(volunteer.id) && " ✓"}
                               </SelectItem>
                             ))}
                           </SelectContent>
                         </Select>
+                        {field.value?.length > 0 && (
+                          <div className="flex flex-wrap gap-1 mt-2">
+                            {field.value.map(id => {
+                              const volunteer = volunteers.find(v => v.id === id);
+                              return (
+                                <Badge
+                                  key={id}
+                                  variant="secondary"
+                                  className="cursor-pointer"
+                                  onClick={() => {
+                                    field.onChange(field.value?.filter(v => v !== id));
+                                  }}
+                                >
+                                  {volunteer?.firstName} {volunteer?.lastName} ×
+                                </Badge>
+                              );
+                            })}
+                          </div>
+                        )}
                         <FormMessage />
                       </FormItem>
                     )}
                   />
+
+                  {/* Similar multi-select implementation for rooms */}
                   <FormField
                     control={bulkForm.control}
                     name="roomIds"
@@ -345,40 +443,113 @@ export function WeekView() {
                             {rooms.map((room) => (
                               <SelectItem key={room.id} value={room.id}>
                                 {room.name}
+                                {field.value?.includes(room.id) && " ✓"}
                               </SelectItem>
                             ))}
                           </SelectContent>
                         </Select>
+                        {field.value?.length > 0 && (
+                          <div className="flex flex-wrap gap-1 mt-2">
+                            {field.value.map(id => {
+                              const room = rooms.find(r => r.id === id);
+                              return (
+                                <Badge
+                                  key={id}
+                                  variant="secondary"
+                                  className="cursor-pointer"
+                                  onClick={() => {
+                                    field.onChange(field.value?.filter(v => v !== id));
+                                  }}
+                                >
+                                  {room?.name} ×
+                                </Badge>
+                              );
+                            })}
+                          </div>
+                        )}
                         <FormMessage />
                       </FormItem>
                     )}
                   />
-                  <FormField
-                    control={bulkForm.control}
-                    name="startDate"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Startdatum</FormLabel>
-                        <FormControl>
-                          <Input type="date" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={bulkForm.control}
-                    name="endDate"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Einddatum</FormLabel>
-                        <FormControl>
-                          <Input type="date" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+
+                  {/* Date Range Picker */}
+                  <div className="grid grid-cols-2 gap-4">
+                    <FormField
+                      control={bulkForm.control}
+                      name="startDate"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Startdatum</FormLabel>
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <FormControl>
+                                <Button
+                                  variant="outline"
+                                  className={cn(
+                                    "w-full pl-3 text-left font-normal",
+                                    !field.value && "text-muted-foreground"
+                                  )}
+                                >
+                                  {field.value ? (
+                                    format(new Date(field.value), "d MMMM yyyy", { locale: nl })
+                                  ) : (
+                                    <span>Kies een datum</span>
+                                  )}
+                                </Button>
+                              </FormControl>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0" align="start">
+                              <Calendar
+                                mode="single"
+                                selected={field.value ? new Date(field.value) : undefined}
+                                onSelect={(date) => field.onChange(date?.toISOString())}
+                                initialFocus
+                              />
+                            </PopoverContent>
+                          </Popover>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={bulkForm.control}
+                      name="endDate"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Einddatum</FormLabel>
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <FormControl>
+                                <Button
+                                  variant="outline"
+                                  className={cn(
+                                    "w-full pl-3 text-left font-normal",
+                                    !field.value && "text-muted-foreground"
+                                  )}
+                                >
+                                  {field.value ? (
+                                    format(new Date(field.value), "d MMMM yyyy", { locale: nl })
+                                  ) : (
+                                    <span>Kies een datum</span>
+                                  )}
+                                </Button>
+                              </FormControl>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0" align="start">
+                              <Calendar
+                                mode="single"
+                                selected={field.value ? new Date(field.value) : undefined}
+                                onSelect={(date) => field.onChange(date?.toISOString())}
+                                initialFocus
+                              />
+                            </PopoverContent>
+                          </Popover>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+
                   <Button type="submit" className="w-full">
                     Planningen Toevoegen
                   </Button>
@@ -395,54 +566,127 @@ export function WeekView() {
         </h2>
       </div>
 
-      <div className="relative">
-        <div className="grid grid-cols-1 md:grid-cols-7 gap-4">
+      {view === "grid" ? (
+        <div className="relative">
+          <div className="grid grid-cols-1 md:grid-cols-7 gap-4">
+            {weekDays.map((day) => {
+              const dayPlannings = getPlanningsForDay(day);
+              return (
+                <Card
+                  key={day.toISOString()}
+                  className="min-w-[280px] md:min-w-0 h-full flex flex-col"
+                >
+                  <CardContent className="flex-1 p-4">
+                    <div className="text-lg font-semibold mb-1">
+                      {format(day, "EEEE", { locale: nl })}
+                    </div>
+                    <div className="text-sm text-gray-500 mb-4">
+                      {format(day, "d MMMM", { locale: nl })}
+                    </div>
+                    <div className="space-y-3">
+                      {dayPlannings.length === 0 ? (
+                        <p className="text-sm text-gray-500 italic">Geen toewijzingen</p>
+                      ) : (
+                        dayPlannings.map(planning => {
+                          const volunteer = volunteers.find(v => v.id === planning.volunteerId);
+                          const room = rooms.find(r => r.id === planning.roomId);
+                          const assignedMaterials = materials.filter(
+                            m => m.volunteerId === planning.volunteerId && m.isCheckedOut
+                          );
+
+                          return (
+                            <div
+                              key={planning.id}
+                              className="p-3 rounded-lg bg-primary/5 border border-primary/10 hover:bg-primary/10 transition-colors shadow-sm"
+                            >
+                              <div className="font-medium text-primary">
+                                {room?.name || 'Onbekende ruimte'}
+                              </div>
+                              <div className="text-sm text-gray-600 mt-1">
+                                {volunteer
+                                  ? `${volunteer.firstName} ${volunteer.lastName}`
+                                  : 'Niet toegewezen'
+                                }
+                              </div>
+                              {assignedMaterials.length > 0 && (
+                                <div className="mt-2 flex flex-wrap gap-1">
+                                  <Badge variant="outline" className="text-xs">
+                                    {assignedMaterials.length} materialen
+                                  </Badge>
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+        </div>
+      ) : (
+        <div className="space-y-4">
           {weekDays.map((day) => {
             const dayPlannings = getPlanningsForDay(day);
             return (
-              <Card
-                key={day.toISOString()}
-                className="min-w-[280px] md:min-w-0 h-full flex flex-col"
-              >
-                <CardContent className="flex-1 p-4">
-                  <div className="text-lg font-semibold mb-1">
-                    {format(day, "EEEE", { locale: nl })}
+              <div key={day.toISOString()} className="border rounded-lg p-4">
+                <div className="flex justify-between items-center mb-4">
+                  <div>
+                    <h3 className="text-lg font-semibold">
+                      {format(day, "EEEE", { locale: nl })}
+                    </h3>
+                    <p className="text-sm text-gray-500">
+                      {format(day, "d MMMM", { locale: nl })}
+                    </p>
                   </div>
-                  <div className="text-sm text-gray-500 mb-4">
-                    {format(day, "d MMMM", { locale: nl })}
-                  </div>
-                  <div className="space-y-3">
-                    {dayPlannings.length === 0 ? (
-                      <p className="text-sm text-gray-500 italic">Geen toewijzingen</p>
-                    ) : (
-                      dayPlannings.map(planning => {
-                        const volunteer = volunteers.find(v => v.id === planning.volunteerId);
-                        const room = rooms.find(r => r.id === planning.roomId);
-                        return (
-                          <div
-                            key={planning.id}
-                            className="p-3 rounded-lg bg-primary/5 border border-primary/10 hover:bg-primary/10 transition-colors shadow-sm"
-                          >
+                  <Badge variant="outline">
+                    {dayPlannings.length} toewijzing{dayPlannings.length !== 1 ? 'en' : ''}
+                  </Badge>
+                </div>
+                <div className="space-y-2">
+                  {dayPlannings.length === 0 ? (
+                    <p className="text-sm text-gray-500 italic">Geen toewijzingen</p>
+                  ) : (
+                    dayPlannings.map(planning => {
+                      const volunteer = volunteers.find(v => v.id === planning.volunteerId);
+                      const room = rooms.find(r => r.id === planning.roomId);
+                      const assignedMaterials = materials.filter(
+                        m => m.volunteerId === planning.volunteerId && m.isCheckedOut
+                      );
+
+                      return (
+                        <div
+                          key={planning.id}
+                          className="flex justify-between items-center p-3 rounded-lg bg-primary/5 border border-primary/10 hover:bg-primary/10 transition-colors"
+                        >
+                          <div>
                             <div className="font-medium text-primary">
                               {room?.name || 'Onbekende ruimte'}
                             </div>
-                            <div className="text-sm text-gray-600 mt-1">
+                            <div className="text-sm text-gray-600">
                               {volunteer
                                 ? `${volunteer.firstName} ${volunteer.lastName}`
                                 : 'Niet toegewezen'
                               }
                             </div>
                           </div>
-                        );
-                      })
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
+                          {assignedMaterials.length > 0 && (
+                            <Badge variant="outline" className="text-xs">
+                              {assignedMaterials.length} materialen
+                            </Badge>
+                          )}
+                        </div>
+                      );
+                    })
+                  )}
+                </div>
+              </div>
             );
           })}
         </div>
-      </div>
+      )}
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-8">
         <Card>
