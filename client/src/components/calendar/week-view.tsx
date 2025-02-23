@@ -1,11 +1,17 @@
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, ChevronRight, Download, Share2 } from "lucide-react";
+import { ChevronLeft, ChevronRight, Download, Share2, Share } from "lucide-react";
 import { format, addWeeks, startOfWeek, addDays, isWithinInterval } from "date-fns";
 import { nl } from "date-fns/locale";
 import { useState, useEffect } from "react";
 import { db } from "@/lib/firebase";
 import { ref, onValue } from "firebase/database";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 type Volunteer = {
   id: string;
@@ -33,7 +39,7 @@ export function WeekView() {
   const [rooms, setRooms] = useState<Room[]>([]);
 
   const weekDays = Array.from({ length: 7 }).map((_, i) => 
-    addDays(startOfWeek(currentWeek), i)
+    addDays(startOfWeek(currentWeek, { weekStartsOn: 1 }), i)
   );
 
   useEffect(() => {
@@ -89,8 +95,8 @@ export function WeekView() {
   };
 
   return (
-    <div className="space-y-4">
-      <div className="flex justify-between items-center">
+    <div className="space-y-6">
+      <div className="flex flex-col items-center space-y-4">
         <div className="flex space-x-2">
           <Button variant="outline" onClick={goToPreviousWeek}>
             <ChevronLeft className="h-4 w-4" />
@@ -100,15 +106,25 @@ export function WeekView() {
             <ChevronRight className="h-4 w-4" />
           </Button>
         </div>
-        <div className="flex space-x-2">
-          <Button variant="outline" onClick={downloadPDF}>
-            <Download className="h-4 w-4 mr-2" />
-            PDF Exporteren
-          </Button>
-          <Button variant="outline" onClick={publishSchedule}>
-            <Share2 className="h-4 w-4 mr-2" />
-            Publiceren
-          </Button>
+        <div className="flex justify-end w-full">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline">
+                <Share className="h-4 w-4 mr-2" />
+                Deel
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+              <DropdownMenuItem onClick={downloadPDF}>
+                <Download className="h-4 w-4 mr-2" />
+                PDF Exporteren
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={publishSchedule}>
+                <Share2 className="h-4 w-4 mr-2" />
+                Publiceren
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
 

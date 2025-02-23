@@ -15,13 +15,23 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { db } from "@/lib/firebase";
 import { ref, push, remove, update, onValue } from "firebase/database";
-import { Package } from "lucide-react";
+import { Package, Edit2, Trash2 } from "lucide-react";
 import {
   Form,
   FormControl,
@@ -68,6 +78,8 @@ export default function Materials() {
   const [materials, setMaterials] = useState<Material[]>([]);
   const [materialTypes, setMaterialTypes] = useState<MaterialType[]>([]);
   const [volunteers, setVolunteers] = useState<Volunteer[]>([]);
+  const [editingMaterial, setEditingMaterial] = useState<Material | null>(null);
+  const [deleteMaterialId, setDeleteMaterialId] = useState<string | null>(null);
   const { toast } = useToast();
 
   const form = useForm<z.infer<typeof materialSchema>>({
@@ -109,14 +121,26 @@ export default function Materials() {
 
   const onSubmit = async (data: z.infer<typeof materialSchema>) => {
     try {
-      await push(ref(db, "materials"), {
-        ...data,
-        isCheckedOut: true,
-      });
-      toast({
-        title: "Succes",
-        description: "Materiaal succesvol toegewezen",
-      });
+      if (editingMaterial) {
+        await update(ref(db, `materials/${editingMaterial.id}`), {
+          ...data,
+          isCheckedOut: true,
+        });
+        toast({
+          title: "Succes",
+          description: "Materiaal succesvol bijgewerkt",
+        });
+        setEditingMaterial(null);
+      } else {
+        await push(ref(db, "materials"), {
+          ...data,
+          isCheckedOut: true,
+        });
+        toast({
+          title: "Succes",
+          description: "Materiaal succesvol toegewezen",
+        });
+      }
       form.reset();
     } catch (error) {
       toast({
@@ -125,6 +149,32 @@ export default function Materials() {
         description: "Kon materiaal niet toewijzen",
       });
     }
+  };
+
+  const handleDelete = async (materialId: string) => {
+    try {
+      await remove(ref(db, `materials/${materialId}`));
+      toast({
+        title: "Succes",
+        description: "Materiaal succesvol verwijderd",
+      });
+      setDeleteMaterialId(null);
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Fout",
+        description: "Kon materiaal niet verwijderen",
+      });
+    }
+  };
+
+  const handleEdit = (material: Material) => {
+    setEditingMaterial(material);
+    form.reset({
+      typeId: material.typeId,
+      volunteerId: material.volunteerId || "",
+      number: material.number,
+    });
   };
 
   const handleReturn = async (materialId: string) => {
@@ -146,10 +196,11 @@ export default function Materials() {
     }
   };
 
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold">Materiaal Beheer</h1>
+        <h1 className="text-3xl font-bold">Materiaalbeheer</h1>
         <Dialog>
           <DialogTrigger asChild>
             <Button>
@@ -159,7 +210,9 @@ export default function Materials() {
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Materiaal Toewijzen</DialogTitle>
+              <DialogTitle>
+                {editingMaterial ? "Materiaal Bewerken" : "Materiaal Toewijzen"}
+              </DialogTitle>
             </DialogHeader>
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -247,7 +300,7 @@ export default function Materials() {
                   )}
                 />
                 <Button type="submit" className="w-full">
-                  Materiaal Toewijzen
+                  {editingMaterial ? "Materiaal Bijwerken" : "Materiaal Toewijzen"}
                 </Button>
               </form>
             </Form>
@@ -281,7 +334,23 @@ export default function Materials() {
                     ? `${volunteer.firstName} ${volunteer.lastName}`
                     : "-"}
                 </TableCell>
-                <TableCell>
+                <TableCell className="space-x-2">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => handleEdit(item)}
+                    className="text-green-600 hover:text-green-700 hover:bg-green-50"
+                  >
+                    <Edit2 className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => setDeleteMaterialId(item.id)}
+                    className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
                   {item.isCheckedOut && (
                     <Button
                       variant="outline"
@@ -297,6 +366,29 @@ export default function Materials() {
           })}
         </TableBody>
       </Table>
+
+      <AlertDialog
+        open={!!deleteMaterialId}
+        onOpenChange={() => setDeleteMaterialId(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Weet je het zeker?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Deze actie kan niet ongedaan worden gemaakt. Dit zal het materiaal permanent verwijderen.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Annuleren</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => deleteMaterialId && handleDelete(deleteMaterialId)}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              Verwijderen
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
