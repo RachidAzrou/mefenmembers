@@ -31,7 +31,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { db } from "@/lib/firebase";
 import { ref, push, remove, update, onValue } from "firebase/database";
-import { Package, Edit2, Trash2 } from "lucide-react";
+import { Package, Edit2, Trash2, Search } from "lucide-react";
 import {
   Form,
   FormControl,
@@ -48,6 +48,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
 
 const materialSchema = z.object({
   typeId: z.string().min(1, "Type materiaal is verplicht"),
@@ -81,6 +82,7 @@ export default function Materials() {
   const [volunteers, setVolunteers] = useState<Volunteer[]>([]);
   const [editingMaterial, setEditingMaterial] = useState<Material | null>(null);
   const [deleteMaterialId, setDeleteMaterialId] = useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = useState("");
   const { toast } = useToast();
 
   const form = useForm<z.infer<typeof materialSchema>>({
@@ -203,157 +205,191 @@ export default function Materials() {
     }
   };
 
+  // Filter materials based on search term
+  const filteredMaterials = materials.filter(material => {
+    const type = materialTypes.find(t => t.id === material.typeId);
+    const volunteer = volunteers.find(v => v.id === material.volunteerId);
+    const searchString = `${type?.name || ''} ${volunteer?.firstName || ''} ${volunteer?.lastName || ''} ${material.number}`.toLowerCase();
+    return searchString.includes(searchTerm.toLowerCase());
+  });
+
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
         <h1 className="text-3xl font-bold">Materiaalbeheer</h1>
-        <Dialog>
-          <DialogTrigger asChild>
-            <Button>
-              <Package className="h-4 w-4 mr-2" />
-              Materiaal Toewijzen
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>
-                {editingMaterial ? "Materiaal Bewerken" : "Materiaal Toewijzen"}
-              </DialogTitle>
-            </DialogHeader>
-            <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                <FormField
-                  control={form.control}
-                  name="typeId"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Type Materiaal</FormLabel>
-                      <Select
-                        onValueChange={field.onChange}
-                        defaultValue={field.value}
-                      >
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Selecteer type" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {materialTypes.map((type) => (
-                            <SelectItem key={type.id} value={type.id}>
-                              {type.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="volunteerId"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Vrijwilliger</FormLabel>
-                      <Select
-                        onValueChange={field.onChange}
-                        defaultValue={field.value}
-                      >
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Selecteer vrijwilliger" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {volunteers.map((volunteer) => (
-                            <SelectItem key={volunteer.id} value={volunteer.id}>
-                              {volunteer.firstName} {volunteer.lastName}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="number"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Nummer</FormLabel>
-                      <Input
-                        type="number"
-                        min={1}
-                        max={maxNumber}
-                        {...field}
-                        onChange={(e) => field.onChange(parseInt(e.target.value))}
-                      />
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <Button type="submit" className="w-full">
-                  {editingMaterial ? "Materiaal Bijwerken" : "Materiaal Toewijzen"}
-                </Button>
-              </form>
-            </Form>
-          </DialogContent>
-        </Dialog>
+        <div className="flex items-center gap-2 w-full sm:w-auto">
+          <div className="relative flex-1 sm:w-64">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
+            <Input
+              placeholder="Zoeken..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-9"
+            />
+          </div>
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button>
+                <Package className="h-4 w-4 mr-2" />
+                Materiaal Toewijzen
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>
+                  {editingMaterial ? "Materiaal Bewerken" : "Materiaal Toewijzen"}
+                </DialogTitle>
+              </DialogHeader>
+              <Form {...form}>
+                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                  <FormField
+                    control={form.control}
+                    name="typeId"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Type Materiaal</FormLabel>
+                        <Select
+                          onValueChange={field.onChange}
+                          defaultValue={field.value}
+                        >
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Selecteer type" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {materialTypes.map((type) => (
+                              <SelectItem key={type.id} value={type.id}>
+                                {type.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="volunteerId"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Vrijwilliger</FormLabel>
+                        <Select
+                          onValueChange={field.onChange}
+                          defaultValue={field.value}
+                        >
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Selecteer vrijwilliger" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {volunteers.map((volunteer) => (
+                              <SelectItem key={volunteer.id} value={volunteer.id}>
+                                {volunteer.firstName} {volunteer.lastName}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="number"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Nummer</FormLabel>
+                        <Input
+                          type="number"
+                          min={1}
+                          max={maxNumber}
+                          {...field}
+                          onChange={(e) => field.onChange(parseInt(e.target.value))}
+                        />
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <Button type="submit" className="w-full">
+                    {editingMaterial ? "Materiaal Bijwerken" : "Materiaal Toewijzen"}
+                  </Button>
+                </form>
+              </Form>
+            </DialogContent>
+          </Dialog>
+        </div>
       </div>
 
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Vrijwilliger</TableHead>
-            <TableHead>Type</TableHead>
-            <TableHead>Nummer</TableHead>
-            <TableHead className="w-24">Acties</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {materials.map((item) => {
-            const type = materialTypes.find((t) => t.id === item.typeId);
-            const volunteer = volunteers.find((v) => v.id === item.volunteerId);
-            return (
-              <TableRow key={item.id}>
-                <TableCell>
-                  {volunteer
-                    ? `${volunteer.firstName} ${volunteer.lastName}`
-                    : "-"}
-                </TableCell>
-                <TableCell>{type?.name || "-"}</TableCell>
-                <TableCell>{item.number}</TableCell>
-                <TableCell className="space-x-2">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => handleEdit(item)}
-                    className="text-green-600 hover:text-green-700 hover:bg-green-50"
-                  >
-                    <Edit2 className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => setDeleteMaterialId(item.id)}
-                    className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleReturn(item.id)}
-                  >
-                    Retourneren
-                  </Button>
+      <div className="rounded-lg border bg-card">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Type</TableHead>
+              <TableHead>Nummer</TableHead>
+              <TableHead>Vrijwilliger</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead className="w-[100px]">Acties</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {filteredMaterials.map((item) => {
+              const type = materialTypes.find((t) => t.id === item.typeId);
+              const volunteer = volunteers.find((v) => v.id === item.volunteerId);
+              return (
+                <TableRow key={item.id}>
+                  <TableCell>{type?.name || "-"}</TableCell>
+                  <TableCell>{item.number}</TableCell>
+                  <TableCell>
+                    {volunteer
+                      ? `${volunteer.firstName} ${volunteer.lastName}`
+                      : "-"}
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant={item.isCheckedOut ? "default" : "secondary"}>
+                      {item.isCheckedOut ? "Uitgeleend" : "Beschikbaar"}
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="space-x-2">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => handleEdit(item)}
+                      className="text-green-600 hover:text-green-700 hover:bg-green-50"
+                    >
+                      <Edit2 className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => setDeleteMaterialId(item.id)}
+                      className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleReturn(item.id)}
+                    >
+                      Retourneren
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              );
+            })}
+            {filteredMaterials.length === 0 && (
+              <TableRow>
+                <TableCell colSpan={5} className="text-center py-6 text-gray-500">
+                  Geen materialen gevonden
                 </TableCell>
               </TableRow>
-            );
-          })}
-        </TableBody>
-      </Table>
+            )}
+          </TableBody>
+        </Table>
+      </div>
 
       <AlertDialog
         open={!!deleteMaterialId}
