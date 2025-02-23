@@ -285,7 +285,7 @@ export function WeekView() {
   return (
     <div className="space-y-6">
       <div className="text-center">
-        <h2 className="text-2xl font-semibold text-gray-900">
+        <h2 className="text-2xl font-semibold text-[#D9A347]">
           Week van {format(weekStart, "d MMMM yyyy", { locale: nl })}
         </h2>
 
@@ -363,7 +363,7 @@ export function WeekView() {
             <Button variant="outline" size="icon" onClick={goToPreviousWeek}>
               <ChevronLeft className="h-4 w-4" />
             </Button>
-            <Button variant="outline" className="px-6">Vandaag</Button>
+            <Button variant="outline" onClick={goToToday}>Vandaag</Button>
             <Button variant="outline" size="icon" onClick={goToNextWeek}>
               <ChevronRight className="h-4 w-4" />
             </Button>
@@ -373,7 +373,7 @@ export function WeekView() {
           <div className="flex items-center gap-2">
             <Dialog>
               <DialogTrigger asChild>
-                <Button className="bg-primary hover:bg-primary/90">
+                <Button className="bg-[#D9A347] hover:bg-[#D9A347]/90 text-white">
                   <Users className="h-4 w-4 mr-2" />
                   Bulk Inplannen
                 </Button>
