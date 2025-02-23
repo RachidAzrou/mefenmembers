@@ -1,4 +1,4 @@
-import { Card } from "@/components/ui/card";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight, Download, Share2, Share, Copy, Users } from "lucide-react";
 import { format, addWeeks, startOfWeek, addDays, isWithinInterval } from "date-fns";
@@ -59,6 +59,13 @@ type Planning = {
   endDate: string;
 };
 
+type Material = {
+  id: string;
+  typeId: string;
+  volunteerId?: string;
+  isCheckedOut: boolean;
+};
+
 const bulkPlanningSchema = z.object({
   volunteerIds: z.array(z.string()).min(1, "Selecteer minimaal één vrijwilliger"),
   roomIds: z.array(z.string()).min(1, "Selecteer minimaal één ruimte"),
@@ -78,6 +85,7 @@ export function WeekView() {
   const [plannings, setPlannings] = useState<Planning[]>([]);
   const [volunteers, setVolunteers] = useState<Volunteer[]>([]);
   const [rooms, setRooms] = useState<Room[]>([]);
+  const [materials, setMaterials] = useState<Material[]>([]);
   const { toast } = useToast();
 
   const bulkForm = useForm<z.infer<typeof bulkPlanningSchema>>({
@@ -88,8 +96,9 @@ export function WeekView() {
     },
   });
 
-  const weekDays = Array.from({ length: 7 }).map((_, i) => 
-    addDays(startOfWeek(currentWeek, { weekStartsOn: 1 }), i)
+  const weekStart = startOfWeek(currentWeek, { weekStartsOn: 1 });
+  const weekDays = Array.from({ length: 7 }).map((_, i) =>
+    addDays(weekStart, i)
   );
 
   useEffect(() => {
@@ -121,6 +130,16 @@ export function WeekView() {
         ...(room as Omit<Room, "id">),
       })) : [];
       setRooms(roomsList);
+    });
+
+    const materialsRef = ref(db, "materials");
+    onValue(materialsRef, (snapshot) => {
+      const data = snapshot.val();
+      const materialsList = data ? Object.entries(data).map(([id, material]) => ({
+        id,
+        ...(material as Omit<Material, "id">),
+      })) : [];
+      setMaterials(materialsList);
     });
   }, []);
 
@@ -175,9 +194,24 @@ export function WeekView() {
     });
   };
 
+  // Calculate statistics
+  const checkedOutMaterials = materials.filter(m => m.isCheckedOut).length;
+  const totalVolunteers = volunteers.length;
+  const totalRooms = rooms.length;
+  const activeVolunteers = plannings.filter(p => {
+    const endDate = new Date(p.endDate);
+    return endDate >= new Date();
+  }).length;
+
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center mb-6">
+      <div className="text-center mb-8">
+        <h2 className="text-2xl font-semibold">
+          Week van {format(weekStart, "d MMMM yyyy", { locale: nl })}
+        </h2>
+      </div>
+
+      <div className="flex flex-col space-y-4 md:flex-row md:justify-between md:items-center md:space-y-0 mb-6">
         <div className="flex space-x-4">
           <Button variant="outline" onClick={copyPreviousWeek}>
             <Copy className="h-4 w-4 mr-2" />
@@ -294,6 +328,15 @@ export function WeekView() {
             </DialogContent>
           </Dialog>
         </div>
+        <div className="flex justify-center space-x-2">
+          <Button variant="outline" onClick={goToPreviousWeek}>
+            <ChevronLeft className="h-4 w-4" />
+          </Button>
+          <Button variant="outline" onClick={goToToday}>Vandaag</Button>
+          <Button variant="outline" onClick={goToNextWeek}>
+            <ChevronRight className="h-4 w-4" />
+          </Button>
+        </div>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="outline">
@@ -314,16 +357,6 @@ export function WeekView() {
         </DropdownMenu>
       </div>
 
-      <div className="flex justify-center space-x-2 mb-6">
-        <Button variant="outline" onClick={goToPreviousWeek}>
-          <ChevronLeft className="h-4 w-4" />
-        </Button>
-        <Button variant="outline" onClick={goToToday}>Vandaag</Button>
-        <Button variant="outline" onClick={goToNextWeek}>
-          <ChevronRight className="h-4 w-4" />
-        </Button>
-      </div>
-
       <div className="grid grid-cols-7 gap-4">
         {weekDays.map((day) => {
           const dayPlannings = getPlanningsForDay(day);
@@ -340,8 +373,8 @@ export function WeekView() {
                   const volunteer = volunteers.find(v => v.id === planning.volunteerId);
                   const room = rooms.find(r => r.id === planning.roomId);
                   return (
-                    <div 
-                      key={planning.id} 
+                    <div
+                      key={planning.id}
                       className="text-xs p-2 rounded bg-primary/5 border border-primary/10"
                     >
                       <div className="font-medium text-primary">
@@ -357,6 +390,41 @@ export function WeekView() {
             </Card>
           );
         })}
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-8">
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium">Uitgeleende Materialen</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{checkedOutMaterials}</div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium">Totaal Vrijwilligers</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{totalVolunteers}</div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium">Totaal Ruimtes</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{totalRooms}</div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium">Actieve Vrijwilligers</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{activeVolunteers}</div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );

@@ -106,7 +106,7 @@ export default function Materials() {
         ...(material as Omit<Material, "id">),
       })) : [];
       // Only show checked out materials
-      setMaterials(materialsList.filter(m => m.isCheckedOut));
+      setMaterials(materialsList.filter((m) => m.isCheckedOut));
     });
 
     const volunteersRef = ref(db, "volunteers");
@@ -286,13 +286,16 @@ export default function Materials() {
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          {materialTypes.map((type) => (
-                            Array.from({ length: type.maxCount }).map((_, i) => (
+                          {materialTypes.find(t => t.id === form.getValues("typeId"))?.maxCount ? 
+                            Array.from({ length: materialTypes.find(t => t.id === form.getValues("typeId"))!.maxCount }).map((_, i) => (
                               <SelectItem key={i + 1} value={(i + 1).toString()}>
                                 {i + 1}
                               </SelectItem>
-                            ))
-                          ))}
+                            )) : 
+                            <SelectItem value="" disabled>
+                              Selecteer eerst een type
+                            </SelectItem>
+                          }
                         </SelectContent>
                       </Select>
                       <FormMessage />
