@@ -48,6 +48,7 @@ export default function Volunteers() {
   const [editingVolunteer, setEditingVolunteer] = useState<Volunteer | null>(null);
   const [deleteVolunteerId, setDeleteVolunteerId] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
+  const [dialogOpen, setDialogOpen] = useState(false);
   const { toast } = useToast();
 
   const form = useForm<z.infer<typeof volunteerSchema>>({
@@ -59,7 +60,6 @@ export default function Volunteers() {
     },
   });
 
-  // Load volunteers from Firebase
   useState(() => {
     const volunteersRef = ref(db, "volunteers");
     onValue(volunteersRef, (snapshot) => {
@@ -89,6 +89,7 @@ export default function Volunteers() {
       }
       form.reset();
       setEditingVolunteer(null);
+      setDialogOpen(false);
     } catch (error) {
       toast({
         variant: "destructive",
@@ -96,6 +97,16 @@ export default function Volunteers() {
         description: "Kon vrijwilliger niet opslaan",
       });
     }
+  };
+
+  const handleEdit = (volunteer: Volunteer) => {
+    setEditingVolunteer(volunteer);
+    form.reset({
+      firstName: volunteer.firstName,
+      lastName: volunteer.lastName,
+      phoneNumber: volunteer.phoneNumber,
+    });
+    setDialogOpen(true);
   };
 
   const handleDelete = async (id: string) => {
@@ -115,7 +126,6 @@ export default function Volunteers() {
     }
   };
 
-  // Filter volunteers based on search term
   const filteredVolunteers = volunteers.filter(volunteer => {
     const searchString = `${volunteer.firstName} ${volunteer.lastName} ${volunteer.phoneNumber}`.toLowerCase();
     return searchString.includes(searchTerm.toLowerCase());
@@ -135,7 +145,7 @@ export default function Volunteers() {
               className="pl-9"
             />
           </div>
-          <Dialog>
+          <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
             <DialogTrigger asChild>
               <Button>
                 <UserPlus className="h-4 w-4 mr-2" />
@@ -219,10 +229,7 @@ export default function Volunteers() {
                   <Button
                     variant="ghost"
                     size="icon"
-                    onClick={() => {
-                      setEditingVolunteer(volunteer);
-                      form.reset(volunteer);
-                    }}
+                    onClick={() => handleEdit(volunteer)}
                     className="text-green-600 hover:text-green-700 hover:bg-green-50"
                   >
                     <Edit2 className="h-4 w-4" />

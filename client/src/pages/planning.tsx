@@ -92,6 +92,7 @@ export default function Planning() {
   const [plannings, setPlannings] = useState<Planning[]>([]);
   const [editingPlanning, setEditingPlanning] = useState<Planning | null>(null);
   const [deletePlanningId, setDeletePlanningId] = useState<string | null>(null);
+  const [dialogOpen, setDialogOpen] = useState(false);
   const { toast } = useToast();
 
   const form = useForm<z.infer<typeof planningSchema>>({
@@ -147,6 +148,7 @@ export default function Planning() {
       }
       form.reset();
       setEditingPlanning(null);
+      setDialogOpen(false); // Close dialog after submission
     } catch (error) {
       toast({
         variant: "destructive",
@@ -173,11 +175,22 @@ export default function Planning() {
     }
   };
 
+  const handleEdit = (planning: Planning) => {
+    setEditingPlanning(planning);
+    form.reset({
+      volunteerId: planning.volunteerId,
+      roomId: planning.roomId,
+      startDate: planning.startDate,
+      endDate: planning.endDate,
+    });
+    setDialogOpen(true);
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
         <h1 className="text-3xl font-bold">Planning</h1>
-        <Dialog>
+        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogTrigger asChild>
             <Button>
               <CalendarIcon className="h-4 w-4 mr-2" />
@@ -358,15 +371,7 @@ export default function Planning() {
                     <Button
                       variant="ghost"
                       size="icon"
-                      onClick={() => {
-                        setEditingPlanning(planning);
-                        form.reset({
-                          volunteerId: planning.volunteerId,
-                          roomId: planning.roomId,
-                          startDate: planning.startDate,
-                          endDate: planning.endDate,
-                        });
-                      }}
+                      onClick={() => handleEdit(planning)}
                       className="text-green-600 hover:text-green-700 hover:bg-green-50"
                     >
                       <Edit2 className="h-4 w-4" />
