@@ -15,15 +15,17 @@ const loginSchema = z.object({
   password: z.string().min(6, "Wachtwoord moet minimaal 6 tekens bevatten"),
 });
 
+type LoginFormData = z.infer<typeof loginSchema>;
+
 export default function Login() {
   const { toast } = useToast();
   const [_, setLocation] = useLocation();
 
-  const form = useForm({
+  const form = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
   });
 
-  const onSubmit = async (data: z.infer<typeof loginSchema>) => {
+  const onSubmit = async (data: LoginFormData) => {
     try {
       await signInWithEmailAndPassword(auth, data.email, data.password);
       setLocation("/");
@@ -36,7 +38,8 @@ export default function Login() {
     }
   };
 
-  return (
+  // Option 1: Current Centered Card Layout with Gradient
+  const CenteredCardLayout = (
     <div 
       className="min-h-screen flex items-center justify-center bg-no-repeat bg-cover bg-center relative"
       style={{ 
@@ -115,4 +118,172 @@ export default function Login() {
       <div className="absolute inset-0 -z-10 bg-gradient-to-br from-[#D9A347]/20 via-transparent to-black/30 animate-gradient-shift" />
     </div>
   );
+
+  // Option 2: Split Screen Layout
+  const SplitScreenLayout = (
+    <div className="min-h-screen flex">
+      {/* Left side: Image */}
+      <div className="hidden lg:block lg:w-1/2 relative">
+        <img 
+          src="/static/123.jpg" 
+          alt="Background" 
+          className="absolute inset-0 w-full h-full object-cover"
+        />
+        <div className="absolute inset-0 bg-gradient-to-r from-black/60 to-transparent flex items-center justify-center">
+          <div className="px-12 text-white space-y-6">
+            <img 
+              src="/static/Naamloos.png" 
+              alt="MEFEN" 
+              className="w-48 mb-8"
+            />
+            <h1 className="text-5xl font-bold">Welkom bij MEFEN</h1>
+            <p className="text-xl text-gray-200 max-w-md">
+              Beheer uw vrijwilligers, ruimtes en planning op één plek
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Right side: Login form */}
+      <div className="w-full lg:w-1/2 flex items-center justify-center p-8 bg-gray-50">
+        <div className="w-full max-w-md space-y-8">
+          <div className="text-center lg:text-left">
+            <div className="lg:hidden">
+              <img 
+                src="/static/Naamloos.png" 
+                alt="MEFEN" 
+                className="w-32 mx-auto mb-6"
+              />
+            </div>
+            <h2 className="text-3xl font-bold text-gray-900">
+              Log in op uw account
+            </h2>
+            <p className="mt-2 text-gray-600">
+              Voer uw gegevens in om door te gaan
+            </p>
+          </div>
+
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            <div className="space-y-2">
+              <div className="relative">
+                <Mail className="absolute left-3 top-3.5 h-5 w-5 text-[#D9A347]" />
+                <Input
+                  type="email"
+                  placeholder="E-mailadres"
+                  className="h-12 pl-10 border-gray-300 focus:border-[#D9A347] focus:ring-[#D9A347]"
+                  {...form.register("email")}
+                />
+              </div>
+              {form.formState.errors.email && (
+                <p className="text-sm text-red-500">
+                  {form.formState.errors.email.message}
+                </p>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <div className="relative">
+                <LockKeyhole className="absolute left-3 top-3.5 h-5 w-5 text-[#D9A347]" />
+                <Input
+                  type="password"
+                  placeholder="Wachtwoord"
+                  className="h-12 pl-10 border-gray-300 focus:border-[#D9A347] focus:ring-[#D9A347]"
+                  {...form.register("password")}
+                />
+              </div>
+              {form.formState.errors.password && (
+                <p className="text-sm text-red-500">
+                  {form.formState.errors.password.message}
+                </p>
+              )}
+            </div>
+
+            <Button 
+              type="submit" 
+              className="w-full h-12 text-base font-medium bg-[#D9A347] hover:bg-[#C79235]"
+            >
+              Inloggen
+            </Button>
+          </form>
+        </div>
+      </div>
+    </div>
+  );
+
+  // Option 3: Minimalist Layout
+  const MinimalistLayout = (
+    <div className="min-h-screen flex items-center justify-center bg-white">
+      <div className="w-full max-w-md p-8 space-y-12">
+        <div className="text-center space-y-6">
+          <img 
+            src="/static/Naamloos.png" 
+            alt="MEFEN" 
+            className="w-32 mx-auto transform hover:scale-105 transition-transform duration-300"
+          />
+          <div>
+            <h2 className="text-3xl font-bold text-gray-900">
+              Welkom terug
+            </h2>
+            <p className="mt-2 text-gray-600">
+              Log in om door te gaan
+            </p>
+          </div>
+        </div>
+
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          <div className="space-y-2">
+            <div className="relative">
+              <Mail className="absolute left-3 top-3.5 h-5 w-5 text-[#D9A347]" />
+              <Input
+                type="email"
+                placeholder="E-mailadres"
+                className="h-12 pl-10 border-gray-300 focus:border-[#D9A347] focus:ring-[#D9A347] rounded-xl"
+                {...form.register("email")}
+              />
+            </div>
+            {form.formState.errors.email && (
+              <p className="text-sm text-red-500">
+                {form.formState.errors.email.message}
+              </p>
+            )}
+          </div>
+
+          <div className="space-y-2">
+            <div className="relative">
+              <LockKeyhole className="absolute left-3 top-3.5 h-5 w-5 text-[#D9A347]" />
+              <Input
+                type="password"
+                placeholder="Wachtwoord"
+                className="h-12 pl-10 border-gray-300 focus:border-[#D9A347] focus:ring-[#D9A347] rounded-xl"
+                {...form.register("password")}
+              />
+            </div>
+            {form.formState.errors.password && (
+              <p className="text-sm text-red-500">
+                {form.formState.errors.password.message}
+              </p>
+            )}
+          </div>
+
+          <Button 
+            type="submit" 
+            className="w-full h-12 text-base font-medium bg-[#D9A347] hover:bg-[#C79235] rounded-xl"
+          >
+            Inloggen
+          </Button>
+        </form>
+
+        <div className="h-px bg-gray-200" />
+
+        <p className="text-center text-sm text-gray-600">
+          MEFEN Vrijwilligers Management Systeem
+        </p>
+      </div>
+    </div>
+  );
+
+  // Return the desired layout
+  // return CenteredCardLayout; // Current layout
+  return SplitScreenLayout; // Split screen layout
+  // return MinimalistLayout; // Minimalist layout
 }

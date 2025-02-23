@@ -186,6 +186,11 @@ export default function Planning() {
     setDialogOpen(true);
   };
 
+  const handleBulkPlan = () => {
+    // Add your bulk planning logic here
+    console.log("Bulk planning initiated");
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
@@ -303,7 +308,12 @@ export default function Planning() {
                               day_selected: "bg-[#D9A347] hover:bg-[#D9A347]/90",
                               day_outside: "text-gray-400",
                               day: "text-[#D9A347]",
-                              row_head: "text-[#D9A347] font-medium"
+                              row_head: "text-[#D9A347] font-medium",
+                              day_range_middle: "text-[#D9A347]",
+                              day_range_end: "text-[#D9A347]",
+                              day_range_start: "text-[#D9A347]",
+                              day_hidden: "text-[#D9A347]",
+                              table: "text-[#D9A347]"
                             }}
                           />
                         </PopoverContent>
@@ -352,7 +362,12 @@ export default function Planning() {
                               day_selected: "bg-[#D9A347] hover:bg-[#D9A347]/90",
                               day_outside: "text-gray-400",
                               day: "text-[#D9A347]",
-                              row_head: "text-[#D9A347] font-medium"
+                              row_head: "text-[#D9A347] font-medium",
+                              day_range_middle: "text-[#D9A347]",
+                              day_range_end: "text-[#D9A347]",
+                              day_range_start: "text-[#D9A347]",
+                              day_hidden: "text-[#D9A347]",
+                              table: "text-[#D9A347]"
                             }}
                           />
                         </PopoverContent>
@@ -362,6 +377,13 @@ export default function Planning() {
                   )}
                 />
                 <div className="grid grid-cols-2 gap-4">
+                  <Button
+                    variant="outline"
+                    className="text-[#D9A347] hover:bg-[#D9A347]/10 border-[#D9A347]"
+                    onClick={() => handleBulkPlan()}
+                  >
+                    Bulk Inplannen
+                  </Button>
                 </div>
                 <Button type="submit" className="w-full">
                   {editingPlanning ? "Planning Bijwerken" : "Planning Toevoegen"}
