@@ -42,9 +42,15 @@ import { Input } from "@/components/ui/input";
 const planningSchema = z.object({
   volunteerId: z.string().min(1, "Vrijwilliger is verplicht"),
   roomId: z.string().min(1, "Ruimte is verplicht"),
-  date: z.string().min(1, "Datum is verplicht"),
-  startTime: z.string().min(1, "Starttijd is verplicht"),
-  endTime: z.string().min(1, "Eindtijd is verplicht"),
+  startDate: z.string().min(1, "Startdatum is verplicht"),
+  endDate: z.string().min(1, "Einddatum is verplicht"),
+}).refine((data) => {
+  const start = new Date(data.startDate);
+  const end = new Date(data.endDate);
+  return end >= start;
+}, {
+  message: "Einddatum moet na startdatum liggen",
+  path: ["endDate"],
 });
 
 type Volunteer = {
@@ -62,9 +68,8 @@ type Planning = {
   id: string;
   volunteerId: string;
   roomId: string;
-  date: string;
-  startTime: string;
-  endTime: string;
+  startDate: string;
+  endDate: string;
 };
 
 export default function Planning() {
@@ -135,7 +140,7 @@ export default function Planning() {
           <DialogTrigger asChild>
             <Button>
               <CalendarIcon className="h-4 w-4 mr-2" />
-              Vrijwilliger Inplannen
+              Inplannen
             </Button>
           </DialogTrigger>
           <DialogContent>
@@ -200,10 +205,10 @@ export default function Planning() {
                 />
                 <FormField
                   control={form.control}
-                  name="date"
+                  name="startDate"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Datum</FormLabel>
+                      <FormLabel>Startdatum</FormLabel>
                       <FormControl>
                         <Input type="date" {...field} />
                       </FormControl>
@@ -213,25 +218,12 @@ export default function Planning() {
                 />
                 <FormField
                   control={form.control}
-                  name="startTime"
+                  name="endDate"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Starttijd</FormLabel>
+                      <FormLabel>Einddatum</FormLabel>
                       <FormControl>
-                        <Input type="time" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="endTime"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Eindtijd</FormLabel>
-                      <FormControl>
-                        <Input type="time" {...field} />
+                        <Input type="date" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -251,8 +243,8 @@ export default function Planning() {
           <TableRow>
             <TableHead>Vrijwilliger</TableHead>
             <TableHead>Ruimte</TableHead>
-            <TableHead>Datum</TableHead>
-            <TableHead>Tijden</TableHead>
+            <TableHead>Startdatum</TableHead>
+            <TableHead>Einddatum</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -265,8 +257,8 @@ export default function Planning() {
                   {volunteer ? `${volunteer.firstName} ${volunteer.lastName}` : "-"}
                 </TableCell>
                 <TableCell>{room ? room.name : "-"}</TableCell>
-                <TableCell>{planning.date}</TableCell>
-                <TableCell>{planning.startTime} - {planning.endTime}</TableCell>
+                <TableCell>{planning.startDate}</TableCell>
+                <TableCell>{planning.endDate}</TableCell>
               </TableRow>
             );
           })}

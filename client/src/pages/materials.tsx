@@ -20,7 +20,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { db } from "@/lib/firebase";
-import { ref, update, onValue } from "firebase/database";
+import { ref, push, remove, update, onValue } from "firebase/database";
 import { Package } from "lucide-react";
 import {
   Form,
@@ -39,14 +39,20 @@ import {
 } from "@/components/ui/select";
 
 const materialSchema = z.object({
+  typeId: z.string().min(1, "Type materiaal is verplicht"),
   volunteerId: z.string().min(1, "Vrijwilliger is verplicht"),
-  type: z.string().min(1, "Materiaaltype is verplicht"),
   number: z.number().min(1).max(100),
 });
 
+type MaterialType = {
+  id: string;
+  name: string;
+  maxCount: number;
+};
+
 type Material = {
   id: string;
-  type: string;
+  typeId: string;
   number: number;
   volunteerId?: string;
   isCheckedOut: boolean;
@@ -58,15 +64,9 @@ type Volunteer = {
   lastName: string;
 };
 
-const MATERIAL_TYPES = [
-  { value: "jas", label: "Jas", max: 100 },
-  { value: "hesje", label: "Hesje", max: 100 },
-  { value: "lamp", label: "Lamp", max: 20 },
-  { value: "walkie_talkie", label: "Walkie Talkie", max: 20 },
-];
-
 export default function Materials() {
   const [materials, setMaterials] = useState<Material[]>([]);
+  const [materialTypes, setMaterialTypes] = useState<MaterialType[]>([]);
   const [volunteers, setVolunteers] = useState<Volunteer[]>([]);
   const { toast } = useToast();
 
@@ -74,8 +74,18 @@ export default function Materials() {
     resolver: zodResolver(materialSchema),
   });
 
-  // Load materials and volunteers from Firebase
+  // Load data from Firebase
   useState(() => {
+    const materialTypesRef = ref(db, "materialTypes");
+    onValue(materialTypesRef, (snapshot) => {
+      const data = snapshot.val();
+      const typesList = data ? Object.entries(data).map(([id, type]) => ({
+        id,
+        ...(type as Omit<MaterialType, "id">),
+      })) : [];
+      setMaterialTypes(typesList);
+    });
+
     const materialsRef = ref(db, "materials");
     onValue(materialsRef, (snapshot) => {
       const data = snapshot.val();
@@ -99,27 +109,15 @@ export default function Materials() {
 
   const onSubmit = async (data: z.infer<typeof materialSchema>) => {
     try {
-      const materialItem = materials.find(
-        (e) => e.type === data.type && e.number === data.number
-      );
-
-      if (materialItem) {
-        await update(ref(db, `materials/${materialItem.id}`), {
-          volunteerId: data.volunteerId,
-          isCheckedOut: true,
-        });
-        toast({
-          title: "Succes",
-          description: "Materiaal succesvol toegewezen",
-        });
-        form.reset();
-      } else {
-        toast({
-          variant: "destructive",
-          title: "Fout",
-          description: "Materiaal niet gevonden",
-        });
-      }
+      await push(ref(db, "materials"), {
+        ...data,
+        isCheckedOut: true,
+      });
+      toast({
+        title: "Succes",
+        description: "Materiaal succesvol toegewezen",
+      });
+      form.reset();
     } catch (error) {
       toast({
         variant: "destructive",
@@ -167,6 +165,33 @@ export default function Materials() {
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
                 <FormField
                   control={form.control}
+                  name="typeId"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Type Materiaal</FormLabel>
+                      <Select
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Selecteer type" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {materialTypes.map((type) => (
+                            <SelectItem key={type.id} value={type.id}>
+                              {type.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
                   name="volunteerId"
                   render={({ field }) => (
                     <FormItem>
@@ -194,33 +219,6 @@ export default function Materials() {
                 />
                 <FormField
                   control={form.control}
-                  name="type"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Materiaal Type</FormLabel>
-                      <Select
-                        onValueChange={field.onChange}
-                        defaultValue={field.value}
-                      >
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Selecteer type" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {MATERIAL_TYPES.map((type) => (
-                            <SelectItem key={type.value} value={type.value}>
-                              {type.label}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
                   name="number"
                   render={({ field }) => (
                     <FormItem>
@@ -235,10 +233,12 @@ export default function Materials() {
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          {Array.from({ length: 100 }).map((_, i) => (
-                            <SelectItem key={i + 1} value={(i + 1).toString()}>
-                              {i + 1}
-                            </SelectItem>
+                          {materialTypes.map((type) => (
+                            Array.from({ length: type.maxCount }).map((_, i) => (
+                              <SelectItem key={i + 1} value={(i + 1).toString()}>
+                                {i + 1}
+                              </SelectItem>
+                            ))
                           ))}
                         </SelectContent>
                       </Select>
@@ -267,12 +267,11 @@ export default function Materials() {
         </TableHeader>
         <TableBody>
           {materials.map((item) => {
+            const type = materialTypes.find((t) => t.id === item.typeId);
             const volunteer = volunteers.find((v) => v.id === item.volunteerId);
             return (
               <TableRow key={item.id}>
-                <TableCell className="capitalize">
-                  {item.type.replace("_", " ")}
-                </TableCell>
+                <TableCell>{type?.name || "-"}</TableCell>
                 <TableCell>{item.number}</TableCell>
                 <TableCell>
                   {item.isCheckedOut ? "Uitgeleend" : "Beschikbaar"}
