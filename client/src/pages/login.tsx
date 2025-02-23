@@ -57,7 +57,7 @@ export default function Login() {
               <img 
                 src="/static/Naamloos.png" 
                 alt="MEFEN" 
-                className="w-48 h-48 mx-auto transform hover:scale-105 transition-transform duration-300"
+                className="w-32 h-32 mx-auto transform hover:scale-105 transition-transform duration-300"
               />
               <h1 className="text-2xl font-bold text-[#963E56] mt-4">
                 Meld je aan
