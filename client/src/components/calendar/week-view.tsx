@@ -1,4 +1,4 @@
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight, Download, Share2, Share, Copy, Users } from "lucide-react";
 import { format, addWeeks, startOfWeek, addDays, isWithinInterval } from "date-fns";
@@ -221,30 +221,30 @@ export function WeekView() {
   }).length;
 
   return (
-    <div className="container mx-auto p-4">
+    <div className="space-y-6">
       {/* Top control bar - mobile responsive */}
       <div className="flex flex-col md:flex-row justify-between items-center gap-4 mb-6">
-        <div className="w-full md:w-auto">
-          <Button variant="outline" className="w-full md:w-auto" onClick={copyPreviousWeek}>
+        <div className="w-full md:w-auto flex flex-wrap gap-2">
+          <Button variant="outline" className="w-full sm:w-auto" onClick={copyPreviousWeek}>
             <Copy className="h-4 w-4 mr-2" />
             Vorige Week Kopiëren
           </Button>
         </div>
 
-        <div className="flex gap-2">
-          <Button variant="outline" onClick={goToPreviousWeek}>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" size="icon" onClick={goToPreviousWeek}>
             <ChevronLeft className="h-4 w-4" />
           </Button>
           <Button variant="outline" onClick={goToToday}>Vandaag</Button>
-          <Button variant="outline" onClick={goToNextWeek}>
+          <Button variant="outline" size="icon" onClick={goToNextWeek}>
             <ChevronRight className="h-4 w-4" />
           </Button>
         </div>
 
-        <div className="flex gap-2 w-full md:w-auto">
+        <div className="w-full md:w-auto flex flex-wrap gap-2">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" className="w-full md:w-auto">
+              <Button variant="outline" className="w-full sm:w-auto">
                 <Share className="h-4 w-4 mr-2" />
                 Deel
               </Button>
@@ -262,7 +262,7 @@ export function WeekView() {
 
           <Dialog>
             <DialogTrigger asChild>
-              <Button className="w-full md:w-auto">
+              <Button className="w-full sm:w-auto">
                 <Users className="h-4 w-4 mr-2" />
                 Bulk Inplannen
               </Button>
@@ -373,76 +373,87 @@ export function WeekView() {
         </div>
       </div>
 
+      {/* Calendar heading */}
+      <div className="text-center mb-6">
+        <h2 className="text-2xl font-semibold text-gray-900">
+          Week van {format(weekStart, "d MMMM yyyy", { locale: nl })}
+        </h2>
+      </div>
+
       {/* Calendar grid - mobile scrollable */}
-      <div className="grid grid-cols-1 md:grid-cols-7 gap-4 mb-6 overflow-x-auto">
-        {weekDays.map((day) => {
-          const dayPlannings = getPlanningsForDay(day);
-          return (
-            <Card key={day.toISOString()} className="min-w-[280px] md:min-w-0">
-              <CardContent className="p-4">
-                <div className="font-medium text-lg mb-2">
-                  {format(day, "EEEE", { locale: nl })}
-                </div>
-                <div className="text-sm text-gray-500">
-                  {format(day, "d MMM", { locale: nl })}
-                </div>
-                <div className="space-y-2 mt-4">
-                  {dayPlannings.map(planning => {
-                    const volunteer = volunteers.find(v => v.id === planning.volunteerId);
-                    const room = rooms.find(r => r.id === planning.roomId);
-                    return (
-                      <div
-                        key={planning.id}
-                        className="text-sm p-3 rounded-lg bg-primary/5 border border-primary/10 hover:bg-primary/10 transition-colors"
-                      >
-                        <div className="font-medium text-primary">
-                          {room?.name}
-                        </div>
-                        <div className="text-gray-600">
-                          {volunteer ? `${volunteer.firstName} ${volunteer.lastName}` : '-'}
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </CardContent>
-            </Card>
-          );
-        })}
+      <div className="relative">
+        <div className="grid grid-cols-1 md:grid-cols-7 gap-4 overflow-x-auto pb-4">
+          {weekDays.map((day) => {
+            const dayPlannings = getPlanningsForDay(day);
+            return (
+              <Card
+                key={day.toISOString()}
+                className="min-w-[280px] md:min-w-0 h-full flex flex-col"
+              >
+                <CardContent className="flex-1 p-4">
+                  <div className="text-lg font-semibold mb-1">
+                    {format(day, "EEEE", { locale: nl })}
+                  </div>
+                  <div className="text-sm text-gray-500 mb-4">
+                    {format(day, "d MMMM", { locale: nl })}
+                  </div>
+                  <div className="space-y-3">
+                    {dayPlannings.length === 0 ? (
+                      <p className="text-sm text-gray-500 italic">Geen toewijzingen</p>
+                    ) : (
+                      dayPlannings.map(planning => {
+                        const volunteer = volunteers.find(v => v.id === planning.volunteerId);
+                        const room = rooms.find(r => r.id === planning.roomId);
+                        return (
+                          <div
+                            key={planning.id}
+                            className="p-3 rounded-lg bg-primary/5 border border-primary/10 hover:bg-primary/10 transition-colors shadow-sm"
+                          >
+                            <div className="font-medium text-primary">
+                              {room?.name || 'Onbekende ruimte'}
+                            </div>
+                            <div className="text-sm text-gray-600 mt-1">
+                              {volunteer
+                                ? `${volunteer.firstName} ${volunteer.lastName}`
+                                : 'Niet toegewezen'
+                              }
+                            </div>
+                          </div>
+                        );
+                      })
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })}
+        </div>
       </div>
 
       {/* Statistics cards - responsive grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mt-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-8">
         <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Uitgeleende Materialen</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{checkedOutMaterials}</div>
+          <CardContent className="pt-6">
+            <h3 className="text-sm font-medium text-gray-500 mb-2">Uitgeleende Materialen</h3>
+            <p className="text-2xl font-bold">{checkedOutMaterials}</p>
           </CardContent>
         </Card>
         <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Totaal Vrijwilligers</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{totalVolunteers}</div>
+          <CardContent className="pt-6">
+            <h3 className="text-sm font-medium text-gray-500 mb-2">Totaal Vrijwilligers</h3>
+            <p className="text-2xl font-bold">{totalVolunteers}</p>
           </CardContent>
         </Card>
         <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Totaal Ruimtes</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{totalRooms}</div>
+          <CardContent className="pt-6">
+            <h3 className="text-sm font-medium text-gray-500 mb-2">Totaal Ruimtes</h3>
+            <p className="text-2xl font-bold">{totalRooms}</p>
           </CardContent>
         </Card>
         <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Actieve Vrijwilligers</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{activeVolunteers}</div>
+          <CardContent className="pt-6">
+            <h3 className="text-sm font-medium text-gray-500 mb-2">Actieve Vrijwilligers</h3>
+            <p className="text-2xl font-bold">{activeVolunteers}</p>
           </CardContent>
         </Card>
       </div>
