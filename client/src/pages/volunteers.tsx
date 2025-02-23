@@ -135,8 +135,8 @@ export default function Volunteers() {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
         <div className="flex items-center gap-3">
-          <Users className="h-8 w-8 text-amber-500" />
-          <h1 className="text-3xl font-bold text-amber-500">Vrijwilligers</h1>
+          <Users className="h-8 w-8 text-[#D9A347]" />
+          <h1 className="text-3xl font-bold text-[#D9A347]">Vrijwilligers</h1>
         </div>
         <div className="flex items-center gap-2 w-full sm:w-auto">
           <div className="relative flex-1 sm:w-64">

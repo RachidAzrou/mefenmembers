@@ -121,8 +121,8 @@ export default function Rooms() {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div className="flex items-center gap-3">
-          <DoorOpen className="h-8 w-8 text-amber-500" />
-          <h1 className="text-3xl font-bold text-amber-500">Ruimtes</h1>
+          <DoorOpen className="h-8 w-8 text-[#D9A347]" />
+          <h1 className="text-3xl font-bold text-[#D9A347]">Ruimtes</h1>
         </div>
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogTrigger asChild>
