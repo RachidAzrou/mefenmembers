@@ -49,15 +49,15 @@ export default function Login() {
       <div className="absolute inset-0 bg-black/50" />
 
       <div className="relative z-10 w-full max-w-[420px]">
-        {/* Login Card with Logo */}
+        {/* Login Card */}
         <Card className="bg-white border-0 shadow-2xl">
           <CardContent className="pt-6">
             {/* Logo */}
             <div className="text-center mb-8">
               <img 
-                src="/static/moskee.png" 
+                src="/logo.png" // Assuming logo.png is in the public folder
                 alt="MEFEN" 
-                className="w-[280px] mx-auto transform hover:scale-105 transition-transform duration-300"
+                className="w-[150px] mx-auto transform hover:scale-105 transition-transform duration-300" // Adjusted width
               />
               <h1 className="text-2xl font-bold text-[#963E56] mt-4">
                 Meld je aan
