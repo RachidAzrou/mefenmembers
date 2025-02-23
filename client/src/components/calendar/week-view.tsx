@@ -28,7 +28,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Input } from "@/components/ui/input";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -204,19 +203,42 @@ export function WeekView() {
   }).length;
 
   return (
-    <div className="space-y-6">
-      <div className="text-center mb-8">
-        <h2 className="text-2xl font-semibold">
-          Week van {format(weekStart, "d MMMM yyyy", { locale: nl })}
-        </h2>
-      </div>
-
-      <div className="flex flex-col space-y-4 md:flex-row md:justify-between md:items-center md:space-y-0 mb-6">
-        <div className="flex space-x-4">
+    <div className="container mx-auto px-4"> {/* Added container for better spacing */}
+      <div className="flex justify-between items-center mb-6"> {/* Reorganized top section */}
+        <div>
           <Button variant="outline" onClick={copyPreviousWeek}>
             <Copy className="h-4 w-4 mr-2" />
             Vorige Week Kopiëren
           </Button>
+        </div>
+        <div>
+          <Button variant="outline" onClick={goToPreviousWeek}>
+            <ChevronLeft className="h-4 w-4" />
+          </Button>
+          <Button variant="outline" onClick={goToToday}>Vandaag</Button>
+          <Button variant="outline" onClick={goToNextWeek}>
+            <ChevronRight className="h-4 w-4" />
+          </Button>
+        </div>
+        <div>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline">
+                <Share className="h-4 w-4 mr-2" />
+                Deel
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+              <DropdownMenuItem onClick={downloadPDF}>
+                <Download className="h-4 w-4 mr-2" />
+                PDF Exporteren
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={publishSchedule}>
+                <Share2 className="h-4 w-4 mr-2" />
+                Publiceren
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
           <Dialog>
             <DialogTrigger asChild>
               <Button>
@@ -328,44 +350,17 @@ export function WeekView() {
             </DialogContent>
           </Dialog>
         </div>
-        <div className="flex justify-center space-x-2">
-          <Button variant="outline" onClick={goToPreviousWeek}>
-            <ChevronLeft className="h-4 w-4" />
-          </Button>
-          <Button variant="outline" onClick={goToToday}>Vandaag</Button>
-          <Button variant="outline" onClick={goToNextWeek}>
-            <ChevronRight className="h-4 w-4" />
-          </Button>
-        </div>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="outline">
-              <Share className="h-4 w-4 mr-2" />
-              Deel
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent>
-            <DropdownMenuItem onClick={downloadPDF}>
-              <Download className="h-4 w-4 mr-2" />
-              PDF Exporteren
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={publishSchedule}>
-              <Share2 className="h-4 w-4 mr-2" />
-              Publiceren
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
       </div>
 
-      <div className="grid grid-cols-7 gap-4">
+      <div className="grid grid-cols-7 gap-4 mb-6"> {/* Added margin bottom */}
         {weekDays.map((day) => {
           const dayPlannings = getPlanningsForDay(day);
           return (
             <Card key={day.toISOString()} className="p-4">
-              <div className="font-medium">
+              <div className="font-medium text-lg mb-2"> {/* Improved title styling */}
                 {format(day, "EEEE", { locale: nl })}
               </div>
-              <div className="text-sm text-gray-500 mb-3">
+              <div className="text-sm text-gray-500"> {/* Removed unnecessary margin */}
                 {format(day, "d MMM", { locale: nl })}
               </div>
               <div className="space-y-2">
@@ -392,7 +387,7 @@ export function WeekView() {
         })}
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-8">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-8"> {/* Statistics cards */}
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium">Uitgeleende Materialen</CardTitle>
