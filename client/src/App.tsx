@@ -15,10 +15,12 @@ import { useAuthState } from "react-firebase-hooks/auth";
 
 function AuthenticatedLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="flex h-screen">
+    <div className="flex min-h-screen bg-gray-50">
       <Sidebar />
-      <main className="flex-1 overflow-y-auto bg-gray-50 p-6">
-        {children}
+      <main className="flex-1 p-4 md:p-6 w-full max-w-[100vw] overflow-x-hidden">
+        <div className="container mx-auto max-w-7xl">
+          {children}
+        </div>
       </main>
     </div>
   );
@@ -28,7 +30,14 @@ function PrivateRoute({ component: Component }: { component: React.ComponentType
   const [user, loading] = useAuthState(auth);
 
   if (loading) {
-    return <div>Laden...</div>;
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+          <p className="mt-2 text-sm text-gray-600">Laden...</p>
+        </div>
+      </div>
+    );
   }
 
   if (!user) {
