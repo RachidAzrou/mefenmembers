@@ -639,9 +639,6 @@ export function WeekView() {
                         dayPlannings.map(planning => {
                           const volunteer = volunteers.find(v => v.id === planning.volunteerId);
                           const room = rooms.find(r => r.id === planning.roomId);
-                          const assignedMaterials = materials.filter(
-                            m => m.volunteerId === planning.volunteerId && m.isCheckedOut
-                          );
 
                           return (
                             <div
@@ -657,13 +654,6 @@ export function WeekView() {
                                   : 'Niet toegewezen'
                                 }
                               </div>
-                              {assignedMaterials.length > 0 && (
-                                <div className="mt-2 flex flex-wrap gap-1">
-                                  <Badge variant="outline" className="text-xs">
-                                    {assignedMaterials.length} materialen
-                                  </Badge>
-                                </div>
-                              )}
                             </div>
                           );
                         })
@@ -701,9 +691,6 @@ export function WeekView() {
                     dayPlannings.map(planning => {
                       const volunteer = volunteers.find(v => v.id === planning.volunteerId);
                       const room = rooms.find(r => r.id === planning.roomId);
-                      const assignedMaterials = materials.filter(
-                        m => m.volunteerId === planning.volunteerId && m.isCheckedOut
-                      );
 
                       return (
                         <div
@@ -721,11 +708,6 @@ export function WeekView() {
                               }
                             </div>
                           </div>
-                          {assignedMaterials.length > 0 && (
-                            <Badge variant="outline" className="text-xs">
-                              {assignedMaterials.length} materialen
-                            </Badge>
-                          )}
                         </div>
                       );
                     })
