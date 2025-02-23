@@ -48,10 +48,10 @@ export default function Login() {
       {/* Dark overlay */}
       <div className="absolute inset-0 bg-black/50" />
 
-      <div className="relative z-10 w-full max-w-[420px]">
+      <div className="relative z-10 w-full max-w-[600px] px-4">
         {/* Login Card */}
         <Card className="bg-white border-0 shadow-2xl">
-          <CardContent className="pt-6">
+          <CardContent className="pt-6 px-8">
             {/* Logo */}
             <div className="text-center mb-8">
               <img 
