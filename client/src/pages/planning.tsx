@@ -293,6 +293,7 @@ export default function Planning() {
                             selected={field.value ? new Date(field.value) : undefined}
                             onSelect={(date) => field.onChange(date?.toISOString())}
                             initialFocus
+                            showWeekNumbers
                             classNames={{
                               nav_button_previous: "text-[#D9A347]",
                               nav_button_next: "text-[#D9A347]",
@@ -301,7 +302,8 @@ export default function Planning() {
                               day_today: "text-[#D9A347] font-bold",
                               day_selected: "bg-[#D9A347] hover:bg-[#D9A347]/90",
                               day_outside: "text-gray-400",
-                              day: "text-[#D9A347]"
+                              day: "text-[#D9A347]",
+                              row_head: "text-[#D9A347] font-medium"
                             }}
                           />
                         </PopoverContent>
@@ -340,6 +342,7 @@ export default function Planning() {
                             selected={field.value ? new Date(field.value) : undefined}
                             onSelect={(date) => field.onChange(date?.toISOString())}
                             initialFocus
+                            showWeekNumbers
                             classNames={{
                               nav_button_previous: "text-[#D9A347]",
                               nav_button_next: "text-[#D9A347]",
@@ -348,7 +351,8 @@ export default function Planning() {
                               day_today: "text-[#D9A347] font-bold",
                               day_selected: "bg-[#D9A347] hover:bg-[#D9A347]/90",
                               day_outside: "text-gray-400",
-                              day: "text-[#D9A347]"
+                              day: "text-[#D9A347]",
+                              row_head: "text-[#D9A347] font-medium"
                             }}
                           />
                         </PopoverContent>
