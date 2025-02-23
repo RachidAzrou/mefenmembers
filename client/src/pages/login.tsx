@@ -49,19 +49,16 @@ export default function Login() {
       <div className="absolute inset-0 bg-black/50" />
 
       <div className="relative z-10 w-full max-w-[420px]">
-        {/* Logo and Title */}
+        {/* Logo */}
         <div className="text-center mb-8">
           <img 
             src="/static/Naamloos.png" 
             alt="MEFEN" 
-            className="w-32 h-32 mx-auto mb-6 transform hover:scale-105 transition-transform duration-300"
+            className="w-48 h-48 mx-auto mb-6 transform hover:scale-105 transition-transform duration-300"
           />
-          <h1 className="text-3xl font-bold text-white mb-2">
+          <h1 className="text-3xl font-bold text-white">
             Welkom bij MEFEN
           </h1>
-          <p className="text-lg text-gray-200">
-            Log in om door te gaan
-          </p>
         </div>
 
         {/* Login Card */}
@@ -70,11 +67,11 @@ export default function Login() {
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
               <div className="space-y-2">
                 <div className="relative">
-                  <Mail className="absolute left-3 top-3.5 h-5 w-5 text-[#D9A347]" />
+                  <Mail className="absolute left-3 top-3.5 h-5 w-5 text-[#963E56]" />
                   <Input
                     type="email"
                     placeholder="E-mailadres"
-                    className="h-12 pl-10 bg-white/80 border-gray-200 focus:border-[#D9A347] focus:ring-[#D9A347] transition-all duration-200"
+                    className="h-12 pl-10 bg-white/80 border-gray-200 focus:border-[#963E56] focus:ring-[#963E56] transition-all duration-200"
                     {...form.register("email")}
                   />
                 </div>
@@ -87,11 +84,11 @@ export default function Login() {
 
               <div className="space-y-2">
                 <div className="relative">
-                  <LockKeyhole className="absolute left-3 top-3.5 h-5 w-5 text-[#D9A347]" />
+                  <LockKeyhole className="absolute left-3 top-3.5 h-5 w-5 text-[#963E56]" />
                   <Input
                     type="password"
                     placeholder="Wachtwoord"
-                    className="h-12 pl-10 bg-white/80 border-gray-200 focus:border-[#D9A347] focus:ring-[#D9A347] transition-all duration-200"
+                    className="h-12 pl-10 bg-white/80 border-gray-200 focus:border-[#963E56] focus:ring-[#963E56] transition-all duration-200"
                     {...form.register("password")}
                   />
                 </div>
@@ -104,7 +101,7 @@ export default function Login() {
 
               <Button 
                 type="submit" 
-                className="w-full h-12 text-base font-medium bg-[#D9A347] hover:bg-[#C79235] transition-colors duration-300"
+                className="w-full h-12 text-base font-medium bg-[#963E56] hover:bg-[#963E56]/90 transition-colors duration-300"
               >
                 Inloggen
               </Button>
