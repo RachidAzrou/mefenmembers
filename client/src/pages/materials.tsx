@@ -105,7 +105,8 @@ export default function Materials() {
         id,
         ...(material as Omit<Material, "id">),
       })) : [];
-      setMaterials(materialsList);
+      // Only show checked out materials
+      setMaterials(materialsList.filter(m => m.isCheckedOut));
     });
 
     const volunteersRef = ref(db, "volunteers");
@@ -195,7 +196,6 @@ export default function Materials() {
       });
     }
   };
-
 
   return (
     <div className="space-y-6">
@@ -311,10 +311,9 @@ export default function Materials() {
       <Table>
         <TableHeader>
           <TableRow>
+            <TableHead>Vrijwilliger</TableHead>
             <TableHead>Type</TableHead>
             <TableHead>Nummer</TableHead>
-            <TableHead>Status</TableHead>
-            <TableHead>Toegewezen Aan</TableHead>
             <TableHead className="w-24">Acties</TableHead>
           </TableRow>
         </TableHeader>
@@ -324,16 +323,13 @@ export default function Materials() {
             const volunteer = volunteers.find((v) => v.id === item.volunteerId);
             return (
               <TableRow key={item.id}>
-                <TableCell>{type?.name || "-"}</TableCell>
-                <TableCell>{item.number}</TableCell>
-                <TableCell>
-                  {item.isCheckedOut ? "Uitgeleend" : "Beschikbaar"}
-                </TableCell>
                 <TableCell>
                   {volunteer
                     ? `${volunteer.firstName} ${volunteer.lastName}`
                     : "-"}
                 </TableCell>
+                <TableCell>{type?.name || "-"}</TableCell>
+                <TableCell>{item.number}</TableCell>
                 <TableCell className="space-x-2">
                   <Button
                     variant="ghost"
@@ -351,15 +347,13 @@ export default function Materials() {
                   >
                     <Trash2 className="h-4 w-4" />
                   </Button>
-                  {item.isCheckedOut && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleReturn(item.id)}
-                    >
-                      Retourneren
-                    </Button>
-                  )}
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleReturn(item.id)}
+                  >
+                    Retourneren
+                  </Button>
                 </TableCell>
               </TableRow>
             );

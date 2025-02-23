@@ -1,17 +1,44 @@
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, ChevronRight, Download, Share2, Share } from "lucide-react";
+import { ChevronLeft, ChevronRight, Download, Share2, Share, Copy, Users } from "lucide-react";
 import { format, addWeeks, startOfWeek, addDays, isWithinInterval } from "date-fns";
 import { nl } from "date-fns/locale";
 import { useState, useEffect } from "react";
 import { db } from "@/lib/firebase";
-import { ref, onValue } from "firebase/database";
+import { ref, onValue, push } from "firebase/database";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { useToast } from "@/hooks/use-toast";
 
 type Volunteer = {
   id: string;
@@ -32,11 +59,34 @@ type Planning = {
   endDate: string;
 };
 
+const bulkPlanningSchema = z.object({
+  volunteerIds: z.array(z.string()).min(1, "Selecteer minimaal één vrijwilliger"),
+  roomIds: z.array(z.string()).min(1, "Selecteer minimaal één ruimte"),
+  startDate: z.string().min(1, "Startdatum is verplicht"),
+  endDate: z.string().min(1, "Einddatum is verplicht"),
+}).refine((data) => {
+  const start = new Date(data.startDate);
+  const end = new Date(data.endDate);
+  return end >= start;
+}, {
+  message: "Einddatum moet na startdatum liggen",
+  path: ["endDate"],
+});
+
 export function WeekView() {
   const [currentWeek, setCurrentWeek] = useState(new Date());
   const [plannings, setPlannings] = useState<Planning[]>([]);
   const [volunteers, setVolunteers] = useState<Volunteer[]>([]);
   const [rooms, setRooms] = useState<Room[]>([]);
+  const { toast } = useToast();
+
+  const bulkForm = useForm<z.infer<typeof bulkPlanningSchema>>({
+    resolver: zodResolver(bulkPlanningSchema),
+    defaultValues: {
+      volunteerIds: [],
+      roomIds: [],
+    },
+  });
 
   const weekDays = Array.from({ length: 7 }).map((_, i) => 
     addDays(startOfWeek(currentWeek, { weekStartsOn: 1 }), i)
@@ -78,12 +128,43 @@ export function WeekView() {
   const goToNextWeek = () => setCurrentWeek(addWeeks(currentWeek, 1));
   const goToToday = () => setCurrentWeek(new Date());
 
+  const copyPreviousWeek = () => {
+    // TODO: Implement copy previous week
+  };
+
   const downloadPDF = () => {
     // TODO: Implement PDF download
   };
 
   const publishSchedule = () => {
     // TODO: Implement publish to HTML
+  };
+
+  const onBulkSubmit = async (data: z.infer<typeof bulkPlanningSchema>) => {
+    try {
+      // Create a planning for each volunteer and room combination
+      for (const volunteerId of data.volunteerIds) {
+        for (const roomId of data.roomIds) {
+          await push(ref(db, "plannings"), {
+            volunteerId,
+            roomId,
+            startDate: data.startDate,
+            endDate: data.endDate,
+          });
+        }
+      }
+      toast({
+        title: "Succes",
+        description: "Planningen succesvol toegevoegd",
+      });
+      bulkForm.reset();
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Fout",
+        description: "Kon planningen niet toevoegen",
+      });
+    }
   };
 
   const getPlanningsForDay = (date: Date) => {
@@ -96,36 +177,151 @@ export function WeekView() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col items-center space-y-4">
-        <div className="flex space-x-2">
-          <Button variant="outline" onClick={goToPreviousWeek}>
-            <ChevronLeft className="h-4 w-4" />
+      <div className="flex justify-between items-center mb-6">
+        <div className="flex space-x-4">
+          <Button variant="outline" onClick={copyPreviousWeek}>
+            <Copy className="h-4 w-4 mr-2" />
+            Vorige Week Kopiëren
           </Button>
-          <Button variant="outline" onClick={goToToday}>Vandaag</Button>
-          <Button variant="outline" onClick={goToNextWeek}>
-            <ChevronRight className="h-4 w-4" />
-          </Button>
-        </div>
-        <div className="flex justify-end w-full">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline">
-                <Share className="h-4 w-4 mr-2" />
-                Deel
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button>
+                <Users className="h-4 w-4 mr-2" />
+                Bulk Inplannen
               </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent>
-              <DropdownMenuItem onClick={downloadPDF}>
-                <Download className="h-4 w-4 mr-2" />
-                PDF Exporteren
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={publishSchedule}>
-                <Share2 className="h-4 w-4 mr-2" />
-                Publiceren
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+            </DialogTrigger>
+            <DialogContent className="max-w-lg">
+              <DialogHeader>
+                <DialogTitle>Bulk Inplannen</DialogTitle>
+              </DialogHeader>
+              <Form {...bulkForm}>
+                <form onSubmit={bulkForm.handleSubmit(onBulkSubmit)} className="space-y-4">
+                  <FormField
+                    control={bulkForm.control}
+                    name="volunteerIds"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Vrijwilligers</FormLabel>
+                        <Select
+                          onValueChange={(value) => {
+                            const currentValues = field.value || [];
+                            const newValues = currentValues.includes(value)
+                              ? currentValues.filter(v => v !== value)
+                              : [...currentValues, value];
+                            field.onChange(newValues);
+                          }}
+                        >
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Selecteer vrijwilligers" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {volunteers.map((volunteer) => (
+                              <SelectItem key={volunteer.id} value={volunteer.id}>
+                                {volunteer.firstName} {volunteer.lastName}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={bulkForm.control}
+                    name="roomIds"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Ruimtes</FormLabel>
+                        <Select
+                          onValueChange={(value) => {
+                            const currentValues = field.value || [];
+                            const newValues = currentValues.includes(value)
+                              ? currentValues.filter(v => v !== value)
+                              : [...currentValues, value];
+                            field.onChange(newValues);
+                          }}
+                        >
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Selecteer ruimtes" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {rooms.map((room) => (
+                              <SelectItem key={room.id} value={room.id}>
+                                {room.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={bulkForm.control}
+                    name="startDate"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Startdatum</FormLabel>
+                        <FormControl>
+                          <Input type="date" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={bulkForm.control}
+                    name="endDate"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Einddatum</FormLabel>
+                        <FormControl>
+                          <Input type="date" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <Button type="submit" className="w-full">
+                    Planningen Toevoegen
+                  </Button>
+                </form>
+              </Form>
+            </DialogContent>
+          </Dialog>
         </div>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="outline">
+              <Share className="h-4 w-4 mr-2" />
+              Deel
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent>
+            <DropdownMenuItem onClick={downloadPDF}>
+              <Download className="h-4 w-4 mr-2" />
+              PDF Exporteren
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={publishSchedule}>
+              <Share2 className="h-4 w-4 mr-2" />
+              Publiceren
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
+
+      <div className="flex justify-center space-x-2 mb-6">
+        <Button variant="outline" onClick={goToPreviousWeek}>
+          <ChevronLeft className="h-4 w-4" />
+        </Button>
+        <Button variant="outline" onClick={goToToday}>Vandaag</Button>
+        <Button variant="outline" onClick={goToNextWeek}>
+          <ChevronRight className="h-4 w-4" />
+        </Button>
       </div>
 
       <div className="grid grid-cols-7 gap-4">
