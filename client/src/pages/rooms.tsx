@@ -45,6 +45,7 @@ export default function Rooms() {
   const [rooms, setRooms] = useState<Room[]>([]);
   const [editingRoom, setEditingRoom] = useState<Room | null>(null);
   const [deleteRoomId, setDeleteRoomId] = useState<string | null>(null);
+  const [dialogOpen, setDialogOpen] = useState(false);
   const { toast } = useToast();
 
   const form = useForm<z.infer<typeof roomSchema>>({
@@ -54,7 +55,6 @@ export default function Rooms() {
     },
   });
 
-  // Load rooms from Firebase
   useState(() => {
     const roomsRef = ref(db, "rooms");
     onValue(roomsRef, (snapshot) => {
@@ -84,6 +84,7 @@ export default function Rooms() {
       }
       form.reset();
       setEditingRoom(null);
+      setDialogOpen(false);
     } catch (error) {
       toast({
         variant: "destructive",
@@ -91,6 +92,12 @@ export default function Rooms() {
         description: "Kon ruimte niet opslaan",
       });
     }
+  };
+
+  const handleEdit = (room: Room) => {
+    setEditingRoom(room);
+    form.reset(room);
+    setDialogOpen(true);
   };
 
   const handleDelete = async (id: string) => {
@@ -114,7 +121,7 @@ export default function Rooms() {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold">Ruimtes</h1>
-        <Dialog>
+        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogTrigger asChild>
             <Button>
               <Plus className="h-4 w-4 mr-2" />
@@ -150,40 +157,48 @@ export default function Rooms() {
         </Dialog>
       </div>
 
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Naam</TableHead>
-            <TableHead className="w-24">Acties</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {rooms.map((room) => (
-            <TableRow key={room.id}>
-              <TableCell>{room.name}</TableCell>
-              <TableCell className="space-x-2">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => {
-                    setEditingRoom(room);
-                    form.reset(room);
-                  }}
-                >
-                  <Edit2 className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => setDeleteRoomId(room.id)}
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-              </TableCell>
+      <div className="rounded-lg border bg-card">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Naam</TableHead>
+              <TableHead className="w-[100px]">Acties</TableHead>
             </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+          </TableHeader>
+          <TableBody>
+            {rooms.map((room) => (
+              <TableRow key={room.id}>
+                <TableCell>{room.name}</TableCell>
+                <TableCell className="space-x-2">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => handleEdit(room)}
+                    className="text-green-600 hover:text-green-700 hover:bg-green-50"
+                  >
+                    <Edit2 className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => setDeleteRoomId(room.id)}
+                    className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </TableCell>
+              </TableRow>
+            ))}
+            {rooms.length === 0 && (
+              <TableRow>
+                <TableCell colSpan={2} className="text-center py-6 text-gray-500">
+                  Geen ruimtes gevonden
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+      </div>
 
       <AlertDialog
         open={!!deleteRoomId}
@@ -200,6 +215,7 @@ export default function Rooms() {
             <AlertDialogCancel>Annuleren</AlertDialogCancel>
             <AlertDialogAction
               onClick={() => deleteRoomId && handleDelete(deleteRoomId)}
+              className="bg-red-600 hover:bg-red-700"
             >
               Verwijderen
             </AlertDialogAction>

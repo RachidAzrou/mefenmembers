@@ -15,23 +15,13 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { db } from "@/lib/firebase";
-import { ref, push, remove, update, onValue } from "firebase/database";
-import { Package, Edit2, Trash2, Search } from "lucide-react";
+import { ref, push, update, onValue } from "firebase/database";
+import { Package, Edit2, RotateCcw, Search } from "lucide-react";
 import {
   Form,
   FormControl,
@@ -81,8 +71,8 @@ export default function Materials() {
   const [materialTypes, setMaterialTypes] = useState<MaterialType[]>([]);
   const [volunteers, setVolunteers] = useState<Volunteer[]>([]);
   const [editingMaterial, setEditingMaterial] = useState<Material | null>(null);
-  const [deleteMaterialId, setDeleteMaterialId] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
+  const [dialogOpen, setDialogOpen] = useState(false);
   const { toast } = useToast();
 
   const form = useForm<z.infer<typeof materialSchema>>({
@@ -92,7 +82,6 @@ export default function Materials() {
     },
   });
 
-  // Load data from Firebase
   useState(() => {
     const materialTypesRef = ref(db, "materialTypes");
     onValue(materialTypesRef, (snapshot) => {
@@ -162,7 +151,10 @@ export default function Materials() {
 
   const handleDelete = async (materialId: string) => {
     try {
-      await remove(ref(db, `materials/${materialId}`));
+      await update(ref(db, `materials/${materialId}`), {
+        volunteerId: null,
+        isCheckedOut: false,
+      });
       toast({
         title: "Succes",
         description: "Materiaal succesvol verwijderd",
@@ -175,15 +167,6 @@ export default function Materials() {
         description: "Kon materiaal niet verwijderen",
       });
     }
-  };
-
-  const handleEdit = (material: Material) => {
-    setEditingMaterial(material);
-    form.reset({
-      typeId: material.typeId,
-      volunteerId: material.volunteerId || "",
-      number: material.number,
-    });
   };
 
   const handleReturn = async (materialId: string) => {
@@ -205,7 +188,16 @@ export default function Materials() {
     }
   };
 
-  // Filter materials based on search term
+  const handleEdit = (material: Material) => {
+    setEditingMaterial(material);
+    form.reset({
+      typeId: material.typeId,
+      volunteerId: material.volunteerId || "",
+      number: material.number,
+    });
+    setDialogOpen(true);
+  };
+
   const filteredMaterials = materials.filter(material => {
     const type = materialTypes.find(t => t.id === material.typeId);
     const volunteer = volunteers.find(v => v.id === material.volunteerId);
@@ -227,13 +219,7 @@ export default function Materials() {
               className="pl-9"
             />
           </div>
-          <Dialog>
-            <DialogTrigger asChild>
-              <Button>
-                <Package className="h-4 w-4 mr-2" />
-                Materiaal Toewijzen
-              </Button>
-            </DialogTrigger>
+          <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
             <DialogContent>
               <DialogHeader>
                 <DialogTitle>
@@ -364,17 +350,10 @@ export default function Materials() {
                     <Button
                       variant="ghost"
                       size="icon"
-                      onClick={() => setDeleteMaterialId(item.id)}
-                      className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
                       onClick={() => handleReturn(item.id)}
+                      className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
                     >
-                      Retourneren
+                      <RotateCcw className="h-4 w-4" />
                     </Button>
                   </TableCell>
                 </TableRow>
@@ -390,29 +369,6 @@ export default function Materials() {
           </TableBody>
         </Table>
       </div>
-
-      <AlertDialog
-        open={!!deleteMaterialId}
-        onOpenChange={() => setDeleteMaterialId(null)}
-      >
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Weet je het zeker?</AlertDialogTitle>
-            <AlertDialogDescription>
-              Deze actie kan niet ongedaan worden gemaakt. Dit zal het materiaal permanent verwijderen.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Annuleren</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={() => deleteMaterialId && handleDelete(deleteMaterialId)}
-              className="bg-red-600 hover:bg-red-700"
-            >
-              Verwijderen
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </div>
   );
 }
