@@ -3,8 +3,8 @@ import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Link, useLocation } from "wouter";
 import { 
-  Calendar, Users, Home, Box, 
-  LogOut, Settings, ChevronLeft, ChevronRight, Menu 
+  LayoutDashboard, Users, Calendar, DoorOpen, 
+  Package2, LogOut, Settings, ChevronLeft, ChevronRight, Menu 
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { auth } from "@/lib/firebase";
@@ -38,11 +38,11 @@ export function Sidebar() {
   };
 
   const menuItems = [
-    { icon: Home, label: "Dashboard", href: "/" },
+    { icon: LayoutDashboard, label: "Dashboard", href: "/" },
     { icon: Calendar, label: "Planning", href: "/planning" },
     { icon: Users, label: "Vrijwilligers", href: "/volunteers" },
-    { icon: Box, label: "Ruimtes", href: "/rooms" },
-    { icon: Settings, label: "Materialen", href: "/materials" }
+    { icon: DoorOpen, label: "Ruimtes", href: "/rooms" },
+    { icon: Package2, label: "Materialen", href: "/materials" }
   ];
 
   return (
