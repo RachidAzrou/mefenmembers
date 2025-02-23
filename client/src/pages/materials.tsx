@@ -119,6 +119,22 @@ export default function Materials() {
 
   const onSubmit = async (data: z.infer<typeof materialSchema>) => {
     try {
+      // Check if this material is already checked out
+      const existingMaterial = materials.find(
+        m => m.typeId === data.typeId && 
+            m.number === data.number && 
+            m.isCheckedOut
+      );
+
+      if (existingMaterial && !editingMaterial) {
+        toast({
+          variant: "destructive",
+          title: "Fout",
+          description: "Dit materiaal is al uitgeleend",
+        });
+        return;
+      }
+
       if (editingMaterial) {
         await update(ref(db, `materials/${editingMaterial.id}`), {
           ...data,
@@ -140,31 +156,12 @@ export default function Materials() {
         });
       }
       form.reset();
+      setDialogOpen(false);
     } catch (error) {
       toast({
         variant: "destructive",
         title: "Fout",
         description: "Kon materiaal niet toewijzen",
-      });
-    }
-  };
-
-  const handleDelete = async (materialId: string) => {
-    try {
-      await update(ref(db, `materials/${materialId}`), {
-        volunteerId: null,
-        isCheckedOut: false,
-      });
-      toast({
-        title: "Succes",
-        description: "Materiaal succesvol verwijderd",
-      });
-      setDeleteMaterialId(null);
-    } catch (error) {
-      toast({
-        variant: "destructive",
-        title: "Fout",
-        description: "Kon materiaal niet verwijderen",
       });
     }
   };
@@ -223,6 +220,12 @@ export default function Materials() {
             />
           </div>
           <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+            <DialogTrigger asChild>
+              <Button>
+                <Package2 className="h-4 w-4 mr-2" />
+                Materiaal Toewijzen
+              </Button>
+            </DialogTrigger>
             <DialogContent>
               <DialogHeader>
                 <DialogTitle>
@@ -291,13 +294,23 @@ export default function Materials() {
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Nummer</FormLabel>
-                        <Input
-                          type="number"
-                          min={1}
-                          max={maxNumber}
-                          {...field}
-                          onChange={(e) => field.onChange(parseInt(e.target.value))}
-                        />
+                        <Select
+                          onValueChange={(value) => field.onChange(parseInt(value))}
+                          defaultValue={field.value?.toString()}
+                        >
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Selecteer nummer" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {Array.from({ length: maxNumber }).map((_, i) => (
+                              <SelectItem key={i + 1} value={(i + 1).toString()}>
+                                {i + 1}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
                         <FormMessage />
                       </FormItem>
                     )}
