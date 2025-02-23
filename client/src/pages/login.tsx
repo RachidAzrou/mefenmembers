@@ -55,7 +55,7 @@ export default function Login() {
             {/* Logo */}
             <div className="text-center mb-8">
               <img 
-                src="/static/moskee.png" 
+                src="./static/moskee.png" 
                 alt="MEFEN" 
                 className="w-full h-auto object-contain transform hover:scale-105 transition-transform duration-300"
               />
