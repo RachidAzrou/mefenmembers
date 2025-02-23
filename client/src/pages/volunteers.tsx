@@ -32,13 +32,13 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { db } from "@/lib/firebase";
 import { ref, push, remove, update, onValue } from "firebase/database";
-import { Edit2, Trash2, UserPlus } from "lucide-react";
-import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
+import { UserPlus, Edit2, Trash2, Search } from "lucide-react";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 
 const volunteerSchema = z.object({
-  firstName: z.string().min(1, "First name is required"),
-  lastName: z.string().min(1, "Last name is required"),
-  phoneNumber: z.string().min(1, "Phone number is required"),
+  firstName: z.string().min(1, "Voornaam is verplicht"),
+  lastName: z.string().min(1, "Achternaam is verplicht"),
+  phoneNumber: z.string().min(1, "Telefoonnummer is verplicht"),
 });
 
 type Volunteer = z.infer<typeof volunteerSchema> & { id: string };
@@ -47,6 +47,7 @@ export default function Volunteers() {
   const [volunteers, setVolunteers] = useState<Volunteer[]>([]);
   const [editingVolunteer, setEditingVolunteer] = useState<Volunteer | null>(null);
   const [deleteVolunteerId, setDeleteVolunteerId] = useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = useState("");
   const { toast } = useToast();
 
   const form = useForm<z.infer<typeof volunteerSchema>>({
@@ -76,14 +77,14 @@ export default function Volunteers() {
       if (editingVolunteer) {
         await update(ref(db, `volunteers/${editingVolunteer.id}`), data);
         toast({
-          title: "Success",
-          description: "Volunteer updated successfully",
+          title: "Succes",
+          description: "Vrijwilliger succesvol bijgewerkt",
         });
       } else {
         await push(ref(db, "volunteers"), data);
         toast({
-          title: "Success",
-          description: "Volunteer added successfully",
+          title: "Succes",
+          description: "Vrijwilliger succesvol toegevoegd",
         });
       }
       form.reset();
@@ -91,8 +92,8 @@ export default function Volunteers() {
     } catch (error) {
       toast({
         variant: "destructive",
-        title: "Error",
-        description: "Failed to save volunteer",
+        title: "Fout",
+        description: "Kon vrijwilliger niet opslaan",
       });
     }
   };
@@ -101,121 +102,152 @@ export default function Volunteers() {
     try {
       await remove(ref(db, `volunteers/${id}`));
       toast({
-        title: "Success",
-        description: "Volunteer deleted successfully",
+        title: "Succes",
+        description: "Vrijwilliger succesvol verwijderd",
       });
       setDeleteVolunteerId(null);
     } catch (error) {
       toast({
         variant: "destructive",
-        title: "Error",
-        description: "Failed to delete volunteer",
+        title: "Fout",
+        description: "Kon vrijwilliger niet verwijderen",
       });
     }
   };
 
+  // Filter volunteers based on search term
+  const filteredVolunteers = volunteers.filter(volunteer => {
+    const searchString = `${volunteer.firstName} ${volunteer.lastName} ${volunteer.phoneNumber}`.toLowerCase();
+    return searchString.includes(searchTerm.toLowerCase());
+  });
+
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold">Volunteers</h1>
-        <Dialog>
-          <DialogTrigger asChild>
-            <Button>
-              <UserPlus className="h-4 w-4 mr-2" />
-              Add Volunteer
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>
-                {editingVolunteer ? "Edit Volunteer" : "Add New Volunteer"}
-              </DialogTitle>
-            </DialogHeader>
-            <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                <FormField
-                  control={form.control}
-                  name="firstName"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormControl>
-                        <Input placeholder="First Name" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="lastName"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormControl>
-                        <Input placeholder="Last Name" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="phoneNumber"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormControl>
-                        <Input placeholder="Phone Number" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <Button type="submit" className="w-full">
-                  {editingVolunteer ? "Update" : "Add"} Volunteer
-                </Button>
-              </form>
-            </Form>
-          </DialogContent>
-        </Dialog>
+      <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
+        <h1 className="text-3xl font-bold">Vrijwilligers</h1>
+        <div className="flex items-center gap-2 w-full sm:w-auto">
+          <div className="relative flex-1 sm:w-64">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
+            <Input
+              placeholder="Zoeken..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-9"
+            />
+          </div>
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button>
+                <UserPlus className="h-4 w-4 mr-2" />
+                Vrijwilliger Toevoegen
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>
+                  {editingVolunteer ? "Vrijwilliger Bewerken" : "Nieuwe Vrijwilliger"}
+                </DialogTitle>
+              </DialogHeader>
+              <Form {...form}>
+                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                  <FormField
+                    control={form.control}
+                    name="firstName"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Voornaam</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Voornaam" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="lastName"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Achternaam</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Achternaam" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="phoneNumber"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Telefoonnummer</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Telefoonnummer" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <Button type="submit" className="w-full">
+                    {editingVolunteer ? "Bijwerken" : "Toevoegen"}
+                  </Button>
+                </form>
+              </Form>
+            </DialogContent>
+          </Dialog>
+        </div>
       </div>
 
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>First Name</TableHead>
-            <TableHead>Last Name</TableHead>
-            <TableHead>Phone Number</TableHead>
-            <TableHead className="w-24">Actions</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {volunteers.map((volunteer) => (
-            <TableRow key={volunteer.id}>
-              <TableCell>{volunteer.firstName}</TableCell>
-              <TableCell>{volunteer.lastName}</TableCell>
-              <TableCell>{volunteer.phoneNumber}</TableCell>
-              <TableCell className="space-x-2">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => {
-                    setEditingVolunteer(volunteer);
-                    form.reset(volunteer);
-                  }}
-                >
-                  <Edit2 className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => setDeleteVolunteerId(volunteer.id)}
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-              </TableCell>
+      <div className="rounded-lg border bg-card">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Voornaam</TableHead>
+              <TableHead>Achternaam</TableHead>
+              <TableHead>Telefoonnummer</TableHead>
+              <TableHead className="w-[100px]">Acties</TableHead>
             </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+          </TableHeader>
+          <TableBody>
+            {filteredVolunteers.map((volunteer) => (
+              <TableRow key={volunteer.id}>
+                <TableCell>{volunteer.firstName}</TableCell>
+                <TableCell>{volunteer.lastName}</TableCell>
+                <TableCell>{volunteer.phoneNumber}</TableCell>
+                <TableCell className="space-x-2">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => {
+                      setEditingVolunteer(volunteer);
+                      form.reset(volunteer);
+                    }}
+                    className="text-green-600 hover:text-green-700 hover:bg-green-50"
+                  >
+                    <Edit2 className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => setDeleteVolunteerId(volunteer.id)}
+                    className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </TableCell>
+              </TableRow>
+            ))}
+            {filteredVolunteers.length === 0 && (
+              <TableRow>
+                <TableCell colSpan={4} className="text-center py-6 text-gray-500">
+                  Geen vrijwilligers gevonden
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+      </div>
 
       <AlertDialog
         open={!!deleteVolunteerId}
@@ -223,17 +255,18 @@ export default function Volunteers() {
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogTitle>Weet je het zeker?</AlertDialogTitle>
             <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete the volunteer.
+              Deze actie kan niet ongedaan worden gemaakt. Dit zal de vrijwilliger permanent verwijderen.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>Annuleren</AlertDialogCancel>
             <AlertDialogAction
               onClick={() => deleteVolunteerId && handleDelete(deleteVolunteerId)}
+              className="bg-red-600 hover:bg-red-700"
             >
-              Delete
+              Verwijderen
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
