@@ -176,9 +176,8 @@ export function WeekView() {
     // TODO: Implement publish to HTML
   };
 
-  const onBulkSubmit = async (data: z.infer<typeof bulkPlanningSchema>) => {
+  const onSubmit = async (data: z.infer<typeof bulkPlanningSchema>) => {
     try {
-      // Create a planning for each volunteer and room combination
       for (const volunteerId of data.volunteerIds) {
         for (const roomId of data.roomIds) {
           await push(ref(db, "plannings"), {
@@ -211,7 +210,6 @@ export function WeekView() {
     });
   };
 
-  // Calculate statistics
   const checkedOutMaterials = materials.filter(m => m.isCheckedOut).length;
   const totalVolunteers = volunteers.length;
   const totalRooms = rooms.length;
@@ -222,7 +220,6 @@ export function WeekView() {
 
   return (
     <div className="space-y-6">
-      {/* Top control bar - mobile responsive */}
       <div className="flex flex-col md:flex-row justify-between items-center gap-4 mb-6">
         <div className="w-full md:w-auto flex flex-wrap gap-2">
           <Button variant="outline" className="w-full sm:w-auto" onClick={copyPreviousWeek}>
@@ -249,9 +246,28 @@ export function WeekView() {
                 Deel
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem asChild>
-                {downloadPDF()}
+            <DropdownMenuContent align="end" className="w-56">
+              <DropdownMenuItem asChild className="flex items-center">
+                <PDFDownloadLink
+                  document={
+                    <CalendarPDF
+                      weekStart={weekStart}
+                      plannings={plannings.map(p => ({
+                        room: rooms.find(r => r.id === p.roomId) || { name: 'Unknown' },
+                        volunteer: volunteers.find(v => v.id === p.volunteerId) || { firstName: 'Unknown', lastName: '' }
+                      }))}
+                    />
+                  }
+                  fileName={`planning-${format(weekStart, 'yyyy-MM-dd')}.pdf`}
+                  className="flex items-center w-full px-2 py-1.5"
+                >
+                  {({ loading }) => (
+                    <>
+                      <Download className="h-4 w-4 mr-2" />
+                      {loading ? "Genereren..." : "PDF Exporteren"}
+                    </>
+                  )}
+                </PDFDownloadLink>
               </DropdownMenuItem>
               <DropdownMenuItem onClick={publishSchedule}>
                 <Share2 className="h-4 w-4 mr-2" />
@@ -262,7 +278,7 @@ export function WeekView() {
 
           <Dialog>
             <DialogTrigger asChild>
-              <Button className="w-full sm:w-auto">
+              <Button className="w-full sm:w-auto bg-primary hover:bg-primary/90">
                 <Users className="h-4 w-4 mr-2" />
                 Bulk Inplannen
               </Button>
@@ -272,7 +288,7 @@ export function WeekView() {
                 <DialogTitle>Bulk Inplannen</DialogTitle>
               </DialogHeader>
               <Form {...bulkForm}>
-                <form onSubmit={bulkForm.handleSubmit(onBulkSubmit)} className="space-y-4">
+                <form onSubmit={bulkForm.handleSubmit(onSubmit)} className="space-y-4">
                   <FormField
                     control={bulkForm.control}
                     name="volunteerIds"
@@ -373,16 +389,14 @@ export function WeekView() {
         </div>
       </div>
 
-      {/* Calendar heading */}
       <div className="text-center mb-6">
         <h2 className="text-2xl font-semibold text-gray-900">
           Week van {format(weekStart, "d MMMM yyyy", { locale: nl })}
         </h2>
       </div>
 
-      {/* Calendar grid - mobile scrollable */}
       <div className="relative">
-        <div className="grid grid-cols-1 md:grid-cols-7 gap-4 overflow-x-auto pb-4">
+        <div className="grid grid-cols-1 md:grid-cols-7 gap-4">
           {weekDays.map((day) => {
             const dayPlannings = getPlanningsForDay(day);
             return (
@@ -430,7 +444,6 @@ export function WeekView() {
         </div>
       </div>
 
-      {/* Statistics cards - responsive grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-8">
         <Card>
           <CardContent className="pt-6">
