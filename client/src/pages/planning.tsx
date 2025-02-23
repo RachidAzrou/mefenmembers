@@ -197,7 +197,9 @@ export default function Planning() {
           <DialogTrigger asChild>
             <Button>
               <CalendarIcon className="h-4 w-4 mr-2" />
-              Inplannen
+              <Button className="bg-[#6BB85C] hover:bg-[#6BB85C]/90">
+                Inplannen
+              </Button>
             </Button>
           </DialogTrigger>
           <DialogContent>

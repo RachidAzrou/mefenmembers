@@ -126,7 +126,7 @@ export default function Rooms() {
         </div>
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogTrigger asChild>
-            <Button>
+            <Button className="bg-[#6BB85C] hover:bg-[#6BB85C]/90">
               <Plus className="h-4 w-4 mr-2" />
               Ruimte Toevoegen
             </Button>
