@@ -297,7 +297,11 @@ export default function Planning() {
                               nav_button_previous: "text-[#D9A347]",
                               nav_button_next: "text-[#D9A347]",
                               head_cell: "text-[#D9A347]",
-                              caption: "text-[#D9A347] font-semibold"
+                              caption: "text-[#D9A347] font-semibold",
+                              day_today: "text-[#D9A347] font-bold",
+                              day_selected: "bg-[#D9A347] hover:bg-[#D9A347]/90",
+                              day_outside: "text-gray-400",
+                              day: "text-[#D9A347]"
                             }}
                           />
                         </PopoverContent>
@@ -340,7 +344,11 @@ export default function Planning() {
                               nav_button_previous: "text-[#D9A347]",
                               nav_button_next: "text-[#D9A347]",
                               head_cell: "text-[#D9A347]",
-                              caption: "text-[#D9A347] font-semibold"
+                              caption: "text-[#D9A347] font-semibold",
+                              day_today: "text-[#D9A347] font-bold",
+                              day_selected: "bg-[#D9A347] hover:bg-[#D9A347]/90",
+                              day_outside: "text-gray-400",
+                              day: "text-[#D9A347]"
                             }}
                           />
                         </PopoverContent>
