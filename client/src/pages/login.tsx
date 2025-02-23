@@ -57,7 +57,7 @@ export default function Login() {
               <img 
                 src="/moskee.png"
                 alt="MEFEN" 
-                className="w-[250px] mx-auto transform hover:scale-105 transition-transform duration-300"
+                className="w-full h-auto object-contain transform hover:scale-105 transition-transform duration-300"
               />
               <h1 className="text-2xl font-bold text-[#963E56] mt-4">
                 Meld je aan
