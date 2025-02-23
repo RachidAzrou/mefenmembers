@@ -39,12 +39,12 @@ export default function Login() {
     <div 
       className="min-h-screen flex items-center justify-center bg-no-repeat bg-cover"
       style={{ 
-        backgroundImage: `linear-gradient(to bottom right, rgba(150, 62, 86, 0.9), rgba(150, 62, 86, 0.7)), url('/123.jpg')` 
+        backgroundImage: `linear-gradient(to bottom right, rgba(150, 62, 86, 0.9), rgba(150, 62, 86, 0.7)), url('/static/123.jpg')` 
       }}
     >
       <div className="p-4 w-full max-w-[400px]">
         <div className="mb-8 text-center">
-          <img src="/Naamloos.png" alt="MEFEN" className="h-24 mx-auto" />
+          <img src="/static/Naamloos.png" alt="MEFEN" className="h-24 mx-auto" />
           <h2 className="mt-6 text-2xl font-semibold text-white">
             Welkom Terug
           </h2>
