@@ -15,13 +15,23 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { db } from "@/lib/firebase";
-import { ref, push, onValue } from "firebase/database";
-import { CalendarIcon } from "lucide-react";
+import { ref, push, remove, update, onValue } from "firebase/database";
+import { CalendarIcon, Edit2, Trash2 } from "lucide-react";
 import {
   Form,
   FormControl,
@@ -80,13 +90,14 @@ export default function Planning() {
   const [volunteers, setVolunteers] = useState<Volunteer[]>([]);
   const [rooms, setRooms] = useState<Room[]>([]);
   const [plannings, setPlannings] = useState<Planning[]>([]);
+  const [editingPlanning, setEditingPlanning] = useState<Planning | null>(null);
+  const [deletePlanningId, setDeletePlanningId] = useState<string | null>(null);
   const { toast } = useToast();
 
   const form = useForm<z.infer<typeof planningSchema>>({
     resolver: zodResolver(planningSchema),
   });
 
-  // Load data from Firebase
   useState(() => {
     const volunteersRef = ref(db, "volunteers");
     onValue(volunteersRef, (snapshot) => {
@@ -121,12 +132,21 @@ export default function Planning() {
 
   const onSubmit = async (data: z.infer<typeof planningSchema>) => {
     try {
-      await push(ref(db, "plannings"), data);
-      toast({
-        title: "Succes",
-        description: "Planning succesvol toegevoegd",
-      });
+      if (editingPlanning) {
+        await update(ref(db, `plannings/${editingPlanning.id}`), data);
+        toast({
+          title: "Succes",
+          description: "Planning succesvol bijgewerkt",
+        });
+      } else {
+        await push(ref(db, "plannings"), data);
+        toast({
+          title: "Succes",
+          description: "Planning succesvol toegevoegd",
+        });
+      }
       form.reset();
+      setEditingPlanning(null);
     } catch (error) {
       toast({
         variant: "destructive",
@@ -136,9 +156,26 @@ export default function Planning() {
     }
   };
 
+  const handleDelete = async (id: string) => {
+    try {
+      await remove(ref(db, `plannings/${id}`));
+      toast({
+        title: "Succes",
+        description: "Planning succesvol verwijderd",
+      });
+      setDeletePlanningId(null);
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Fout",
+        description: "Kon planning niet verwijderen",
+      });
+    }
+  };
+
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
         <h1 className="text-3xl font-bold">Planning</h1>
         <Dialog>
           <DialogTrigger asChild>
@@ -149,7 +186,9 @@ export default function Planning() {
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Vrijwilliger Inplannen</DialogTitle>
+              <DialogTitle>
+                {editingPlanning ? "Planning Bewerken" : "Vrijwilliger Inplannen"}
+              </DialogTitle>
             </DialogHeader>
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -284,7 +323,7 @@ export default function Planning() {
                   />
                 </div>
                 <Button type="submit" className="w-full">
-                  Planning Toevoegen
+                  {editingPlanning ? "Planning Bijwerken" : "Planning Toevoegen"}
                 </Button>
               </form>
             </Form>
@@ -292,32 +331,91 @@ export default function Planning() {
         </Dialog>
       </div>
 
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Vrijwilliger</TableHead>
-            <TableHead>Ruimte</TableHead>
-            <TableHead>Startdatum</TableHead>
-            <TableHead>Einddatum</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {plannings.map((planning) => {
-            const volunteer = volunteers.find((v) => v.id === planning.volunteerId);
-            const room = rooms.find((r) => r.id === planning.roomId);
-            return (
-              <TableRow key={planning.id}>
-                <TableCell>
-                  {volunteer ? `${volunteer.firstName} ${volunteer.lastName}` : "-"}
+      <div className="rounded-lg border bg-card">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Vrijwilliger</TableHead>
+              <TableHead>Ruimte</TableHead>
+              <TableHead>Startdatum</TableHead>
+              <TableHead>Einddatum</TableHead>
+              <TableHead className="w-[100px]">Acties</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {plannings.map((planning) => {
+              const volunteer = volunteers.find((v) => v.id === planning.volunteerId);
+              const room = rooms.find((r) => r.id === planning.roomId);
+              return (
+                <TableRow key={planning.id}>
+                  <TableCell>
+                    {volunteer ? `${volunteer.firstName} ${volunteer.lastName}` : "-"}
+                  </TableCell>
+                  <TableCell>{room ? room.name : "-"}</TableCell>
+                  <TableCell>{format(new Date(planning.startDate), "d MMMM yyyy", { locale: nl })}</TableCell>
+                  <TableCell>{format(new Date(planning.endDate), "d MMMM yyyy", { locale: nl })}</TableCell>
+                  <TableCell className="space-x-2">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => {
+                        setEditingPlanning(planning);
+                        form.reset({
+                          volunteerId: planning.volunteerId,
+                          roomId: planning.roomId,
+                          startDate: planning.startDate,
+                          endDate: planning.endDate,
+                        });
+                      }}
+                      className="text-green-600 hover:text-green-700 hover:bg-green-50"
+                    >
+                      <Edit2 className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => setDeletePlanningId(planning.id)}
+                      className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              );
+            })}
+            {plannings.length === 0 && (
+              <TableRow>
+                <TableCell colSpan={5} className="text-center py-6 text-gray-500">
+                  Geen planningen gevonden
                 </TableCell>
-                <TableCell>{room ? room.name : "-"}</TableCell>
-                <TableCell>{format(new Date(planning.startDate), "d MMMM yyyy", { locale: nl })}</TableCell>
-                <TableCell>{format(new Date(planning.endDate), "d MMMM yyyy", { locale: nl })}</TableCell>
               </TableRow>
-            );
-          })}
-        </TableBody>
-      </Table>
+            )}
+          </TableBody>
+        </Table>
+      </div>
+
+      <AlertDialog
+        open={!!deletePlanningId}
+        onOpenChange={() => setDeletePlanningId(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Weet je het zeker?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Deze actie kan niet ongedaan worden gemaakt. Dit zal de planning permanent verwijderen.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Annuleren</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => deletePlanningId && handleDelete(deletePlanningId)}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              Verwijderen
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
