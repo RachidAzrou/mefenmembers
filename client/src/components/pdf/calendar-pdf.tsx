@@ -40,7 +40,6 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   calendar: { 
-    display: 'flex',
     flexDirection: "row",
     gap: 15,
   },
@@ -94,13 +93,6 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     paddingTop: 10,
   },
-  noPlanning: {
-    fontSize: 10,
-    color: '#9CA3AF',
-    fontStyle: 'italic',
-    textAlign: 'center',
-    marginTop: 8,
-  },
   logo: {
     width: 100,
     marginRight: 20,
@@ -116,7 +108,7 @@ type Planning = {
 type CalendarPDFProps = {
   weekStart: Date;
   plannings: Planning[];
-  logoUrl?: string; // Added optional logo URL
+  logoUrl?: string;
 };
 
 export function CalendarPDF({ weekStart, plannings, logoUrl }: CalendarPDFProps) {
@@ -132,9 +124,7 @@ export function CalendarPDF({ weekStart, plannings, logoUrl }: CalendarPDFProps)
     <Document>
       <Page size="A4" orientation="landscape" style={styles.page}>
         <View style={styles.header}>
-          {logoUrl && ( // Conditionally render the logo
-            <Image src={logoUrl} style={styles.logo} />
-          )}
+          {logoUrl && <Image src={logoUrl} style={styles.logo} />}
           <View style={styles.headerText}>
             <Text style={styles.title}>MEFEN Weekplanning</Text>
             <Text style={styles.subtitle}>Roosteroverzicht Vrijwilligers</Text>
