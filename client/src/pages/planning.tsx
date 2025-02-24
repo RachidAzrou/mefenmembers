@@ -370,7 +370,7 @@ export default function Planning() {
                               </Button>
                             </FormControl>
                           </PopoverTrigger>
-                          <PopoverContent className="w-auto p-0" align="start">
+                          <PopoverContent className="w-auto p-0 bg-white rounded-lg shadow-lg border" align="start">
                             <Calendar
                               mode="single"
                               selected={field.value ? new Date(field.value) : undefined}
@@ -380,6 +380,7 @@ export default function Planning() {
                               weekStartsOn={1}
                               showWeekNumber
                               classNames={calendarClassNames}
+                              disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
                             />
                           </PopoverContent>
                         </Popover>
@@ -412,7 +413,7 @@ export default function Planning() {
                               </Button>
                             </FormControl>
                           </PopoverTrigger>
-                          <PopoverContent className="w-auto p-0" align="start">
+                          <PopoverContent className="w-auto p-0 bg-white rounded-lg shadow-lg border" align="start">
                             <Calendar
                               mode="single"
                               selected={field.value ? new Date(field.value) : undefined}
@@ -422,6 +423,7 @@ export default function Planning() {
                               weekStartsOn={1}
                               showWeekNumber
                               classNames={calendarClassNames}
+                              disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
                             />
                           </PopoverContent>
                         </Popover>
@@ -601,7 +603,7 @@ export default function Planning() {
                               </Button>
                             </FormControl>
                           </PopoverTrigger>
-                          <PopoverContent className="w-auto p-0" align="start">
+                          <PopoverContent className="w-auto p-0 bg-white rounded-lg shadow-lg border" align="start">
                             <Calendar
                               mode="single"
                               selected={field.value ? new Date(field.value) : undefined}
@@ -611,6 +613,7 @@ export default function Planning() {
                               weekStartsOn={1}
                               showWeekNumber
                               classNames={calendarClassNames}
+                              disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
                             />
                           </PopoverContent>
                         </Popover>
@@ -643,7 +646,7 @@ export default function Planning() {
                               </Button>
                             </FormControl>
                           </PopoverTrigger>
-                          <PopoverContent className="w-auto p-0" align="start">
+                          <PopoverContent className="w-auto p-0 bg-white rounded-lg shadow-lg border" align="start">
                             <Calendar
                               mode="single"
                               selected={field.value ? new Date(field.value) : undefined}
@@ -653,6 +656,7 @@ export default function Planning() {
                               weekStartsOn={1}
                               showWeekNumber
                               classNames={calendarClassNames}
+                              disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
                             />
                           </PopoverContent>
                         </Popover>

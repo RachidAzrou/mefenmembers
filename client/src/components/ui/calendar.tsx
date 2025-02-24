@@ -29,10 +29,6 @@ function Calendar({
           return format(date, 'MMMM yyyy', { locale: nl })
         }
       }}
-      modifiers={{
-        today: new Date(),
-      }}
-      mode="single"
       classNames={{
         months: "flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0",
         month: "space-y-4",
@@ -41,7 +37,7 @@ function Calendar({
         nav: "space-x-1 flex items-center",
         nav_button: cn(
           buttonVariants({ variant: "outline" }),
-          "h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100"
+          "h-7 w-7 bg-transparent p-0 hover:opacity-100"
         ),
         nav_button_previous: "absolute left-1",
         nav_button_next: "absolute right-1",
@@ -49,12 +45,12 @@ function Calendar({
         head_row: "flex",
         head_cell: "text-muted-foreground rounded-md w-10 font-normal text-[0.8rem] h-10 flex items-center justify-center",
         row: "flex w-full mt-2",
-        cell: "text-center text-sm relative p-0 [&:has([aria-selected])]:bg-accent first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md focus-within:relative focus-within:z-20 h-10 w-10",
+        cell: "relative p-0 text-center text-sm focus-within:relative focus-within:z-20 [&:has([aria-selected])]:bg-accent first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md",
         day: cn(
           buttonVariants({ variant: "ghost" }),
           "h-10 w-10 p-0 font-normal aria-selected:opacity-100"
         ),
-        day_selected: "bg-[#6BB85C] text-white hover:bg-[#6BB85C]/90 focus:bg-[#6BB85C]",
+        day_selected: "bg-[#6BB85C] text-white hover:bg-[#6BB85C]/90 focus:bg-[#6BB85C] rounded-md",
         day_today: "bg-accent text-accent-foreground",
         day_outside: "text-muted-foreground opacity-50",
         day_disabled: "text-muted-foreground opacity-50",
