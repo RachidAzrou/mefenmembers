@@ -62,7 +62,7 @@ export default function Login() {
                 />
               </div>
               <h1 className="text-2xl font-bold text-[#963E56] mt-4">
-                Vrijwilligers
+                Vrijwilligersbeheer
               </h1>
             </div>
 
