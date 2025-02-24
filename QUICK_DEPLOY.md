@@ -1,33 +1,39 @@
-# Quick Free Deployment Guide
+# Snelle Deployment Handleiding voor MEFEN Moskee Beheer
 
-## 1. Firebase Setup (Free Forever)
-1. Go to [Firebase Console](https://console.firebase.google.com)
-2. Create new project (skip Google Analytics)
-3. Enable Authentication > Email/Password
-4. Go to Project Settings > Web App (</>) 
-5. Copy these values:
+## 1. Firebase Setup (Gratis)
+1. Ga naar [Firebase Console](https://console.firebase.google.com)
+2. Maak een nieuw project aan (sla Google Analytics over)
+3. Schakel Authentication > Email/Wachtwoord in
+4. Ga naar Project Instellingen > Web App (</>)
+5. Kopieer deze waardes:
    ```
    apiKey
    projectId
    appId
    ```
 
-## 2. Vercel Deploy (Free Forever)
-1. Go to [Vercel](https://vercel.com)
-2. Login with GitHub
-3. Click "New Project" > Import your repo
-4. Add Environment Variables:
+## 2. Vercel Deployment (Gratis)
+1. Ga naar [Vercel](https://vercel.com)
+2. Log in met GitHub
+3. Klik op "New Project" > Importeer je repository
+4. Voeg Environment Variables toe:
    ```
-   VITE_FIREBASE_API_KEY=your_api_key
-   VITE_FIREBASE_PROJECT_ID=your_project_id
-   VITE_FIREBASE_APP_ID=your_app_id
+   VITE_FIREBASE_API_KEY=jouw_api_key
+   VITE_FIREBASE_PROJECT_ID=jouw_project_id
+   VITE_FIREBASE_APP_ID=jouw_app_id
    ```
-5. Deploy!
-6. Copy your vercel URL (e.g. your-app.vercel.app)
-7. Add it to Firebase Console > Authentication > Authorized Domains
+5. Klik op "Deploy"!
+6. Kopieer je Vercel URL (bijvoorbeeld: jouw-app.vercel.app)
+7. Voeg deze URL toe aan Firebase Console > Authentication > Authorized Domains
 
-## Free Tier Limits
-- Firebase: 50k authentications/month, 1GB storage
-- Vercel: 100GB bandwidth/month, unlimited deployments
+## Gratis Limieten
+- Firebase: 50.000 authenticaties/maand, 1GB opslag
+- Vercel: 100GB bandbreedte/maand, onbeperkte deployments
 
-Need help? Let me guide you through each step!
+Heeft u hulp nodig? Ik kan u door elke stap begeleiden!
+
+## Belangrijke Notities
+- De gratis tier is ruim voldoende voor de meeste moskeeën
+- Alle core functionaliteiten blijven behouden
+- Updates kunnen eenvoudig worden uitgerold via Vercel
+- Automatische SSL/HTTPS beveiliging inbegrepen
