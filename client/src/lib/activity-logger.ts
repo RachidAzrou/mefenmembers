@@ -7,9 +7,20 @@ export type UserAction = {
   action: string;
   details?: string;
   timestamp: string;
+  targetType?: string; // 'volunteer', 'material', 'schedule', etc.
+  targetId?: string;   // ID of the affected item
+  targetName?: string; // Name/description of the affected item
 };
 
-export async function logUserAction(action: string, details?: string) {
+export async function logUserAction(
+  action: string,
+  details?: string,
+  targetInfo?: {
+    type?: string;
+    id?: string;
+    name?: string;
+  }
+) {
   const user = auth.currentUser;
   if (!user) return;
 
@@ -19,6 +30,11 @@ export async function logUserAction(action: string, details?: string) {
     action,
     details,
     timestamp: new Date().toISOString(),
+    ...(targetInfo && {
+      targetType: targetInfo.type,
+      targetId: targetInfo.id,
+      targetName: targetInfo.name,
+    }),
   };
 
   try {

@@ -81,7 +81,12 @@ export default function Volunteers() {
         await update(ref(db, `volunteers/${editingVolunteer.id}`), data);
         await logUserAction(
           "Vrijwilliger bijgewerkt",
-          `Vrijwilliger ${data.firstName} ${data.lastName} is bijgewerkt`
+          `${'Bijgewerkt'}: ${data.firstName} ${data.lastName}`,
+          {
+            type: "volunteer",
+            id: editingVolunteer?.id,
+            name: `${data.firstName} ${data.lastName}`
+          }
         );
         toast({
           title: "Succes",
@@ -91,7 +96,12 @@ export default function Volunteers() {
         await push(ref(db, "volunteers"), data);
         await logUserAction(
           "Vrijwilliger toegevoegd",
-          `Nieuwe vrijwilliger ${data.firstName} ${data.lastName} toegevoegd`
+          `${'Toegevoegd'}: ${data.firstName} ${data.lastName}`,
+          {
+            type: "volunteer",
+            id: null,
+            name: `${data.firstName} ${data.lastName}`
+          }
         );
         toast({
           title: "Succes",
@@ -112,10 +122,16 @@ export default function Volunteers() {
 
   const handleDelete = async (ids: string[]) => {
     try {
+      const volunteersToDelete = volunteers.filter(v => ids.includes(v.id));
       await Promise.all(ids.map(id => remove(ref(db, `volunteers/${id}`))));
       await logUserAction(
         "Vrijwilliger(s) verwijderd",
-        `${ids.length} vrijwilliger(s) verwijderd`
+        `${ids.length} vrijwilliger(s) verwijderd`,
+        {
+          type: "volunteer",
+          id: ids.join(','),
+          name: volunteersToDelete.map(v => `${v.firstName} ${v.lastName}`).join(', ')
+        }
       );
       toast({
         title: "Succes",

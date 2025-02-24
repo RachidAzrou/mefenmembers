@@ -464,6 +464,8 @@ export default function Settings() {
                       <TableHead className="w-[180px]">Tijdstip</TableHead>
                       <TableHead>Gebruiker</TableHead>
                       <TableHead>Actie</TableHead>
+                      <TableHead>Object Type</TableHead>
+                      <TableHead>Object Naam</TableHead>
                       <TableHead>Details</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -475,6 +477,8 @@ export default function Settings() {
                         </TableCell>
                         <TableCell>{log.userEmail}</TableCell>
                         <TableCell>{log.action}</TableCell>
+                        <TableCell>{log.targetType || "-"}</TableCell>
+                        <TableCell>{log.targetName || "-"}</TableCell>
                         <TableCell className="max-w-xs truncate">
                           {log.details || "-"}
                         </TableCell>
@@ -482,7 +486,7 @@ export default function Settings() {
                     ))}
                     {filteredLogs.length === 0 && (
                       <TableRow>
-                        <TableCell colSpan={4} className="text-center py-8 text-gray-500">
+                        <TableCell colSpan={6} className="text-center py-8 text-gray-500">
                           <Activity className="h-8 w-8 mx-auto mb-2 opacity-50" />
                           <p>Geen activiteiten gevonden voor de geselecteerde filters</p>
                         </TableCell>
