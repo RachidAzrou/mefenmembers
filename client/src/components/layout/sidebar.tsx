@@ -6,7 +6,7 @@ import { Link, useLocation } from "wouter";
 import {
   LayoutDashboard, Users, Calendar, DoorOpen,
   Package2, LogOut, Menu, ChevronLeft, ChevronRight,
-  Download, Settings, FileJson, User
+  Settings, FileJson, User
 } from "lucide-react";
 import { PiMosqueFill } from "react-icons/pi";
 import { useState, useEffect } from "react";
@@ -88,6 +88,30 @@ export function Sidebar() {
           isMobile && "shadow-xl"
         )}
       >
+        {/* User Profile Section */}
+        <Link href="/profile">
+          <div className={cn(
+            "border-b p-4 cursor-pointer hover:bg-gray-50 transition-colors",
+            collapsed ? "text-center" : ""
+          )}>
+            <div className="flex items-center gap-3">
+              <div className="bg-primary/10 rounded-full p-2 inline-flex">
+                <User className="h-5 w-5 text-primary" />
+              </div>
+              {!collapsed && (
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium truncate">
+                    {currentUser?.displayName || currentUser?.email}
+                  </p>
+                  <p className="text-xs text-gray-500 truncate">
+                    {isAdmin ? "Administrator" : "Gebruiker"}
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
+        </Link>
+
         <div className="flex h-32 items-center justify-center bg-white border-b relative">
           {!collapsed && (
             <div className="w-full h-full flex items-center justify-center p-4">
@@ -161,26 +185,6 @@ export function Sidebar() {
         </ScrollArea>
 
         <div className="p-2 border-t space-y-2">
-          {/* User Profile Section */}
-          <div className={cn(
-            "p-2 border-b",
-            collapsed ? "text-center" : "flex items-center gap-3"
-          )}>
-            <div className="bg-primary/10 rounded-full p-2 inline-flex">
-              <User className="h-5 w-5 text-primary" />
-            </div>
-            {!collapsed && (
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium truncate">
-                  {currentUser?.email}
-                </p>
-                <p className="text-xs text-gray-500 truncate">
-                  {isAdmin ? "Administrator" : "Gebruiker"}
-                </p>
-              </div>
-            )}
-          </div>
-
           {isAdmin && (
             <Link href="/settings">
               <Button
