@@ -24,14 +24,14 @@ export default function Mosque() {
           <CardContent className="space-y-4">
             <div>
               <h3 className="font-semibold text-lg">Mannen Ingang</h3>
-              <p className="text-gray-600">Voorbeeldstraat 123</p>
-              <p className="text-gray-600">1234 AB Amsterdam</p>
+              <p className="text-gray-600">Sint-Bernardsesteenweg 289</p>
+              <p className="text-gray-600">2660 Hoboken</p>
             </div>
             <Separator />
             <div>
               <h3 className="font-semibold text-lg">Vrouwen Ingang</h3>
-              <p className="text-gray-600">Voorbeeldstraat 125</p>
-              <p className="text-gray-600">1234 AB Amsterdam</p>
+              <p className="text-gray-600">Polostraat 59</p>
+              <p className="text-gray-600">2660 Hoboken</p>
             </div>
           </CardContent>
         </Card>
@@ -47,12 +47,12 @@ export default function Mosque() {
           <CardContent className="space-y-4">
             <div>
               <h3 className="font-semibold text-lg">Telefoonnummer</h3>
-              <p className="text-gray-600">+31 (0)20 123 4567</p>
+              <p className="text-gray-600">032940611</p>
             </div>
             <Separator />
             <div>
               <h3 className="font-semibold text-lg">Email</h3>
-              <p className="text-gray-600">info@mefen.nl</p>
+              <p className="text-gray-600">info@mefen.be</p>
             </div>
           </CardContent>
         </Card>
