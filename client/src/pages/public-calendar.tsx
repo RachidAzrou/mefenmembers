@@ -66,10 +66,10 @@ export default function PublicCalendar() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <header className="bg-white border-b mb-8">
+      <header className="bg-white border-b shadow-sm">
         <div className="container mx-auto px-4 py-8">
-          <img src="/static/Naamloos.png" alt="MEFEN" className="h-12 mx-auto" />
-          <h1 className="text-2xl font-semibold text-center mt-6">
+          <img src="/static/moskee.png" alt="MEFEN" className="h-16 mx-auto" />
+          <h1 className="text-3xl font-bold text-center mt-6 text-primary">
             Planning Week van {format(weekStart, "d MMMM yyyy", { locale: nl })}
           </h1>
         </div>
@@ -80,7 +80,7 @@ export default function PublicCalendar() {
         <div className="hidden md:grid grid-cols-7 gap-4">
           {weekDays.map((day) => (
             <div key={day.toISOString()} className="bg-white rounded-lg shadow p-4">
-              <div className="font-medium text-lg mb-2">
+              <div className="text-lg font-semibold text-primary">
                 {format(day, "EEEE", { locale: nl })}
               </div>
               <div className="text-sm text-gray-500 mb-4">
@@ -96,12 +96,12 @@ export default function PublicCalendar() {
                     return (
                       <div
                         key={planning.id}
-                        className="p-3 rounded-lg bg-primary/5 border border-primary/10"
+                        className="p-3 rounded-lg bg-primary/5 border border-primary/10 hover:bg-primary/10 transition-colors shadow-sm"
                       >
-                        <div className="font-medium text-primary">
+                        <div className="font-medium text-primary break-words">
                           {room?.name || 'Onbekende ruimte'}
                         </div>
-                        <div className="text-sm text-gray-600 mt-1">
+                        <div className="text-sm text-gray-600 mt-1 break-words leading-normal">
                           {volunteer
                             ? `${volunteer.firstName} ${volunteer.lastName}`
                             : 'Niet toegewezen'
@@ -121,7 +121,7 @@ export default function PublicCalendar() {
         <div className="md:hidden space-y-6">
           {weekDays.map((day) => (
             <div key={day.toISOString()} className="bg-white rounded-lg shadow p-4">
-              <div className="font-medium text-lg">
+              <div className="font-medium text-lg text-primary">
                 {format(day, "EEEE", { locale: nl })}
               </div>
               <div className="text-sm text-gray-500 mb-4">
@@ -137,12 +137,12 @@ export default function PublicCalendar() {
                     return (
                       <div
                         key={planning.id}
-                        className="p-4 rounded-lg bg-primary/5 border border-primary/10"
+                        className="p-4 rounded-lg bg-primary/5 border border-primary/10 hover:bg-primary/10 transition-colors"
                       >
-                        <div className="font-medium text-primary text-lg">
+                        <div className="font-medium text-primary text-lg break-words">
                           {room?.name || 'Onbekende ruimte'}
                         </div>
-                        <div className="text-gray-600 mt-1">
+                        <div className="text-gray-600 mt-1 break-words leading-normal">
                           {volunteer
                             ? `${volunteer.firstName} ${volunteer.lastName}`
                             : 'Niet toegewezen'
