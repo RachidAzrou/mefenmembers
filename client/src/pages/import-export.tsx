@@ -13,11 +13,12 @@ import {
 import { db } from "@/lib/firebase";
 import { ref, onValue, remove, push } from "firebase/database";
 import { useToast } from "@/hooks/use-toast";
-import { Download, Upload, Users, X, FileUp, FileDown } from "lucide-react";
+import { Download, Upload, Users, X, FileUp, FileDown, Settings } from "lucide-react";
 import { PDFDownloadLink } from "@react-pdf/renderer";
 import { Document, Page, Text, View, StyleSheet, Image } from '@react-pdf/renderer';
 import { format } from 'date-fns';
 import { nl } from 'date-fns/locale';
+import { AdminSetup } from "@/components/admin-setup";
 import { useRole } from "@/hooks/use-role";
 
 const styles = StyleSheet.create({
@@ -256,6 +257,20 @@ export default function ImportExport() {
         <Users className="h-8 w-8 text-[#963E56]" />
         <h1 className="text-3xl font-bold text-[#963E56]">Import & Export</h1>
       </div>
+
+      {isAdmin && (
+        <Card className="shadow-md mb-6">
+          <CardHeader className="border-b bg-gray-50/80">
+            <CardTitle className="flex items-center gap-2 text-[#963E56]">
+              <Settings className="h-5 w-5" />
+              Admin Instellingen
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="pt-6">
+            <AdminSetup />
+          </CardContent>
+        </Card>
+      )}
 
       {/* Import Section */}
       <Card className="shadow-md">

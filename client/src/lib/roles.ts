@@ -4,6 +4,21 @@ import { db } from "./firebase";
 
 export type UserRole = 'admin' | 'medewerker';
 
+export async function createAdminUser(uid: string, email: string) {
+  try {
+    const userRef = ref(db, `users/${uid}`);
+    await set(userRef, {
+      email,
+      admin: true
+    });
+    console.log(`Created admin user ${email} in database`);
+    return true;
+  } catch (error) {
+    console.error('Error creating admin user in database:', error);
+    return false;
+  }
+}
+
 export async function getUserRole(user: User | null): Promise<UserRole | null> {
   if (!user) return null;
 

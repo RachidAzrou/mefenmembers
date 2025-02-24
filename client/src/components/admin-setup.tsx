@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Button } from "@/components/ui/button";
-import { setUserAsAdmin } from '@/lib/roles';
+import { createAdminUser } from '@/lib/roles';
 import { toast } from "@/hooks/use-toast";
 
 export function AdminSetup() {
@@ -9,7 +9,10 @@ export function AdminSetup() {
   const handleSetAdmin = async () => {
     setIsLoading(true);
     try {
-      const success = await setUserAsAdmin('razrou@outlook.be');
+      const success = await createAdminUser(
+        'AzlIm0Ff5mcyydzc59x49qBrvjS2',  // User's UID
+        'razrou@outlook.be'               // User's email
+      );
       if (success) {
         toast({
           title: "Succes",
