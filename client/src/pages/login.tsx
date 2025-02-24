@@ -108,6 +108,25 @@ export default function Login() {
                 Inloggen
               </Button>
             </form>
+
+            {/* Registratie sectie */}
+            <div className="mt-8 pt-6 border-t border-gray-200">
+              <div className="text-center">
+                <h2 className="text-lg font-semibold text-gray-900">
+                  Wil je vrijwilliger worden bij MEFEN?
+                </h2>
+                <p className="mt-2 text-sm text-gray-600">
+                  Word onderdeel van onze gemeenschap en help mee aan het versterken van onze moskee.
+                </p>
+                <Button
+                  variant="outline"
+                  className="mt-4 w-full border-[#963E56] text-[#963E56] hover:bg-[#963E56] hover:text-white"
+                  onClick={() => setLocation("/register")}
+                >
+                  Registreer je als vrijwilliger
+                </Button>
+              </div>
+            </div>
           </CardContent>
         </Card>
 
