@@ -32,7 +32,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { db } from "@/lib/firebase";
 import { ref, push, remove, update, onValue } from "firebase/database";
-import { 
+import {
   Calendar as CalendarIcon,
   Edit2,
   Trash2,
@@ -186,14 +186,86 @@ export default function Planning() {
   const uniqueVolunteersScheduled = new Set(plannings.map(p => p.volunteerId)).size;
   const uniqueRoomsScheduled = new Set(plannings.map(p => p.roomId)).size;
 
-  // Get active plannings (current date falls between start and end date)
-  const activePlannings = plannings.filter(planning => {
+  // Get all plannings sorted by start date
+  const sortedPlannings = [...plannings].sort((a, b) => {
+    return new Date(a.startDate).getTime() - new Date(b.startDate).getTime();
+  });
+
+  // Group plannings by status
+  const { activePlannings, upcomingPlannings, pastPlannings } = plannings.reduce((acc, planning) => {
     const now = new Date();
     now.setHours(0, 0, 0, 0);
     const start = new Date(planning.startDate);
     const end = new Date(planning.endDate);
-    return start <= now && now <= end;
-  });
+
+    if (start <= now && now <= end) {
+      acc.activePlannings.push(planning);
+    } else if (start > now) {
+      acc.upcomingPlannings.push(planning);
+    } else {
+      acc.pastPlannings.push(planning);
+    }
+    return acc;
+  }, { activePlannings: [], upcomingPlannings: [], pastPlannings: [] });
+
+  const PlanningTable = ({ plannings, emptyMessage }: {plannings: Planning[], emptyMessage: string}) => (
+    <div className="rounded-lg border bg-card overflow-x-auto">
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Vrijwilliger</TableHead>
+            <TableHead>Ruimte</TableHead>
+            <TableHead>Periode</TableHead>
+            <TableHead className="w-[100px]">Acties</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {plannings.map((planning) => {
+            const volunteer = volunteers.find((v) => v.id === planning.volunteerId);
+            const room = rooms.find((r) => r.id === planning.roomId);
+            return (
+              <TableRow key={planning.id}>
+                <TableCell className="font-medium">
+                  {volunteer ? `${volunteer.firstName} ${volunteer.lastName}` : "-"}
+                </TableCell>
+                <TableCell>{room ? room.name : "-"}</TableCell>
+                <TableCell className="whitespace-nowrap">
+                  {format(new Date(planning.startDate), "d MMM yyyy", { locale: nl })} - {format(new Date(planning.endDate), "d MMM yyyy", { locale: nl })}
+                </TableCell>
+                <TableCell>
+                  <div className="flex space-x-2">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => handleEdit(planning)}
+                      className="text-[#6BB85C] hover:text-[#6BB85C] hover:bg-[#6BB85C]/10"
+                    >
+                      <Edit2 className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => setDeletePlanningId(planning.id)}
+                      className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </TableCell>
+              </TableRow>
+            );
+          })}
+          {plannings.length === 0 && (
+            <TableRow>
+              <TableCell colSpan={4} className="text-center py-6 text-gray-500">
+                {emptyMessage}
+              </TableCell>
+            </TableRow>
+          )}
+        </TableBody>
+      </Table>
+    </div>
+  );
 
   return (
     <div className="space-y-6">
@@ -328,7 +400,7 @@ export default function Planning() {
                 <CalendarDays className="h-8 w-8 text-primary/80" />
                 <div className="ml-4">
                   <h3 className="text-sm font-medium text-gray-500">Totaal Planningen</h3>
-                  <p className="text-2xl font-bold text-primary">{totalScheduledVolunteers}</p>
+                  <p className="text-2xl font-bold text-primary">{plannings.length}</p>
                 </div>
               </div>
             </CardContent>
@@ -365,62 +437,32 @@ export default function Planning() {
         icon={<Users className="h-5 w-5 text-primary" />}
         defaultOpen={true}
       >
-        <div className="rounded-lg border bg-card overflow-x-auto">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Vrijwilliger</TableHead>
-                <TableHead>Ruimte</TableHead>
-                <TableHead>Periode</TableHead>
-                <TableHead className="w-[100px]">Acties</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {activePlannings.map((planning) => {
-                const volunteer = volunteers.find((v) => v.id === planning.volunteerId);
-                const room = rooms.find((r) => r.id === planning.roomId);
-                return (
-                  <TableRow key={planning.id}>
-                    <TableCell className="font-medium">
-                      {volunteer ? `${volunteer.firstName} ${volunteer.lastName}` : "-"}
-                    </TableCell>
-                    <TableCell>{room ? room.name : "-"}</TableCell>
-                    <TableCell className="whitespace-nowrap">
-                      {format(new Date(planning.startDate), "d MMM", { locale: nl })} - {format(new Date(planning.endDate), "d MMM", { locale: nl })}
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex space-x-2">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => handleEdit(planning)}
-                          className="text-[#6BB85C] hover:text-[#6BB85C] hover:bg-[#6BB85C]/10"
-                        >
-                          <Edit2 className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => setDeletePlanningId(planning.id)}
-                          className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                );
-              })}
-              {activePlannings.length === 0 && (
-                <TableRow>
-                  <TableCell colSpan={4} className="text-center py-6 text-gray-500">
-                    Geen actieve planningen gevonden
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </div>
+        <PlanningTable 
+          plannings={activePlannings} 
+          emptyMessage="Geen actieve planningen gevonden"
+        />
+      </CollapsibleSection>
+
+      <CollapsibleSection
+        title="Toekomstige Planningen"
+        icon={<Users className="h-5 w-5 text-primary" />}
+        defaultOpen={true}
+      >
+        <PlanningTable 
+          plannings={upcomingPlannings} 
+          emptyMessage="Geen toekomstige planningen gevonden"
+        />
+      </CollapsibleSection>
+
+      <CollapsibleSection
+        title="Afgelopen Planningen"
+        icon={<Users className="h-5 w-5 text-primary" />}
+        defaultOpen={false}
+      >
+        <PlanningTable 
+          plannings={pastPlannings} 
+          emptyMessage="Geen afgelopen planningen gevonden"
+        />
       </CollapsibleSection>
 
       <AlertDialog
