@@ -50,7 +50,8 @@ export function Sidebar() {
     { icon: DoorOpen, label: "Ruimtes", href: "/rooms", adminOnly: true },
     { icon: Package2, label: "Materialen", href: "/materials" },
     { icon: Download, label: "Import/Export", href: "/import-export" },
-    { icon: PiMosqueFill, label: "Mijn Moskee", href: "/mosque" }
+    { icon: PiMosqueFill, label: "Mijn Moskee", href: "/mosque" },
+    { icon: Settings, label: "Instellingen", href: "/settings", adminOnly: true }
   ].filter(item => !item.adminOnly || isAdmin);
 
   return (

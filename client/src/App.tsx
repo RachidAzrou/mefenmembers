@@ -12,6 +12,7 @@ import Planning from "@/pages/planning";
 import PublicCalendar from "@/pages/public-calendar";
 import ImportExport from "@/pages/import-export";
 import Mosque from "@/pages/mosque";
+import Settings from "@/pages/settings";
 import { Sidebar } from "@/components/layout/sidebar";
 import { auth } from "./lib/firebase";
 import { useAuthState } from "react-firebase-hooks/auth";
@@ -66,6 +67,7 @@ function Router() {
       <Route path="/materials" component={() => <PrivateRoute component={Materials} />} />
       <Route path="/import-export" component={() => <PrivateRoute component={ImportExport} />} />
       <Route path="/mosque" component={() => <PrivateRoute component={Mosque} />} />
+      <Route path="/settings" component={() => <PrivateRoute component={Settings} />} />
       <Route path="/calendar/public" component={PublicCalendar} />
       <Route component={NotFound} />
     </Switch>

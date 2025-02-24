@@ -19,6 +19,21 @@ export async function createAdminUser(uid: string, email: string) {
   }
 }
 
+export async function updateUserRole(uid: string, email: string, isAdmin: boolean) {
+  try {
+    const userRef = ref(db, `users/${uid}`);
+    await set(userRef, {
+      email,
+      admin: isAdmin
+    });
+    console.log(`Updated user ${email} role to ${isAdmin ? 'admin' : 'medewerker'}`);
+    return true;
+  } catch (error) {
+    console.error('Error updating user role:', error);
+    return false;
+  }
+}
+
 export async function getUserRole(user: User | null): Promise<UserRole | null> {
   if (!user) return null;
 
@@ -68,8 +83,3 @@ export function canAccessPage(role: UserRole | null, page: string): boolean {
   // All other pages are accessible to both roles
   return true;
 }
-
-// Zet de eerste admin user direct in de database
-createAdminUser('AzlIm0Ff5mcyydzc59x49qBrvjS2', 'razrou@outlook.be')
-  .then(() => console.log('Admin user created successfully'))
-  .catch(err => console.error('Error creating admin user:', err));
