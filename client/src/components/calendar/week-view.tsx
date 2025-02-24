@@ -1,6 +1,6 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, ChevronRight, Download, Share2, Share, Copy, Users, Filter, Package2, UserCheck, DoorOpen, Users2 } from "lucide-react";
+import { ChevronLeft, ChevronRight, Download, Share2, Share, Copy, Users, Filter } from "lucide-react";
 import { format, addWeeks, startOfWeek, addDays, isWithinInterval, subWeeks } from "date-fns";
 import { nl } from "date-fns/locale";
 import { useState, useEffect } from "react";
@@ -199,25 +199,6 @@ export function WeekView() {
     }
   };
 
-  const downloadPDF = () => {
-    const filename = `planning-${format(weekStart, 'yyyy-MM-dd')}.pdf`;
-    const pdfContent = (
-      <CalendarPDF
-        weekStart={weekStart}
-        plannings={plannings.map(p => ({
-          room: rooms.find(r => r.id === p.roomId) || { name: 'Unknown' },
-          volunteer: volunteers.find(v => v.id === p.volunteerId) || { firstName: 'Unknown', lastName: '' }
-        }))}
-      />
-    );
-
-    return (
-      <PDFDownloadLink document={pdfContent} fileName={filename}>
-        {({ loading }) => (loading ? "Genereren..." : "PDF Exporteren")}
-      </PDFDownloadLink>
-    );
-  };
-
   const publishSchedule = () => {
     const publicUrl = `${window.location.origin}/calendar/public`;
     window.open(publicUrl, '_blank');
@@ -255,11 +236,11 @@ export function WeekView() {
     return true;
   });
 
-  const getPlanningsForDay = (date: Date) => {
+  const getPlanningsForDay = (day: Date) => {
     return filteredPlannings.filter(planning => {
       const startDate = new Date(planning.startDate);
       const endDate = new Date(planning.endDate);
-      return isWithinInterval(date, { start: startDate, end: endDate });
+      return isWithinInterval(day, { start: startDate, end: endDate });
     });
   };
 
@@ -268,12 +249,9 @@ export function WeekView() {
 
     weekDays.forEach(day => {
       const dayPlannings = getPlanningsForDay(day);
-      console.log(`Getting plannings for ${format(day, 'yyyy-MM-dd')}:`, dayPlannings);
-
       const formattedPlannings = dayPlannings.map(planning => {
         const volunteer = volunteers.find(v => v.id === planning.volunteerId);
         const room = rooms.find(r => r.id === planning.roomId);
-
         return {
           volunteer: {
             firstName: volunteer?.firstName || 'Onbekend',
@@ -285,11 +263,9 @@ export function WeekView() {
           date: day
         };
       });
-
       planningsForPDF = [...planningsForPDF, ...formattedPlannings];
     });
 
-    console.log('Final plannings for PDF:', planningsForPDF);
     return planningsForPDF;
   };
 
@@ -389,212 +365,8 @@ export function WeekView() {
             </Button>
           </div>
 
-          {/* Right side - Actions */}
+          {/* Right side - Export */}
           <div className="flex items-center gap-2">
-            <Dialog>
-              <DialogTrigger asChild>
-                <Button className="bg-[#D9A347] hover:bg-[#D9A347]/90 text-white">
-                  <Users className="h-4 w-4 mr-2" />
-                  Bulk Inplannen
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="max-w-lg">
-                <DialogHeader>
-                  <DialogTitle>Bulk Inplannen</DialogTitle>
-                </DialogHeader>
-                <Form {...bulkForm}>
-                  <form onSubmit={bulkForm.handleSubmit(onSubmit)} className="space-y-4">
-                    <FormField
-                      control={bulkForm.control}
-                      name="volunteerIds"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Vrijwilligers</FormLabel>
-                          <Select
-                            onValueChange={(value) => {
-                              const currentValues = field.value || [];
-                              const newValues = currentValues.includes(value)
-                                ? currentValues.filter(v => v !== value)
-                                : [...currentValues, value];
-                              field.onChange(newValues);
-                            }}
-                          >
-                            <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Selecteer vrijwilligers" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              {volunteers.map((volunteer) => (
-                                <SelectItem key={volunteer.id} value={volunteer.id}>
-                                  {volunteer.firstName} {volunteer.lastName}
-                                  {field.value?.includes(volunteer.id) && " ✓"}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                          {field.value?.length > 0 && (
-                            <div className="flex flex-wrap gap-1 mt-2">
-                              {field.value.map(id => {
-                                const volunteer = volunteers.find(v => v.id === id);
-                                return (
-                                  <Badge
-                                    key={id}
-                                    variant="secondary"
-                                    className="cursor-pointer"
-                                    onClick={() => {
-                                      field.onChange(field.value?.filter(v => v !== id));
-                                    }}
-                                  >
-                                    {volunteer?.firstName} {volunteer?.lastName} ×
-                                  </Badge>
-                                );
-                              })}
-                            </div>
-                          )}
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={bulkForm.control}
-                      name="roomIds"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Ruimtes</FormLabel>
-                          <Select
-                            onValueChange={(value) => {
-                              const currentValues = field.value || [];
-                              const newValues = currentValues.includes(value)
-                                ? currentValues.filter(v => v !== value)
-                                : [...currentValues, value];
-                              field.onChange(newValues);
-                            }}
-                          >
-                            <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Selecteer ruimtes" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              {rooms.map((room) => (
-                                <SelectItem key={room.id} value={room.id}>
-                                  {room.name}
-                                  {field.value?.includes(room.id) && " ✓"}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                          {field.value?.length > 0 && (
-                            <div className="flex flex-wrap gap-1 mt-2">
-                              {field.value.map(id => {
-                                const room = rooms.find(r => r.id === id);
-                                return (
-                                  <Badge
-                                    key={id}
-                                    variant="secondary"
-                                    className="cursor-pointer"
-                                    onClick={() => {
-                                      field.onChange(field.value?.filter(v => v !== id));
-                                    }}
-                                  >
-                                    {room?.name} ×
-                                  </Badge>
-                                );
-                              })}
-                            </div>
-                          )}
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <div className="grid grid-cols-2 gap-4">
-                      <FormField
-                        control={bulkForm.control}
-                        name="startDate"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Startdatum</FormLabel>
-                            <Popover>
-                              <PopoverTrigger asChild>
-                                <FormControl>
-                                  <Button
-                                    variant="outline"
-                                    className={cn(
-                                      "w-full pl-3 text-left font-normal",
-                                      !field.value && "text-muted-foreground"
-                                    )}
-                                  >
-                                    {field.value ? (
-                                      format(new Date(field.value), "d MMMM yyyy", { locale: nl })
-                                    ) : (
-                                      <span>Kies een datum</span>
-                                    )}
-                                  </Button>
-                                </FormControl>
-                              </PopoverTrigger>
-                              <PopoverContent className="w-auto p-0" align="start">
-                                <Calendar
-                                  mode="single"
-                                  selected={field.value ? new Date(field.value) : undefined}
-                                  onSelect={(date) => field.onChange(date?.toISOString())}
-                                  initialFocus
-                                />
-                              </PopoverContent>
-                            </Popover>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={bulkForm.control}
-                        name="endDate"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Einddatum</FormLabel>
-                            <Popover>
-                              <PopoverTrigger asChild>
-                                <FormControl>
-                                  <Button
-                                    variant="outline"
-                                    className={cn(
-                                      "w-full pl-3 text-left font-normal",
-                                      !field.value && "text-muted-foreground"
-                                    )}
-                                  >
-                                    {field.value ? (
-                                      format(new Date(field.value), "d MMMM yyyy", { locale: nl })
-                                    ) : (
-                                      <span>Kies een datum</span>
-                                    )}
-                                  </Button>
-                                </FormControl>
-                              </PopoverTrigger>
-                              <PopoverContent className="w-auto p-0" align="start">
-                                <Calendar
-                                  mode="single"
-                                  selected={field.value ? new Date(field.value) : undefined}
-                                  onSelect={(date) => field.onChange(date?.toISOString())}
-                                  initialFocus
-                                />
-                              </PopoverContent>
-                            </Popover>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </div>
-
-                    <Button type="submit" className="w-full">
-                      Planningen Toevoegen
-                    </Button>
-                  </form>
-                </Form>
-              </DialogContent>
-            </Dialog>
-
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="outline">

@@ -119,7 +119,6 @@ type CalendarPDFProps = {
 };
 
 export function CalendarPDF({ weekStart, plannings }: CalendarPDFProps) {
-  console.log('Rendering CalendarPDF with:', { weekStart, plannings });
   const weekDays = Array.from({ length: 7 }).map((_, i) => addDays(weekStart, i));
 
   const getPlanningsForDay = (day: Date) => {
