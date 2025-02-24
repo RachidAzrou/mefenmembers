@@ -58,7 +58,7 @@ export default function Login() {
                 <img 
                   src="/static/Naamloos.png" 
                   alt="MEFEN" 
-                  className="h-16 mx-auto mb-4"
+                  className="h-24 mx-auto mb-4"
                 />
               </div>
               <h1 className="text-2xl font-bold text-[#963E56]">
