@@ -22,12 +22,10 @@ function Calendar({
       locale={nl}
       weekStartsOn={1}
       formatters={{
-        formatWeekdayName: (date) => {
-          return format(date, 'eee', { locale: nl })
-        },
-        formatCaption: (date) => {
-          return format(date, 'MMMM yyyy', { locale: nl })
-        }
+        formatWeekdayShort: (date) => format(date, 'eee', { locale: nl }), //More concise and accurate
+        formatDay: (date) => format(date, 'd', { locale: nl }), //Added for better date display
+        formatMonth: (date) => format(date, 'MMMM', { locale: nl }), //Added for better month display
+        formatYear: (date) => format(date, 'yyyy', { locale: nl }), //Added for better year display
       }}
       classNames={{
         months: "flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0",

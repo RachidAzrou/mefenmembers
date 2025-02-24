@@ -247,24 +247,25 @@ export default function Planning() {
   };
 
   const calendarClassNames = {
-    nav_button_previous: "text-foreground",
-    nav_button_next: "text-foreground",
-    head_cell: "text-foreground font-normal",
-    caption: "text-foreground font-semibold",
-    day_today: "bg-accent text-accent-foreground",
-    day_selected: "bg-[#6BB85C] text-white hover:bg-[#6BB85C]/90",
-    day_outside: "text-muted-foreground opacity-50",
-    day: "text-foreground",
-    row: "flex",
-    table: "w-full border-collapse space-y-1",
+    months: "flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0",
     month: "space-y-4",
-    months: "space-y-4",
+    caption: "flex justify-center pt-1 relative items-center",
     caption_label: "text-sm font-medium",
     nav: "space-x-1 flex items-center",
-    nav_button: "h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100",
-    cell: "h-9 w-9 text-center text-sm relative [&:has([aria-selected])]:bg-accent first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md focus-within:relative focus-within:z-20",
-    day_range_end: "day-range-end",
-    day_range_start: "day-range-start",
+    nav_button: "h-7 w-7 bg-transparent p-0 hover:opacity-100",
+    nav_button_previous: "absolute left-1",
+    nav_button_next: "absolute right-1",
+    table: "w-full border-collapse space-y-1",
+    head_row: "flex",
+    head_cell: "text-muted-foreground rounded-md w-10 font-normal text-[0.8rem] h-10 flex items-center justify-center",
+    row: "flex w-full mt-2",
+    cell: "relative p-0 text-center text-sm focus-within:relative focus-within:z-20 [&:has([aria-selected])]:bg-accent first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md",
+    day: "h-10 w-10 p-0 font-normal aria-selected:opacity-100",
+    day_selected: "bg-[#6BB85C] text-white hover:bg-[#6BB85C]/90 focus:bg-[#6BB85C] rounded-md",
+    day_today: "bg-accent text-accent-foreground",
+    day_outside: "text-muted-foreground opacity-50",
+    day_disabled: "text-muted-foreground opacity-50",
+    day_range_middle: "aria-selected:bg-accent aria-selected:text-accent-foreground",
     day_hidden: "invisible",
   };
 
@@ -370,7 +371,7 @@ export default function Planning() {
                               </Button>
                             </FormControl>
                           </PopoverTrigger>
-                          <PopoverContent className="w-auto p-0 bg-white rounded-lg shadow-lg border" align="start">
+                          <PopoverContent className="w-auto p-4 bg-white rounded-lg shadow-lg border" align="start">
                             <Calendar
                               mode="single"
                               selected={field.value ? new Date(field.value) : undefined}
@@ -378,7 +379,6 @@ export default function Planning() {
                               initialFocus
                               locale={nl}
                               weekStartsOn={1}
-                              showWeekNumber
                               classNames={calendarClassNames}
                               disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
                             />
@@ -413,7 +413,7 @@ export default function Planning() {
                               </Button>
                             </FormControl>
                           </PopoverTrigger>
-                          <PopoverContent className="w-auto p-0 bg-white rounded-lg shadow-lg border" align="start">
+                          <PopoverContent className="w-auto p-4 bg-white rounded-lg shadow-lg border" align="start">
                             <Calendar
                               mode="single"
                               selected={field.value ? new Date(field.value) : undefined}
@@ -421,7 +421,6 @@ export default function Planning() {
                               initialFocus
                               locale={nl}
                               weekStartsOn={1}
-                              showWeekNumber
                               classNames={calendarClassNames}
                               disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
                             />
@@ -603,7 +602,7 @@ export default function Planning() {
                               </Button>
                             </FormControl>
                           </PopoverTrigger>
-                          <PopoverContent className="w-auto p-0 bg-white rounded-lg shadow-lg border" align="start">
+                          <PopoverContent className="w-auto p-4 bg-white rounded-lg shadow-lg border" align="start">
                             <Calendar
                               mode="single"
                               selected={field.value ? new Date(field.value) : undefined}
@@ -611,7 +610,6 @@ export default function Planning() {
                               initialFocus
                               locale={nl}
                               weekStartsOn={1}
-                              showWeekNumber
                               classNames={calendarClassNames}
                               disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
                             />
@@ -646,7 +644,7 @@ export default function Planning() {
                               </Button>
                             </FormControl>
                           </PopoverTrigger>
-                          <PopoverContent className="w-auto p-0 bg-white rounded-lg shadow-lg border" align="start">
+                          <PopoverContent className="w-auto p-4 bg-white rounded-lg shadow-lg border" align="start">
                             <Calendar
                               mode="single"
                               selected={field.value ? new Date(field.value) : undefined}
@@ -654,7 +652,6 @@ export default function Planning() {
                               initialFocus
                               locale={nl}
                               weekStartsOn={1}
-                              showWeekNumber
                               classNames={calendarClassNames}
                               disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
                             />
