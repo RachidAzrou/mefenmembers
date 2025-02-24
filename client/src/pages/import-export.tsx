@@ -12,11 +12,11 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { db } from "@/lib/firebase";
-import { ref, onValue, remove, push, get } from "firebase/database";
+import { ref, onValue, remove, push } from "firebase/database";
 import { useToast } from "@/hooks/use-toast";
 import { Download, Upload, FileCheck, Users, X } from "lucide-react";
 import { PDFDownloadLink } from "@react-pdf/renderer";
-import { Document, Page, Text, View, StyleSheet, Image, Font } from '@react-pdf/renderer';
+import { Document, Page, Text, View, StyleSheet, Font } from '@react-pdf/renderer';
 import { format } from 'date-fns';
 import { nl } from 'date-fns/locale';
 
@@ -39,10 +39,6 @@ const styles = StyleSheet.create({
     borderBottom: 1,
     borderBottomColor: '#E5E7EB',
     paddingBottom: 20,
-  },
-  logo: {
-    width: 100,
-    marginRight: 20,
   },
   headerText: {
     flex: 1,
@@ -121,52 +117,59 @@ type ExportField = {
   checked: boolean;
 };
 
-const VolunteersPDF = ({ volunteers, fields }) => (
-  <Document>
-    <Page size="A4" style={styles.page}>
-      <View style={styles.header}>
-        <Image 
-          src="/static/Naamloos.png"
-          style={styles.logo}
-        />
-        <View style={styles.headerText}>
-          <Text style={styles.title}>MEFEN Vrijwilligersoverzicht</Text>
-          <Text style={styles.subtitle}>Volledige lijst van actieve vrijwilligers</Text>
-          <Text style={styles.date}>
-            Bijgewerkt op {format(new Date(), 'd MMMM yyyy', { locale: nl })}
-          </Text>
+const VolunteersPDF = ({ volunteers, fields }) => {
+  console.log('Rendering PDF with volunteers:', volunteers); // Debug log
+  return (
+    <Document>
+      <Page size="A4" style={styles.page}>
+        <View style={styles.header}>
+          <View style={styles.headerText}>
+            <Text style={styles.title}>MEFEN Vrijwilligersoverzicht</Text>
+            <Text style={styles.subtitle}>Volledige lijst van actieve vrijwilligers</Text>
+            <Text style={styles.date}>
+              Bijgewerkt op {format(new Date(), 'd MMMM yyyy', { locale: nl })}
+            </Text>
+          </View>
         </View>
-      </View>
 
-      <View style={styles.table}>
-        <View style={styles.tableHeader}>
-          {fields.map(field => (
-            field.checked && (
-              <Text key={field.id} style={styles.tableHeaderCell}>
-                {field.label}
-              </Text>
-            )
-          ))}
-        </View>
-        {volunteers.map((volunteer, i) => (
-          <View key={i} style={styles.tableRow}>
+        <View style={styles.table}>
+          <View style={styles.tableHeader}>
             {fields.map(field => (
               field.checked && (
-                <Text key={field.id} style={styles.tableCell}>
-                  {volunteer[field.id]}
+                <Text key={field.id} style={styles.tableHeaderCell}>
+                  {field.label}
                 </Text>
               )
             ))}
           </View>
-        ))}
-      </View>
+          {volunteers && volunteers.map((volunteer, i) => (
+            <View key={i} style={styles.tableRow}>
+              {fields.map(field => (
+                field.checked && (
+                  <Text key={field.id} style={styles.tableCell}>
+                    {volunteer[field.id] || 'N/A'}
+                  </Text>
+                )
+              ))}
+            </View>
+          ))}
+        </View>
 
-      <Text style={styles.footer}>
-        MEFEN Vrijwilligers Management Systeem • Totaal aantal vrijwilligers: {volunteers.length}
-      </Text>
-    </Page>
-  </Document>
-);
+        <Text style={styles.footer}>
+          MEFEN Vrijwilligers Management Systeem • Totaal aantal vrijwilligers: {volunteers ? volunteers.length : 0}
+        </Text>
+      </Page>
+    </Document>
+  );
+};
+
+const transformVolunteersForPDF = (volunteers) => {
+    return volunteers.map(volunteer => ({
+      firstName: volunteer.firstName || 'N/A',
+      lastName: volunteer.lastName || 'N/A',
+      phoneNumber: volunteer.phoneNumber || 'N/A'
+    }));
+  };
 
 export default function ImportExport() {
   const [pendingVolunteers, setPendingVolunteers] = useState<PendingVolunteer[]>([]);
@@ -180,25 +183,42 @@ export default function ImportExport() {
   const { toast } = useToast();
 
   useEffect(() => {
-    const pendingRef = ref(db, "pending_volunteers");
-    onValue(pendingRef, (snapshot) => {
+    // Fetch volunteers data
+    const volunteersRef = ref(db, "volunteers");
+    const unsubscribe = onValue(volunteersRef, (snapshot) => {
       const data = snapshot.val();
-      const volunteersList = data ? Object.entries(data).map(([id, volunteer]) => ({
-        id,
-        ...(volunteer as Omit<PendingVolunteer, "id">),
-      })) : [];
-      setPendingVolunteers(volunteersList);
+      console.log('Fetched volunteers data:', data); // Debug log
+      if (data) {
+        const volunteersList = Object.entries(data).map(([id, volunteer]: [string, any]) => ({
+          id,
+          ...volunteer,
+        }));
+        console.log('Processed volunteers list:', volunteersList); // Debug log
+        setVolunteers(volunteersList);
+      } else {
+        setVolunteers([]);
+      }
     });
 
-    const volunteersRef = ref(db, "volunteers");
-    onValue(volunteersRef, (snapshot) => {
+    // Fetch pending volunteers data
+    const pendingRef = ref(db, "pending_volunteers");
+    const unsubscribePending = onValue(pendingRef, (snapshot) => {
       const data = snapshot.val();
-      const volunteersList = data ? Object.entries(data).map(([id, volunteer]) => ({
-        id,
-        ...volunteer,
-      })) : [];
-      setVolunteers(volunteersList);
+      if (data) {
+        const volunteersList = Object.entries(data).map(([id, volunteer]: [string, any]) => ({
+          id,
+          ...(volunteer as Omit<PendingVolunteer, "id">),
+        }));
+        setPendingVolunteers(volunteersList);
+      } else {
+        setPendingVolunteers([]);
+      }
     });
+
+    return () => {
+      unsubscribe();
+      unsubscribePending();
+    };
   }, []);
 
   const handleImport = async () => {
@@ -378,7 +398,10 @@ export default function ImportExport() {
             </div>
 
             <PDFDownloadLink
-              document={<VolunteersPDF volunteers={volunteers} fields={exportFields} />}
+              document={<VolunteersPDF 
+                volunteers={transformVolunteersForPDF(volunteers)} 
+                fields={exportFields} 
+              />}
               fileName={`vrijwilligers-${format(new Date(), 'yyyy-MM-dd')}.pdf`}
               className="block w-full"
             >

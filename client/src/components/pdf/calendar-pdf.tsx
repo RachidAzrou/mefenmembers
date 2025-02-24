@@ -1,4 +1,4 @@
-import { Document, Page, View, Text, StyleSheet, Image, Font } from "@react-pdf/renderer";
+import { Document, Page, View, Text, StyleSheet, Font } from "@react-pdf/renderer";
 import { format, addDays } from "date-fns";
 import { nl } from "date-fns/locale";
 
@@ -21,10 +21,6 @@ const styles = StyleSheet.create({
     borderBottom: 1,
     borderBottomColor: '#E5E7EB',
     paddingBottom: 20,
-  },
-  logo: {
-    width: 100,
-    marginRight: 20,
   },
   headerText: {
     flex: 1,
@@ -115,6 +111,7 @@ type CalendarPDFProps = {
 };
 
 export function CalendarPDF({ weekStart, plannings }: CalendarPDFProps) {
+  console.log('Rendering CalendarPDF with:', { weekStart, plannings }); // Debug log
   const weekDays = Array.from({ length: 7 }).map((_, i) => addDays(weekStart, i));
 
   return (
@@ -122,10 +119,6 @@ export function CalendarPDF({ weekStart, plannings }: CalendarPDFProps) {
       <Page size="A4" orientation="landscape" style={styles.page}>
         {/* Header */}
         <View style={styles.header}>
-          <Image 
-            src="/static/Naamloos.png"
-            style={styles.logo}
-          />
           <View style={styles.headerText}>
             <Text style={styles.title}>MEFEN Weekplanning</Text>
             <Text style={styles.subtitle}>Roosteroverzicht Vrijwilligers</Text>
@@ -146,7 +139,7 @@ export function CalendarPDF({ weekStart, plannings }: CalendarPDFProps) {
                 {format(day, "d MMMM", { locale: nl })}
               </Text>
 
-              {plannings.length > 0 ? (
+              {plannings && plannings.length > 0 ? (
                 plannings.map((planning, i) => (
                   <View key={i} style={styles.planning}>
                     <Text style={styles.roomName}>{planning.room.name}</Text>
