@@ -12,8 +12,8 @@ import {
 } from "@/components/ui/table";
 import { updateUserRole } from "@/lib/roles";
 import { db, auth } from "@/lib/firebase";
-import { ref, onValue } from "firebase/database";
-import { createUserWithEmailAndPassword, updatePassword, signInWithEmailAndPassword, sendPasswordResetEmail } from "firebase/auth";
+import { ref, onValue, remove } from "firebase/database";
+import { createUserWithEmailAndPassword, updatePassword, signInWithEmailAndPassword, sendPasswordResetEmail, deleteUser } from "firebase/auth";
 import { useToast } from "@/hooks/use-toast";
 import { Settings as SettingsIcon, UserCog } from "lucide-react";
 import { useRole } from "@/hooks/use-role";
@@ -45,6 +45,7 @@ type PasswordChangeFormData = z.infer<typeof passwordChangeSchema>;
 export default function Settings() {
   const [users, setUsers] = useState<DatabaseUser[]>([]);
   const [changingPasswordFor, setChangingPasswordFor] = useState<string | null>(null);
+  const [deletingUser, setDeletingUser] = useState<DatabaseUser | null>(null);
   const { toast } = useToast();
   const { isAdmin } = useRole();
 
@@ -137,6 +138,27 @@ export default function Settings() {
         variant: "destructive",
         title: "Fout",
         description: error.message || "Kon wachtwoord niet wijzigen",
+      });
+    }
+  };
+
+  const handleDeleteUser = async () => {
+    if (!deletingUser) return;
+
+    try {
+      // Remove from Firebase Realtime Database
+      await remove(ref(db, `users/${deletingUser.uid}`));
+
+      toast({
+        title: "Succes",
+        description: `Gebruiker ${deletingUser.email} is verwijderd`,
+      });
+      setDeletingUser(null);
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Fout",
+        description: error.message || "Kon gebruiker niet verwijderen",
       });
     }
   };
@@ -248,6 +270,13 @@ export default function Settings() {
                         >
                           Reset Wachtwoord
                         </Button>
+                        <Button
+                          onClick={() => setDeletingUser(user)}
+                          variant="outline"
+                          className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                        >
+                          Verwijderen
+                        </Button>
                       </TableCell>
                     </TableRow>
                   ))}
@@ -291,6 +320,37 @@ export default function Settings() {
                   className="bg-[#963E56] hover:bg-[#963E56]/90"
                 >
                   Verstuur Reset Link
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {/* Delete User Dialog */}
+      {deletingUser && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <Card className="w-full max-w-md mx-4">
+            <CardHeader className="border-b">
+              <CardTitle>Gebruiker Verwijderen</CardTitle>
+            </CardHeader>
+            <CardContent className="pt-4">
+              <p className="text-sm text-gray-600 mb-4">
+                Weet u zeker dat u de gebruiker {deletingUser.email} wilt verwijderen? 
+                Deze actie kan niet ongedaan worden gemaakt.
+              </p>
+              <div className="flex justify-end gap-2 mt-4">
+                <Button
+                  variant="outline"
+                  onClick={() => setDeletingUser(null)}
+                >
+                  Annuleren
+                </Button>
+                <Button
+                  onClick={handleDeleteUser}
+                  variant="destructive"
+                >
+                  Verwijderen
                 </Button>
               </div>
             </CardContent>
