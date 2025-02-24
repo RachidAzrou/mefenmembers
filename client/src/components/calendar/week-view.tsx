@@ -266,28 +266,30 @@ export function WeekView() {
   const getPlanningsForPDF = () => {
     let planningsForPDF = [];
 
+    // Loop door elke dag van de week
     weekDays.forEach(day => {
+      // Haal planningen op voor deze dag
       const dayPlannings = getPlanningsForDay(day);
-      console.log(`Getting plannings for ${format(day, 'yyyy-MM-dd')}:`, dayPlannings);
 
+      // Voor elke planning op deze dag
       dayPlannings.forEach(planning => {
         const volunteer = volunteers.find(v => v.id === planning.volunteerId);
         const room = rooms.find(r => r.id === planning.roomId);
 
+        // Voeg de planning toe met de juiste datum
         planningsForPDF.push({
-          room: {
-            name: room?.name || 'Onbekende ruimte'
-          },
           volunteer: {
             firstName: volunteer?.firstName || 'Onbekend',
-            lastName: volunteer?.lastName || 'Vrijwilliger'
+            lastName: volunteer?.lastName || ''
+          },
+          room: {
+            name: room?.name || 'Onbekende ruimte'
           },
           date: day
         });
       });
     });
 
-    console.log('Final plannings for PDF:', planningsForPDF);
     return planningsForPDF;
   };
 
@@ -601,7 +603,7 @@ export function WeekView() {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56">
-                <DropdownMenuItem asChild className="flex items-center">
+                <DropdownMenuItem className="cursor-pointer">
                   <PDFDownloadLink
                     document={
                       <CalendarPDF
@@ -610,14 +612,26 @@ export function WeekView() {
                       />
                     }
                     fileName={`planning-${format(weekStart, 'yyyy-MM-dd')}.pdf`}
-                    className="flex items-center w-full px-2 py-1.5"
+                    className="flex items-center w-full"
                   >
-                    {({ loading }) => (
-                      <>
-                        <Download className="h-4 w-4 mr-2" />
-                        {loading ? "Genereren..." : "PDF Exporteren"}
-                      </>
-                    )}
+                    {({ loading, error }) =>
+                      loading ? (
+                        <>
+                          <Download className="h-4 w-4 mr-2" />
+                          Genereren...
+                        </>
+                      ) : error ? (
+                        <>
+                          <Download className="h-4 w-4 mr-2" />
+                          Error bij genereren PDF
+                        </>
+                      ) : (
+                        <>
+                          <Download className="h-4 w-4 mr-2" />
+                          PDF Exporteren
+                        </>
+                      )
+                    }
                   </PDFDownloadLink>
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={publishSchedule}>

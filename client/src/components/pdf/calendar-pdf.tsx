@@ -124,11 +124,10 @@ export function CalendarPDF({ weekStart, plannings }: CalendarPDFProps) {
   const weekDays = Array.from({ length: 7 }).map((_, i) => addDays(weekStart, i));
 
   const getPlanningsForDay = (day: Date) => {
-    const dayPlannings = plannings.filter(planning => 
-      format(new Date(planning.date), 'yyyy-MM-dd') === format(day, 'yyyy-MM-dd')
-    );
-    console.log(`Plannings for ${format(day, 'yyyy-MM-dd')}:`, dayPlannings);
-    return dayPlannings;
+    return plannings.filter(planning => {
+      const planningDate = new Date(planning.date);
+      return format(planningDate, 'yyyy-MM-dd') === format(day, 'yyyy-MM-dd');
+    });
   };
 
   return (
@@ -165,9 +164,11 @@ export function CalendarPDF({ weekStart, plannings }: CalendarPDFProps) {
                 {dayPlannings.length > 0 ? (
                   dayPlannings.map((planning, i) => (
                     <View key={i} style={styles.planning}>
-                      <Text style={styles.roomName}>{planning.room.name}</Text>
+                      <Text style={styles.roomName}>
+                        {planning.room.name}
+                      </Text>
                       <Text style={styles.volunteerName}>
-                        {`${planning.volunteer.firstName} ${planning.volunteer.lastName}`}
+                        {`${planning.volunteer.firstName} ${planning.volunteer.lastName}`.trim()}
                       </Text>
                     </View>
                   ))
