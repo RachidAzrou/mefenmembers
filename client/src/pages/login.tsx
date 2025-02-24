@@ -8,8 +8,7 @@ import { auth } from "@/lib/firebase";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { useToast } from "@/hooks/use-toast";
 import { useLocation } from "wouter";
-import { LockKeyhole, Mail, UserPlus, LogIn } from "lucide-react";
-import { useState } from "react";
+import { LockKeyhole, Mail } from "lucide-react";
 
 const loginSchema = z.object({
   email: z.string().email("Ongeldig e-mailadres"),
@@ -21,7 +20,6 @@ type LoginFormData = z.infer<typeof loginSchema>;
 export default function Login() {
   const { toast } = useToast();
   const [_, setLocation] = useLocation();
-  const [showRegistration, setShowRegistration] = useState(false);
 
   const form = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
@@ -50,7 +48,7 @@ export default function Login() {
       {/* Dark overlay */}
       <div className="absolute inset-0 bg-black/50" />
 
-      <div className="relative z-10 w-full max-w-[600px] px-4">
+      <div className="relative z-10 w-full max-w-[500px] px-4">
         {/* Login Card */}
         <Card className="bg-white border-0 shadow-2xl overflow-hidden">
           <CardContent className="pt-6 px-8">
@@ -64,99 +62,70 @@ export default function Login() {
                 />
               </div>
               <h1 className="text-2xl font-bold text-[#963E56]">
-                {showRegistration ? "Word Vrijwilliger" : "Vrijwilligersbeheer"}
+                Vrijwilligersbeheer
               </h1>
               <p className="text-gray-600 mt-2">
-                {showRegistration 
-                  ? "Word onderdeel van onze gemeenschap" 
-                  : "Log in om de vrijwilligers te beheren"}
+                Log in om de vrijwilligers te beheren
               </p>
             </div>
 
-            {/* Toggle Buttons */}
-            <div className="flex gap-2 mb-6">
-              <Button
-                type="button"
-                variant={showRegistration ? "outline" : "default"}
-                className={`flex-1 ${!showRegistration ? 'bg-[#963E56] hover:bg-[#963E56]/90' : 'border-[#963E56] text-[#963E56] hover:bg-[#963E56] hover:text-white'}`}
-                onClick={() => setShowRegistration(false)}
+            {/* Login Form */}
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+              <div className="space-y-2">
+                <div className="relative">
+                  <Mail className="absolute left-3 top-3.5 h-5 w-5 text-[#963E56]" />
+                  <Input
+                    type="email"
+                    placeholder="E-mailadres"
+                    className="h-12 pl-10 border-gray-200 focus:border-[#963E56] focus:ring-[#963E56] transition-all duration-200"
+                    {...form.register("email")}
+                  />
+                </div>
+                {form.formState.errors.email && (
+                  <p className="text-sm text-red-500 pl-1">
+                    {form.formState.errors.email.message}
+                  </p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <div className="relative">
+                  <LockKeyhole className="absolute left-3 top-3.5 h-5 w-5 text-[#963E56]" />
+                  <Input
+                    type="password"
+                    placeholder="Wachtwoord"
+                    className="h-12 pl-10 border-gray-200 focus:border-[#963E56] focus:ring-[#963E56] transition-all duration-200"
+                    {...form.register("password")}
+                  />
+                </div>
+                {form.formState.errors.password && (
+                  <p className="text-sm text-red-500 pl-1">
+                    {form.formState.errors.password.message}
+                  </p>
+                )}
+              </div>
+
+              <Button 
+                type="submit" 
+                className="w-full h-12 text-base font-medium bg-[#963E56] hover:bg-[#963E56]/90 transition-colors duration-300"
               >
-                <LogIn className="h-4 w-4 mr-2" />
                 Inloggen
               </Button>
-              <Button
-                type="button"
-                variant={showRegistration ? "default" : "outline"}
-                className={`flex-1 ${showRegistration ? 'bg-[#963E56] hover:bg-[#963E56]/90' : 'border-[#963E56] text-[#963E56] hover:bg-[#963E56] hover:text-white'}`}
-                onClick={() => setShowRegistration(true)}
-              >
-                <UserPlus className="h-4 w-4 mr-2" />
-                Registreren
-              </Button>
-            </div>
+            </form>
 
-            {/* Login Form */}
-            {!showRegistration && (
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                <div className="space-y-2">
-                  <div className="relative">
-                    <Mail className="absolute left-3 top-3.5 h-5 w-5 text-[#963E56]" />
-                    <Input
-                      type="email"
-                      placeholder="E-mailadres"
-                      className="h-12 pl-10 border-gray-200 focus:border-[#963E56] focus:ring-[#963E56] transition-all duration-200"
-                      {...form.register("email")}
-                    />
-                  </div>
-                  {form.formState.errors.email && (
-                    <p className="text-sm text-red-500 pl-1">
-                      {form.formState.errors.email.message}
-                    </p>
-                  )}
-                </div>
-
-                <div className="space-y-2">
-                  <div className="relative">
-                    <LockKeyhole className="absolute left-3 top-3.5 h-5 w-5 text-[#963E56]" />
-                    <Input
-                      type="password"
-                      placeholder="Wachtwoord"
-                      className="h-12 pl-10 border-gray-200 focus:border-[#963E56] focus:ring-[#963E56] transition-all duration-200"
-                      {...form.register("password")}
-                    />
-                  </div>
-                  {form.formState.errors.password && (
-                    <p className="text-sm text-red-500 pl-1">
-                      {form.formState.errors.password.message}
-                    </p>
-                  )}
-                </div>
-
+            {/* Registratie Link */}
+            <div className="mt-6 text-center border-t border-gray-100 pt-6">
+              <p className="text-gray-600">
+                Wil je vrijwilliger worden bij MEFEN?{" "}
                 <Button 
-                  type="submit" 
-                  className="w-full h-12 text-base font-medium bg-[#963E56] hover:bg-[#963E56]/90 transition-colors duration-300"
-                >
-                  Inloggen
-                </Button>
-              </form>
-            )}
-
-            {/* Registration Content */}
-            {showRegistration && (
-              <div className="space-y-4">
-                <p className="text-gray-600 text-center">
-                  Word onderdeel van onze gemeenschap en help mee aan het versterken van onze moskee.
-                </p>
-                <Button
-                  variant="default"
-                  className="w-full h-12 bg-[#963E56] hover:bg-[#963E56]/90"
+                  variant="link" 
+                  className="text-[#963E56] hover:text-[#963E56]/90 p-0 h-auto font-semibold"
                   onClick={() => setLocation("/register")}
                 >
-                  <UserPlus className="h-5 w-5 mr-2" />
-                  Start Registratie
+                  Registreer hier als vrijwilliger
                 </Button>
-              </div>
-            )}
+              </p>
+            </div>
           </CardContent>
         </Card>
 
