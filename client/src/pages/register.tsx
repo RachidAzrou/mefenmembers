@@ -11,9 +11,18 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { useLocation } from "wouter";
 
 const registerSchema = z.object({
-  firstName: z.string().min(1, "Voornaam is verplicht"),
-  lastName: z.string().min(1, "Achternaam is verplicht"),
-  phoneNumber: z.string().min(1, "Telefoonnummer is verplicht"),
+  firstName: z.string()
+    .min(1, "Voornaam is verplicht")
+    .transform(val => val.trim())
+    .refine(val => val.length > 0, "Voornaam mag niet leeg zijn"),
+  lastName: z.string()
+    .min(1, "Achternaam is verplicht")
+    .transform(val => val.trim())
+    .refine(val => val.length > 0, "Achternaam mag niet leeg zijn"),
+  phoneNumber: z.string()
+    .min(1, "Telefoonnummer is verplicht")
+    .transform(val => val.replace(/[^\d]/g, ''))
+    .refine(val => val.length >= 10, "Telefoonnummer moet minimaal 10 cijfers bevatten")
 });
 
 type RegisterFormData = z.infer<typeof registerSchema>;
@@ -26,11 +35,20 @@ export default function Register() {
     resolver: zodResolver(registerSchema),
   });
 
-  const normalizeString = (str: string) => str.toLowerCase().trim();
+  const normalizeString = (str: string) => {
+    // Remove multiple spaces and trim
+    return str.replace(/\s+/g, ' ').toLowerCase().trim();
+  };
 
   const normalizePhoneNumber = (phone: string) => {
-    // Remove all non-numeric characters
-    return phone.replace(/[^\d]/g, '');
+    // Remove all non-numeric characters and ensure it starts with proper format
+    const cleaned = phone.replace(/[^\d]/g, '');
+    if (cleaned.startsWith('31')) {
+      return cleaned;
+    } else if (cleaned.startsWith('0')) {
+      return '31' + cleaned.substring(1);
+    }
+    return cleaned;
   };
 
   const checkForDuplicates = async (data: RegisterFormData) => {
@@ -55,24 +73,31 @@ export default function Register() {
       // Check for duplicates in both collections
       const isDuplicate = [...Object.values(pendingVolunteers), ...Object.values(volunteers)].some(
         (volunteer: any) => {
+          if (!volunteer?.firstName || !volunteer?.lastName || !volunteer?.phoneNumber) {
+            return false;
+          }
+
           const normalizedVolunteer = {
             firstName: normalizeString(volunteer.firstName),
             lastName: normalizeString(volunteer.lastName),
             phoneNumber: normalizePhoneNumber(volunteer.phoneNumber)
           };
 
-          return (
+          // Check if either name + phone matches
+          const nameMatch = 
             normalizedVolunteer.firstName === normalizedInput.firstName &&
-            normalizedVolunteer.lastName === normalizedInput.lastName &&
-            normalizedVolunteer.phoneNumber === normalizedInput.phoneNumber
-          );
+            normalizedVolunteer.lastName === normalizedInput.lastName;
+
+          const phoneMatch = normalizedVolunteer.phoneNumber === normalizedInput.phoneNumber;
+
+          return nameMatch || phoneMatch; // If either matches, it's a duplicate
         }
       );
 
       return isDuplicate;
     } catch (error) {
       console.error("Error checking for duplicates:", error);
-      return false; // In case of error, allow registration to proceed
+      return false;
     }
   };
 
