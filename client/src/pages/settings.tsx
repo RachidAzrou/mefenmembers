@@ -43,6 +43,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { UserAction } from "@/lib/activity-logger";
 import { format } from "date-fns";
 import { nl } from "date-fns/locale";
+import { logUserAction } from "@/lib/activity-logger";
 
 type DatabaseUser = {
   uid: string;
@@ -132,6 +133,10 @@ export default function Settings() {
   const handleRoleChange = async (uid: string, email: string, newIsAdmin: boolean) => {
     try {
       await updateUserRole(uid, email, newIsAdmin);
+      await logUserAction(
+        "Gebruikersrol gewijzigd",
+        `${email} is gewijzigd naar ${newIsAdmin ? 'administrator' : 'medewerker'}`
+      );
       toast({
         title: "Succes",
         description: `Gebruiker ${email} is nu ${newIsAdmin ? 'admin' : 'medewerker'}`,
@@ -149,6 +154,10 @@ export default function Settings() {
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, data.email, data.password);
       await updateUserRole(userCredential.user.uid, data.email, data.isAdmin);
+      await logUserAction(
+        "Nieuwe gebruiker aangemaakt",
+        `Gebruiker ${data.email} aangemaakt als ${data.isAdmin ? 'administrator' : 'medewerker'}`
+      );
 
       toast({
         title: "Succes",
@@ -169,6 +178,10 @@ export default function Settings() {
 
     try {
       await sendPasswordResetEmail(auth, changingPasswordFor);
+      await logUserAction(
+        "Wachtwoord reset",
+        `Wachtwoord reset link verstuurd naar ${changingPasswordFor}`
+      );
 
       toast({
         title: "Succes",
@@ -190,6 +203,10 @@ export default function Settings() {
 
     try {
       await remove(ref(db, `users/${deletingUser.uid}`));
+      await logUserAction(
+        "Gebruiker verwijderd",
+        `Gebruiker ${deletingUser.email} is verwijderd`
+      );
 
       toast({
         title: "Succes",

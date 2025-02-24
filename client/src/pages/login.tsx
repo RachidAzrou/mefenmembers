@@ -13,6 +13,7 @@ import { Link } from "wouter";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useState } from "react";
+import { logUserAction } from "@/lib/activity-logger";
 
 const loginSchema = z.object({
   email: z.string().email("Ongeldig e-mailadres"),
@@ -42,6 +43,7 @@ export default function Login() {
   const onSubmit = async (data: LoginFormData) => {
     try {
       await signInWithEmailAndPassword(auth, data.email, data.password);
+      await logUserAction("Ingelogd", "Gebruiker succesvol ingelogd");
       setLocation("/");
     } catch (error) {
       toast({
@@ -55,6 +57,10 @@ export default function Login() {
   const onResetSubmit = async (data: ResetFormData) => {
     try {
       await sendPasswordResetEmail(auth, data.email);
+      await logUserAction(
+        "Wachtwoord reset aangevraagd",
+        `Wachtwoord reset aangevraagd voor ${data.email}`
+      );
       toast({
         title: "Wachtwoord reset link verzonden",
         description: "Controleer je e-mail voor instructies om je wachtwoord te resetten.",
@@ -71,9 +77,9 @@ export default function Login() {
   };
 
   return (
-    <div 
+    <div
       className="min-h-screen flex items-center justify-center bg-no-repeat bg-cover bg-center relative p-4"
-      style={{ 
+      style={{
         backgroundImage: `url('/static/123.jpg')`
       }}
     >
@@ -84,9 +90,9 @@ export default function Login() {
           <CardContent className="pt-6 px-8">
             <div className="text-center mb-8">
               <div className="w-full flex justify-center items-center">
-                <img 
-                  src="/static/Naamloos.png" 
-                  alt="MEFEN" 
+                <img
+                  src="/static/Naamloos.png"
+                  alt="MEFEN"
                   className="h-24 mx-auto mb-4"
                 />
               </div>
@@ -143,8 +149,8 @@ export default function Login() {
                 </button>
               </div>
 
-              <Button 
-                type="submit" 
+              <Button
+                type="submit"
                 className="w-full h-12 text-base font-medium bg-[#963E56] hover:bg-[#963E56]/90 transition-colors duration-300"
               >
                 Inloggen
@@ -179,7 +185,7 @@ export default function Login() {
                   <FormItem>
                     <FormLabel>E-mailadres</FormLabel>
                     <FormControl>
-                      <Input 
+                      <Input
                         type="email"
                         placeholder="Voer je e-mailadres in"
                         className="h-10"

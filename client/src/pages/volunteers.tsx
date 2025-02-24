@@ -35,6 +35,7 @@ import { ref, push, remove, update, onValue } from "firebase/database";
 import { UserPlus, Edit2, Trash2, Search, Users, CheckSquare, Square } from "lucide-react";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Card, CardContent } from "@/components/ui/card";
+import { logUserAction } from "@/lib/activity-logger";
 
 const volunteerSchema = z.object({
   firstName: z.string().min(1, "Voornaam is verplicht"),
@@ -78,12 +79,20 @@ export default function Volunteers() {
     try {
       if (editingVolunteer) {
         await update(ref(db, `volunteers/${editingVolunteer.id}`), data);
+        await logUserAction(
+          "Vrijwilliger bijgewerkt",
+          `Vrijwilliger ${data.firstName} ${data.lastName} is bijgewerkt`
+        );
         toast({
           title: "Succes",
           description: "Vrijwilliger succesvol bijgewerkt",
         });
       } else {
         await push(ref(db, "volunteers"), data);
+        await logUserAction(
+          "Vrijwilliger toegevoegd",
+          `Nieuwe vrijwilliger ${data.firstName} ${data.lastName} toegevoegd`
+        );
         toast({
           title: "Succes",
           description: "Vrijwilliger succesvol toegevoegd",
@@ -104,6 +113,10 @@ export default function Volunteers() {
   const handleDelete = async (ids: string[]) => {
     try {
       await Promise.all(ids.map(id => remove(ref(db, `volunteers/${id}`))));
+      await logUserAction(
+        "Vrijwilliger(s) verwijderd",
+        `${ids.length} vrijwilliger(s) verwijderd`
+      );
       toast({
         title: "Succes",
         description: `${ids.length} vrijwilliger(s) succesvol verwijderd`,
@@ -138,8 +151,8 @@ export default function Volunteers() {
   };
 
   const toggleSelect = (id: string) => {
-    setSelectedVolunteers(prev => 
-      prev.includes(id) 
+    setSelectedVolunteers(prev =>
+      prev.includes(id)
         ? prev.filter(v => v !== id)
         : [...prev, id]
     );
