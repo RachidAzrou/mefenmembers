@@ -5,7 +5,7 @@ import { format, addWeeks, startOfWeek, addDays, isWithinInterval, subWeeks } fr
 import { nl } from "date-fns/locale";
 import { useState, useEffect } from "react";
 import { db } from "@/lib/firebase";
-import { ref, onValue, push, get } from "firebase/database";
+import { ref, onValue } from "firebase/database";
 import {
   Dialog,
   DialogContent,
@@ -249,10 +249,11 @@ export function WeekView() {
 
     weekDays.forEach(day => {
       const dayPlannings = getPlanningsForDay(day);
-      const formattedPlannings = dayPlannings.map(planning => {
+      dayPlannings.forEach(planning => {
         const volunteer = volunteers.find(v => v.id === planning.volunteerId);
         const room = rooms.find(r => r.id === planning.roomId);
-        return {
+
+        planningsForPDF.push({
           volunteer: {
             firstName: volunteer?.firstName || 'Onbekend',
             lastName: volunteer?.lastName || 'Vrijwilliger'
@@ -261,9 +262,8 @@ export function WeekView() {
             name: room?.name || 'Onbekende ruimte'
           },
           date: day
-        };
+        });
       });
-      planningsForPDF = [...planningsForPDF, ...formattedPlannings];
     });
 
     return planningsForPDF;
@@ -386,10 +386,10 @@ export function WeekView() {
                     fileName={`planning-${format(weekStart, 'yyyy-MM-dd')}.pdf`}
                     className="flex items-center w-full px-2 py-1.5"
                   >
-                    {({ loading }) => (
+                    {({ loading, error }) => (
                       <>
                         <Download className="h-4 w-4 mr-2" />
-                        {loading ? "Genereren..." : "PDF Exporteren"}
+                        {loading ? "Genereren..." : error ? "Fout bij genereren" : "PDF Exporteren"}
                       </>
                     )}
                   </PDFDownloadLink>

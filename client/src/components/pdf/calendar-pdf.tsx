@@ -130,10 +130,9 @@ export function CalendarPDF({ weekStart, plannings }: CalendarPDFProps) {
   return (
     <Document>
       <Page size="A4" orientation="landscape" style={styles.page}>
-        {/* Header */}
         <View style={styles.header}>
           <Image 
-            src="/static/Naamloos.png"
+            src={`${window.location.origin}/static/Naamloos.png`}
             style={styles.logo}
           />
           <View style={styles.headerText}>
@@ -145,7 +144,6 @@ export function CalendarPDF({ weekStart, plannings }: CalendarPDFProps) {
           </View>
         </View>
 
-        {/* Calendar Grid */}
         <View style={styles.calendar}>
           {weekDays.map((day) => {
             const dayPlannings = getPlanningsForDay(day);
@@ -175,7 +173,6 @@ export function CalendarPDF({ weekStart, plannings }: CalendarPDFProps) {
           })}
         </View>
 
-        {/* Footer */}
         <Text style={styles.footer}>
           MEFEN Vrijwilligers Management Systeem • Gegenereerd op {format(new Date(), "d MMMM yyyy", { locale: nl })}
         </Text>
