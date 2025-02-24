@@ -25,5 +25,20 @@
       "type": "image/svg+xml",
       "purpose": "any maskable"
     }
+  ],
+  "prefer_related_applications": false,
+  "orientation": "any",
+  "scope": "/",
+  "shortcuts": [
+    {
+      "name": "Vrijwilligers",
+      "url": "/volunteers",
+      "description": "Beheer vrijwilligers"
+    },
+    {
+      "name": "Planning",
+      "url": "/planning",
+      "description": "Bekijk planning"
+    }
   ]
 }
