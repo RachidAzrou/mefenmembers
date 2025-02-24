@@ -53,12 +53,12 @@ const styles = StyleSheet.create({
   dayHeader: {
     fontSize: 14,
     fontWeight: "bold",
-    color: '#374151',
+    color: '#963E56', // Burgundy kleur voor de dagnaam
     marginBottom: 4,
   },
   dayDate: {
     fontSize: 12,
-    color: '#6B7280',
+    color: '#963E56', // Burgundy kleur voor de datum
     marginBottom: 12,
     paddingBottom: 8,
     borderBottom: 1,
@@ -120,7 +120,6 @@ type CalendarPDFProps = {
 };
 
 export function CalendarPDF({ weekStart, plannings }: CalendarPDFProps) {
-  console.log('CalendarPDF props:', { weekStart, plannings });
   const weekDays = Array.from({ length: 7 }).map((_, i) => addDays(weekStart, i));
 
   const getPlanningsForDay = (day: Date) => {
