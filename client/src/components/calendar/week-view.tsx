@@ -220,18 +220,7 @@ export function WeekView() {
 
   const publishSchedule = () => {
     const publicUrl = `${window.location.origin}/calendar/public`;
-    navigator.clipboard.writeText(publicUrl).then(() => {
-      toast({
-        title: "Link gekopieerd",
-        description: "De publieke kalender link is gekopieerd naar het klembord",
-      });
-    }).catch(() => {
-      toast({
-        variant: "destructive",
-        title: "Fout",
-        description: "Kon de link niet kopiëren naar het klembord",
-      });
-    });
+    window.open(publicUrl, '_blank');
   };
 
   const onSubmit = async (data: z.infer<typeof bulkPlanningSchema>) => {

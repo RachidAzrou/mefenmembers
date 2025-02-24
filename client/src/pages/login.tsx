@@ -56,7 +56,7 @@ export default function Login() {
             <div className="text-center mb-8">
               <div className="w-full flex justify-center items-center">
                 <img 
-                  src="/static/moskee.png" 
+                  src="/static/Naamloos.png" 
                   alt="MEFEN" 
                   className="w-full h-auto"
                 />
