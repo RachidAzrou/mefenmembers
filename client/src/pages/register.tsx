@@ -8,8 +8,14 @@ import { db } from "@/lib/firebase";
 import { ref, push } from "firebase/database";
 import { useToast } from "@/hooks/use-toast";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { createUserInDatabase } from "@/lib/roles";
+import { createUserWithEmailAndPassword } from "firebase/auth";
+import { auth } from "@/lib/firebase";
+import { useLocation } from "wouter";
 
 const registerSchema = z.object({
+  email: z.string().email("Ongeldig e-mailadres"),
+  password: z.string().min(6, "Wachtwoord moet minimaal 6 tekens bevatten"),
   firstName: z.string().min(1, "Voornaam is verplicht"),
   lastName: z.string().min(1, "Achternaam is verplicht"),
   phoneNumber: z.string().min(1, "Telefoonnummer is verplicht"),
@@ -19,28 +25,42 @@ type RegisterFormData = z.infer<typeof registerSchema>;
 
 export default function Register() {
   const { toast } = useToast();
+  const [_, setLocation] = useLocation();
+
   const form = useForm<RegisterFormData>({
     resolver: zodResolver(registerSchema),
   });
 
   const onSubmit = async (data: RegisterFormData) => {
     try {
+      // First create the Firebase Auth user
+      const userCredential = await createUserWithEmailAndPassword(auth, data.email, data.password);
+      const user = userCredential.user;
+
+      // Then create the user in the database (as medewerker by default)
+      await createUserInDatabase(user);
+
+      // Finally create the pending volunteer record
       await push(ref(db, "pending_volunteers"), {
-        ...data,
+        firstName: data.firstName,
+        lastName: data.lastName,
+        phoneNumber: data.phoneNumber,
         submittedAt: new Date().toISOString(),
         status: 'pending'
       });
 
       toast({
-        title: "Succesvol verzonden",
-        description: "Je aanmelding is ontvangen en wordt bekeken door de beheerder.",
+        title: "Succesvol geregistreerd",
+        description: "Je account is aangemaakt en je aanmelding wordt bekeken door de beheerder.",
       });
-      form.reset();
+
+      // Redirect to login
+      setLocation("/login");
     } catch (error) {
       toast({
         variant: "destructive",
         title: "Fout",
-        description: "Er is iets misgegaan bij het verzenden van je aanmelding.",
+        description: "Er is iets misgegaan bij het registreren.",
       });
     }
   };
@@ -48,7 +68,6 @@ export default function Register() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-no-repeat bg-cover bg-center relative px-4 py-6 sm:py-8 md:py-12"
          style={{ backgroundImage: `url('/static/123.jpg')` }}>
-      {/* Dark overlay */}
       <div className="absolute inset-0 bg-black/50" />
 
       <div className="relative z-10 w-full max-w-[500px]">
@@ -72,6 +91,44 @@ export default function Register() {
 
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 sm:space-y-5">
+                <FormField
+                  control={form.control}
+                  name="email"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-sm sm:text-base">E-mailadres</FormLabel>
+                      <FormControl>
+                        <Input 
+                          type="email"
+                          placeholder="E-mailadres" 
+                          className="h-10 sm:h-12 text-sm sm:text-base border-gray-200 focus:border-[#963E56] focus:ring-[#963E56]" 
+                          {...field} 
+                        />
+                      </FormControl>
+                      <FormMessage className="text-xs sm:text-sm" />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="password"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-sm sm:text-base">Wachtwoord</FormLabel>
+                      <FormControl>
+                        <Input 
+                          type="password"
+                          placeholder="Wachtwoord" 
+                          className="h-10 sm:h-12 text-sm sm:text-base border-gray-200 focus:border-[#963E56] focus:ring-[#963E56]" 
+                          {...field} 
+                        />
+                      </FormControl>
+                      <FormMessage className="text-xs sm:text-sm" />
+                    </FormItem>
+                  )}
+                />
+
                 <FormField
                   control={form.control}
                   name="firstName"
