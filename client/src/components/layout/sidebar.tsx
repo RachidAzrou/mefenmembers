@@ -6,7 +6,7 @@ import { Link, useLocation } from "wouter";
 import {
   LayoutDashboard, Users, Calendar, DoorOpen,
   Package2, LogOut, Menu, ChevronLeft, ChevronRight,
-  Download, Settings
+  Download, Settings, FileJson
 } from "lucide-react";
 import { PiMosqueFill } from "react-icons/pi";
 import { useState, useEffect } from "react";
@@ -49,7 +49,7 @@ export function Sidebar() {
     { icon: Users, label: "Vrijwilligers", href: "/volunteers" },
     { icon: DoorOpen, label: "Ruimtes", href: "/rooms", adminOnly: true },
     { icon: Package2, label: "Materialen", href: "/materials" },
-    { icon: Download, label: "Import/Export", href: "/import-export" },
+    { icon: FileJson, label: "Import/Export", href: "/import-export" },
     { icon: PiMosqueFill, label: "Mijn Moskee", href: "/mosque" }
   ].filter(item => !item.adminOnly || isAdmin);
 
