@@ -1,17 +1,12 @@
-import { Document, Page, View, Text, StyleSheet, Image, Font } from "@react-pdf/renderer";
+import { Document, Page, View, Text, StyleSheet, Image } from "@react-pdf/renderer";
 import { format, addDays } from "date-fns";
 import { nl } from "date-fns/locale";
 
-Font.register({
-  family: 'Inter',
-  src: 'https://fonts.gstatic.com/s/inter/v12/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuLyfAZ9hiA.woff2',
-});
-
 const styles = StyleSheet.create({
-  page: { 
+  page: {
     padding: 40,
     backgroundColor: '#fff',
-    fontFamily: 'Inter',
+    fontFamily: 'Helvetica',
   },
   header: {
     flexDirection: 'row',
@@ -24,7 +19,7 @@ const styles = StyleSheet.create({
   headerText: {
     flex: 1,
   },
-  title: { 
+  title: {
     fontSize: 28,
     color: '#963E56',
     marginBottom: 8,
@@ -38,7 +33,7 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#6B7280',
   },
-  calendar: { 
+  calendar: {
     flexDirection: "row",
     gap: 20,
   },
@@ -101,7 +96,8 @@ const styles = StyleSheet.create({
   },
   logo: {
     width: 120,
-    marginRight: 30,
+    height: 80,
+    objectFit: 'contain',
   }
 });
 

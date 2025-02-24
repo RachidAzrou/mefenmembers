@@ -187,29 +187,29 @@ export function WeekView() {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <DropdownMenuItem className="p-0">
-                  <PDFDownloadLink
-                    document={
-                      <CalendarPDF
-                        weekStart={weekStart}
-                        plannings={getPlanningsForPDF()}
-                        logoUrl={`${window.location.origin}/static/Naamloos.png`}
-                      />
-                    }
-                    fileName={`planning-${format(weekStart, 'yyyy-MM-dd')}.pdf`}
-                    className="flex items-center w-full px-3 py-2"
-                  >
-                    {({ loading }) => (
-                      <>
-                        <Download className="h-4 w-4 mr-2" />
-                        <span>{loading ? "Genereren..." : "PDF Exporteren"}</span>
-                      </>
-                    )}
-                  </PDFDownloadLink>
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={publishSchedule} className="flex items-center">
+                <PDFDownloadLink
+                  document={
+                    <CalendarPDF
+                      weekStart={weekStart}
+                      plannings={getPlanningsForPDF()}
+                      logoUrl={`${window.location.origin}/static/Naamloos.png`}
+                    />
+                  }
+                  fileName={`planning-${format(weekStart, 'yyyy-MM-dd')}.pdf`}
+                >
+                  {({ loading, error }) => (
+                    <DropdownMenuItem
+                      onSelect={(e) => e.preventDefault()}
+                      className="flex items-center cursor-pointer"
+                    >
+                      <Download className="h-4 w-4 mr-2" />
+                      {loading ? "Genereren..." : error ? "Fout bij genereren" : "PDF Exporteren"}
+                    </DropdownMenuItem>
+                  )}
+                </PDFDownloadLink>
+                <DropdownMenuItem onClick={publishSchedule}>
                   <Share2 className="h-4 w-4 mr-2" />
-                  <span>Publiceren</span>
+                  Publiceren
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
