@@ -1,4 +1,118 @@
-# MEFEN Moskee Beheer - Deployment Guide
+# Complete Free Deployment Guide for MEFEN Moskee Beheer
+
+## Stap 1: Firebase Setup (Gratis Spark Plan)
+
+### Firebase Project Setup
+1. Ga naar [Firebase Console](https://console.firebase.google.com)
+2. Klik op "Add Project" of "Project Toevoegen"
+3. Kies een project naam (bijvoorbeeld "mefen-moskee-beheer")
+4. Schakel Google Analytics uit (niet nodig voor basis functionaliteit)
+5. Klik op "Create Project" of "Project Aanmaken"
+
+### Firebase Authentication Setup
+1. In je Firebase Console, ga naar "Authentication" > "Get Started"
+2. Activeer "Email/Password" als sign-in methode
+3. Voeg een eerste admin gebruiker toe via de Firebase Console
+
+### Firebase Configuratie
+1. Ga naar Project Settings (tandwiel icoon) > General
+2. Scroll naar beneden en klik op het web icoon (</>)
+3. Registreer je app met een naam (bijvoorbeeld "mefen-web")
+4. Kopieer de volgende waardes uit de configuratie:
+   ```
+   apiKey
+   projectId
+   appId
+   ```
+
+## Stap 2: Vercel Setup (Gratis Hobby Plan)
+
+### 1. GitHub Repository Voorbereiden
+```bash
+# Clone je repository (als je dat nog niet hebt gedaan)
+git clone <your-repo-url>
+cd mefen-moskee-beheer
+
+# Zorg ervoor dat alle wijzigingen zijn gecommit
+git add .
+git commit -m "Ready for deployment"
+git push
+```
+
+### 2. Vercel Account & Project Setup
+1. Ga naar [Vercel](https://vercel.com)
+2. Sign up met je GitHub account
+3. Klik op "New Project"
+4. Importeer je GitHub repository
+5. Configureer de volgende Environment Variables:
+   ```
+   VITE_FIREBASE_API_KEY=your_api_key
+   VITE_FIREBASE_PROJECT_ID=your_project_id
+   VITE_FIREBASE_APP_ID=your_app_id
+   ```
+6. Laat de Build and Output Settings ongewijzigd (Vercel detecteert automatisch Vite)
+7. Klik op "Deploy"
+
+### 3. Domain Setup
+1. Wacht tot de deployment klaar is
+2. Kopieer je Vercel deployment URL (bijvoorbeeld `your-app.vercel.app`)
+3. Ga terug naar Firebase Console > Authentication > Settings
+4. Voeg je Vercel URL toe aan "Authorized Domains"
+
+## Gratis Tier Limieten & Monitoring
+
+### Firebase Spark Plan Limieten
+- Authentication: 50,000 authentications per maand
+- Realtime Database: 100 gelijktijdige connecties
+- Storage: 1GB
+- Data transfer: 10GB/maand
+
+Tips voor Firebase:
+- Monitor je gebruik in de Firebase Console
+- Stel waarschuwingen in voor gebruik limieten
+- Optimaliseer database queries om data verbruik te minimaliseren
+
+### Vercel Hobby Tier Limieten
+- Bandwidth: 100GB per maand
+- Serverless Function Execution: 100GB-hrs per maand
+- Deployments: Ongelimiteerd
+- Builds: Maximaal 100 per dag
+
+Tips voor Vercel:
+- Gebruik de Vercel Analytics om bandwidth te monitoren
+- Zet caching headers goed voor statische assets
+- Optimaliseer afbeeldingen voor web gebruik
+
+## Post-Deployment Checklist
+1. Test de volgende functionaliteiten:
+   - [ ] Inloggen met email/wachtwoord
+   - [ ] PWA installatie op mobiel/desktop
+   - [ ] Kalender en planning functionaliteiten
+   - [ ] Moskee informatie bewerken
+   - [ ] Offline functionaliteit
+
+2. Controleer error monitoring:
+   - [ ] Firebase Console voor authenticatie errors
+   - [ ] Vercel deployment logs
+   - [ ] Browser console voor client-side errors
+
+## Troubleshooting
+
+### Firebase Problemen
+- **Auth Errors**: Controleer of je domain is toegevoegd aan Firebase Authorized Domains
+- **Database Errors**: Verifieer je security rules in Firebase Console
+- **Performance Issues**: Check de Firebase Performance monitoring tab
+
+### Vercel Problemen
+- **Build Failures**: Check de build logs in Vercel dashboard
+- **Runtime Errors**: Bekijk de Function logs in Vercel
+- **Deployment Issues**: Controleer of alle environment variables correct zijn ingesteld
+
+## Support & Resources
+- Firebase Documentation: [firebase.google.com/docs](https://firebase.google.com/docs)
+- Vercel Documentation: [vercel.com/docs](https://vercel.com/docs)
+- Firebase Status: [status.firebase.google.com](https://status.firebase.google.com)
+- Vercel Status: [vercel.statuspage.io](https://vercel.statuspage.io)
 
 ## Vereisten
 - Node.js 20 of hoger
@@ -42,21 +156,11 @@ De gebouwde applicatie bevindt zich in de `dist` map.
 2. Installeer de [Vercel CLI](https://vercel.com/cli) (optioneel)
 3. Push je code naar een Git repository (GitHub, GitLab, of Bitbucket)
 
-#### Environment Variabelen
-Configureer de volgende environment variabelen in je Vercel project:
-
-```env
-VITE_FIREBASE_API_KEY=your_api_key
-VITE_FIREBASE_PROJECT_ID=your_project_id
-VITE_FIREBASE_APP_ID=your_app_id
-```
-
 #### Deployment Stappen
-
 ##### Optie 1: Via Vercel Dashboard
 1. Ga naar [vercel.com/new](https://vercel.com/new)
 2. Importeer je Git repository
-3. Configureer de environment variabelen
+3. Configureer de environment variabelen (zie boven)
 4. Klik op "Deploy"
 
 ##### Optie 2: Via Vercel CLI
