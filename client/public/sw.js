@@ -1,22 +1,18 @@
-const CACHE_NAME = 'mefen-volunteerapp-v3'; // Increment version to force cache refresh
+const CACHE_NAME = 'mefen-volunteerapp-v4'; // Increment version to force cache refresh
 const urlsToCache = [
   '/',
   '/index.html',
   '/manifest.json',
-  '/logo192.png',
-  '/logo512.png',
-  '/logo.svg',
-  '/static/Naamloos.png',
-  '/static/123.jpg',
+  '/community_icon.png',
   '/src/main.tsx',
   '/src/index.css',
   '/src/App.tsx',
   '/src/pages/login.tsx',
-  '/src/pages/register.tsx', // Add register page
+  '/src/pages/register.tsx',
   '/src/pages/volunteers.tsx',
   '/src/pages/materials.tsx',
   '/src/pages/planning.tsx',
-  '/src/pages/import-export.tsx' // Add import/export page
+  '/src/pages/import-export.tsx'
 ];
 
 // Pre-cache during installation
