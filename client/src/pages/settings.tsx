@@ -13,9 +13,9 @@ import {
 import { updateUserRole } from "@/lib/roles";
 import { db, auth } from "@/lib/firebase";
 import { ref, onValue, remove } from "firebase/database";
-import { createUserWithEmailAndPassword, updatePassword, signInWithEmailAndPassword, sendPasswordResetEmail, deleteUser } from "firebase/auth";
+import { createUserWithEmailAndPassword, sendPasswordResetEmail } from "firebase/auth";
 import { useToast } from "@/hooks/use-toast";
-import { Settings as SettingsIcon, UserCog } from "lucide-react";
+import { Settings as SettingsIcon, UserCog, UserPlus, Users } from "lucide-react";
 import { useRole } from "@/hooks/use-role";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useForm } from "react-hook-form";
@@ -120,11 +120,7 @@ export default function Settings() {
     if (!changingPasswordFor) return;
 
     try {
-      // Find user in the list
-      const user = users.find(u => u.email === changingPasswordFor);
-      if (!user) throw new Error("Gebruiker niet gevonden");
-
-      // Update password in Firebase Authentication
+      // Send password reset email
       await sendPasswordResetEmail(auth, changingPasswordFor);
 
       toast({
@@ -173,74 +169,90 @@ export default function Settings() {
 
   return (
     <div className="space-y-6 max-w-5xl mx-auto px-4 py-6">
-      <div className="flex items-center gap-3 mb-8">
-        <SettingsIcon className="h-8 w-8 text-[#963E56]" />
-        <h1 className="text-3xl font-bold text-[#963E56]">Instellingen</h1>
+      {/* Page Header */}
+      <div className="flex items-center justify-between mb-8">
+        <div className="flex items-center gap-3">
+          <SettingsIcon className="h-8 w-8 text-[#963E56]" />
+          <h1 className="text-3xl font-bold text-[#963E56]">Instellingen</h1>
+        </div>
       </div>
 
-      <Card className="shadow-md">
-        <CardHeader className="border-b bg-gray-50/80">
-          <CardTitle className="flex items-center gap-2 text-[#963E56]">
-            <UserCog className="h-5 w-5" />
-            Gebruikersbeheer
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="pt-6">
-          <div className="space-y-6">
-            {/* Add New User Form */}
-            <div className="rounded-lg border p-4 bg-gray-50/30">
-              <h3 className="text-lg font-medium mb-4">Nieuwe Gebruiker Toevoegen</h3>
-              <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <FormField
-                      control={form.control}
-                      name="email"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>E-mailadres</FormLabel>
-                          <FormControl>
-                            <Input 
-                              type="email" 
-                              placeholder="E-mailadres" 
-                              {...field}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="password"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Wachtwoord</FormLabel>
-                          <FormControl>
-                            <Input 
-                              type="password" 
-                              placeholder="Wachtwoord" 
-                              {...field}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                  <div className="flex justify-end gap-4">
-                    <Button
-                      type="submit"
-                      className="bg-[#963E56] hover:bg-[#963E56]/90"
-                    >
-                      Gebruiker Toevoegen
-                    </Button>
-                  </div>
-                </form>
-              </Form>
+      {/* User Management Section */}
+      <div className="grid gap-6">
+        {/* Add New User Card */}
+        <Card className="shadow-md">
+          <CardHeader className="border-b bg-gray-50/80">
+            <div className="flex items-center justify-between">
+              <CardTitle className="flex items-center gap-2 text-[#963E56]">
+                <UserPlus className="h-5 w-5" />
+                Nieuwe Gebruiker Toevoegen
+              </CardTitle>
             </div>
+          </CardHeader>
+          <CardContent className="pt-6">
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="email"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>E-mailadres</FormLabel>
+                        <FormControl>
+                          <Input 
+                            type="email" 
+                            placeholder="naam@voorbeeld.nl" 
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="password"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Wachtwoord</FormLabel>
+                        <FormControl>
+                          <Input 
+                            type="password" 
+                            placeholder="Minimaal 6 tekens" 
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+                <div className="flex justify-end">
+                  <Button
+                    type="submit"
+                    className="bg-[#963E56] hover:bg-[#963E56]/90"
+                  >
+                    <UserPlus className="h-4 w-4 mr-2" />
+                    Gebruiker Toevoegen
+                  </Button>
+                </div>
+              </form>
+            </Form>
+          </CardContent>
+        </Card>
 
-            {/* Users Table */}
+        {/* Users List Card */}
+        <Card className="shadow-md">
+          <CardHeader className="border-b bg-gray-50/80">
+            <div className="flex items-center justify-between">
+              <CardTitle className="flex items-center gap-2 text-[#963E56]">
+                <Users className="h-5 w-5" />
+                Gebruikersbeheer
+              </CardTitle>
+            </div>
+          </CardHeader>
+          <CardContent className="pt-6">
             <div className="rounded-lg border">
               <Table>
                 <TableHeader>
@@ -254,11 +266,20 @@ export default function Settings() {
                   {users.map((user) => (
                     <TableRow key={user.uid}>
                       <TableCell>{user.email}</TableCell>
-                      <TableCell>{user.admin ? 'Admin' : 'Medewerker'}</TableCell>
+                      <TableCell>
+                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                          user.admin 
+                            ? 'bg-[#963E56]/10 text-[#963E56]' 
+                            : 'bg-blue-100 text-blue-800'
+                        }`}>
+                          {user.admin ? 'Admin' : 'Medewerker'}
+                        </span>
+                      </TableCell>
                       <TableCell className="text-right space-x-2">
                         <Button
                           onClick={() => handleRoleChange(user.uid, user.email, !user.admin)}
                           variant="outline"
+                          size="sm"
                           className="text-[#963E56] hover:text-[#963E56] hover:bg-[#963E56]/10"
                         >
                           Maak {user.admin ? 'Medewerker' : 'Admin'}
@@ -266,6 +287,7 @@ export default function Settings() {
                         <Button
                           onClick={() => setChangingPasswordFor(user.email)}
                           variant="outline"
+                          size="sm"
                           className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
                         >
                           Reset Wachtwoord
@@ -273,6 +295,7 @@ export default function Settings() {
                         <Button
                           onClick={() => setDeletingUser(user)}
                           variant="outline"
+                          size="sm"
                           className="text-red-600 hover:text-red-700 hover:bg-red-50"
                         >
                           Verwijderen
@@ -282,45 +305,49 @@ export default function Settings() {
                   ))}
                   {users.length === 0 && (
                     <TableRow>
-                      <TableCell colSpan={3} className="text-center py-6 text-gray-500">
-                        Geen gebruikers gevonden
+                      <TableCell colSpan={3} className="text-center py-8 text-gray-500">
+                        <Users className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                        <p>Geen gebruikers gevonden</p>
                       </TableCell>
                     </TableRow>
                   )}
                 </TableBody>
               </Table>
             </div>
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      </div>
 
       {/* Password Change Dialog */}
       {changingPasswordFor && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <Card className="w-full max-w-md mx-4">
             <CardHeader className="border-b">
-              <CardTitle>Wachtwoord Reset voor {changingPasswordFor}</CardTitle>
+              <CardTitle className="text-[#963E56]">Wachtwoord Reset</CardTitle>
             </CardHeader>
-            <CardContent className="pt-4">
-              <p className="text-sm text-gray-600 mb-4">
-                Er wordt een wachtwoord reset link gestuurd naar de gebruiker.
-              </p>
-              <div className="flex justify-end gap-2 mt-4">
-                <Button
-                  variant="outline"
-                  onClick={() => {
-                    setChangingPasswordFor(null);
-                    passwordForm.reset();
-                  }}
-                >
-                  Annuleren
-                </Button>
-                <Button
-                  onClick={() => handlePasswordChange(passwordForm.getValues())}
-                  className="bg-[#963E56] hover:bg-[#963E56]/90"
-                >
-                  Verstuur Reset Link
-                </Button>
+            <CardContent className="pt-6">
+              <div className="space-y-4">
+                <div className="bg-blue-50 text-blue-800 p-4 rounded-lg text-sm">
+                  <p>Er wordt een wachtwoord reset link gestuurd naar:</p>
+                  <p className="font-medium mt-1">{changingPasswordFor}</p>
+                </div>
+                <div className="flex justify-end gap-2">
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setChangingPasswordFor(null);
+                      passwordForm.reset();
+                    }}
+                  >
+                    Annuleren
+                  </Button>
+                  <Button
+                    onClick={() => handlePasswordChange(passwordForm.getValues())}
+                    className="bg-[#963E56] hover:bg-[#963E56]/90"
+                  >
+                    Verstuur Reset Link
+                  </Button>
+                </div>
               </div>
             </CardContent>
           </Card>
@@ -332,26 +359,31 @@ export default function Settings() {
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <Card className="w-full max-w-md mx-4">
             <CardHeader className="border-b">
-              <CardTitle>Gebruiker Verwijderen</CardTitle>
+              <CardTitle className="text-red-600">Gebruiker Verwijderen</CardTitle>
             </CardHeader>
-            <CardContent className="pt-4">
-              <p className="text-sm text-gray-600 mb-4">
-                Weet u zeker dat u de gebruiker {deletingUser.email} wilt verwijderen? 
-                Deze actie kan niet ongedaan worden gemaakt.
-              </p>
-              <div className="flex justify-end gap-2 mt-4">
-                <Button
-                  variant="outline"
-                  onClick={() => setDeletingUser(null)}
-                >
-                  Annuleren
-                </Button>
-                <Button
-                  onClick={handleDeleteUser}
-                  variant="destructive"
-                >
-                  Verwijderen
-                </Button>
+            <CardContent className="pt-6">
+              <div className="space-y-4">
+                <div className="bg-red-50 text-red-800 p-4 rounded-lg text-sm">
+                  <p className="font-medium">Weet u zeker dat u deze gebruiker wilt verwijderen?</p>
+                  <p className="mt-2">{deletingUser.email}</p>
+                  <p className="mt-2 text-red-600">
+                    Let op: Deze actie kan niet ongedaan worden gemaakt.
+                  </p>
+                </div>
+                <div className="flex justify-end gap-2">
+                  <Button
+                    variant="outline"
+                    onClick={() => setDeletingUser(null)}
+                  >
+                    Annuleren
+                  </Button>
+                  <Button
+                    onClick={handleDeleteUser}
+                    variant="destructive"
+                  >
+                    Verwijderen
+                  </Button>
+                </div>
               </div>
             </CardContent>
           </Card>
