@@ -1,8 +1,7 @@
-import { Document, Page, View, Text, StyleSheet, Font, Image } from "@react-pdf/renderer";
+import { Document, Page, View, Text, StyleSheet, Image, Font } from "@react-pdf/renderer";
 import { format, addDays } from "date-fns";
 import { nl } from "date-fns/locale";
 
-// Register custom font for PDF
 Font.register({
   family: 'Inter',
   src: 'https://fonts.gstatic.com/s/inter/v12/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuLyfAZ9hiA.woff2',
@@ -17,7 +16,7 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 30,
+    marginBottom: 40,
     borderBottom: 1,
     borderBottomColor: '#E5E7EB',
     paddingBottom: 20,
@@ -26,60 +25,67 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   title: { 
-    fontSize: 24,
+    fontSize: 28,
     color: '#963E56',
-    marginBottom: 5,
+    marginBottom: 8,
   },
   subtitle: {
+    fontSize: 14,
+    color: '#6B7280',
+    marginBottom: 4,
+  },
+  date: {
     fontSize: 12,
     color: '#6B7280',
   },
-  date: {
-    fontSize: 10,
-    color: '#6B7280',
-    marginTop: 4,
-  },
   calendar: { 
     flexDirection: "row",
-    gap: 15,
+    gap: 20,
   },
   dayColumn: {
     flex: 1,
     backgroundColor: '#F9FAFB',
     borderRadius: 8,
-    padding: 12,
+    padding: 15,
   },
   dayHeader: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: "bold",
     color: '#374151',
     marginBottom: 4,
   },
   dayDate: {
-    fontSize: 12,
+    fontSize: 14,
     color: '#6B7280',
-    marginBottom: 12,
-    paddingBottom: 8,
+    marginBottom: 15,
+    paddingBottom: 10,
     borderBottom: 1,
     borderBottomColor: '#E5E7EB',
   },
   planning: {
-    marginBottom: 10,
-    padding: 8,
+    marginBottom: 12,
+    padding: 10,
     backgroundColor: '#fff',
-    borderRadius: 4,
+    borderRadius: 6,
     borderLeft: 2,
     borderLeftColor: '#963E56',
   },
   roomName: {
-    fontSize: 11,
+    fontSize: 12,
     fontWeight: "bold",
     color: '#963E56',
-    marginBottom: 2,
+    marginBottom: 4,
   },
   volunteerName: {
-    fontSize: 10,
+    fontSize: 11,
     color: '#4B5563',
+  },
+  noPlanning: {
+    fontSize: 11,
+    color: '#9CA3AF',
+    fontStyle: 'italic',
+    textAlign: 'center',
+    marginTop: 10,
   },
   footer: {
     position: 'absolute',
@@ -88,14 +94,14 @@ const styles = StyleSheet.create({
     right: 40,
     textAlign: 'center',
     color: '#6B7280',
-    fontSize: 8,
+    fontSize: 10,
     borderTopColor: '#E5E7EB',
     borderTopWidth: 1,
-    paddingTop: 10,
+    paddingTop: 15,
   },
   logo: {
-    width: 100,
-    marginRight: 20,
+    width: 120,
+    marginRight: 30,
   }
 });
 

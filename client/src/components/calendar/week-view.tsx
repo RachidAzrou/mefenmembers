@@ -41,7 +41,6 @@ export function WeekView() {
   const [rooms, setRooms] = useState<Room[]>([]);
   const [filterVolunteer, setFilterVolunteer] = useState<string | "_all">("_all");
   const [filterRoom, setFilterRoom] = useState<string | "_all">("_all");
-  const [view, setView] = useState<"grid" | "list">("grid");
 
   const weekStart = startOfWeek(currentWeek, { weekStartsOn: 1 });
   const weekDays = Array.from({ length: 7 }).map((_, i) =>
@@ -159,7 +158,7 @@ export function WeekView() {
         </h2>
 
         <div className="mt-6 flex flex-wrap justify-between items-center gap-4">
-          {/* Left side - Filters */}
+          {/* Left side - Navigation */}
           <div className="flex items-center gap-2">
             <Button variant="outline" onClick={goToPreviousWeek}>
               <Copy className="h-4 w-4 mr-2" />
@@ -188,29 +187,29 @@ export function WeekView() {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <DropdownMenuItem>
+                <DropdownMenuItem className="p-0">
                   <PDFDownloadLink
                     document={
                       <CalendarPDF
                         weekStart={weekStart}
                         plannings={getPlanningsForPDF()}
-                        logoUrl="/static/Naamloos.png"
+                        logoUrl={`${window.location.origin}/static/Naamloos.png`}
                       />
                     }
                     fileName={`planning-${format(weekStart, 'yyyy-MM-dd')}.pdf`}
-                    className="flex items-center w-full"
+                    className="flex items-center w-full px-3 py-2"
                   >
                     {({ loading }) => (
-                      <div className="flex items-center w-full">
+                      <>
                         <Download className="h-4 w-4 mr-2" />
                         <span>{loading ? "Genereren..." : "PDF Exporteren"}</span>
-                      </div>
+                      </>
                     )}
                   </PDFDownloadLink>
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={publishSchedule}>
+                <DropdownMenuItem onClick={publishSchedule} className="flex items-center">
                   <Share2 className="h-4 w-4 mr-2" />
-                  Publiceren
+                  <span>Publiceren</span>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
