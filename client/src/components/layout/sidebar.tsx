@@ -7,7 +7,7 @@ import {
   LayoutDashboard, Users, Calendar, DoorOpen,
   Package2, LogOut, Menu, ChevronLeft, ChevronRight
 } from "lucide-react";
-import { FaMosque } from "react-icons/fa";
+import { PiMosqueFill } from "react-icons/pi";
 import { useState, useEffect } from "react";
 import { auth } from "@/lib/firebase";
 import { signOut } from "firebase/auth";
@@ -45,7 +45,7 @@ export function Sidebar() {
     { icon: Users, label: "Vrijwilligers", href: "/volunteers" },
     { icon: DoorOpen, label: "Ruimtes", href: "/rooms" },
     { icon: Package2, label: "Materialen", href: "/materials" },
-    { icon: FaMosque, label: "Mijn Moskee", href: "/mosque" }
+    { icon: PiMosqueFill, label: "Mijn Moskee", href: "/mosque" }
   ];
 
   return (

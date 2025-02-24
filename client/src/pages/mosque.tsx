@@ -1,5 +1,5 @@
 import { PhoneCall, Mail, MapPin, Edit } from "lucide-react";
-import { FaMosque } from "react-icons/fa";
+import { PiMosqueFill } from "react-icons/pi";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
@@ -31,7 +31,7 @@ export default function Mosque() {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
         <div className="flex items-center gap-3">
-          <FaMosque className="h-8 w-8 text-[#963E56]" />
+          <PiMosqueFill className="h-8 w-8 text-[#963E56]" />
           <h1 className="text-3xl font-bold text-[#963E56]">Mijn Moskee</h1>
         </div>
 
