@@ -17,8 +17,20 @@ import Settings from "@/pages/settings";
 import { Sidebar } from "@/components/layout/sidebar";
 import { auth } from "./lib/firebase";
 import { useAuthState } from "react-firebase-hooks/auth";
+import { useNotifications } from "@/hooks/use-notifications";
+import React from 'react';
 
 function AuthenticatedLayout({ children }: { children: React.ReactNode }) {
+  // Initialize notifications system for authenticated users
+  const { permission, requestPermission } = useNotifications();
+
+  // Request notification permissions if not already granted
+  React.useEffect(() => {
+    if (permission === 'default') {
+      requestPermission();
+    }
+  }, [permission, requestPermission]);
+
   return (
     <div className="flex min-h-screen bg-gray-50">
       <Sidebar />

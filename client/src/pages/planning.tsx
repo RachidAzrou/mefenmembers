@@ -31,39 +31,26 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { db } from "@/lib/firebase";
 import { ref, push, remove, update, onValue } from "firebase/database";
-import { Calendar as CalendarIcon, Edit2, Trash2, Users } from "lucide-react";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { 
+  Calendar as CalendarIcon,
+  Edit2,
+  Trash2,
+  Users,
+  Users2,
+  CalendarDays,
+  Building,
+  ChevronDown
+} from "lucide-react";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { format } from "date-fns";
 import { nl } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-} from "@/components/ui/command"
-import {
-  Card,
-  CardContent,
-} from "@/components/ui/card";
-import { CalendarIcon as CalendarIcon2, Edit2 as Edit22, Trash2 as Trash22, CheckSquare, Square, Users2, CalendarDays, Building } from "lucide-react";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "@/components/ui/command";
+import { Card, CardContent } from "@/components/ui/card";
+import { CollapsibleSection } from "@/components/ui/collapsible-section";
 
 const planningSchema = z.object({
   volunteerId: z.string().min(1, "Vrijwilliger is verplicht"),
@@ -323,7 +310,7 @@ export default function Planning() {
           <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
             <DialogTrigger asChild>
               <Button className="bg-[#6BB85C] hover:bg-[#6BB85C]/90 text-white">
-                <CalendarIcon2 className="h-4 w-4 mr-2" />
+                <CalendarIcon className="h-4 w-4 mr-2" />
                 Inplannen
               </Button>
             </DialogTrigger>
@@ -410,7 +397,7 @@ export default function Planning() {
                                 ) : (
                                   <span>Kies een datum</span>
                                 )}
-                                <CalendarIcon2 className="ml-auto h-4 w-4 opacity-50" />
+                                <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                               </Button>
                             </FormControl>
                           </PopoverTrigger>
@@ -452,7 +439,7 @@ export default function Planning() {
                                 ) : (
                                   <span>Kies een datum</span>
                                 )}
-                                <CalendarIcon2 className="ml-auto h-4 w-4 opacity-50" />
+                                <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                               </Button>
                             </FormControl>
                           </PopoverTrigger>
@@ -641,7 +628,7 @@ export default function Planning() {
                                 ) : (
                                   <span>Kies een datum</span>
                                 )}
-                                <CalendarIcon2 className="ml-auto h-4 w-4 opacity-50" />
+                                <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                               </Button>
                             </FormControl>
                           </PopoverTrigger>
@@ -683,7 +670,7 @@ export default function Planning() {
                                 ) : (
                                   <span>Kies een datum</span>
                                 )}
-                                <CalendarIcon2 className="ml-auto h-4 w-4 opacity-50" />
+                                <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                               </Button>
                             </FormControl>
                           </PopoverTrigger>
@@ -714,139 +701,163 @@ export default function Planning() {
         </div>
       </div>
 
-      {/* Statistics Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center">
-              <CalendarDays className="h-8 w-8 text-primary/80" />
-              <div className="ml-4">
-                <h3 className="text-sm font-medium text-gray-500">Totaal Planningen</h3>
-                <p className="text-2xl font-bold text-primary">{totalScheduledVolunteers}</p>
+      <CollapsibleSection
+        title="Planning Overzicht"
+        icon={<CalendarDays className="h-5 w-5 text-primary" />}
+        defaultOpen={true}
+      >
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <Card>
+            <CardContent className="pt-6">
+              <div className="flex items-center">
+                <CalendarDays className="h-8 w-8 text-primary/80" />
+                <div className="ml-4">
+                  <h3 className="text-sm font-medium text-gray-500">Totaal Planningen</h3>
+                  <p className="text-2xl font-bold text-primary">{totalScheduledVolunteers}</p>
+                </div>
               </div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
 
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center">
-              <Users2 className="h-8 w-8 text-primary/80" />
-              <div className="ml-4">
-                <h3 className="text-sm font-medium text-gray-500">Unieke Vrijwilligers</h3>
-                <p className="text-2xl font-bold text-primary">{uniqueVolunteersScheduled}</p>
+          <Card>
+            <CardContent className="pt-6">
+              <div className="flex items-center">
+                <Users2 className="h-8 w-8 text-primary/80" />
+                <div className="ml-4">
+                  <h3 className="text-sm font-medium text-gray-500">Unieke Vrijwilligers</h3>
+                  <p className="text-2xl font-bold text-primary">{uniqueVolunteersScheduled}</p>
+                </div>
               </div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
 
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center">
-              <Building className="h-8 w-8 text-primary/80" />
-              <div className="ml-4">
-                <h3 className="text-sm font-medium text-gray-500">Bezette Ruimtes</h3>
-                <p className="text-2xl font-bold text-primary">{uniqueRoomsScheduled}</p>
+          <Card>
+            <CardContent className="pt-6">
+              <div className="flex items-center">
+                <Building className="h-8 w-8 text-primary/80" />
+                <div className="ml-4">
+                  <h3 className="text-sm font-medium text-gray-500">Bezette Ruimtes</h3>
+                  <p className="text-2xl font-bold text-primary">{uniqueRoomsScheduled}</p>
+                </div>
               </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+            </CardContent>
+          </Card>
+        </div>
+      </CollapsibleSection>
 
-      <div className="rounded-lg border bg-card">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead className="w-[50px]">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={toggleSelectAll}
-                  className="hover:bg-transparent"
-                >
-                  {selectedPlannings.length === plannings.length ? (
-                    <CheckSquare className="h-4 w-4" />
-                  ) : (
-                    <Square className="h-4 w-4" />
-                  )}
-                </Button>
-              </TableHead>
-              <TableHead>Vrijwilliger</TableHead>
-              <TableHead>Ruimte</TableHead>
-              <TableHead>Startdatum</TableHead>
-              <TableHead>Einddatum</TableHead>
-              <TableHead className="w-[100px]">Acties</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {plannings.map((planning) => {
-              const volunteer = volunteers.find((v) => v.id === planning.volunteerId);
-              const room = rooms.find((r) => r.id === planning.roomId);
-              return (
-                <TableRow key={planning.id}>
-                  <TableCell>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => toggleSelect(planning.id)}
-                      className="hover:bg-transparent"
-                    >
-                      {selectedPlannings.includes(planning.id) ? (
-                        <CheckSquare className="h-4 w-4" />
-                      ) : (
-                        <Square className="h-4 w-4" />
-                      )}
-                    </Button>
-                  </TableCell>
-                  <TableCell>
-                    {volunteer ? `${volunteer.firstName} ${volunteer.lastName}` : "-"}
-                  </TableCell>
-                  <TableCell>{room ? room.name : "-"}</TableCell>
-                  <TableCell>{format(new Date(planning.startDate), "d MMMM yyyy", { locale: nl })}</TableCell>
-                  <TableCell>{format(new Date(planning.endDate), "d MMMM yyyy", { locale: nl })}</TableCell>
-                  <TableCell className="flex space-x-2">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => handleEdit(planning)}
-                      className="text-[#6BB85C] hover:text-[#6BB85C] hover:bg-[#6BB85C]/10"
-                    >
-                      <Edit22 className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => setDeletePlanningId(planning.id)}
-                      className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                    >
-                      <Trash22 className="h-4 w-4" />
-                    </Button>
+      <CollapsibleSection
+        title="Planning Tabel"
+        icon={<Calendar className="h-5 w-5 text-primary" />}
+        defaultOpen={true}
+      >
+        <div className="rounded-lg border bg-card">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="w-[50px]">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={toggleSelectAll}
+                    className="hover:bg-transparent"
+                  >
+                    {selectedPlannings.length === plannings.length ? (
+                      <CheckSquare className="h-4 w-4" />
+                    ) : (
+                      <Square className="h-4 w-4" />
+                    )}
+                  </Button>
+                </TableHead>
+                <TableHead>Vrijwilliger</TableHead>
+                <TableHead>Ruimte</TableHead>
+                <TableHead>Startdatum</TableHead>
+                <TableHead>Einddatum</TableHead>
+                <TableHead className="w-[100px]">Acties</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {plannings.map((planning) => {
+                const volunteer = volunteers.find((v) => v.id === planning.volunteerId);
+                const room = rooms.find((r) => r.id === planning.roomId);
+                return (
+                  <TableRow key={planning.id}>
+                    <TableCell>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => toggleSelect(planning.id)}
+                        className="hover:bg-transparent"
+                      >
+                        {selectedPlannings.includes(planning.id) ? (
+                          <CheckSquare className="h-4 w-4" />
+                        ) : (
+                          <Square className="h-4 w-4" />
+                        )}
+                      </Button>
+                    </TableCell>
+                    <TableCell>
+                      {volunteer ? `${volunteer.firstName} ${volunteer.lastName}` : "-"}
+                    </TableCell>
+                    <TableCell>{room ? room.name : "-"}</TableCell>
+                    <TableCell>
+                      {format(new Date(planning.startDate), "d MMMM yyyy", { locale: nl })}
+                    </TableCell>
+                    <TableCell>
+                      {format(new Date(planning.endDate), "d MMMM yyyy", { locale: nl })}
+                    </TableCell>
+                    <TableCell className="flex space-x-2">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => handleEdit(planning)}
+                        className="text-[#6BB85C] hover:text-[#6BB85C] hover:bg-[#6BB85C]/10"
+                      >
+                        <Edit2 className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => setDeletePlanningId(planning.id)}
+                        className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
+              {plannings.length === 0 && (
+                <TableRow>
+                  <TableCell colSpan={6} className="text-center py-6 text-gray-500">
+                    Geen planningen gevonden
                   </TableCell>
                 </TableRow>
-              );
-            })}
-            {plannings.length === 0 && (
-              <TableRow>
-                <TableCell colSpan={6} className="text-center py-6 text-gray-500">
-                  Geen planningen gevonden
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
-      </div>
+              )}
+            </TableBody>
+          </Table>
+        </div>
+      </CollapsibleSection>
 
-      {/* Bulk Actions */}
+      {/* Bulk Selection Action Bar */}
       {selectedPlannings.length > 0 && (
-        <div className="fixed bottom-4 right-4 flex gap-2 bg-white p-4 rounded-lg shadow-lg border">
+        <div className="fixed bottom-4 right-4 flex gap-2 bg-white p-4 rounded-lg shadow-lg border z-50">
           <span className="text-sm text-gray-500 self-center mr-2">
             {selectedPlannings.length} geselecteerd
           </span>
           <Button
+            variant="default"
+            onClick={() => handleEdit(plannings.find(p => p.id === selectedPlannings[0]))}
+            disabled={selectedPlannings.length !== 1}
+            className="bg-[#6BB85C] hover:bg-[#6BB85C]/90 text-white"
+          >
+            <Edit2 className="h-4 w-4 mr-2" />
+            Bewerken
+          </Button>
+          <Button
             variant="destructive"
             onClick={() => handleBulkDelete(selectedPlannings)}
           >
-            <Trash22 className="h-4 w-4 mr-2" />
+            <Trash2 className="h-4 w-4 mr-2" />
             Verwijderen
           </Button>
         </div>
