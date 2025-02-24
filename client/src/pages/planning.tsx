@@ -369,7 +369,7 @@ export default function Planning() {
                               initialFocus
                               locale={nl}
                               weekStartsOn={1}
-                              showWeekNumbers
+                              showWeekNumber
                               classNames={calendarClassNames}
                             />
                           </PopoverContent>
@@ -411,7 +411,7 @@ export default function Planning() {
                               initialFocus
                               locale={nl}
                               weekStartsOn={1}
-                              showWeekNumbers
+                              showWeekNumber
                               classNames={calendarClassNames}
                             />
                           </PopoverContent>
@@ -601,7 +601,7 @@ export default function Planning() {
                               initialFocus
                               locale={nl}
                               weekStartsOn={1}
-                              showWeekNumbers
+                              showWeekNumber
                               classNames={calendarClassNames}
                             />
                           </PopoverContent>
@@ -643,7 +643,7 @@ export default function Planning() {
                               initialFocus
                               locale={nl}
                               weekStartsOn={1}
-                              showWeekNumbers
+                              showWeekNumber
                               classNames={calendarClassNames}
                             />
                           </PopoverContent>
