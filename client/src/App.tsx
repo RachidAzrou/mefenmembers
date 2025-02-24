@@ -5,6 +5,7 @@ import { Toaster } from "@/components/ui/toaster";
 import NotFound from "@/pages/not-found";
 import Dashboard from "@/pages/dashboard";
 import Login from "@/pages/login";
+import Register from "@/pages/register";
 import Volunteers from "@/pages/volunteers";
 import Rooms from "@/pages/rooms";
 import Materials from "@/pages/materials";
@@ -60,6 +61,7 @@ function Router() {
   return (
     <Switch>
       <Route path="/login" component={Login} />
+      <Route path="/register" component={Register} />
       <Route path="/" component={() => <PrivateRoute component={Dashboard} />} />
       <Route path="/planning" component={() => <PrivateRoute component={Planning} />} />
       <Route path="/volunteers" component={() => <PrivateRoute component={Volunteers} />} />

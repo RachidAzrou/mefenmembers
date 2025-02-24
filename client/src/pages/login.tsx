@@ -9,6 +9,7 @@ import { signInWithEmailAndPassword } from "firebase/auth";
 import { useToast } from "@/hooks/use-toast";
 import { useLocation } from "wouter";
 import { LockKeyhole, Mail } from "lucide-react";
+import { Link } from "wouter";
 
 const loginSchema = z.object({
   email: z.string().email("Ongeldig e-mailadres"),
@@ -107,6 +108,15 @@ export default function Login() {
               >
                 Inloggen
               </Button>
+
+              <div className="text-center mt-4">
+                <p className="text-gray-600">
+                  Nog geen account?{" "}
+                  <Link href="/register" className="text-[#963E56] hover:underline font-medium">
+                    Registreer als vrijwilliger
+                  </Link>
+                </p>
+              </div>
             </form>
           </CardContent>
         </Card>

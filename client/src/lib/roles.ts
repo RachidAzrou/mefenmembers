@@ -4,6 +4,21 @@ import { db } from "./firebase";
 
 export type UserRole = 'admin' | 'medewerker';
 
+export async function createUserInDatabase(user: User) {
+  try {
+    const userRef = ref(db, `users/${user.uid}`);
+    await set(userRef, {
+      email: user.email,
+      admin: false // By default, new users are not admins (they are medewerker)
+    });
+    console.log(`Created user ${user.email} in database`);
+    return true;
+  } catch (error) {
+    console.error('Error creating user in database:', error);
+    return false;
+  }
+}
+
 export async function createAdminUser(uid: string, email: string) {
   try {
     const userRef = ref(db, `users/${uid}`);
