@@ -58,12 +58,15 @@ export default function Login() {
                 <img 
                   src="/static/Naamloos.png" 
                   alt="MEFEN" 
-                  className="w-full h-auto"
+                  className="h-16 mx-auto mb-4"
                 />
               </div>
-              <h1 className="text-2xl font-bold text-[#963E56] mt-4">
+              <h1 className="text-2xl font-bold text-[#963E56]">
                 Vrijwilligersbeheer
               </h1>
+              <p className="text-gray-600 mt-2">
+                Log in om de vrijwilligers te beheren
+              </p>
             </div>
 
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
