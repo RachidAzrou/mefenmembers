@@ -190,7 +190,6 @@ export default function Planning() {
 
   const handleBulkPlan = async (data: z.infer<typeof bulkPlanningSchema>) => {
     try {
-      // Create a planning for each combination of volunteer and room
       const promises = data.volunteerIds.flatMap(volunteerId =>
         data.roomIds.map(roomId =>
           push(ref(db, "plannings"), {
@@ -248,15 +247,25 @@ export default function Planning() {
   };
 
   const calendarClassNames = {
-    nav_button_previous: "text-primary",
-    nav_button_next: "text-primary",
-    head_cell: "text-primary",
-    caption: "text-primary font-semibold",
-    day_today: "text-primary font-bold",
-    day_selected: "bg-primary hover:bg-primary/90 text-white",
-    day_outside: "text-gray-400",
-    day: "text-primary",
-    row_head: "text-primary font-medium",
+    nav_button_previous: "text-foreground",
+    nav_button_next: "text-foreground",
+    head_cell: "text-foreground font-normal",
+    caption: "text-foreground font-semibold",
+    day_today: "bg-accent text-accent-foreground",
+    day_selected: "bg-[#6BB85C] text-white hover:bg-[#6BB85C]/90",
+    day_outside: "text-muted-foreground opacity-50",
+    day: "text-foreground",
+    row: "flex",
+    table: "w-full border-collapse space-y-1",
+    month: "space-y-4",
+    months: "space-y-4",
+    caption_label: "text-sm font-medium",
+    nav: "space-x-1 flex items-center",
+    nav_button: "h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100",
+    cell: "h-9 w-9 text-center text-sm relative [&:has([aria-selected])]:bg-accent first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md focus-within:relative focus-within:z-20",
+    day_range_end: "day-range-end",
+    day_range_start: "day-range-start",
+    day_hidden: "invisible",
   };
 
   return (
@@ -269,7 +278,7 @@ export default function Planning() {
         <div className="flex gap-2">
           <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
             <DialogTrigger asChild>
-              <Button className="bg-primary hover:bg-primary/90">
+              <Button className="bg-[#6BB85C] hover:bg-[#6BB85C]/90 text-white">
                 <CalendarIcon className="h-4 w-4 mr-2" />
                 Inplannen
               </Button>
@@ -420,7 +429,7 @@ export default function Planning() {
                       </FormItem>
                     )}
                   />
-                  <Button type="submit" className="w-full bg-primary hover:bg-primary/90">
+                  <Button type="submit" className="w-full bg-[#6BB85C] hover:bg-[#6BB85C]/90 text-white">
                     {editingPlanning ? "Planning Bijwerken" : "Planning Toevoegen"}
                   </Button>
                 </form>
@@ -428,10 +437,9 @@ export default function Planning() {
             </DialogContent>
           </Dialog>
 
-          {/* Bulk Planning Dialog */}
           <Dialog open={bulkDialogOpen} onOpenChange={setBulkDialogOpen}>
             <DialogTrigger asChild>
-              <Button variant="outline" className="bg-primary hover:bg-primary/90 text-white border-none">
+              <Button className="bg-[#D9A347] hover:bg-[#D9A347]/90 text-white border-none">
                 <Users className="h-4 w-4 mr-2" />
                 Bulk Inplannen
               </Button>
@@ -652,7 +660,7 @@ export default function Planning() {
                       </FormItem>
                     )}
                   />
-                  <Button type="submit" className="w-full bg-primary hover:bg-primary/90">
+                  <Button type="submit" className="w-full bg-[#D9A347] hover:bg-[#D9A347]/90 text-white">
                     Bulk Planning Toevoegen
                   </Button>
                 </form>
@@ -690,7 +698,7 @@ export default function Planning() {
                       variant="ghost"
                       size="icon"
                       onClick={() => handleEdit(planning)}
-                      className="text-primary hover:text-primary hover:bg-primary/10"
+                      className="text-[#6BB85C] hover:text-[#6BB85C] hover:bg-[#6BB85C]/10"
                     >
                       <Edit2 className="h-4 w-4" />
                     </Button>
