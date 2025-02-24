@@ -2,6 +2,7 @@ import * as React from "react"
 import { ChevronLeft, ChevronRight } from "lucide-react"
 import { DayPicker } from "react-day-picker"
 import { nl } from 'date-fns/locale'
+import { format } from "date-fns"
 
 import { cn } from "@/lib/utils"
 import { buttonVariants } from "@/components/ui/button"
@@ -20,6 +21,14 @@ function Calendar({
       className={cn("p-3", className)}
       locale={nl}
       weekStartsOn={1}
+      formatters={{
+        formatWeekdayName: (date) => {
+          return format(date, 'EEEEEE', { locale: nl }).toUpperCase()
+        },
+        formatCaption: (date, options) => {
+          return format(date, 'MMMM yyyy', { locale: nl })
+        }
+      }}
       classNames={{
         months: "flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0",
         month: "space-y-4",
@@ -44,7 +53,7 @@ function Calendar({
         ),
         day_range_end: "day-range-end",
         day_selected:
-          "bg-[#6BB85C] text-primary-foreground hover:bg-[#6BB85C]/90 focus:bg-[#6BB85C] focus:text-primary-foreground",
+          "bg-[#6BB85C] text-white hover:bg-[#6BB85C]/90 focus:bg-[#6BB85C]",
         day_today: "bg-accent text-accent-foreground",
         day_outside:
           "day-outside text-muted-foreground opacity-50 aria-selected:bg-accent/50 aria-selected:text-muted-foreground aria-selected:opacity-30",
