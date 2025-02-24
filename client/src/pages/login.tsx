@@ -112,11 +112,6 @@ export default function Login() {
               </Button>
             </form>
 
-            {/* DEBUG ELEMENT */}
-            <div style={{ backgroundColor: "red", color: "white", padding: "10px", margin: "10px 0", textAlign: "center" }}>
-              DEBUG: Registration Section Start
-            </div>
-
             {/* Registratie sectie */}
             <div className="mt-8 pt-6 border-t border-gray-200">
               <div className="text-center">
@@ -134,11 +129,6 @@ export default function Login() {
                   Registreer je als vrijwilliger
                 </Button>
               </div>
-            </div>
-
-            {/* DEBUG ELEMENT */}
-            <div style={{ backgroundColor: "red", color: "white", padding: "10px", margin: "10px 0", textAlign: "center" }}>
-              DEBUG: Registration Section End
             </div>
           </CardContent>
         </Card>
