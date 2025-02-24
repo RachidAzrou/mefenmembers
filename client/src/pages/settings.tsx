@@ -13,7 +13,7 @@ import {
 import { updateUserRole } from "@/lib/roles";
 import { db, auth } from "@/lib/firebase";
 import { ref, onValue } from "firebase/database";
-import { createUserWithEmailAndPassword, deleteUser } from "firebase/auth";
+import { createUserWithEmailAndPassword, updatePassword, signInWithEmailAndPassword, sendPasswordResetEmail } from "firebase/auth";
 import { useToast } from "@/hooks/use-toast";
 import { Settings as SettingsIcon, UserCog } from "lucide-react";
 import { useRole } from "@/hooks/use-role";
@@ -36,15 +36,27 @@ const newUserSchema = z.object({
 
 type NewUserFormData = z.infer<typeof newUserSchema>;
 
+const passwordChangeSchema = z.object({
+  newPassword: z.string().min(6, "Wachtwoord moet minimaal 6 tekens bevatten"),
+});
+
+type PasswordChangeFormData = z.infer<typeof passwordChangeSchema>;
+
 export default function Settings() {
   const [users, setUsers] = useState<DatabaseUser[]>([]);
+  const [changingPasswordFor, setChangingPasswordFor] = useState<string | null>(null);
   const { toast } = useToast();
   const { isAdmin } = useRole();
+
   const form = useForm<NewUserFormData>({
     resolver: zodResolver(newUserSchema),
     defaultValues: {
       isAdmin: false,
     },
+  });
+
+  const passwordForm = useForm<PasswordChangeFormData>({
+    resolver: zodResolver(passwordChangeSchema),
   });
 
   useEffect(() => {
@@ -99,6 +111,32 @@ export default function Settings() {
         variant: "destructive",
         title: "Fout",
         description: error.message || "Kon gebruiker niet aanmaken",
+      });
+    }
+  };
+
+  const handlePasswordChange = async (data: PasswordChangeFormData) => {
+    if (!changingPasswordFor) return;
+
+    try {
+      // Find user in the list
+      const user = users.find(u => u.email === changingPasswordFor);
+      if (!user) throw new Error("Gebruiker niet gevonden");
+
+      // Update password in Firebase Authentication
+      await sendPasswordResetEmail(auth, changingPasswordFor);
+
+      toast({
+        title: "Succes",
+        description: "Een wachtwoord reset link is verstuurd naar de gebruiker",
+      });
+      setChangingPasswordFor(null);
+      passwordForm.reset();
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Fout",
+        description: error.message || "Kon wachtwoord niet wijzigen",
       });
     }
   };
@@ -195,13 +233,20 @@ export default function Settings() {
                     <TableRow key={user.uid}>
                       <TableCell>{user.email}</TableCell>
                       <TableCell>{user.admin ? 'Admin' : 'Medewerker'}</TableCell>
-                      <TableCell className="text-right">
+                      <TableCell className="text-right space-x-2">
                         <Button
                           onClick={() => handleRoleChange(user.uid, user.email, !user.admin)}
                           variant="outline"
                           className="text-[#963E56] hover:text-[#963E56] hover:bg-[#963E56]/10"
                         >
                           Maak {user.admin ? 'Medewerker' : 'Admin'}
+                        </Button>
+                        <Button
+                          onClick={() => setChangingPasswordFor(user.email)}
+                          variant="outline"
+                          className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                        >
+                          Reset Wachtwoord
                         </Button>
                       </TableCell>
                     </TableRow>
@@ -219,6 +264,39 @@ export default function Settings() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Password Change Dialog */}
+      {changingPasswordFor && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <Card className="w-full max-w-md mx-4">
+            <CardHeader className="border-b">
+              <CardTitle>Wachtwoord Reset voor {changingPasswordFor}</CardTitle>
+            </CardHeader>
+            <CardContent className="pt-4">
+              <p className="text-sm text-gray-600 mb-4">
+                Er wordt een wachtwoord reset link gestuurd naar de gebruiker.
+              </p>
+              <div className="flex justify-end gap-2 mt-4">
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setChangingPasswordFor(null);
+                    passwordForm.reset();
+                  }}
+                >
+                  Annuleren
+                </Button>
+                <Button
+                  onClick={() => handlePasswordChange(passwordForm.getValues())}
+                  className="bg-[#963E56] hover:bg-[#963E56]/90"
+                >
+                  Verstuur Reset Link
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
     </div>
   );
 }
