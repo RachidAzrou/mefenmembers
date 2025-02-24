@@ -26,7 +26,6 @@ Font.register({
   src: 'https://fonts.gstatic.com/s/inter/v12/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuLyfAZ9hiA.woff2',
 });
 
-// PDF styles
 const styles = StyleSheet.create({
   page: { 
     padding: 40,
@@ -35,7 +34,7 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 20,
+    marginBottom: 30,
     borderBottom: 1,
     borderBottomColor: '#E5E7EB',
     paddingBottom: 20,
@@ -117,8 +116,15 @@ type ExportField = {
   checked: boolean;
 };
 
-const VolunteersPDF = ({ volunteers, fields }) => {
-  console.log('Rendering PDF with volunteers:', volunteers); // Debug log
+type Volunteer = {
+  id: string;
+  firstName: string;
+  lastName: string;
+  phoneNumber: string;
+};
+
+const VolunteersPDF = ({ volunteers, fields }: { volunteers: Volunteer[], fields: ExportField[] }) => {
+  console.log('Rendering VolunteersPDF with:', { volunteers, fields });
   return (
     <Document>
       <Page size="A4" style={styles.page}>
@@ -134,22 +140,19 @@ const VolunteersPDF = ({ volunteers, fields }) => {
 
         <View style={styles.table}>
           <View style={styles.tableHeader}>
-            {fields.map(field => (
-              field.checked && (
-                <Text key={field.id} style={styles.tableHeaderCell}>
-                  {field.label}
-                </Text>
-              )
+            {fields.filter(f => f.checked).map(field => (
+              <Text key={field.id} style={styles.tableHeaderCell}>
+                {field.label}
+              </Text>
             ))}
           </View>
+
           {volunteers && volunteers.map((volunteer, i) => (
             <View key={i} style={styles.tableRow}>
-              {fields.map(field => (
-                field.checked && (
-                  <Text key={field.id} style={styles.tableCell}>
-                    {volunteer[field.id] || 'N/A'}
-                  </Text>
-                )
+              {fields.filter(f => f.checked).map(field => (
+                <Text key={field.id} style={styles.tableCell}>
+                  {volunteer[field.id] || 'N/A'}
+                </Text>
               ))}
             </View>
           ))}
@@ -163,17 +166,9 @@ const VolunteersPDF = ({ volunteers, fields }) => {
   );
 };
 
-const transformVolunteersForPDF = (volunteers) => {
-    return volunteers.map(volunteer => ({
-      firstName: volunteer.firstName || 'N/A',
-      lastName: volunteer.lastName || 'N/A',
-      phoneNumber: volunteer.phoneNumber || 'N/A'
-    }));
-  };
-
 export default function ImportExport() {
   const [pendingVolunteers, setPendingVolunteers] = useState<PendingVolunteer[]>([]);
-  const [volunteers, setVolunteers] = useState<any[]>([]);
+  const [volunteers, setVolunteers] = useState<Volunteer[]>([]);
   const [selectedVolunteers, setSelectedVolunteers] = useState<string[]>([]);
   const [exportFields, setExportFields] = useState<ExportField[]>([
     { id: 'firstName', label: 'Voornaam', checked: true },
@@ -187,11 +182,13 @@ export default function ImportExport() {
     const volunteersRef = ref(db, "volunteers");
     const unsubscribe = onValue(volunteersRef, (snapshot) => {
       const data = snapshot.val();
-      console.log('Fetched volunteers data:', data); // Debug log
+      console.log('Raw volunteers data:', data); // Debug log
       if (data) {
         const volunteersList = Object.entries(data).map(([id, volunteer]: [string, any]) => ({
           id,
-          ...volunteer,
+          firstName: volunteer.firstName || '',
+          lastName: volunteer.lastName || '',
+          phoneNumber: volunteer.phoneNumber || '',
         }));
         console.log('Processed volunteers list:', volunteersList); // Debug log
         setVolunteers(volunteersList);
@@ -268,7 +265,6 @@ export default function ImportExport() {
       });
     }
   };
-
 
   return (
     <div className="space-y-6 max-w-5xl mx-auto px-4 py-6">
@@ -398,10 +394,7 @@ export default function ImportExport() {
             </div>
 
             <PDFDownloadLink
-              document={<VolunteersPDF 
-                volunteers={transformVolunteersForPDF(volunteers)} 
-                fields={exportFields} 
-              />}
+              document={<VolunteersPDF volunteers={volunteers} fields={exportFields} />}
               fileName={`vrijwilligers-${format(new Date(), 'yyyy-MM-dd')}.pdf`}
               className="block w-full"
             >
@@ -418,6 +411,11 @@ export default function ImportExport() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Debug info */}
+      <div className="hidden">
+        <pre>{JSON.stringify({ volunteers, exportFields }, null, 2)}</pre>
+      </div>
     </div>
   );
 }

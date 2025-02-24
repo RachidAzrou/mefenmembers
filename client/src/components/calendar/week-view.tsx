@@ -264,26 +264,31 @@ export function WeekView() {
   };
 
   const getPlanningsForPDF = () => {
-    const planningsForWeek = weekDays.map(day => {
+    let allPlannings = [];
+
+    weekDays.forEach(day => {
       const dayPlannings = getPlanningsForDay(day);
-      return dayPlannings.map(planning => {
+      console.log(`Plannings for ${format(day, 'yyyy-MM-dd')}:`, dayPlannings);
+
+      const formattedPlannings = dayPlannings.map(planning => {
         const volunteer = volunteers.find(v => v.id === planning.volunteerId);
         const room = rooms.find(r => r.id === planning.roomId);
         return {
-          room: {
-            name: room?.name || 'Onbekende ruimte'
-          },
           volunteer: {
             firstName: volunteer?.firstName || 'Onbekend',
-            lastName: volunteer?.lastName || ''
+            lastName: volunteer?.lastName || 'Vrijwilliger'
           },
-          date: day
+          room: {
+            name: room?.name || 'Onbekende ruimte'
+          }
         };
       });
-    }).flat();
 
-    console.log('Plannings for PDF:', planningsForWeek); // Debug log
-    return planningsForWeek;
+      allPlannings = [...allPlannings, ...formattedPlannings];
+    });
+
+    console.log('All plannings for PDF:', allPlannings);
+    return allPlannings;
   };
 
 
