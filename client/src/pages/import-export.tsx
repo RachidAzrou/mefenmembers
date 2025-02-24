@@ -13,7 +13,7 @@ import {
 import { db } from "@/lib/firebase";
 import { ref, onValue, remove, push } from "firebase/database";
 import { useToast } from "@/hooks/use-toast";
-import { Download, Upload, FileCheck } from "lucide-react";
+import { Download, Upload, FileCheck, Users } from "lucide-react";
 import { PDFDownloadLink } from "@react-pdf/renderer";
 import { Document, Page, Text, View, StyleSheet } from '@react-pdf/renderer';
 
@@ -67,21 +67,18 @@ export default function ImportExport() {
 
   const handleImport = async () => {
     try {
-      // Import selected volunteers
       for (const volunteerId of selectedVolunteers) {
         const volunteer = pendingVolunteers.find(v => v.id === volunteerId);
         if (volunteer) {
-          // Add to volunteers collection
           await push(ref(db, "volunteers"), {
             firstName: volunteer.firstName,
             lastName: volunteer.lastName,
             phoneNumber: volunteer.phoneNumber
           });
-          // Remove from pending
           await remove(ref(db, `pending_volunteers/${volunteerId}`));
         }
       }
-      
+
       toast({
         title: "Succes",
         description: "Geselecteerde vrijwilligers zijn succesvol geïmporteerd.",
@@ -126,114 +123,129 @@ export default function ImportExport() {
   );
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 max-w-5xl mx-auto px-4 py-6">
+      {/* Page Header */}
+      <div className="flex items-center gap-3 mb-8">
+        <Users className="h-8 w-8 text-[#963E56]" />
+        <h1 className="text-3xl font-bold text-[#963E56]">Import & Export</h1>
+      </div>
+
       {/* Import Section */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Upload className="h-6 w-6" />
+      <Card className="shadow-md">
+        <CardHeader className="border-b bg-gray-50/80">
+          <CardTitle className="flex items-center gap-2 text-[#963E56]">
+            <Upload className="h-5 w-5" />
             Importeer Aanmeldingen
           </CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="pt-6">
           {pendingVolunteers.length > 0 ? (
             <>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="w-[50px]">
-                      <Checkbox
-                        checked={selectedVolunteers.length === pendingVolunteers.length}
-                        onCheckedChange={(checked) => {
-                          setSelectedVolunteers(
-                            checked ? pendingVolunteers.map(v => v.id) : []
-                          );
-                        }}
-                      />
-                    </TableHead>
-                    <TableHead>Voornaam</TableHead>
-                    <TableHead>Achternaam</TableHead>
-                    <TableHead>Telefoonnummer</TableHead>
-                    <TableHead>Aangemeld op</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {pendingVolunteers.map((volunteer) => (
-                    <TableRow key={volunteer.id}>
-                      <TableCell>
+              <div className="rounded-lg border">
+                <Table>
+                  <TableHeader>
+                    <TableRow className="bg-gray-50/50">
+                      <TableHead className="w-[50px]">
                         <Checkbox
-                          checked={selectedVolunteers.includes(volunteer.id)}
+                          checked={selectedVolunteers.length === pendingVolunteers.length}
                           onCheckedChange={(checked) => {
                             setSelectedVolunteers(
-                              checked
-                                ? [...selectedVolunteers, volunteer.id]
-                                : selectedVolunteers.filter(id => id !== volunteer.id)
+                              checked ? pendingVolunteers.map(v => v.id) : []
                             );
                           }}
                         />
-                      </TableCell>
-                      <TableCell>{volunteer.firstName}</TableCell>
-                      <TableCell>{volunteer.lastName}</TableCell>
-                      <TableCell>{volunteer.phoneNumber}</TableCell>
-                      <TableCell>
-                        {new Date(volunteer.submittedAt).toLocaleDateString('nl-NL')}
-                      </TableCell>
+                      </TableHead>
+                      <TableHead>Voornaam</TableHead>
+                      <TableHead>Achternaam</TableHead>
+                      <TableHead>Telefoonnummer</TableHead>
+                      <TableHead>Aangemeld op</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                  </TableHeader>
+                  <TableBody>
+                    {pendingVolunteers.map((volunteer) => (
+                      <TableRow key={volunteer.id}>
+                        <TableCell>
+                          <Checkbox
+                            checked={selectedVolunteers.includes(volunteer.id)}
+                            onCheckedChange={(checked) => {
+                              setSelectedVolunteers(
+                                checked
+                                  ? [...selectedVolunteers, volunteer.id]
+                                  : selectedVolunteers.filter(id => id !== volunteer.id)
+                              );
+                            }}
+                          />
+                        </TableCell>
+                        <TableCell>{volunteer.firstName}</TableCell>
+                        <TableCell>{volunteer.lastName}</TableCell>
+                        <TableCell>{volunteer.phoneNumber}</TableCell>
+                        <TableCell>
+                          {new Date(volunteer.submittedAt).toLocaleDateString('nl-NL')}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
               <Button
                 onClick={handleImport}
                 disabled={selectedVolunteers.length === 0}
-                className="mt-4 bg-[#6BB85C] hover:bg-[#6BB85C]/90"
+                className="mt-6 bg-[#963E56] hover:bg-[#963E56]/90 text-white"
               >
                 <FileCheck className="h-4 w-4 mr-2" />
                 Importeer Geselecteerde ({selectedVolunteers.length})
               </Button>
             </>
           ) : (
-            <p className="text-center text-gray-500 py-8">
-              Geen nieuwe aanmeldingen gevonden
-            </p>
+            <div className="text-center py-12 text-gray-500">
+              <Upload className="h-12 w-12 mx-auto mb-4 opacity-50" />
+              <p className="text-lg font-medium">Geen nieuwe aanmeldingen gevonden</p>
+              <p className="mt-1 text-sm">Nieuwe vrijwilligers aanmeldingen verschijnen hier automatisch</p>
+            </div>
           )}
         </CardContent>
       </Card>
 
       {/* Export Section */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Download className="h-6 w-6" />
+      <Card className="shadow-md">
+        <CardHeader className="border-b bg-gray-50/80">
+          <CardTitle className="flex items-center gap-2 text-[#963E56]">
+            <Download className="h-5 w-5" />
             Exporteer Vrijwilligerslijst
           </CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            <div className="border rounded-lg p-4 space-y-2">
-              <h3 className="font-medium mb-3">Selecteer velden voor export:</h3>
-              {exportFields.map((field) => (
-                <div key={field.id} className="flex items-center space-x-2">
-                  <Checkbox
-                    id={field.id}
-                    checked={field.checked}
-                    onCheckedChange={(checked) => {
-                      setExportFields(exportFields.map(f =>
-                        f.id === field.id ? { ...f, checked: !!checked } : f
-                      ));
-                    }}
-                  />
-                  <label htmlFor={field.id}>{field.label}</label>
-                </div>
-              ))}
+        <CardContent className="pt-6">
+          <div className="space-y-6">
+            <div className="rounded-lg border p-6 bg-gray-50/30">
+              <h3 className="font-medium text-lg mb-4 text-gray-900">Selecteer velden voor export:</h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                {exportFields.map((field) => (
+                  <div key={field.id} className="flex items-center space-x-3">
+                    <Checkbox
+                      id={field.id}
+                      checked={field.checked}
+                      onCheckedChange={(checked) => {
+                        setExportFields(exportFields.map(f =>
+                          f.id === field.id ? { ...f, checked: !!checked } : f
+                        ));
+                      }}
+                    />
+                    <label htmlFor={field.id} className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                      {field.label}
+                    </label>
+                  </div>
+                ))}
+              </div>
             </div>
-            
+
             <PDFDownloadLink
               document={<VolunteersPDF volunteers={[]} fields={exportFields} />}
               fileName="vrijwilligers.pdf"
+              className="block w-full"
             >
               {({ loading }) => (
                 <Button 
-                  className="w-full"
+                  className="w-full bg-[#963E56] hover:bg-[#963E56]/90 text-white"
                   disabled={loading || exportFields.every(f => !f.checked)}
                 >
                   <Download className="h-4 w-4 mr-2" />
