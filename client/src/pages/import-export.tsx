@@ -107,7 +107,13 @@ type Volunteer = {
   email?: string;
 };
 
-const VolunteersPDF = ({ volunteers }: { volunteers: Volunteer[] }) => (
+type ExportField = {
+  id: keyof Volunteer;
+  label: string;
+  checked: boolean;
+};
+
+const VolunteersPDF = ({ volunteers, fields }: { volunteers: Volunteer[], fields: ExportField[] }) => (
   <Document>
     <Page size="A4" style={styles.page}>
       <View style={styles.header}>
@@ -125,18 +131,18 @@ const VolunteersPDF = ({ volunteers }: { volunteers: Volunteer[] }) => (
 
       <View style={styles.table}>
         <View style={[styles.tableRow, styles.tableHeader]}>
-          <Text style={styles.tableCellHeader}>Voornaam</Text>
-          <Text style={styles.tableCellHeader}>Achternaam</Text>
-          <Text style={styles.tableCellHeader}>Telefoonnummer</Text>
-          <Text style={styles.tableCellHeader}>E-mail</Text>
+          {fields.filter(f => f.checked).map((field) => (
+            <Text key={field.id} style={styles.tableCellHeader}>{field.label}</Text>
+          ))}
         </View>
 
         {volunteers.map((volunteer, index) => (
           <View key={index} style={styles.tableRow}>
-            <Text style={styles.tableCell}>{volunteer.firstName}</Text>
-            <Text style={styles.tableCell}>{volunteer.lastName}</Text>
-            <Text style={styles.tableCell}>{volunteer.phoneNumber}</Text>
-            <Text style={styles.tableCell}>{volunteer.email || '-'}</Text>
+            {fields.filter(f => f.checked).map((field) => (
+              <Text key={field.id} style={styles.tableCell}>
+                {volunteer[field.id] || '-'}
+              </Text>
+            ))}
           </View>
         ))}
       </View>
@@ -152,10 +158,15 @@ export default function ImportExport() {
   const [pendingVolunteers, setPendingVolunteers] = useState<PendingVolunteer[]>([]);
   const [volunteers, setVolunteers] = useState<Volunteer[]>([]);
   const [selectedVolunteers, setSelectedVolunteers] = useState<string[]>([]);
+  const [exportFields, setExportFields] = useState<ExportField[]>([
+    { id: 'firstName', label: 'Voornaam', checked: true },
+    { id: 'lastName', label: 'Achternaam', checked: true },
+    { id: 'phoneNumber', label: 'Telefoonnummer', checked: true },
+    { id: 'email', label: 'E-mail', checked: true },
+  ]);
   const { toast } = useToast();
 
   useEffect(() => {
-    // Haal alle actieve vrijwilligers op uit de database
     const volunteersRef = ref(db, "volunteers");
     const unsubscribeVolunteers = onValue(volunteersRef, (snapshot) => {
       const data = snapshot.val();
@@ -170,7 +181,6 @@ export default function ImportExport() {
       }
     });
 
-    // Haal alle pending vrijwilligers op
     const pendingRef = ref(db, "pending_volunteers");
     const unsubscribePending = onValue(pendingRef, (snapshot) => {
       const data = snapshot.val();
@@ -345,21 +355,41 @@ export default function ImportExport() {
         <CardContent className="pt-6">
           <div className="space-y-6">
             <div className="rounded-lg border p-6 bg-gray-50/30">
-              <div className="flex justify-between items-center">
-                <div>
-                  <h3 className="font-medium text-lg mb-2 text-gray-900">
-                    Vrijwilligersoverzicht
-                  </h3>
-                  <p className="text-sm text-gray-500">
-                    Download een volledig overzicht van alle actieve vrijwilligers
-                  </p>
-                </div>
+              <h3 className="font-medium text-lg mb-4 text-gray-900">
+                Selecteer velden voor export:
+              </h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mb-6">
+                {exportFields.map((field) => (
+                  <div key={field.id} className="flex items-center space-x-3">
+                    <Checkbox
+                      id={field.id}
+                      checked={field.checked}
+                      onCheckedChange={(checked) => {
+                        setExportFields(exportFields.map(f =>
+                          f.id === field.id ? { ...f, checked: checked } : f
+                        ));
+                      }}
+                    />
+                    <label
+                      htmlFor={field.id}
+                      className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                    >
+                      {field.label}
+                    </label>
+                  </div>
+                ))}
+              </div>
+
+              <div className="flex justify-end">
                 <PDFDownloadLink
-                  document={<VolunteersPDF volunteers={volunteers} />}
+                  document={<VolunteersPDF volunteers={volunteers} fields={exportFields} />}
                   fileName={`vrijwilligers-${format(new Date(), 'yyyy-MM-dd')}.pdf`}
                 >
                   {({ loading }) => (
-                    <Button className="bg-[#963E56] hover:bg-[#963E56]/90 text-white">
+                    <Button
+                      className="bg-[#963E56] hover:bg-[#963E56]/90 text-white"
+                      disabled={loading || exportFields.every(f => !f.checked)}
+                    >
                       <Download className="h-4 w-4 mr-2" />
                       {loading ? "PDF wordt gemaakt..." : "Download PDF"}
                     </Button>
