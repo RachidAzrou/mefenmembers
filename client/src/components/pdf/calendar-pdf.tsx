@@ -1,4 +1,4 @@
-import { Document, Page, View, Text, StyleSheet, Image, Font } from "@react-pdf/renderer";
+import { Document, Page, View, Text, StyleSheet, Font, Image } from "@react-pdf/renderer";
 import { format, addDays } from "date-fns";
 import { nl } from "date-fns/locale";
 
@@ -116,10 +116,10 @@ type Planning = {
 type CalendarPDFProps = {
   weekStart: Date;
   plannings: Planning[];
+  logoUrl?: string; // Added optional logo URL
 };
 
-export function CalendarPDF({ weekStart, plannings }: CalendarPDFProps) {
-  console.log('CalendarPDF rendering with:', { weekStart, plannings });
+export function CalendarPDF({ weekStart, plannings, logoUrl }: CalendarPDFProps) {
   const weekDays = Array.from({ length: 7 }).map((_, i) => addDays(weekStart, i));
 
   const getPlanningsForDay = (day: Date) => {
@@ -132,6 +132,9 @@ export function CalendarPDF({ weekStart, plannings }: CalendarPDFProps) {
     <Document>
       <Page size="A4" orientation="landscape" style={styles.page}>
         <View style={styles.header}>
+          {logoUrl && ( // Conditionally render the logo
+            <Image src={logoUrl} style={styles.logo} />
+          )}
           <View style={styles.headerText}>
             <Text style={styles.title}>MEFEN Weekplanning</Text>
             <Text style={styles.subtitle}>Roosteroverzicht Vrijwilligers</Text>
@@ -144,7 +147,6 @@ export function CalendarPDF({ weekStart, plannings }: CalendarPDFProps) {
         <View style={styles.calendar}>
           {weekDays.map((day) => {
             const dayPlannings = getPlanningsForDay(day);
-            console.log(`Plannings for ${format(day, 'yyyy-MM-dd')}:`, dayPlannings);
             return (
               <View key={day.toISOString()} style={styles.dayColumn}>
                 <Text style={styles.dayHeader}>
