@@ -103,7 +103,8 @@ const styles = StyleSheet.create({
   },
   logo: {
     width: 100,
-    marginRight: 20,
+    height: 50,
+    objectFit: 'contain'
   }
 });
 
@@ -119,13 +120,15 @@ type CalendarPDFProps = {
 };
 
 export function CalendarPDF({ weekStart, plannings }: CalendarPDFProps) {
-  console.log('Rendering CalendarPDF with:', { weekStart, plannings });
+  console.log('CalendarPDF props:', { weekStart, plannings });
   const weekDays = Array.from({ length: 7 }).map((_, i) => addDays(weekStart, i));
 
   const getPlanningsForDay = (day: Date) => {
-    return plannings.filter(planning => 
-      format(planning.date, 'yyyy-MM-dd') === format(day, 'yyyy-MM-dd')
+    const dayPlannings = plannings.filter(planning => 
+      format(new Date(planning.date), 'yyyy-MM-dd') === format(day, 'yyyy-MM-dd')
     );
+    console.log(`Plannings for ${format(day, 'yyyy-MM-dd')}:`, dayPlannings);
+    return dayPlannings;
   };
 
   return (

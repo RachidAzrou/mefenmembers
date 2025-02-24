@@ -270,23 +270,21 @@ export function WeekView() {
       const dayPlannings = getPlanningsForDay(day);
       console.log(`Getting plannings for ${format(day, 'yyyy-MM-dd')}:`, dayPlannings);
 
-      const formattedPlannings = dayPlannings.map(planning => {
+      dayPlannings.forEach(planning => {
         const volunteer = volunteers.find(v => v.id === planning.volunteerId);
         const room = rooms.find(r => r.id === planning.roomId);
 
-        return {
+        planningsForPDF.push({
+          room: {
+            name: room?.name || 'Onbekende ruimte'
+          },
           volunteer: {
             firstName: volunteer?.firstName || 'Onbekend',
             lastName: volunteer?.lastName || 'Vrijwilliger'
           },
-          room: {
-            name: room?.name || 'Onbekende ruimte'
-          },
           date: day
-        };
+        });
       });
-
-      planningsForPDF = [...planningsForPDF, ...formattedPlannings];
     });
 
     console.log('Final plannings for PDF:', planningsForPDF);
