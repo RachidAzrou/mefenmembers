@@ -5,12 +5,14 @@ import { Toaster } from "@/components/ui/toaster";
 import NotFound from "@/pages/not-found";
 import Dashboard from "@/pages/dashboard";
 import Login from "@/pages/login";
+import Register from "@/pages/register"; // Add import
 import Volunteers from "@/pages/volunteers";
 import Rooms from "@/pages/rooms";
 import Materials from "@/pages/materials";
 import Planning from "@/pages/planning";
 import PublicCalendar from "@/pages/public-calendar";
-import Mosque from "@/pages/mosque";  // Add import
+import ImportExport from "@/pages/import-export"; // Add import
+import Mosque from "@/pages/mosque";
 import { Sidebar } from "@/components/layout/sidebar";
 import { auth } from "./lib/firebase";
 import { useAuthState } from "react-firebase-hooks/auth";
@@ -58,13 +60,14 @@ function Router() {
   return (
     <Switch>
       <Route path="/login" component={Login} />
+      <Route path="/register" component={Register} /> {/* Add public registration route */}
       <Route path="/" component={() => <PrivateRoute component={Dashboard} />} />
       <Route path="/planning" component={() => <PrivateRoute component={Planning} />} />
       <Route path="/volunteers" component={() => <PrivateRoute component={Volunteers} />} />
       <Route path="/rooms" component={() => <PrivateRoute component={Rooms} />} />
       <Route path="/materials" component={() => <PrivateRoute component={Materials} />} />
-      <Route path="/mosque" component={() => <PrivateRoute component={Mosque} />} />  {/* Add route */}
-      {/* Public calendar route - no authentication required */}
+      <Route path="/import-export" component={() => <PrivateRoute component={ImportExport} />} /> {/* Add import/export route */}
+      <Route path="/mosque" component={() => <PrivateRoute component={Mosque} />} />
       <Route path="/calendar/public" component={PublicCalendar} />
       <Route component={NotFound} />
     </Switch>

@@ -5,7 +5,8 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Link, useLocation } from "wouter";
 import {
   LayoutDashboard, Users, Calendar, DoorOpen,
-  Package2, LogOut, Menu, ChevronLeft, ChevronRight
+  Package2, LogOut, Menu, ChevronLeft, ChevronRight,
+  Download
 } from "lucide-react";
 import { PiMosqueFill } from "react-icons/pi";
 import { useState, useEffect } from "react";
@@ -45,6 +46,7 @@ export function Sidebar() {
     { icon: Users, label: "Vrijwilligers", href: "/volunteers" },
     { icon: DoorOpen, label: "Ruimtes", href: "/rooms" },
     { icon: Package2, label: "Materialen", href: "/materials" },
+    { icon: Download, label: "Import/Export", href: "/import-export" },
     { icon: PiMosqueFill, label: "Mijn Moskee", href: "/mosque" }
   ];
 
@@ -81,9 +83,9 @@ export function Sidebar() {
         <div className="flex h-32 items-center justify-center bg-white border-b relative">
           {!collapsed && (
             <div className="w-full h-full flex items-center justify-center p-4">
-              <img 
-                src="/static/Naamloos.png" 
-                alt="MEFEN" 
+              <img
+                src="/static/Naamloos.png"
+                alt="MEFEN"
                 className="w-full h-full object-contain"
               />
             </div>
