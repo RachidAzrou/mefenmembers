@@ -15,16 +15,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -52,7 +42,13 @@ import { nl } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { CheckboxGroup } from "@/components/ui/checkbox-group";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+} from "@/components/ui/command"
 
 const planningSchema = z.object({
   volunteerId: z.string().min(1, "Vrijwilliger is verplicht"),
@@ -442,14 +438,60 @@ export default function Planning() {
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Vrijwilligers</FormLabel>
-                        <CheckboxGroup
-                          items={volunteers.map(v => ({
-                            id: v.id,
-                            label: `${v.firstName} ${v.lastName}`
-                          }))}
-                          selected={field.value}
-                          onSelectionChange={field.onChange}
-                        />
+                        <Select
+                          onValueChange={(value) => {
+                            const currentValues = field.value || [];
+                            const newValues = currentValues.includes(value)
+                              ? currentValues.filter((v) => v !== value)
+                              : [...currentValues, value];
+                            field.onChange(newValues);
+                          }}
+                          value={field.value?.[field.value.length - 1] || ""}
+                        >
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Selecteer vrijwilligers" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {volunteers.map((volunteer) => (
+                              <SelectItem
+                                key={volunteer.id}
+                                value={volunteer.id}
+                                className={cn(
+                                  "cursor-pointer",
+                                  field.value?.includes(volunteer.id) && "bg-primary/10"
+                                )}
+                              >
+                                {volunteer.firstName} {volunteer.lastName}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <div className="mt-2 flex flex-wrap gap-2">
+                          {field.value?.map((volunteerId) => {
+                            const volunteer = volunteers.find((v) => v.id === volunteerId);
+                            return (
+                              <div
+                                key={volunteerId}
+                                className="bg-primary/10 text-primary px-2 py-1 rounded-md text-sm flex items-center gap-2"
+                              >
+                                <span>
+                                  {volunteer?.firstName} {volunteer?.lastName}
+                                </span>
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    field.onChange(field.value.filter((id) => id !== volunteerId))
+                                  }
+                                  className="text-primary hover:text-primary/80"
+                                >
+                                  ×
+                                </button>
+                              </div>
+                            );
+                          })}
+                        </div>
                         <FormMessage />
                       </FormItem>
                     )}
@@ -460,14 +502,58 @@ export default function Planning() {
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Ruimtes</FormLabel>
-                        <CheckboxGroup
-                          items={rooms.map(r => ({
-                            id: r.id,
-                            label: r.name
-                          }))}
-                          selected={field.value}
-                          onSelectionChange={field.onChange}
-                        />
+                        <Select
+                          onValueChange={(value) => {
+                            const currentValues = field.value || [];
+                            const newValues = currentValues.includes(value)
+                              ? currentValues.filter((v) => v !== value)
+                              : [...currentValues, value];
+                            field.onChange(newValues);
+                          }}
+                          value={field.value?.[field.value.length - 1] || ""}
+                        >
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Selecteer ruimtes" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {rooms.map((room) => (
+                              <SelectItem
+                                key={room.id}
+                                value={room.id}
+                                className={cn(
+                                  "cursor-pointer",
+                                  field.value?.includes(room.id) && "bg-primary/10"
+                                )}
+                              >
+                                {room.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <div className="mt-2 flex flex-wrap gap-2">
+                          {field.value?.map((roomId) => {
+                            const room = rooms.find((r) => r.id === roomId);
+                            return (
+                              <div
+                                key={roomId}
+                                className="bg-primary/10 text-primary px-2 py-1 rounded-md text-sm flex items-center gap-2"
+                              >
+                                <span>{room?.name}</span>
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    field.onChange(field.value.filter((id) => id !== roomId))
+                                  }
+                                  className="text-primary hover:text-primary/80"
+                                >
+                                  ×
+                                </button>
+                              </div>
+                            );
+                          })}
+                        </div>
                         <FormMessage />
                       </FormItem>
                     )}
