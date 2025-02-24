@@ -1,10 +1,17 @@
 <svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
   <!-- Achtergrond cirkel -->
   <circle cx="256" cy="256" r="256" fill="#963E56"/>
-  
-  <!-- "M" letter in wit -->
-  <path d="M128 128L192 256L256 128L320 256L384 128V384H128V128Z" fill="white"/>
-  
-  <!-- Subtiele schaduw voor diepte -->
-  <circle cx="256" cy="256" r="248" fill="#87364C" fill-opacity="0.1"/>
+
+  <!-- Gestileerde moskee vorm in wit -->
+  <path d="M256 96C200 96 144 128 144 192H368C368 128 312 96 256 96Z" fill="white"/>
+  <path d="M144 208V400H368V208H144ZM256 352C238.327 352 224 337.673 224 320C224 302.327 238.327 288 256 288C273.673 288 288 302.327 288 320C288 337.673 273.673 352 256 352Z" fill="white"/>
+
+  <!-- Minaret -->
+  <rect x="240" y="64" width="32" height="32" fill="white"/>
+
+  <!-- Koepel details -->
+  <path d="M208 192C208 174.327 229.49 160 256 160C282.51 160 304 174.327 304 192" stroke="white" stroke-width="16"/>
+
+  <!-- Subtle decorative patterns -->
+  <circle cx="256" cy="256" r="248" fill="white" fill-opacity="0.1"/>
 </svg>
