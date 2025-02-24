@@ -111,7 +111,7 @@ export default function Planning() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [bulkDialogOpen, setBulkDialogOpen] = useState(false);
   const { toast } = useToast();
-  const [selectedPlannings, setSelectedPlannings] = useState<string[]>([]);
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
 
   const form = useForm<z.infer<typeof planningSchema>>({
     resolver: zodResolver(planningSchema),
@@ -184,6 +184,61 @@ export default function Planning() {
     }
   };
 
+  const handleEdit = (planning: Planning) => {
+    setEditingPlanning(planning);
+    form.reset({
+      volunteerId: planning.volunteerId,
+      roomId: planning.roomId,
+      startDate: planning.startDate,
+      endDate: planning.endDate,
+    });
+    setDialogOpen(true);
+  };
+
+  const handleDelete = async (id: string) => {
+    try {
+      await remove(ref(db, `plannings/${id}`));
+      toast({
+        title: "Succes",
+        description: "Planning succesvol verwijderd",
+      });
+      setDeletePlanningId(null);
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Fout",
+        description: "Kon planning niet verwijderen",
+      });
+    }
+  };
+
+  const calendarClassNames = {
+    months: "flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0",
+    month: "space-y-4",
+    caption: "flex justify-center pt-1 relative items-center",
+    caption_label: "text-sm font-medium",
+    nav: "space-x-1 flex items-center",
+    nav_button: "h-7 w-7 bg-transparent p-0 hover:opacity-100",
+    nav_button_previous: "absolute left-1",
+    nav_button_next: "absolute right-1",
+    table: "w-full border-collapse space-y-1",
+    head_row: "flex",
+    head_cell: "text-muted-foreground rounded-md w-10 font-normal text-[0.8rem] h-10 flex items-center justify-center",
+    row: "flex w-full mt-2",
+    cell: "relative p-0 text-center text-sm focus-within:relative focus-within:z-20 [&:has([aria-selected])]:bg-accent first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md",
+    day: "h-10 w-10 p-0 font-normal aria-selected:opacity-100",
+    day_selected: "bg-[#6BB85C] text-white hover:bg-[#6BB85C]/90 focus:bg-[#6BB85C] rounded-md",
+    day_today: "bg-accent text-accent-foreground",
+    day_outside: "text-muted-foreground opacity-50",
+    day_disabled: "text-muted-foreground opacity-50",
+    day_range_middle: "aria-selected:bg-accent aria-selected:text-accent-foreground",
+    day_hidden: "invisible",
+  };
+
+  const totalScheduledVolunteers = plannings.length;
+  const uniqueVolunteersScheduled = new Set(plannings.map(p => p.volunteerId)).size;
+  const uniqueRoomsScheduled = new Set(plannings.map(p => p.roomId)).size;
+
   const handleBulkPlan = async (data: z.infer<typeof bulkPlanningSchema>) => {
     try {
       const promises = data.volunteerIds.flatMap(volunteerId =>
@@ -214,93 +269,6 @@ export default function Planning() {
     }
   };
 
-  const handleDelete = async (id: string) => {
-    try {
-      await remove(ref(db, `plannings/${id}`));
-      toast({
-        title: "Succes",
-        description: "Planning succesvol verwijderd",
-      });
-      setDeletePlanningId(null);
-    } catch (error) {
-      toast({
-        variant: "destructive",
-        title: "Fout",
-        description: "Kon planning niet verwijderen",
-      });
-    }
-  };
-
-  const handleEdit = (planning: Planning) => {
-    setEditingPlanning(planning);
-    form.reset({
-      volunteerId: planning.volunteerId,
-      roomId: planning.roomId,
-      startDate: planning.startDate,
-      endDate: planning.endDate,
-    });
-    setDialogOpen(true);
-  };
-
-  const calendarClassNames = {
-    months: "flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0",
-    month: "space-y-4",
-    caption: "flex justify-center pt-1 relative items-center",
-    caption_label: "text-sm font-medium",
-    nav: "space-x-1 flex items-center",
-    nav_button: "h-7 w-7 bg-transparent p-0 hover:opacity-100",
-    nav_button_previous: "absolute left-1",
-    nav_button_next: "absolute right-1",
-    table: "w-full border-collapse space-y-1",
-    head_row: "flex",
-    head_cell: "text-muted-foreground rounded-md w-10 font-normal text-[0.8rem] h-10 flex items-center justify-center",
-    row: "flex w-full mt-2",
-    cell: "relative p-0 text-center text-sm focus-within:relative focus-within:z-20 [&:has([aria-selected])]:bg-accent first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md",
-    day: "h-10 w-10 p-0 font-normal aria-selected:opacity-100",
-    day_selected: "bg-[#6BB85C] text-white hover:bg-[#6BB85C]/90 focus:bg-[#6BB85C] rounded-md",
-    day_today: "bg-accent text-accent-foreground",
-    day_outside: "text-muted-foreground opacity-50",
-    day_disabled: "text-muted-foreground opacity-50",
-    day_range_middle: "aria-selected:bg-accent aria-selected:text-accent-foreground",
-    day_hidden: "invisible",
-  };
-
-  const totalScheduledVolunteers = plannings.length;
-  const uniqueVolunteersScheduled = new Set(plannings.map(p => p.volunteerId)).size;
-  const uniqueRoomsScheduled = new Set(plannings.map(p => p.roomId)).size;
-
-  const toggleSelectAll = () => {
-    if (selectedPlannings.length === plannings.length) {
-      setSelectedPlannings([]);
-    } else {
-      setSelectedPlannings(plannings.map(p => p.id));
-    }
-  };
-
-  const toggleSelect = (id: string) => {
-    setSelectedPlannings(prev =>
-      prev.includes(id)
-        ? prev.filter(p => p !== id)
-        : [...prev, id]
-    );
-  };
-
-  const handleBulkDelete = async (planningIds: string[]) => {
-    try {
-      await Promise.all(planningIds.map(id => remove(ref(db, `plannings/${id}`))));
-      toast({
-        title: "Succes",
-        description: `${planningIds.length} planning(en) succesvol verwijderd`,
-      });
-      setSelectedPlannings([]);
-    } catch (error) {
-      toast({
-        variant: "destructive",
-        title: "Fout",
-        description: "Kon planningen niet verwijderen",
-      });
-    }
-  };
 
   return (
     <div className="space-y-6">
@@ -404,16 +372,15 @@ export default function Planning() {
                               </Button>
                             </FormControl>
                           </PopoverTrigger>
-                          <PopoverContent className="w-auto p-4 bg-white rounded-lg shadow-lg border" align="start">
+                          <PopoverContent className="w-auto p-0">
                             <Calendar
                               mode="single"
                               selected={field.value ? new Date(field.value) : undefined}
                               onSelect={(date) => field.onChange(date?.toISOString())}
+                              disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
                               initialFocus
                               locale={nl}
                               weekStartsOn={1}
-                              classNames={calendarClassNames}
-                              disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
                             />
                           </PopoverContent>
                         </Popover>
@@ -446,16 +413,15 @@ export default function Planning() {
                               </Button>
                             </FormControl>
                           </PopoverTrigger>
-                          <PopoverContent className="w-auto p-4 bg-white rounded-lg shadow-lg border" align="start">
+                          <PopoverContent className="w-auto p-0">
                             <Calendar
                               mode="single"
                               selected={field.value ? new Date(field.value) : undefined}
                               onSelect={(date) => field.onChange(date?.toISOString())}
+                              disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
                               initialFocus
                               locale={nl}
                               weekStartsOn={1}
-                              classNames={calendarClassNames}
-                              disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
                             />
                           </PopoverContent>
                         </Popover>
@@ -470,7 +436,6 @@ export default function Planning() {
               </Form>
             </DialogContent>
           </Dialog>
-
           <Dialog open={bulkDialogOpen} onOpenChange={setBulkDialogOpen}>
             <DialogTrigger asChild>
               <Button className="bg-[#D9A347] hover:bg-[#D9A347]/90 text-white border-none">
@@ -635,16 +600,15 @@ export default function Planning() {
                               </Button>
                             </FormControl>
                           </PopoverTrigger>
-                          <PopoverContent className="w-auto p-4 bg-white rounded-lg shadow-lg border" align="start">
+                          <PopoverContent className="w-auto p-0">
                             <Calendar
                               mode="single"
                               selected={field.value ? new Date(field.value) : undefined}
                               onSelect={(date) => field.onChange(date?.toISOString())}
+                              disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
                               initialFocus
                               locale={nl}
                               weekStartsOn={1}
-                              classNames={calendarClassNames}
-                              disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
                             />
                           </PopoverContent>
                         </Popover>
@@ -677,16 +641,15 @@ export default function Planning() {
                               </Button>
                             </FormControl>
                           </PopoverTrigger>
-                          <PopoverContent className="w-auto p-4 bg-white rounded-lg shadow-lg border" align="start">
+                          <PopoverContent className="w-auto p-0">
                             <Calendar
                               mode="single"
                               selected={field.value ? new Date(field.value) : undefined}
                               onSelect={(date) => field.onChange(date?.toISOString())}
+                              disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
                               initialFocus
                               locale={nl}
                               weekStartsOn={1}
-                              classNames={calendarClassNames}
-                              disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
                             />
                           </PopoverContent>
                         </Popover>
@@ -704,171 +667,146 @@ export default function Planning() {
         </div>
       </div>
 
-      <CollapsibleSection
-        title="Planning Overzicht"
-        icon={<CalendarDays className="h-5 w-5 text-primary" />}
-        defaultOpen={true}
-      >
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center">
-                <CalendarDays className="h-8 w-8 text-primary/80" />
-                <div className="ml-4">
-                  <h3 className="text-sm font-medium text-gray-500">Totaal Planningen</h3>
-                  <p className="text-2xl font-bold text-primary">{totalScheduledVolunteers}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Left side: Statistics and Calendar */}
+        <div className="space-y-6">
+          <CollapsibleSection
+            title="Planning Overzicht"
+            icon={<CalendarDays className="h-5 w-5 text-primary" />}
+            defaultOpen={true}
+          >
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <Card>
+                <CardContent className="pt-6">
+                  <div className="flex items-center">
+                    <CalendarDays className="h-8 w-8 text-primary/80" />
+                    <div className="ml-4">
+                      <h3 className="text-sm font-medium text-gray-500">Totaal Planningen</h3>
+                      <p className="text-2xl font-bold text-primary">{totalScheduledVolunteers}</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
 
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center">
-                <Users2 className="h-8 w-8 text-primary/80" />
-                <div className="ml-4">
-                  <h3 className="text-sm font-medium text-gray-500">Unieke Vrijwilligers</h3>
-                  <p className="text-2xl font-bold text-primary">{uniqueVolunteersScheduled}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+              <Card>
+                <CardContent className="pt-6">
+                  <div className="flex items-center">
+                    <Users2 className="h-8 w-8 text-primary/80" />
+                    <div className="ml-4">
+                      <h3 className="text-sm font-medium text-gray-500">Unieke Vrijwilligers</h3>
+                      <p className="text-2xl font-bold text-primary">{uniqueVolunteersScheduled}</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
 
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center">
-                <Building className="h-8 w-8 text-primary/80" />
-                <div className="ml-4">
-                  <h3 className="text-sm font-medium text-gray-500">Bezette Ruimtes</h3>
-                  <p className="text-2xl font-bold text-primary">{uniqueRoomsScheduled}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+              <Card>
+                <CardContent className="pt-6">
+                  <div className="flex items-center">
+                    <Building className="h-8 w-8 text-primary/80" />
+                    <div className="ml-4">
+                      <h3 className="text-sm font-medium text-gray-500">Bezette Ruimtes</h3>
+                      <p className="text-2xl font-bold text-primary">{uniqueRoomsScheduled}</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </CollapsibleSection>
+
+          <CollapsibleSection
+            title="Kalender"
+            icon={<CalendarIcon className="h-5 w-5 text-primary" />}
+            defaultOpen={true}
+          >
+            <Card>
+              <CardContent className="pt-6">
+                <Calendar
+                  mode="single"
+                  selected={selectedDate}
+                  onSelect={setSelectedDate}
+                  className="rounded-md border shadow"
+                  locale={nl}
+                  weekStartsOn={1}
+                  classNames={calendarClassNames}
+                />
+              </CardContent>
+            </Card>
+          </CollapsibleSection>
         </div>
-      </CollapsibleSection>
 
-      <CollapsibleSection
-        title="Planning Tabel"
-        icon={<Calendar className="h-5 w-5 text-primary" />}
-        defaultOpen={true}
-      >
-        <div className="rounded-lg border bg-card">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-[50px]">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={toggleSelectAll}
-                    className="hover:bg-transparent"
-                  >
-                    {selectedPlannings.length === plannings.length ? (
-                      <CheckSquare className="h-4 w-4" />
-                    ) : (
-                      <Square className="h-4 w-4" />
-                    )}
-                  </Button>
-                </TableHead>
-                <TableHead>Vrijwilliger</TableHead>
-                <TableHead>Ruimte</TableHead>
-                <TableHead>Startdatum</TableHead>
-                <TableHead>Einddatum</TableHead>
-                <TableHead className="w-[100px]">Acties</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {plannings.map((planning) => {
-                const volunteer = volunteers.find((v) => v.id === planning.volunteerId);
-                const room = rooms.find((r) => r.id === planning.roomId);
-                return (
-                  <TableRow key={planning.id}>
-                    <TableCell>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => toggleSelect(planning.id)}
-                        className="hover:bg-transparent"
-                      >
-                        {selectedPlannings.includes(planning.id) ? (
-                          <CheckSquare className="h-4 w-4" />
-                        ) : (
-                          <Square className="h-4 w-4" />
-                        )}
-                      </Button>
-                    </TableCell>
-                    <TableCell>
-                      {volunteer ? `${volunteer.firstName} ${volunteer.lastName}` : "-"}
-                    </TableCell>
-                    <TableCell>{room ? room.name : "-"}</TableCell>
-                    <TableCell>
-                      {format(new Date(planning.startDate), "d MMMM yyyy", { locale: nl })}
-                    </TableCell>
-                    <TableCell>
-                      {format(new Date(planning.endDate), "d MMMM yyyy", { locale: nl })}
-                    </TableCell>
-                    <TableCell className="flex space-x-2">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => handleEdit(planning)}
-                        className="text-[#6BB85C] hover:text-[#6BB85C] hover:bg-[#6BB85C]/10"
-                      >
-                        <Edit2 className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => setDeletePlanningId(planning.id)}
-                        className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </TableCell>
+        {/* Right side: Planning Details */}
+        <div className="space-y-6">
+          <CollapsibleSection
+            title="Planningen voor Geselecteerde Datum"
+            icon={<Users className="h-5 w-5 text-primary" />}
+            defaultOpen={true}
+          >
+            <div className="rounded-lg border bg-card">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Vrijwilliger</TableHead>
+                    <TableHead>Ruimte</TableHead>
+                    <TableHead className="w-[100px]">Acties</TableHead>
                   </TableRow>
-                );
-              })}
-              {plannings.length === 0 && (
-                <TableRow>
-                  <TableCell colSpan={6} className="text-center py-6 text-gray-500">
-                    Geen planningen gevonden
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
+                </TableHeader>
+                <TableBody>
+                  {plannings
+                    .filter(planning => {
+                      const planningStart = new Date(planning.startDate);
+                      const planningEnd = new Date(planning.endDate);
+                      const selected = selectedDate ? new Date(selectedDate) : new Date();
+                      selected.setHours(0, 0, 0, 0);
+                      return planningStart <= selected && selected <= planningEnd;
+                    })
+                    .map((planning) => {
+                      const volunteer = volunteers.find((v) => v.id === planning.volunteerId);
+                      const room = rooms.find((r) => r.id === planning.roomId);
+                      return (
+                        <TableRow key={planning.id}>
+                          <TableCell>
+                            {volunteer ? `${volunteer.firstName} ${volunteer.lastName}` : "-"}
+                          </TableCell>
+                          <TableCell>{room ? room.name : "-"}</TableCell>
+                          <TableCell className="flex space-x-2">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => handleEdit(planning)}
+                              className="text-[#6BB85C] hover:text-[#6BB85C] hover:bg-[#6BB85C]/10"
+                            >
+                              <Edit2 className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => setDeletePlanningId(planning.id)}
+                              className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                  {plannings.length === 0 && (
+                    <TableRow>
+                      <TableCell colSpan={3} className="text-center py-6 text-gray-500">
+                        Geen planningen gevonden voor deze datum
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+          </CollapsibleSection>
         </div>
-      </CollapsibleSection>
-
-      {/* Bulk Selection Action Bar */}
-      {selectedPlannings.length > 0 && (
-        <div className="fixed bottom-4 right-4 flex gap-2 bg-white p-4 rounded-lg shadow-lg border z-50">
-          <span className="text-sm text-gray-500 self-center mr-2">
-            {selectedPlannings.length} geselecteerd
-          </span>
-          <Button
-            variant="default"
-            onClick={() => handleEdit(plannings.find(p => p.id === selectedPlannings[0]))}
-            disabled={selectedPlannings.length !== 1}
-            className="bg-[#6BB85C] hover:bg-[#6BB85C]/90 text-white"
-          >
-            <Edit2 className="h-4 w-4 mr-2" />
-            Bewerken
-          </Button>
-          <Button
-            variant="destructive"
-            onClick={() => handleBulkDelete(selectedPlannings)}
-          >
-            <Trash2 className="h-4 w-4 mr-2" />
-            Verwijderen
-          </Button>
-        </div>
-      )}
+      </div>
 
       <AlertDialog
         open={!!deletePlanningId}
-        onOpenChange={() => setDeletePlanningId(null)}
+        onOpenChange={(open) => !open && setDeletePlanningId(null)}
       >
         <AlertDialogContent>
           <AlertDialogHeader>
