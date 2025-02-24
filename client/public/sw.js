@@ -1,4 +1,4 @@
-const CACHE_NAME = 'mefen-volunteerapp-v1';
+const CACHE_NAME = 'mefen-volunteerapp-v2'; // Increment version to force cache refresh
 const urlsToCache = [
   '/',
   '/index.html',
@@ -21,12 +21,13 @@ const urlsToCache = [
 
 // Pre-cache during installation
 self.addEventListener('install', (event) => {
+  // Force waiting service worker to become active
+  self.skipWaiting();
+
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then((cache) => cache.addAll(urlsToCache))
   );
-  // Force activation
-  self.skipWaiting();
 });
 
 // Cache-first strategy with network fallback
@@ -34,22 +35,16 @@ self.addEventListener('fetch', (event) => {
   event.respondWith(
     caches.match(event.request)
       .then((response) => {
-        if (response) {
-          return response; // Return cached response
-        }
-
-        // Clone the request because it can only be used once
-        const fetchRequest = event.request.clone();
-
-        return fetch(fetchRequest).then(
-          (response) => {
+        // Always try network first, then fall back to cache
+        return fetch(event.request)
+          .then((networkResponse) => {
             // Don't cache if not a valid response
-            if (!response || response.status !== 200 || response.type !== 'basic') {
-              return response;
+            if (!networkResponse || networkResponse.status !== 200 || networkResponse.type !== 'basic') {
+              return networkResponse;
             }
 
             // Clone the response because it can only be used once
-            const responseToCache = response.clone();
+            const responseToCache = networkResponse.clone();
 
             caches.open(CACHE_NAME)
               .then((cache) => {
@@ -57,29 +52,31 @@ self.addEventListener('fetch', (event) => {
                 cache.put(event.request, responseToCache);
               });
 
-            return response;
-          }
-        ).catch(() => {
-          // Return a fallback response if network request fails
-          return new Response('Offline content not available');
-        });
+            return networkResponse;
+          })
+          .catch(() => {
+            // Return cached response if network fails
+            return response || new Response('Offline content not available');
+          });
       })
   );
 });
 
 // Clean up old caches during activation
 self.addEventListener('activate', (event) => {
+  // Take control of all clients immediately
   event.waitUntil(
-    caches.keys().then((cacheNames) => {
-      return Promise.all(
-        cacheNames.map((cacheName) => {
-          if (cacheName !== CACHE_NAME) {
-            return caches.delete(cacheName);
-          }
-        })
-      );
-    })
+    Promise.all([
+      self.clients.claim(),
+      caches.keys().then((cacheNames) => {
+        return Promise.all(
+          cacheNames.map((cacheName) => {
+            if (cacheName !== CACHE_NAME) {
+              return caches.delete(cacheName);
+            }
+          })
+        );
+      })
+    ])
   );
-  // Take control of all clients
-  self.clients.claim();
 });
