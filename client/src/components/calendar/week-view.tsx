@@ -1,6 +1,6 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, ChevronRight, Download, Share2, Share, Copy, Users, Filter } from "lucide-react";
+import { ChevronLeft, ChevronRight, Download, Share2, Share, Copy, Users, Filter, Package2, Users2, UserCheck, DoorOpen } from "lucide-react";
 import { format, addWeeks, startOfWeek, addDays, isWithinInterval, subWeeks } from "date-fns";
 import { nl } from "date-fns/locale";
 import { useState, useEffect } from "react";
