@@ -195,15 +195,12 @@ export function WeekView() {
                       logoUrl={`${window.location.origin}/static/Naamloos.png`}
                     />
                   }
-                  fileName={`planning-${format(weekStart, 'yyyy-MM-dd')}.pdf`}
+                  fileName={`weekplanning-${format(weekStart, 'yyyy-MM-dd')}.pdf`}
                 >
-                  {({ loading, error }) => (
-                    <DropdownMenuItem
-                      onSelect={(e) => e.preventDefault()}
-                      className="flex items-center cursor-pointer"
-                    >
+                  {({ loading }) => (
+                    <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
                       <Download className="h-4 w-4 mr-2" />
-                      {loading ? "Genereren..." : error ? "Fout bij genereren" : "PDF Exporteren"}
+                      {loading ? "PDF wordt gemaakt..." : "Download PDF"}
                     </DropdownMenuItem>
                   )}
                 </PDFDownloadLink>

@@ -4,101 +4,97 @@ import { nl } from "date-fns/locale";
 
 const styles = StyleSheet.create({
   page: {
-    padding: 40,
+    padding: 30,
     backgroundColor: '#fff',
     fontFamily: 'Helvetica',
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 40,
+    marginBottom: 30,
     borderBottom: 1,
     borderBottomColor: '#E5E7EB',
-    paddingBottom: 20,
+    paddingBottom: 15,
+  },
+  logo: {
+    width: 80,
+    marginRight: 20,
   },
   headerText: {
     flex: 1,
   },
   title: {
-    fontSize: 28,
+    fontSize: 24,
     color: '#963E56',
-    marginBottom: 8,
+    marginBottom: 5,
   },
-  subtitle: {
+  weekInfo: {
     fontSize: 14,
-    color: '#6B7280',
-    marginBottom: 4,
-  },
-  date: {
-    fontSize: 12,
-    color: '#6B7280',
+    color: '#4B5563',
   },
   calendar: {
-    flexDirection: "row",
-    gap: 20,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: 10,
   },
-  dayColumn: {
+  day: {
     flex: 1,
     backgroundColor: '#F9FAFB',
-    borderRadius: 8,
-    padding: 15,
+    borderRadius: 4,
+    padding: 10,
   },
   dayHeader: {
-    fontSize: 16,
-    fontWeight: "bold",
-    color: '#374151',
-    marginBottom: 4,
-  },
-  dayDate: {
-    fontSize: 14,
-    color: '#6B7280',
-    marginBottom: 15,
-    paddingBottom: 10,
     borderBottom: 1,
     borderBottomColor: '#E5E7EB',
+    paddingBottom: 8,
+    marginBottom: 10,
+  },
+  dayName: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#1F2937',
+  },
+  dayDate: {
+    fontSize: 12,
+    color: '#6B7280',
+    marginTop: 2,
   },
   planning: {
-    marginBottom: 12,
-    padding: 10,
     backgroundColor: '#fff',
-    borderRadius: 6,
+    borderRadius: 3,
+    padding: 8,
+    marginBottom: 8,
     borderLeft: 2,
     borderLeftColor: '#963E56',
   },
   roomName: {
-    fontSize: 12,
-    fontWeight: "bold",
+    fontSize: 11,
+    fontWeight: 'bold',
     color: '#963E56',
-    marginBottom: 4,
+    marginBottom: 3,
   },
   volunteerName: {
-    fontSize: 11,
+    fontSize: 10,
     color: '#4B5563',
   },
-  noPlanning: {
-    fontSize: 11,
+  emptyMessage: {
+    fontSize: 10,
     color: '#9CA3AF',
     fontStyle: 'italic',
     textAlign: 'center',
-    marginTop: 10,
   },
   footer: {
     position: 'absolute',
     bottom: 30,
-    left: 40,
-    right: 40,
+    left: 30,
+    right: 30,
     textAlign: 'center',
     color: '#6B7280',
-    fontSize: 10,
+    fontSize: 8,
+    borderTop: 1,
     borderTopColor: '#E5E7EB',
-    borderTopWidth: 1,
-    paddingTop: 15,
+    paddingTop: 10,
   },
-  logo: {
-    width: 120,
-    height: 80,
-    objectFit: 'contain',
-  }
 });
 
 type Planning = {
@@ -125,48 +121,52 @@ export function CalendarPDF({ weekStart, plannings, logoUrl }: CalendarPDFProps)
   return (
     <Document>
       <Page size="A4" orientation="landscape" style={styles.page}>
+        {/* Header met logo en titel */}
         <View style={styles.header}>
           {logoUrl && <Image src={logoUrl} style={styles.logo} />}
           <View style={styles.headerText}>
             <Text style={styles.title}>MEFEN Weekplanning</Text>
-            <Text style={styles.subtitle}>Roosteroverzicht Vrijwilligers</Text>
-            <Text style={styles.date}>
-              Week van {format(weekStart, 'd MMMM yyyy', { locale: nl })} t/m {format(addDays(weekStart, 6), 'd MMMM yyyy', { locale: nl })}
+            <Text style={styles.weekInfo}>
+              Week van {format(weekStart, 'd MMMM yyyy', { locale: nl })}
             </Text>
           </View>
         </View>
 
+        {/* Weekkalender */}
         <View style={styles.calendar}>
           {weekDays.map((day) => {
             const dayPlannings = getPlanningsForDay(day);
             return (
-              <View key={day.toISOString()} style={styles.dayColumn}>
-                <Text style={styles.dayHeader}>
-                  {format(day, "EEEE", { locale: nl })}
-                </Text>
-                <Text style={styles.dayDate}>
-                  {format(day, "d MMMM", { locale: nl })}
-                </Text>
+              <View key={day.toISOString()} style={styles.day}>
+                <View style={styles.dayHeader}>
+                  <Text style={styles.dayName}>
+                    {format(day, 'EEEE', { locale: nl })}
+                  </Text>
+                  <Text style={styles.dayDate}>
+                    {format(day, 'd MMMM', { locale: nl })}
+                  </Text>
+                </View>
 
                 {dayPlannings.length > 0 ? (
-                  dayPlannings.map((planning, i) => (
-                    <View key={i} style={styles.planning}>
+                  dayPlannings.map((planning, index) => (
+                    <View key={index} style={styles.planning}>
                       <Text style={styles.roomName}>{planning.room.name}</Text>
                       <Text style={styles.volunteerName}>
-                        {`${planning.volunteer.firstName} ${planning.volunteer.lastName}`}
+                        {planning.volunteer.firstName} {planning.volunteer.lastName}
                       </Text>
                     </View>
                   ))
                 ) : (
-                  <Text style={styles.noPlanning}>Geen toewijzingen</Text>
+                  <Text style={styles.emptyMessage}>Geen planning</Text>
                 )}
               </View>
             );
           })}
         </View>
 
+        {/* Footer */}
         <Text style={styles.footer}>
-          MEFEN Vrijwilligers Management Systeem • Gegenereerd op {format(new Date(), "d MMMM yyyy", { locale: nl })}
+          MEFEN Vrijwilligers Management Systeem • Gegenereerd op {format(new Date(), 'd MMMM yyyy', { locale: nl })}
         </Text>
       </Page>
     </Document>
