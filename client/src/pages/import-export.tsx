@@ -13,7 +13,7 @@ import {
 import { db } from "@/lib/firebase";
 import { ref, onValue, remove, push } from "firebase/database";
 import { useToast } from "@/hooks/use-toast";
-import { Download, Upload, FileCheck, Users, X } from "lucide-react";
+import { Download, Upload, FileCheck, Users, X, FileUp, FileDown } from "lucide-react";
 import { PDFDownloadLink } from "@react-pdf/renderer";
 import { Document, Page, Text, View, StyleSheet, Image } from '@react-pdf/renderer';
 import { format } from 'date-fns';
@@ -259,7 +259,7 @@ export default function ImportExport() {
       <Card className="shadow-md">
         <CardHeader className="border-b bg-gray-50/80">
           <CardTitle className="flex items-center gap-2 text-[#963E56]">
-            <FileCheck className="h-5 w-5" />
+            <FileUp className="h-5 w-5" />
             Importeer Aanmeldingen
           </CardTitle>
         </CardHeader>
@@ -346,7 +346,7 @@ export default function ImportExport() {
       <Card className="shadow-md">
         <CardHeader className="border-b bg-gray-50/80">
           <CardTitle className="flex items-center gap-2 text-[#963E56]">
-            <Download className="h-5 w-5" />
+            <FileDown className="h-5 w-5" />
             Exporteer Vrijwilligerslijst
           </CardTitle>
         </CardHeader>

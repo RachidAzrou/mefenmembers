@@ -1,17 +1,66 @@
 import { User } from "firebase/auth";
+import { ref, get, set } from "firebase/database";
+import { db } from "./firebase";
 
 export type UserRole = 'admin' | 'medewerker';
+
+export async function setUserAsAdmin(userEmail: string) {
+  try {
+    // Get all users
+    const usersRef = ref(db, 'users');
+    const snapshot = await get(usersRef);
+    const users = snapshot.val();
+
+    // Find user by email
+    const userEntry = Object.entries(users || {}).find(([_, userData]: [string, any]) => 
+      userData.email === userEmail
+    );
+
+    if (userEntry) {
+      const [userId, userData] = userEntry;
+      // Update user with admin flag
+      await set(ref(db, `users/${userId}`), {
+        ...userData,
+        admin: true
+      });
+      console.log(`User ${userEmail} has been set as admin`);
+      return true;
+    } else {
+      console.error(`User ${userEmail} not found in database`);
+      return false;
+    }
+  } catch (error) {
+    console.error('Error setting user as admin:', error);
+    return false;
+  }
+}
 
 export async function getUserRole(user: User | null): Promise<UserRole | null> {
   if (!user) return null;
 
-  // Get custom claims from Firebase Auth
-  const token = await user.getIdTokenResult();
-  if (token.claims.role) {
-    return token.claims.role as UserRole;
-  }
+  try {
+    // Get user data from Firebase Realtime Database
+    const userRef = ref(db, `users/${user.uid}`);
+    const snapshot = await get(userRef);
+    const userData = snapshot.val();
 
-  return null;
+    console.log('Checking role for user:', user.email);
+    console.log('User UID:', user.uid);
+    console.log('Database path:', `users/${user.uid}`);
+    console.log('User data from Firebase:', userData);
+    console.log('Admin status:', userData?.admin);
+
+    // Check if user has admin flag
+    if (userData && userData.admin === true) {
+      return 'admin';
+    }
+
+    // If user exists but is not admin, they are a medewerker
+    return userData ? 'medewerker' : null;
+  } catch (error) {
+    console.error('Error fetching user role:', error);
+    return null;
+  }
 }
 
 export function isAdmin(role: UserRole | null): boolean {

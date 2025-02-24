@@ -7,9 +7,11 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Input } from "@/components/ui/input";
 import { useState } from "react";
 import { toast } from "@/hooks/use-toast";
+import { useRole } from "@/hooks/use-role";
 
 export default function Mosque() {
   const [isEditing, setIsEditing] = useState(false);
+  const { isAdmin } = useRole();
   const [mosqueInfo, setMosqueInfo] = useState({
     menAddress: "Sint-Bernardsesteenweg 289",
     menCity: "2660 Hoboken",
@@ -35,71 +37,73 @@ export default function Mosque() {
           <h1 className="text-3xl font-bold text-[#963E56]">Mijn Moskee</h1>
         </div>
 
-        <Dialog open={isEditing} onOpenChange={setIsEditing}>
-          <DialogTrigger asChild>
-            <Button variant="outline" className="gap-2 border-[#963E56] text-[#963E56] hover:bg-[#963E56]/10">
-              <Edit className="h-4 w-4" />
-              Bewerken
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-[500px]">
-            <DialogHeader>
-              <DialogTitle className="text-lg font-semibold text-[#963E56]">Moskee Informatie Bewerken</DialogTitle>
-            </DialogHeader>
-            <div className="space-y-6 pt-4">
-              <div className="space-y-4">
-                <div>
-                  <h3 className="font-semibold mb-2 text-gray-700">Mannen Adres</h3>
-                  <Input 
-                    value={mosqueInfo.menAddress}
-                    onChange={(e) => setMosqueInfo({...mosqueInfo, menAddress: e.target.value})}
-                    placeholder="Adres"
-                    className="mb-2"
-                  />
-                  <Input 
-                    value={mosqueInfo.menCity}
-                    onChange={(e) => setMosqueInfo({...mosqueInfo, menCity: e.target.value})}
-                    placeholder="Postcode en Stad"
-                  />
-                </div>
-                <div>
-                  <h3 className="font-semibold mb-2 text-gray-700">Vrouwen Adres</h3>
-                  <Input 
-                    value={mosqueInfo.womenAddress}
-                    onChange={(e) => setMosqueInfo({...mosqueInfo, womenAddress: e.target.value})}
-                    placeholder="Adres"
-                    className="mb-2"
-                  />
-                  <Input 
-                    value={mosqueInfo.womenCity}
-                    onChange={(e) => setMosqueInfo({...mosqueInfo, womenCity: e.target.value})}
-                    placeholder="Postcode en Stad"
-                  />
-                </div>
-                <div>
-                  <h3 className="font-semibold mb-2 text-gray-700">Contact Informatie</h3>
-                  <Input 
-                    value={mosqueInfo.phone}
-                    onChange={(e) => setMosqueInfo({...mosqueInfo, phone: e.target.value})}
-                    placeholder="Telefoonnummer"
-                    className="mb-2"
-                  />
-                  <Input 
-                    value={mosqueInfo.email}
-                    onChange={(e) => setMosqueInfo({...mosqueInfo, email: e.target.value})}
-                    placeholder="Email"
-                  />
-                </div>
-              </div>
-              <Button 
-                onClick={handleSave} 
-                className="w-full bg-[#963E56] hover:bg-[#963E56]/90"
-              >
-                Opslaan
+        {isAdmin && (
+          <Dialog open={isEditing} onOpenChange={setIsEditing}>
+            <DialogTrigger asChild>
+              <Button variant="outline" className="gap-2 border-[#963E56] text-[#963E56] hover:bg-[#963E56]/10">
+                <Edit className="h-4 w-4" />
+                Bewerken
               </Button>
-            </div>
-          </DialogContent>
-        </Dialog>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[500px]">
+              <DialogHeader>
+                <DialogTitle className="text-lg font-semibold text-[#963E56]">Moskee Informatie Bewerken</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-6 pt-4">
+                <div className="space-y-4">
+                  <div>
+                    <h3 className="font-semibold mb-2 text-gray-700">Mannen Adres</h3>
+                    <Input 
+                      value={mosqueInfo.menAddress}
+                      onChange={(e) => setMosqueInfo({...mosqueInfo, menAddress: e.target.value})}
+                      placeholder="Adres"
+                      className="mb-2"
+                    />
+                    <Input 
+                      value={mosqueInfo.menCity}
+                      onChange={(e) => setMosqueInfo({...mosqueInfo, menCity: e.target.value})}
+                      placeholder="Postcode en Stad"
+                    />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold mb-2 text-gray-700">Vrouwen Adres</h3>
+                    <Input 
+                      value={mosqueInfo.womenAddress}
+                      onChange={(e) => setMosqueInfo({...mosqueInfo, womenAddress: e.target.value})}
+                      placeholder="Adres"
+                      className="mb-2"
+                    />
+                    <Input 
+                      value={mosqueInfo.womenCity}
+                      onChange={(e) => setMosqueInfo({...mosqueInfo, womenCity: e.target.value})}
+                      placeholder="Postcode en Stad"
+                    />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold mb-2 text-gray-700">Contact Informatie</h3>
+                    <Input 
+                      value={mosqueInfo.phone}
+                      onChange={(e) => setMosqueInfo({...mosqueInfo, phone: e.target.value})}
+                      placeholder="Telefoonnummer"
+                      className="mb-2"
+                    />
+                    <Input 
+                      value={mosqueInfo.email}
+                      onChange={(e) => setMosqueInfo({...mosqueInfo, email: e.target.value})}
+                      placeholder="Email"
+                    />
+                  </div>
+                </div>
+                <Button 
+                  onClick={handleSave} 
+                  className="w-full bg-[#963E56] hover:bg-[#963E56]/90"
+                >
+                  Opslaan
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
+        )}
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

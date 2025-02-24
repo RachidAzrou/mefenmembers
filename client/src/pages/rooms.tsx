@@ -33,7 +33,8 @@ import { z } from "zod";
 import { db } from "@/lib/firebase";
 import { ref, push, remove, update, onValue } from "firebase/database";
 import { Edit2, Trash2, Plus, DoorOpen } from "lucide-react";
-import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { useRole } from "@/hooks/use-role";
 
 const roomSchema = z.object({
   name: z.string().min(1, "Ruimtenaam is verplicht"),
@@ -47,6 +48,7 @@ export default function Rooms() {
   const [deleteRoomId, setDeleteRoomId] = useState<string | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const { toast } = useToast();
+  const { isAdmin } = useRole();
 
   const form = useForm<z.infer<typeof roomSchema>>({
     resolver: zodResolver(roomSchema),
@@ -124,40 +126,43 @@ export default function Rooms() {
           <DoorOpen className="h-8 w-8 text-primary" />
           <h1 className="text-3xl font-bold text-primary">Ruimtes</h1>
         </div>
-        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-          <DialogTrigger asChild>
-            <Button className="bg-[#6BB85C] hover:bg-[#6BB85C]/90">
-              <Plus className="h-4 w-4 mr-2" />
-              Ruimte Toevoegen
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>
-                {editingRoom ? "Ruimte Bewerken" : "Nieuwe Ruimte Toevoegen"}
-              </DialogTitle>
-            </DialogHeader>
-            <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                <FormField
-                  control={form.control}
-                  name="name"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormControl>
-                        <Input placeholder="Ruimtenaam" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <Button type="submit" className="w-full">
-                  {editingRoom ? "Bijwerken" : "Toevoegen"}
-                </Button>
-              </form>
-            </Form>
-          </DialogContent>
-        </Dialog>
+        {isAdmin && (
+          <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+            <DialogTrigger asChild>
+              <Button className="bg-[#6BB85C] hover:bg-[#6BB85C]/90">
+                <Plus className="h-4 w-4 mr-2" />
+                Ruimte Toevoegen
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>
+                  {editingRoom ? "Ruimte Bewerken" : "Nieuwe Ruimte Toevoegen"}
+                </DialogTitle>
+              </DialogHeader>
+              <Form {...form}>
+                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                  <FormField
+                    control={form.control}
+                    name="name"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Ruimtenaam</FormLabel>
+                        <FormControl>
+                          <Input {...field} placeholder="Ruimtenaam" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <Button type="submit" className="w-full">
+                    {editingRoom ? "Bijwerken" : "Toevoegen"}
+                  </Button>
+                </form>
+              </Form>
+            </DialogContent>
+          </Dialog>
+        )}
       </div>
 
       <div className="rounded-lg border bg-card">

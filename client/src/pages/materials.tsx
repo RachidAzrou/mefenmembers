@@ -15,13 +15,24 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { db } from "@/lib/firebase";
-import { ref, push, update, onValue } from "firebase/database";
-import { Package2, Edit2, RotateCcw, Search } from "lucide-react";
+import { ref, push, update, remove, onValue } from "firebase/database";
+import { Package2, Edit2, RotateCcw, Search, Plus, Trash2 } from "lucide-react";
+import { useRole } from "@/hooks/use-role";
 import {
   Form,
   FormControl,
@@ -44,6 +55,11 @@ const materialSchema = z.object({
   typeId: z.string().min(1, "Type materiaal is verplicht"),
   volunteerId: z.string().min(1, "Vrijwilliger is verplicht"),
   number: z.coerce.number().min(1).max(100),
+});
+
+const materialTypeSchema = z.object({
+  name: z.string().min(1, "Naam is verplicht"),
+  maxCount: z.coerce.number().min(1, "Minimaal 1 vereist").max(100, "Maximaal 100 toegestaan"),
 });
 
 type MaterialType = {
@@ -71,14 +87,26 @@ export default function Materials() {
   const [materialTypes, setMaterialTypes] = useState<MaterialType[]>([]);
   const [volunteers, setVolunteers] = useState<Volunteer[]>([]);
   const [editingMaterial, setEditingMaterial] = useState<Material | null>(null);
+  const [editingMaterialType, setEditingMaterialType] = useState<MaterialType | null>(null);
+  const [isTypesDialogOpen, setIsTypesDialogOpen] = useState(false);
+  const [deleteMaterialTypeId, setDeleteMaterialTypeId] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
   const { toast } = useToast();
+  const { isAdmin } = useRole();
 
   const form = useForm<z.infer<typeof materialSchema>>({
     resolver: zodResolver(materialSchema),
     defaultValues: {
       number: 1,
+    },
+  });
+
+  const typeForm = useForm<z.infer<typeof materialTypeSchema>>({
+    resolver: zodResolver(materialTypeSchema),
+    defaultValues: {
+      name: "",
+      maxCount: 1,
     },
   });
 
@@ -114,12 +142,8 @@ export default function Materials() {
     });
   });
 
-  const selectedType = materialTypes.find(t => t.id === form.watch("typeId"));
-  const maxNumber = selectedType?.maxCount || 100;
-
   const onSubmit = async (data: z.infer<typeof materialSchema>) => {
     try {
-      // Check if this material is already checked out
       const existingMaterial = materials.find(
         m => m.typeId === data.typeId && 
             m.number === data.number && 
@@ -166,6 +190,50 @@ export default function Materials() {
     }
   };
 
+  const onSubmitType = async (data: z.infer<typeof materialTypeSchema>) => {
+    try {
+      if (editingMaterialType) {
+        await update(ref(db, `materialTypes/${editingMaterialType.id}`), data);
+        toast({
+          title: "Succes",
+          description: "Materiaaltype succesvol bijgewerkt",
+        });
+        setEditingMaterialType(null);
+      } else {
+        await push(ref(db, "materialTypes"), data);
+        toast({
+          title: "Succes",
+          description: "Materiaaltype succesvol toegevoegd",
+        });
+      }
+      typeForm.reset();
+      setIsTypesDialogOpen(false);
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Fout",
+        description: "Kon materiaaltype niet opslaan",
+      });
+    }
+  };
+
+  const handleDeleteMaterialType = async (id: string) => {
+    try {
+      await remove(ref(db, `materialTypes/${id}`));
+      toast({
+        title: "Succes",
+        description: "Materiaaltype succesvol verwijderd",
+      });
+      setDeleteMaterialTypeId(null);
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Fout",
+        description: "Kon materiaaltype niet verwijderen",
+      });
+    }
+  };
+
   const handleReturn = async (materialId: string) => {
     try {
       await update(ref(db, `materials/${materialId}`), {
@@ -195,12 +263,24 @@ export default function Materials() {
     setDialogOpen(true);
   };
 
+  const handleEditType = (type: MaterialType) => {
+    setEditingMaterialType(type);
+    typeForm.reset({
+      name: type.name,
+      maxCount: type.maxCount,
+    });
+    setIsTypesDialogOpen(true);
+  };
+
   const filteredMaterials = materials.filter(material => {
     const type = materialTypes.find(t => t.id === material.typeId);
     const volunteer = volunteers.find(v => v.id === material.volunteerId);
     const searchString = `${type?.name || ''} ${volunteer?.firstName || ''} ${volunteer?.lastName || ''} ${material.number}`.toLowerCase();
     return searchString.includes(searchTerm.toLowerCase());
   });
+
+  const selectedType = materialTypes.find(t => t.id === form.watch("typeId"));
+  const maxNumber = selectedType?.maxCount || 100;
 
   return (
     <div className="space-y-6">
@@ -219,9 +299,65 @@ export default function Materials() {
               className="pl-9"
             />
           </div>
+          {isAdmin && (
+            <Dialog open={isTypesDialogOpen} onOpenChange={setIsTypesDialogOpen}>
+              <DialogTrigger asChild>
+                <Button className="bg-primary hover:bg-primary/90">
+                  <Plus className="h-4 w-4 mr-2" />
+                  Materiaaltype
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>
+                    {editingMaterialType ? "Materiaaltype Bewerken" : "Nieuw Materiaaltype"}
+                  </DialogTitle>
+                </DialogHeader>
+                <Form {...typeForm}>
+                  <form onSubmit={typeForm.handleSubmit(onSubmitType)} className="space-y-4">
+                    <FormField
+                      control={typeForm.control}
+                      name="name"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Naam</FormLabel>
+                          <FormControl>
+                            <Input {...field} placeholder="Materiaaltype naam" />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={typeForm.control}
+                      name="maxCount"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Maximum aantal</FormLabel>
+                          <FormControl>
+                            <Input
+                              type="number"
+                              min={1}
+                              max={100}
+                              {...field}
+                              placeholder="Maximum aantal"
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <Button type="submit" className="w-full">
+                      {editingMaterialType ? "Bijwerken" : "Toevoegen"}
+                    </Button>
+                  </form>
+                </Form>
+              </DialogContent>
+            </Dialog>
+          )}
           <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
             <DialogTrigger asChild>
-              <Button className="bg-[#6BB85C] hover:bg-[#6BB85C]/90 text-white">
+              <Button className="bg-[#6BB85C] hover:bg-[#6BB85C]/90">
                 <Package2 className="h-4 w-4 mr-2" />
                 Materiaal Toewijzen
               </Button>
@@ -325,7 +461,47 @@ export default function Materials() {
         </div>
       </div>
 
-      <div className="mt-8 rounded-lg border bg-card">
+      {isAdmin && (
+        <div className="rounded-lg border bg-card">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Materiaaltype</TableHead>
+                <TableHead>Maximum Aantal</TableHead>
+                <TableHead className="w-[100px]">Acties</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {materialTypes.map((type) => (
+                <TableRow key={type.id}>
+                  <TableCell>{type.name}</TableCell>
+                  <TableCell>{type.maxCount}</TableCell>
+                  <TableCell className="flex space-x-2">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => handleEditType(type)}
+                      className="text-[#6BB85C] hover:text-[#6BB85C] hover:bg-[#6BB85C]/10"
+                    >
+                      <Edit2 className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => setDeleteMaterialTypeId(type.id)}
+                      className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
+      )}
+
+      <div className="rounded-lg border bg-card">
         <Table>
           <TableHeader>
             <TableRow>
@@ -385,6 +561,29 @@ export default function Materials() {
           </TableBody>
         </Table>
       </div>
+
+      <AlertDialog
+        open={!!deleteMaterialTypeId}
+        onOpenChange={() => setDeleteMaterialTypeId(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Weet je het zeker?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Deze actie kan niet ongedaan worden gemaakt. Dit zal het materiaaltype permanent verwijderen.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Annuleren</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => deleteMaterialTypeId && handleDeleteMaterialType(deleteMaterialTypeId)}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              Verwijderen
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
