@@ -45,14 +45,11 @@ export default function Login() {
         backgroundImage: `url('/static/123.jpg')`
       }}
     >
-      {/* Dark overlay */}
       <div className="absolute inset-0 bg-black/50" />
 
       <div className="relative z-10 w-full max-w-[500px] px-4">
-        {/* Login Card */}
         <Card className="bg-white border-0 shadow-2xl overflow-hidden">
           <CardContent className="pt-6 px-8">
-            {/* Logo */}
             <div className="text-center mb-8">
               <div className="w-full flex justify-center items-center">
                 <img 
@@ -69,7 +66,6 @@ export default function Login() {
               </p>
             </div>
 
-            {/* Login Form */}
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
               <div className="space-y-2">
                 <div className="relative">
@@ -112,20 +108,6 @@ export default function Login() {
                 Inloggen
               </Button>
             </form>
-
-            {/* Registratie Link */}
-            <div className="mt-6 text-center border-t border-gray-100 pt-6">
-              <p className="text-gray-600">
-                Wil je vrijwilliger worden bij MEFEN?{" "}
-                <Button 
-                  variant="link" 
-                  className="text-[#963E56] hover:text-[#963E56]/90 p-0 h-auto font-semibold"
-                  onClick={() => setLocation("/register")}
-                >
-                  Registreer hier als vrijwilliger
-                </Button>
-              </p>
-            </div>
           </CardContent>
         </Card>
 
