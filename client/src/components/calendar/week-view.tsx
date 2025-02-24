@@ -263,6 +263,31 @@ export function WeekView() {
     });
   };
 
+  const getPlanningsForPDF = () => {
+    return filteredPlannings
+      .filter(planning => {
+        const startDate = new Date(planning.startDate);
+        const endDate = new Date(planning.endDate);
+        return weekDays.some(day =>
+          isWithinInterval(day, { start: startDate, end: endDate })
+        );
+      })
+      .map(planning => {
+        const volunteer = volunteers.find(v => v.id === planning.volunteerId) || {
+          firstName: 'Onbekend',
+          lastName: 'Vrijwilliger'
+        };
+        const room = rooms.find(r => r.id === planning.roomId) || {
+          name: 'Onbekende ruimte'
+        };
+        return {
+          room,
+          volunteer
+        };
+      });
+  };
+
+
   const checkedOutMaterials = materials.filter(m => m.isCheckedOut).length;
   const totalVolunteers = volunteers.length;
   const totalRooms = rooms.length;
@@ -577,14 +602,7 @@ export function WeekView() {
                     document={
                       <CalendarPDF
                         weekStart={weekStart}
-                        plannings={filteredPlannings.filter(planning => {
-                          const startDate = new Date(planning.startDate);
-                          const endDate = new Date(planning.endDate);
-                          return weekDays.some(day => isWithinInterval(day, { start: startDate, end: endDate }));
-                        }).map(p => ({
-                          room: rooms.find(r => r.id === p.roomId) || { name: 'Unknown' },
-                          volunteer: volunteers.find(v => v.id === p.volunteerId) || { firstName: 'Unknown', lastName: '' }
-                        }))}
+                        plannings={getPlanningsForPDF()}
                       />
                     }
                     fileName={`planning-${format(weekStart, 'yyyy-MM-dd')}.pdf`}

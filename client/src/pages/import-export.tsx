@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -121,6 +121,53 @@ type ExportField = {
   checked: boolean;
 };
 
+const VolunteersPDF = ({ volunteers, fields }) => (
+  <Document>
+    <Page size="A4" style={styles.page}>
+      <View style={styles.header}>
+        <Image 
+          src="/static/Naamloos.png"
+          style={styles.logo}
+        />
+        <View style={styles.headerText}>
+          <Text style={styles.title}>MEFEN Vrijwilligersoverzicht</Text>
+          <Text style={styles.subtitle}>Volledige lijst van actieve vrijwilligers</Text>
+          <Text style={styles.date}>
+            Bijgewerkt op {format(new Date(), 'd MMMM yyyy', { locale: nl })}
+          </Text>
+        </View>
+      </View>
+
+      <View style={styles.table}>
+        <View style={styles.tableHeader}>
+          {fields.map(field => (
+            field.checked && (
+              <Text key={field.id} style={styles.tableHeaderCell}>
+                {field.label}
+              </Text>
+            )
+          ))}
+        </View>
+        {volunteers.map((volunteer, i) => (
+          <View key={i} style={styles.tableRow}>
+            {fields.map(field => (
+              field.checked && (
+                <Text key={field.id} style={styles.tableCell}>
+                  {volunteer[field.id]}
+                </Text>
+              )
+            ))}
+          </View>
+        ))}
+      </View>
+
+      <Text style={styles.footer}>
+        MEFEN Vrijwilligers Management Systeem • Totaal aantal vrijwilligers: {volunteers.length}
+      </Text>
+    </Page>
+  </Document>
+);
+
 export default function ImportExport() {
   const [pendingVolunteers, setPendingVolunteers] = useState<PendingVolunteer[]>([]);
   const [volunteers, setVolunteers] = useState<any[]>([]);
@@ -132,8 +179,7 @@ export default function ImportExport() {
   ]);
   const { toast } = useToast();
 
-  // Fetch volunteers and pending volunteers
-  useState(() => {
+  useEffect(() => {
     const pendingRef = ref(db, "pending_volunteers");
     onValue(pendingRef, (snapshot) => {
       const data = snapshot.val();
@@ -153,7 +199,7 @@ export default function ImportExport() {
       })) : [];
       setVolunteers(volunteersList);
     });
-  });
+  }, []);
 
   const handleImport = async () => {
     try {
@@ -203,53 +249,6 @@ export default function ImportExport() {
     }
   };
 
-  // PDF Document Component
-  const VolunteersPDF = ({ volunteers, fields }) => (
-    <Document>
-      <Page size="A4" style={styles.page}>
-        <View style={styles.header}>
-          <Image 
-            src="/static/Naamloos.png"
-            style={styles.logo}
-          />
-          <View style={styles.headerText}>
-            <Text style={styles.title}>MEFEN Vrijwilligersoverzicht</Text>
-            <Text style={styles.subtitle}>Volledige lijst van actieve vrijwilligers</Text>
-            <Text style={styles.date}>
-              Bijgewerkt op {format(new Date(), 'd MMMM yyyy', { locale: nl })}
-            </Text>
-          </View>
-        </View>
-
-        <View style={styles.table}>
-          <View style={styles.tableHeader}>
-            {fields.map(field => (
-              field.checked && (
-                <Text key={field.id} style={styles.tableHeaderCell}>
-                  {field.label}
-                </Text>
-              )
-            ))}
-          </View>
-          {volunteers.map((volunteer, i) => (
-            <View key={i} style={styles.tableRow}>
-              {fields.map(field => (
-                field.checked && (
-                  <Text key={field.id} style={styles.tableCell}>
-                    {volunteer[field.id]}
-                  </Text>
-                )
-              ))}
-            </View>
-          ))}
-        </View>
-
-        <Text style={styles.footer}>
-          MEFEN Vrijwilligers Management Systeem • Totaal aantal vrijwilligers: {volunteers.length}
-        </Text>
-      </Page>
-    </Document>
-  );
 
   return (
     <div className="space-y-6 max-w-5xl mx-auto px-4 py-6">
@@ -380,7 +379,7 @@ export default function ImportExport() {
 
             <PDFDownloadLink
               document={<VolunteersPDF volunteers={volunteers} fields={exportFields} />}
-              fileName="vrijwilligers.pdf"
+              fileName={`vrijwilligers-${format(new Date(), 'yyyy-MM-dd')}.pdf`}
               className="block w-full"
             >
               {({ loading }) => (
