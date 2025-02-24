@@ -23,7 +23,7 @@ function Calendar({
       weekStartsOn={1}
       formatters={{
         formatWeekdayName: (date) => {
-          return format(date, 'EEEEEE', { locale: nl }).toUpperCase()
+          return format(date, 'eeeeee', { locale: nl })
         },
         formatCaption: (date, options) => {
           return format(date, 'MMMM yyyy', { locale: nl })
