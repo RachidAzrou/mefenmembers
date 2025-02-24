@@ -53,12 +53,12 @@ const styles = StyleSheet.create({
   dayHeader: {
     fontSize: 14,
     fontWeight: "bold",
-    color: '#963E56', // Burgundy kleur voor de dagnaam
+    color: '#374151',
     marginBottom: 4,
   },
   dayDate: {
     fontSize: 12,
-    color: '#963E56', // Burgundy kleur voor de datum
+    color: '#6B7280',
     marginBottom: 12,
     paddingBottom: 8,
     borderBottom: 1,
@@ -103,8 +103,7 @@ const styles = StyleSheet.create({
   },
   logo: {
     width: 100,
-    height: 50,
-    objectFit: 'contain'
+    marginRight: 20,
   }
 });
 
@@ -120,13 +119,13 @@ type CalendarPDFProps = {
 };
 
 export function CalendarPDF({ weekStart, plannings }: CalendarPDFProps) {
+  console.log('Rendering CalendarPDF with:', { weekStart, plannings });
   const weekDays = Array.from({ length: 7 }).map((_, i) => addDays(weekStart, i));
 
   const getPlanningsForDay = (day: Date) => {
-    return plannings.filter(planning => {
-      const planningDate = new Date(planning.date);
-      return format(planningDate, 'yyyy-MM-dd') === format(day, 'yyyy-MM-dd');
-    });
+    return plannings.filter(planning => 
+      format(planning.date, 'yyyy-MM-dd') === format(day, 'yyyy-MM-dd')
+    );
   };
 
   return (
@@ -163,11 +162,9 @@ export function CalendarPDF({ weekStart, plannings }: CalendarPDFProps) {
                 {dayPlannings.length > 0 ? (
                   dayPlannings.map((planning, i) => (
                     <View key={i} style={styles.planning}>
-                      <Text style={styles.roomName}>
-                        {planning.room.name}
-                      </Text>
+                      <Text style={styles.roomName}>{planning.room.name}</Text>
                       <Text style={styles.volunteerName}>
-                        {`${planning.volunteer.firstName} ${planning.volunteer.lastName}`.trim()}
+                        {`${planning.volunteer.firstName} ${planning.volunteer.lastName}`}
                       </Text>
                     </View>
                   ))

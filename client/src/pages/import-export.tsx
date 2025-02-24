@@ -16,7 +16,7 @@ import { ref, onValue, remove, push } from "firebase/database";
 import { useToast } from "@/hooks/use-toast";
 import { Download, Upload, FileCheck, Users, X } from "lucide-react";
 import { PDFDownloadLink } from "@react-pdf/renderer";
-import { Document, Page, Text, View, StyleSheet, Image, Font } from '@react-pdf/renderer';
+import { Document, Page, Text, View, StyleSheet, Font, Image } from '@react-pdf/renderer';
 import { format } from 'date-fns';
 import { nl } from 'date-fns/locale';
 
@@ -58,6 +58,7 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   table: { 
+    display: 'table', 
     width: '100%',
     marginTop: 20,
   },
@@ -101,8 +102,7 @@ const styles = StyleSheet.create({
   },
   logo: {
     width: 100,
-    height: 50,
-    objectFit: 'contain'
+    marginRight: 20,
   }
 });
 
@@ -129,8 +129,7 @@ type Volunteer = {
 };
 
 const VolunteersPDF = ({ volunteers, fields }: { volunteers: Volunteer[], fields: ExportField[] }) => {
-  console.log('VolunteersPDF rendering with:', { volunteers, fields });
-
+  console.log('Rendering VolunteersPDF with:', { volunteers, fields });
   return (
     <Document>
       <Page size="A4" style={styles.page}>
@@ -157,18 +156,15 @@ const VolunteersPDF = ({ volunteers, fields }: { volunteers: Volunteer[], fields
             ))}
           </View>
 
-          {volunteers && volunteers.map((volunteer, i) => {
-            console.log('Rendering volunteer:', volunteer);
-            return (
-              <View key={i} style={styles.tableRow}>
-                {fields.filter(f => f.checked).map(field => (
-                  <Text key={field.id} style={styles.tableCell}>
-                    {volunteer[field.id as keyof Volunteer] || 'N/A'}
-                  </Text>
-                ))}
-              </View>
-            );
-          })}
+          {volunteers && volunteers.map((volunteer, i) => (
+            <View key={i} style={styles.tableRow}>
+              {fields.filter(f => f.checked).map(field => (
+                <Text key={field.id} style={styles.tableCell}>
+                  {volunteer[field.id] || 'N/A'}
+                </Text>
+              ))}
+            </View>
+          ))}
         </View>
 
         <Text style={styles.footer}>
@@ -195,7 +191,7 @@ export default function ImportExport() {
     const volunteersRef = ref(db, "volunteers");
     const unsubscribe = onValue(volunteersRef, (snapshot) => {
       const data = snapshot.val();
-      console.log('Raw volunteers data:', data);
+      console.log('Raw volunteers data:', data); // Debug log
       if (data) {
         const volunteersList = Object.entries(data).map(([id, volunteer]: [string, any]) => ({
           id,
@@ -203,7 +199,7 @@ export default function ImportExport() {
           lastName: volunteer.lastName || '',
           phoneNumber: volunteer.phoneNumber || '',
         }));
-        console.log('Processed volunteers list:', volunteersList);
+        console.log('Processed volunteers list:', volunteersList); // Debug log
         setVolunteers(volunteersList);
       } else {
         setVolunteers([]);
