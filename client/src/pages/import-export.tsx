@@ -33,10 +33,6 @@ const styles = StyleSheet.create({
     borderBottomColor: '#E5E7EB',
     paddingBottom: 15,
   },
-  logo: {
-    width: 80,
-    marginRight: 20,
-  },
   headerText: {
     flex: 1,
   },
@@ -88,6 +84,10 @@ const styles = StyleSheet.create({
     borderTopColor: '#E5E7EB',
     paddingTop: 10,
   },
+  logo: {
+    width: 80,
+    marginRight: 20,
+  }
 });
 
 type PendingVolunteer = {
@@ -104,7 +104,6 @@ type Volunteer = {
   firstName: string;
   lastName: string;
   phoneNumber: string;
-  email?: string;
 };
 
 type ExportField = {
@@ -162,7 +161,6 @@ export default function ImportExport() {
     { id: 'firstName', label: 'Voornaam', checked: true },
     { id: 'lastName', label: 'Achternaam', checked: true },
     { id: 'phoneNumber', label: 'Telefoonnummer', checked: true },
-    { id: 'email', label: 'E-mail', checked: true },
   ]);
   const { toast } = useToast();
 
