@@ -5,46 +5,67 @@ const urlsToCache = [
   '/manifest.json',
   '/logo192.png',
   '/logo512.png',
+  '/logo.svg',
+  '/static/Naamloos.png',
+  '/static/123.jpg',
   '/src/main.tsx',
-  '/src/index.css'
+  '/src/index.css',
+  '/src/App.tsx',
+  '/src/pages/login.tsx',
+  '/src/pages/volunteers.tsx',
+  '/src/pages/materials.tsx',
+  '/src/pages/planning.tsx'
 ];
 
+// Pre-cache during installation
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then((cache) => cache.addAll(urlsToCache))
   );
+  // Force activation
+  self.skipWaiting();
 });
 
+// Cache-first strategy with network fallback
 self.addEventListener('fetch', (event) => {
   event.respondWith(
     caches.match(event.request)
       .then((response) => {
-        // Als we een gecachede versie hebben, gebruik die
         if (response) {
-          return response;
+          return response; // Return cached response
         }
-        // Anders, fetch van netwerk en cache het resultaat
-        return fetch(event.request).then(
+
+        // Clone the request because it can only be used once
+        const fetchRequest = event.request.clone();
+
+        return fetch(fetchRequest).then(
           (response) => {
-            // Check if we received a valid response
-            if(!response || response.status !== 200 || response.type !== 'basic') {
+            // Don't cache if not a valid response
+            if (!response || response.status !== 200 || response.type !== 'basic') {
               return response;
             }
-            
+
+            // Clone the response because it can only be used once
             const responseToCache = response.clone();
+
             caches.open(CACHE_NAME)
               .then((cache) => {
+                // Add response to cache
                 cache.put(event.request, responseToCache);
               });
 
             return response;
           }
-        );
+        ).catch(() => {
+          // Return a fallback response if network request fails
+          return new Response('Offline content not available');
+        });
       })
   );
 });
 
+// Clean up old caches during activation
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((cacheNames) => {
@@ -57,4 +78,6 @@ self.addEventListener('activate', (event) => {
       );
     })
   );
+  // Take control of all clients
+  self.clients.claim();
 });

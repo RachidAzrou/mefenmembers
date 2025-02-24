@@ -6,22 +6,32 @@ import "./index.css";
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', async () => {
     try {
+      // Wacht tot de pagina volledig is geladen
       const registration = await navigator.serviceWorker.register('/sw.js', {
-        scope: '/'
+        scope: '/',
+        updateViaCache: 'none' // Forceer netwerk requests voor updates
       });
       console.log('Service Worker geregistreerd:', registration);
 
-      // Check for updates
+      // Check voor updates
       registration.addEventListener('updatefound', () => {
         const newWorker = registration.installing;
         if (newWorker) {
           newWorker.addEventListener('statechange', () => {
             if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-              console.log('Nieuwe versie beschikbaar!');
+              // Nieuwe versie is geïnstalleerd en klaar voor gebruik
+              console.log('Nieuwe versie beschikbaar - ververs de pagina om te updaten');
+              // Hier kunnen we een notificatie tonen aan de gebruiker
             }
           });
         }
       });
+
+      // Periodiek checken voor updates
+      setInterval(() => {
+        registration.update();
+      }, 1000 * 60 * 60); // Check elk uur
+
     } catch (error) {
       console.error('Service Worker registratie mislukt:', error);
     }
