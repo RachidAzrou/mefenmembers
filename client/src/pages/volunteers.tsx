@@ -32,8 +32,9 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { db } from "@/lib/firebase";
 import { ref, push, remove, update, onValue } from "firebase/database";
-import { UserPlus, Edit2, Trash2, Search, Users } from "lucide-react";
+import { UserPlus, Edit2, Trash2, Search, Users, CheckSquare, Square } from "lucide-react";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Card, CardContent } from "@/components/ui/card";
 
 const volunteerSchema = z.object({
   firstName: z.string().min(1, "Voornaam is verplicht"),
@@ -49,6 +50,7 @@ export default function Volunteers() {
   const [deleteVolunteerId, setDeleteVolunteerId] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [selectedVolunteers, setSelectedVolunteers] = useState<string[]>([]);
   const { toast } = useToast();
 
   const form = useForm<z.infer<typeof volunteerSchema>>({
@@ -99,19 +101,20 @@ export default function Volunteers() {
     }
   };
 
-  const handleDelete = async (id: string) => {
+  const handleDelete = async (ids: string[]) => {
     try {
-      await remove(ref(db, `volunteers/${id}`));
+      await Promise.all(ids.map(id => remove(ref(db, `volunteers/${id}`))));
       toast({
         title: "Succes",
-        description: "Vrijwilliger succesvol verwijderd",
+        description: `${ids.length} vrijwilliger(s) succesvol verwijderd`,
       });
       setDeleteVolunteerId(null);
+      setSelectedVolunteers([]);
     } catch (error) {
       toast({
         variant: "destructive",
         title: "Fout",
-        description: "Kon vrijwilliger niet verwijderen",
+        description: "Kon vrijwilliger(s) niet verwijderen",
       });
     }
   };
@@ -124,6 +127,22 @@ export default function Volunteers() {
       phoneNumber: volunteer.phoneNumber,
     });
     setDialogOpen(true);
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedVolunteers.length === filteredVolunteers.length) {
+      setSelectedVolunteers([]);
+    } else {
+      setSelectedVolunteers(filteredVolunteers.map(v => v.id));
+    }
+  };
+
+  const toggleSelect = (id: string) => {
+    setSelectedVolunteers(prev => 
+      prev.includes(id) 
+        ? prev.filter(v => v !== id)
+        : [...prev, id]
+    );
   };
 
   const filteredVolunteers = volunteers.filter(volunteer => {
@@ -212,10 +231,37 @@ export default function Volunteers() {
         </div>
       </div>
 
+      {/* Statistics Card */}
+      <Card>
+        <CardContent className="pt-6">
+          <div className="flex items-center">
+            <Users className="h-8 w-8 text-primary/80" />
+            <div className="ml-4">
+              <h3 className="text-sm font-medium text-gray-500">Totaal Aantal Vrijwilligers</h3>
+              <p className="text-2xl font-bold text-primary">{volunteers.length}</p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
       <div className="rounded-lg border bg-card">
         <Table>
           <TableHeader>
             <TableRow>
+              <TableHead className="w-[50px]">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={toggleSelectAll}
+                  className="hover:bg-transparent"
+                >
+                  {selectedVolunteers.length === filteredVolunteers.length ? (
+                    <CheckSquare className="h-4 w-4" />
+                  ) : (
+                    <Square className="h-4 w-4" />
+                  )}
+                </Button>
+              </TableHead>
               <TableHead>Voornaam</TableHead>
               <TableHead>Achternaam</TableHead>
               <TableHead>Telefoonnummer</TableHead>
@@ -225,6 +271,20 @@ export default function Volunteers() {
           <TableBody>
             {filteredVolunteers.map((volunteer) => (
               <TableRow key={volunteer.id}>
+                <TableCell>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => toggleSelect(volunteer.id)}
+                    className="hover:bg-transparent"
+                  >
+                    {selectedVolunteers.includes(volunteer.id) ? (
+                      <CheckSquare className="h-4 w-4" />
+                    ) : (
+                      <Square className="h-4 w-4" />
+                    )}
+                  </Button>
+                </TableCell>
                 <TableCell>{volunteer.firstName}</TableCell>
                 <TableCell>{volunteer.lastName}</TableCell>
                 <TableCell>{volunteer.phoneNumber}</TableCell>
@@ -250,7 +310,7 @@ export default function Volunteers() {
             ))}
             {filteredVolunteers.length === 0 && (
               <TableRow>
-                <TableCell colSpan={4} className="text-center py-6 text-gray-500">
+                <TableCell colSpan={5} className="text-center py-6 text-gray-500">
                   Geen vrijwilligers gevonden
                 </TableCell>
               </TableRow>
@@ -258,6 +318,22 @@ export default function Volunteers() {
           </TableBody>
         </Table>
       </div>
+
+      {/* Bulk Actions */}
+      {selectedVolunteers.length > 0 && (
+        <div className="fixed bottom-4 right-4 flex gap-2 bg-white p-4 rounded-lg shadow-lg border">
+          <span className="text-sm text-gray-500 self-center mr-2">
+            {selectedVolunteers.length} geselecteerd
+          </span>
+          <Button
+            variant="destructive"
+            onClick={() => setDeleteVolunteerId("bulk")}
+          >
+            <Trash2 className="h-4 w-4 mr-2" />
+            Verwijderen
+          </Button>
+        </div>
+      )}
 
       <AlertDialog
         open={!!deleteVolunteerId}
@@ -267,13 +343,19 @@ export default function Volunteers() {
           <AlertDialogHeader>
             <AlertDialogTitle>Weet je het zeker?</AlertDialogTitle>
             <AlertDialogDescription>
-              Deze actie kan niet ongedaan worden gemaakt. Dit zal de vrijwilliger permanent verwijderen.
+              {deleteVolunteerId === "bulk"
+                ? `Je staat op het punt om ${selectedVolunteers.length} vrijwilliger(s) te verwijderen. Deze actie kan niet ongedaan worden gemaakt.`
+                : "Deze actie kan niet ongedaan worden gemaakt. Dit zal de vrijwilliger permanent verwijderen."
+              }
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Annuleren</AlertDialogCancel>
             <AlertDialogAction
-              onClick={() => deleteVolunteerId && handleDelete(deleteVolunteerId)}
+              onClick={() => deleteVolunteerId === "bulk"
+                ? handleDelete(selectedVolunteers)
+                : deleteVolunteerId && handleDelete([deleteVolunteerId])
+              }
               className="bg-red-600 hover:bg-red-700"
             >
               Verwijderen

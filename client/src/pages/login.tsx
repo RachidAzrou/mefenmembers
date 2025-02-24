@@ -5,25 +5,38 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { auth } from "@/lib/firebase";
-import { signInWithEmailAndPassword } from "firebase/auth";
+import { signInWithEmailAndPassword, sendPasswordResetEmail } from "firebase/auth";
 import { useToast } from "@/hooks/use-toast";
 import { useLocation } from "wouter";
 import { LockKeyhole, Mail } from "lucide-react";
 import { Link } from "wouter";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { useState } from "react";
 
 const loginSchema = z.object({
   email: z.string().email("Ongeldig e-mailadres"),
   password: z.string().min(6, "Wachtwoord moet minimaal 6 tekens bevatten"),
 });
 
+const resetSchema = z.object({
+  email: z.string().email("Ongeldig e-mailadres"),
+});
+
 type LoginFormData = z.infer<typeof loginSchema>;
+type ResetFormData = z.infer<typeof resetSchema>;
 
 export default function Login() {
   const { toast } = useToast();
   const [_, setLocation] = useLocation();
+  const [resetDialogOpen, setResetDialogOpen] = useState(false);
 
   const form = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
+  });
+
+  const resetForm = useForm<ResetFormData>({
+    resolver: zodResolver(resetSchema),
   });
 
   const onSubmit = async (data: LoginFormData) => {
@@ -35,6 +48,24 @@ export default function Login() {
         variant: "destructive",
         title: "Fout",
         description: "Ongeldig e-mailadres of wachtwoord",
+      });
+    }
+  };
+
+  const onResetSubmit = async (data: ResetFormData) => {
+    try {
+      await sendPasswordResetEmail(auth, data.email);
+      toast({
+        title: "Wachtwoord reset link verzonden",
+        description: "Controleer je e-mail voor instructies om je wachtwoord te resetten.",
+      });
+      setResetDialogOpen(false);
+      resetForm.reset();
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Fout",
+        description: "Kon geen wachtwoord reset link verzenden. Controleer je e-mailadres.",
       });
     }
   };
@@ -109,10 +140,17 @@ export default function Login() {
                 Inloggen
               </Button>
 
-              <div className="text-center mt-4">
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mt-4">
                 <Link href="/register" className="text-[#963E56] hover:underline font-medium">
                   Registreer als vrijwilliger
                 </Link>
+                <button
+                  type="button"
+                  onClick={() => setResetDialogOpen(true)}
+                  className="text-[#963E56] hover:underline font-medium"
+                >
+                  Wachtwoord vergeten?
+                </button>
               </div>
             </form>
           </CardContent>
@@ -122,6 +160,40 @@ export default function Login() {
           MEFEN Vrijwilligers Management Systeem
         </p>
       </div>
+
+      {/* Password Reset Dialog */}
+      <Dialog open={resetDialogOpen} onOpenChange={setResetDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Wachtwoord Resetten</DialogTitle>
+          </DialogHeader>
+          <Form {...resetForm}>
+            <form onSubmit={resetForm.handleSubmit(onResetSubmit)} className="space-y-4">
+              <FormField
+                control={resetForm.control}
+                name="email"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>E-mailadres</FormLabel>
+                    <FormControl>
+                      <Input 
+                        type="email"
+                        placeholder="Voer je e-mailadres in"
+                        className="h-10"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <Button type="submit" className="w-full bg-[#963E56] hover:bg-[#963E56]/90">
+                Reset link versturen
+              </Button>
+            </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

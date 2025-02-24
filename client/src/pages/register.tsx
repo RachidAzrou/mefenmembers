@@ -5,10 +5,10 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { db } from "@/lib/firebase";
-import { ref, push, get, query, orderByChild, equalTo } from "firebase/database";
+import { ref, push, get } from "firebase/database";
 import { useToast } from "@/hooks/use-toast";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { useLocation } from "wouter";
+import { useState } from "react";
 
 const registerSchema = z.object({
   firstName: z.string()
@@ -29,7 +29,8 @@ type RegisterFormData = z.infer<typeof registerSchema>;
 
 export default function Register() {
   const { toast } = useToast();
-  const [_, setLocation] = useLocation();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [registrationSuccess, setRegistrationSuccess] = useState(false);
 
   const form = useForm<RegisterFormData>({
     resolver: zodResolver(registerSchema),
@@ -102,7 +103,11 @@ export default function Register() {
   };
 
   const onSubmit = async (data: RegisterFormData) => {
+    if (isSubmitting) return;
+
     try {
+      setIsSubmitting(true);
+
       // Check for duplicates before submitting
       const isDuplicate = await checkForDuplicates(data);
 
@@ -127,19 +132,22 @@ export default function Register() {
       // Create the pending volunteer record
       await push(ref(db, "pending_volunteers"), normalizedData);
 
+      setRegistrationSuccess(true);
       toast({
         title: "Succesvol aangemeld",
         description: "Je aanmelding is ontvangen en wordt bekeken door de beheerder.",
       });
 
-      // Redirect to login
-      setLocation("/login");
+      // Reset form but stay on page
+      form.reset();
     } catch (error) {
       toast({
         variant: "destructive",
         title: "Fout",
         description: "Er is iets misgegaan bij het aanmelden.",
       });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -166,6 +174,14 @@ export default function Register() {
                 Vul het formulier in om je aan te melden als vrijwilliger
               </p>
             </div>
+
+            {registrationSuccess && (
+              <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
+                <p className="text-green-800 text-sm">
+                  Je aanmelding is succesvol ontvangen! De beheerder zal je aanmelding beoordelen.
+                </p>
+              </div>
+            )}
 
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 sm:space-y-5">
@@ -226,8 +242,9 @@ export default function Register() {
                 <Button 
                   type="submit" 
                   className="w-full h-10 sm:h-12 text-sm sm:text-base font-medium bg-[#963E56] hover:bg-[#963E56]/90 transition-colors duration-300"
+                  disabled={isSubmitting}
                 >
-                  Aanmelden
+                  {isSubmitting ? "Bezig met aanmelden..." : "Aanmelden"}
                 </Button>
               </form>
             </Form>

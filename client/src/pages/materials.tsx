@@ -31,7 +31,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { db } from "@/lib/firebase";
 import { ref, push, update, remove, onValue } from "firebase/database";
-import { Package2, Edit2, RotateCcw, Search, Plus, Trash2 } from "lucide-react";
+import { Package2, Edit2, RotateCcw, Search, Plus, Trash2, CheckSquare, Square } from "lucide-react";
 import { useRole } from "@/hooks/use-role";
 import {
   Form,
@@ -50,6 +50,8 @@ import {
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Card, CardContent } from "@/components/ui/card";
+
 
 const materialSchema = z.object({
   typeId: z.string().min(1, "Type materiaal is verplicht"),
@@ -94,6 +96,7 @@ export default function Materials() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const { toast } = useToast();
   const { isAdmin } = useRole();
+  const [selectedMaterials, setSelectedMaterials] = useState<string[]>([]);
 
   const form = useForm<z.infer<typeof materialSchema>>({
     resolver: zodResolver(materialSchema),
@@ -128,7 +131,7 @@ export default function Materials() {
         id,
         ...(material as Omit<Material, "id">),
       })) : [];
-      setMaterials(materialsList.filter((m) => m.isCheckedOut));
+      setMaterials(materialsList); // Removed filter, showing all materials
     });
 
     const volunteersRef = ref(db, "volunteers");
@@ -145,8 +148,8 @@ export default function Materials() {
   const onSubmit = async (data: z.infer<typeof materialSchema>) => {
     try {
       const existingMaterial = materials.find(
-        m => m.typeId === data.typeId && 
-            m.number === data.number && 
+        m => m.typeId === data.typeId &&
+            m.number === data.number &&
             m.isCheckedOut
       );
 
@@ -281,6 +284,47 @@ export default function Materials() {
 
   const selectedType = materialTypes.find(t => t.id === form.watch("typeId"));
   const maxNumber = selectedType?.maxCount || 100;
+
+  // Calculate statistics
+  const checkedOutMaterials = materials.filter(m => m.isCheckedOut).length;
+  const checkedOutByType = materialTypes.map(type => ({
+    name: type.name,
+    count: materials.filter(m => m.typeId === type.id && m.isCheckedOut).length,
+    total: type.maxCount
+  }));
+
+  // Add bulk selection toggle
+  const toggleSelectAll = () => {
+    if (selectedMaterials.length === filteredMaterials.length) {
+      setSelectedMaterials([]);
+    } else {
+      setSelectedMaterials(filteredMaterials.map(m => m.id));
+    }
+  };
+
+  const toggleSelect = (id: string) => {
+    setSelectedMaterials(prev =>
+      prev.includes(id)
+        ? prev.filter(m => m !== id)
+        : [...prev, id]
+    );
+  };
+
+  const handleBulkReturn = async (materialIds: string[]) => {
+    try {
+      const updates = {};
+      materialIds.forEach(id => {
+        updates[`materials/${id}/volunteerId`] = null;
+        updates[`materials/${id}/isCheckedOut`] = false;
+      });
+      await update(ref(db, ''), updates);
+      toast({ title: 'Succes', description: 'Materialen succesvol geretourneerd' });
+      setSelectedMaterials([]);
+    } catch (error) {
+      toast({ variant: 'destructive', title: 'Fout', description: 'Kon materialen niet retourneren' });
+    }
+  };
+
 
   return (
     <div className="space-y-6">
@@ -461,11 +505,56 @@ export default function Materials() {
         </div>
       </div>
 
+      {/* Statistics Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex items-center">
+              <Package2 className="h-8 w-8 text-primary/80" />
+              <div className="ml-4">
+                <h3 className="text-sm font-medium text-gray-500">Uitgeleende Materialen</h3>
+                <p className="text-2xl font-bold text-primary">{checkedOutMaterials}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {checkedOutByType.map(stat => (
+          <Card key={stat.name}>
+            <CardContent className="pt-6">
+              <div className="flex items-center">
+                <Package2 className="h-8 w-8 text-primary/80" />
+                <div className="ml-4">
+                  <h3 className="text-sm font-medium text-gray-500">{stat.name}</h3>
+                  <p className="text-2xl font-bold text-primary">
+                    {stat.count} / {stat.total}
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
       {isAdmin && (
         <div className="rounded-lg border bg-card">
           <Table>
             <TableHeader>
               <TableRow>
+                <TableHead className="w-[50px]">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={toggleSelectAll}
+                    className="hover:bg-transparent"
+                  >
+                    {selectedMaterials.length === filteredMaterials.length ? (
+                      <CheckSquare className="h-4 w-4" />
+                    ) : (
+                      <Square className="h-4 w-4" />
+                    )}
+                  </Button>
+                </TableHead>
                 <TableHead>Materiaaltype</TableHead>
                 <TableHead>Maximum Aantal</TableHead>
                 <TableHead className="w-[100px]">Acties</TableHead>
@@ -474,6 +563,20 @@ export default function Materials() {
             <TableBody>
               {materialTypes.map((type) => (
                 <TableRow key={type.id}>
+                  <TableCell>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => toggleSelect(type.id)}
+                      className="hover:bg-transparent"
+                    >
+                      {selectedMaterials.includes(type.id) ? (
+                        <CheckSquare className="h-4 w-4" />
+                      ) : (
+                        <Square className="h-4 w-4" />
+                      )}
+                    </Button>
+                  </TableCell>
                   <TableCell>{type.name}</TableCell>
                   <TableCell>{type.maxCount}</TableCell>
                   <TableCell className="flex space-x-2">
@@ -505,6 +608,20 @@ export default function Materials() {
         <Table>
           <TableHeader>
             <TableRow>
+              <TableHead className="w-[50px]">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={toggleSelectAll}
+                  className="hover:bg-transparent"
+                >
+                  {selectedMaterials.length === filteredMaterials.length ? (
+                    <CheckSquare className="h-4 w-4" />
+                  ) : (
+                    <Square className="h-4 w-4" />
+                  )}
+                </Button>
+              </TableHead>
               <TableHead>Type</TableHead>
               <TableHead>Nummer</TableHead>
               <TableHead>Vrijwilliger</TableHead>
@@ -518,6 +635,20 @@ export default function Materials() {
               const volunteer = volunteers.find((v) => v.id === item.volunteerId);
               return (
                 <TableRow key={item.id}>
+                  <TableCell>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => toggleSelect(item.id)}
+                      className="hover:bg-transparent"
+                    >
+                      {selectedMaterials.includes(item.id) ? (
+                        <CheckSquare className="h-4 w-4" />
+                      ) : (
+                        <Square className="h-4 w-4" />
+                      )}
+                    </Button>
+                  </TableCell>
                   <TableCell>{type?.name || "-"}</TableCell>
                   <TableCell>{item.number}</TableCell>
                   <TableCell>
@@ -553,7 +684,7 @@ export default function Materials() {
             })}
             {filteredMaterials.length === 0 && (
               <TableRow>
-                <TableCell colSpan={5} className="text-center py-6 text-gray-500">
+                <TableCell colSpan={6} className="text-center py-6 text-gray-500">
                   Geen materialen gevonden
                 </TableCell>
               </TableRow>
@@ -561,6 +692,22 @@ export default function Materials() {
           </TableBody>
         </Table>
       </div>
+
+      {/* Bulk Actions */}
+      {selectedMaterials.length > 0 && (
+        <div className="fixed bottom-4 right-4 flex gap-2 bg-white p-4 rounded-lg shadow-lg border">
+          <span className="text-sm text-gray-500 self-center mr-2">
+            {selectedMaterials.length} geselecteerd
+          </span>
+          <Button
+            variant="default"
+            onClick={() => handleBulkReturn(selectedMaterials)}
+          >
+            <RotateCcw className="h-4 w-4 mr-2" />
+            Retourneren
+          </Button>
+        </div>
+      )}
 
       <AlertDialog
         open={!!deleteMaterialTypeId}
