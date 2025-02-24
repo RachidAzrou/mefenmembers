@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -23,12 +23,18 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { Calendar } from "@/components/ui/calendar"
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover"
 import { updateUserRole } from "@/lib/roles";
 import { db, auth } from "@/lib/firebase";
 import { ref, onValue, remove } from "firebase/database";
 import { createUserWithEmailAndPassword, sendPasswordResetEmail } from "firebase/auth";
 import { useToast } from "@/hooks/use-toast";
-import { Settings as SettingsIcon, UserPlus, Users, Activity } from "lucide-react";
+import { Settings as SettingsIcon, UserPlus, Users, Activity, CalendarIcon } from "lucide-react";
 import { useRole } from "@/hooks/use-role";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useForm } from "react-hook-form";
@@ -63,7 +69,7 @@ export default function Settings() {
   const [changingPasswordFor, setChangingPasswordFor] = useState<string | null>(null);
   const [deletingUser, setDeletingUser] = useState<DatabaseUser | null>(null);
   const [userLogs, setUserLogs] = useState<(UserAction & { id: string })[]>([]);
-  const [selectedDate, setSelectedDate] = useState<string>(format(new Date(), 'yyyy-MM-dd'));
+  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [selectedUser, setSelectedUser] = useState<string>("all");
   const { toast } = useToast();
   const { isAdmin } = useRole();
@@ -117,7 +123,8 @@ export default function Settings() {
 
   const filteredLogs = userLogs.filter(log => {
     const logDate = new Date(log.timestamp).toISOString().split('T')[0];
-    const dateMatch = logDate === selectedDate;
+    const selectedDateStr = selectedDate.toISOString().split('T')[0];
+    const dateMatch = logDate === selectedDateStr;
     const userMatch = selectedUser === "all" || log.userEmail === selectedUser;
     return dateMatch && userMatch;
   }).sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
@@ -207,12 +214,11 @@ export default function Settings() {
   }
 
   return (
-    <div className="space-y-6 max-w-5xl mx-auto px-4 py-6">
-      {/* Page Header */}
-      <div className="flex items-center justify-between mb-8">
+    <div className="container mx-auto px-4 py-6 max-w-6xl space-y-6">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
         <div className="flex items-center gap-3">
-          <SettingsIcon className="h-8 w-8 text-[#963E56]" />
-          <h1 className="text-3xl font-bold text-[#963E56]">Instellingen</h1>
+          <SettingsIcon className="h-8 w-8 text-primary" />
+          <h1 className="text-3xl font-bold text-primary">Instellingen</h1>
         </div>
       </div>
 
@@ -367,12 +373,12 @@ export default function Settings() {
           </AccordionTrigger>
           <AccordionContent>
             <div className="p-6">
-              <Card className="mb-6">
+              <Card>
                 <CardHeader className="pb-4">
                   <CardTitle className="text-lg">Filters</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                  <div className="flex flex-col sm:flex-row items-start sm:items-end gap-4">
                     <div className="w-full sm:w-auto">
                       <label className="text-sm font-medium mb-1.5 block">Selecteer Gebruiker</label>
                       <Select
@@ -395,19 +401,36 @@ export default function Settings() {
 
                     <div className="w-full sm:w-auto">
                       <label className="text-sm font-medium mb-1.5 block">Selecteer Datum</label>
-                      <Input
-                        type="date"
-                        value={selectedDate}
-                        onChange={(e) => setSelectedDate(e.target.value)}
-                        className="w-full sm:w-[200px]"
-                      />
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button
+                            variant={"outline"}
+                            className="w-full sm:w-[240px] justify-start text-left font-normal"
+                          >
+                            <CalendarIcon className="mr-2 h-4 w-4" />
+                            {selectedDate ? (
+                              format(selectedDate, "d MMMM yyyy", { locale: nl })
+                            ) : (
+                              <span>Kies een datum</span>
+                            )}
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                          <Calendar
+                            mode="single"
+                            selected={selectedDate}
+                            onSelect={(date) => date && setSelectedDate(date)}
+                            initialFocus
+                            locale={nl}
+                          />
+                        </PopoverContent>
+                      </Popover>
                     </div>
 
                     <Button
                       variant="outline"
-                      className="mt-6 sm:mt-0"
                       onClick={() => {
-                        setSelectedDate(format(new Date(), 'yyyy-MM-dd'));
+                        setSelectedDate(new Date());
                         setSelectedUser("all");
                       }}
                     >
@@ -417,7 +440,7 @@ export default function Settings() {
                 </CardContent>
               </Card>
 
-              <div className="rounded-lg border shadow-sm">
+              <div className="mt-6 rounded-lg border shadow-sm">
                 <Table>
                   <TableHeader>
                     <TableRow className="bg-gray-50/50">

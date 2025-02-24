@@ -1,4 +1,4 @@
-import { ref, push, serverTimestamp } from "firebase/database";
+import { ref, push } from "firebase/database";
 import { db, auth } from "@/lib/firebase";
 
 export type UserAction = {
