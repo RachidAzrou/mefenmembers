@@ -1,4 +1,4 @@
-import { Document, Page, View, Text, StyleSheet, Font } from "@react-pdf/renderer";
+import { Document, Page, View, Text, StyleSheet, Image, Font } from "@react-pdf/renderer";
 import { format, addDays } from "date-fns";
 import { nl } from "date-fns/locale";
 
@@ -9,7 +9,7 @@ Font.register({
 });
 
 const styles = StyleSheet.create({
-  page: {
+  page: { 
     padding: 40,
     backgroundColor: '#fff',
     fontFamily: 'Inter',
@@ -25,7 +25,7 @@ const styles = StyleSheet.create({
   headerText: {
     flex: 1,
   },
-  title: {
+  title: { 
     fontSize: 24,
     color: '#963E56',
     marginBottom: 5,
@@ -39,7 +39,8 @@ const styles = StyleSheet.create({
     color: '#6B7280',
     marginTop: 4,
   },
-  calendar: {
+  calendar: { 
+    display: 'flex',
     flexDirection: "row",
     gap: 15,
   },
@@ -99,26 +100,43 @@ const styles = StyleSheet.create({
     fontStyle: 'italic',
     textAlign: 'center',
     marginTop: 8,
+  },
+  logo: {
+    width: 100,
+    marginRight: 20,
   }
 });
 
+type Planning = {
+  room: { name: string };
+  volunteer: { firstName: string; lastName: string };
+  date: Date;
+};
+
 type CalendarPDFProps = {
   weekStart: Date;
-  plannings: Array<{
-    room: { name: string };
-    volunteer: { firstName: string; lastName: string };
-  }>;
+  plannings: Planning[];
 };
 
 export function CalendarPDF({ weekStart, plannings }: CalendarPDFProps) {
-  console.log('Rendering CalendarPDF with:', { weekStart, plannings }); // Debug log
+  console.log('Rendering CalendarPDF with:', { weekStart, plannings });
   const weekDays = Array.from({ length: 7 }).map((_, i) => addDays(weekStart, i));
+
+  const getPlanningsForDay = (day: Date) => {
+    return plannings.filter(planning => 
+      format(planning.date, 'yyyy-MM-dd') === format(day, 'yyyy-MM-dd')
+    );
+  };
 
   return (
     <Document>
       <Page size="A4" orientation="landscape" style={styles.page}>
         {/* Header */}
         <View style={styles.header}>
+          <Image 
+            src="/static/Naamloos.png"
+            style={styles.logo}
+          />
           <View style={styles.headerText}>
             <Text style={styles.title}>MEFEN Weekplanning</Text>
             <Text style={styles.subtitle}>Roosteroverzicht Vrijwilligers</Text>
@@ -130,29 +148,32 @@ export function CalendarPDF({ weekStart, plannings }: CalendarPDFProps) {
 
         {/* Calendar Grid */}
         <View style={styles.calendar}>
-          {weekDays.map((day) => (
-            <View key={day.toISOString()} style={styles.dayColumn}>
-              <Text style={styles.dayHeader}>
-                {format(day, "EEEE", { locale: nl })}
-              </Text>
-              <Text style={styles.dayDate}>
-                {format(day, "d MMMM", { locale: nl })}
-              </Text>
+          {weekDays.map((day) => {
+            const dayPlannings = getPlanningsForDay(day);
+            return (
+              <View key={day.toISOString()} style={styles.dayColumn}>
+                <Text style={styles.dayHeader}>
+                  {format(day, "EEEE", { locale: nl })}
+                </Text>
+                <Text style={styles.dayDate}>
+                  {format(day, "d MMMM", { locale: nl })}
+                </Text>
 
-              {plannings && plannings.length > 0 ? (
-                plannings.map((planning, i) => (
-                  <View key={i} style={styles.planning}>
-                    <Text style={styles.roomName}>{planning.room.name}</Text>
-                    <Text style={styles.volunteerName}>
-                      {`${planning.volunteer.firstName} ${planning.volunteer.lastName}`}
-                    </Text>
-                  </View>
-                ))
-              ) : (
-                <Text style={styles.noPlanning}>Geen toewijzingen</Text>
-              )}
-            </View>
-          ))}
+                {dayPlannings.length > 0 ? (
+                  dayPlannings.map((planning, i) => (
+                    <View key={i} style={styles.planning}>
+                      <Text style={styles.roomName}>{planning.room.name}</Text>
+                      <Text style={styles.volunteerName}>
+                        {`${planning.volunteer.firstName} ${planning.volunteer.lastName}`}
+                      </Text>
+                    </View>
+                  ))
+                ) : (
+                  <Text style={styles.noPlanning}>Geen toewijzingen</Text>
+                )}
+              </View>
+            );
+          })}
         </View>
 
         {/* Footer */}

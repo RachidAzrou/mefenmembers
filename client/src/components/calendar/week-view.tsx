@@ -264,15 +264,16 @@ export function WeekView() {
   };
 
   const getPlanningsForPDF = () => {
-    let allPlannings = [];
+    let planningsForPDF = [];
 
     weekDays.forEach(day => {
       const dayPlannings = getPlanningsForDay(day);
-      console.log(`Plannings for ${format(day, 'yyyy-MM-dd')}:`, dayPlannings);
+      console.log(`Getting plannings for ${format(day, 'yyyy-MM-dd')}:`, dayPlannings);
 
       const formattedPlannings = dayPlannings.map(planning => {
         const volunteer = volunteers.find(v => v.id === planning.volunteerId);
         const room = rooms.find(r => r.id === planning.roomId);
+
         return {
           volunteer: {
             firstName: volunteer?.firstName || 'Onbekend',
@@ -280,15 +281,16 @@ export function WeekView() {
           },
           room: {
             name: room?.name || 'Onbekende ruimte'
-          }
+          },
+          date: day
         };
       });
 
-      allPlannings = [...allPlannings, ...formattedPlannings];
+      planningsForPDF = [...planningsForPDF, ...formattedPlannings];
     });
 
-    console.log('All plannings for PDF:', allPlannings);
-    return allPlannings;
+    console.log('Final plannings for PDF:', planningsForPDF);
+    return planningsForPDF;
   };
 
 

@@ -16,7 +16,7 @@ import { ref, onValue, remove, push } from "firebase/database";
 import { useToast } from "@/hooks/use-toast";
 import { Download, Upload, FileCheck, Users, X } from "lucide-react";
 import { PDFDownloadLink } from "@react-pdf/renderer";
-import { Document, Page, Text, View, StyleSheet, Font } from '@react-pdf/renderer';
+import { Document, Page, Text, View, StyleSheet, Font, Image } from '@react-pdf/renderer';
 import { format } from 'date-fns';
 import { nl } from 'date-fns/locale';
 
@@ -29,6 +29,7 @@ Font.register({
 const styles = StyleSheet.create({
   page: { 
     padding: 40,
+    backgroundColor: '#fff',
     fontFamily: 'Inter',
   },
   header: {
@@ -98,6 +99,10 @@ const styles = StyleSheet.create({
     borderTopColor: '#E5E7EB',
     borderTopWidth: 1,
     paddingTop: 10,
+  },
+  logo: {
+    width: 100,
+    marginRight: 20,
   }
 });
 
@@ -129,6 +134,10 @@ const VolunteersPDF = ({ volunteers, fields }: { volunteers: Volunteer[], fields
     <Document>
       <Page size="A4" style={styles.page}>
         <View style={styles.header}>
+          <Image 
+            src="/static/Naamloos.png"
+            style={styles.logo}
+          />
           <View style={styles.headerText}>
             <Text style={styles.title}>MEFEN Vrijwilligersoverzicht</Text>
             <Text style={styles.subtitle}>Volledige lijst van actieve vrijwilligers</Text>
