@@ -25,10 +25,14 @@ function Calendar({
         formatWeekdayName: (date) => {
           return format(date, 'eee', { locale: nl })
         },
-        formatCaption: (date, options) => {
+        formatCaption: (date) => {
           return format(date, 'MMMM yyyy', { locale: nl })
         }
       }}
+      modifiers={{
+        today: new Date(),
+      }}
+      mode="single"
       classNames={{
         months: "flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0",
         month: "space-y-4",
@@ -45,7 +49,7 @@ function Calendar({
         head_row: "flex",
         head_cell: "text-muted-foreground rounded-md w-10 font-normal text-[0.8rem] h-10 flex items-center justify-center",
         row: "flex w-full mt-2",
-        cell: "h-10 w-10 text-center text-sm p-0 relative [&:has([aria-selected].day-range-end)]:rounded-r-md [&:has([aria-selected].day-outside)]:bg-accent/50 [&:has([aria-selected])]:bg-accent first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md focus-within:relative focus-within:z-20",
+        cell: "text-center text-sm relative p-0 [&:has([aria-selected])]:bg-accent first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md focus-within:relative focus-within:z-20 h-10 w-10",
         day: cn(
           buttonVariants({ variant: "ghost" }),
           "h-10 w-10 p-0 font-normal aria-selected:opacity-100"
@@ -62,7 +66,6 @@ function Calendar({
         IconLeft: () => <ChevronLeft className="h-4 w-4" />,
         IconRight: () => <ChevronRight className="h-4 w-4" />,
       }}
-      ISOWeek={true}
       {...props}
     />
   )
