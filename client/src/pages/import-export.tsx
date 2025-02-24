@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -11,20 +12,98 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { db } from "@/lib/firebase";
-import { ref, onValue, remove, push } from "firebase/database";
+import { ref, onValue, remove, push, get } from "firebase/database";
 import { useToast } from "@/hooks/use-toast";
-import { Download, Upload, FileCheck, Users } from "lucide-react";
+import { Download, Upload, FileCheck, Users, X } from "lucide-react";
 import { PDFDownloadLink } from "@react-pdf/renderer";
-import { Document, Page, Text, View, StyleSheet } from '@react-pdf/renderer';
+import { Document, Page, Text, View, StyleSheet, Image, Font } from '@react-pdf/renderer';
+import { format } from 'date-fns';
+import { nl } from 'date-fns/locale';
+
+// Register custom font for PDF
+Font.register({
+  family: 'Inter',
+  src: 'https://fonts.gstatic.com/s/inter/v12/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuLyfAZ9hiA.woff2',
+});
 
 // PDF styles
 const styles = StyleSheet.create({
-  page: { padding: 30 },
-  title: { fontSize: 20, marginBottom: 20, textAlign: 'center' },
-  table: { display: 'table', width: '100%', marginBottom: 20 },
-  tableRow: { flexDirection: 'row', borderBottomWidth: 1, borderColor: '#EEEEEE' },
-  tableCell: { padding: 5, flex: 1 },
-  tableHeader: { backgroundColor: '#F3F4F6', fontWeight: 'bold' }
+  page: { 
+    padding: 40,
+    fontFamily: 'Inter',
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 20,
+    borderBottom: 1,
+    borderBottomColor: '#E5E7EB',
+    paddingBottom: 20,
+  },
+  logo: {
+    width: 100,
+    marginRight: 20,
+  },
+  headerText: {
+    flex: 1,
+  },
+  title: { 
+    fontSize: 24,
+    color: '#963E56',
+    marginBottom: 5,
+  },
+  subtitle: {
+    fontSize: 12,
+    color: '#6B7280',
+  },
+  date: {
+    fontSize: 10,
+    color: '#6B7280',
+    marginTop: 4,
+  },
+  table: { 
+    display: 'table', 
+    width: '100%',
+    marginTop: 20,
+  },
+  tableHeader: {
+    backgroundColor: '#F3F4F6',
+    flexDirection: 'row',
+    borderBottomColor: '#E5E7EB',
+    borderBottomWidth: 1,
+    paddingVertical: 12,
+    paddingHorizontal: 8,
+  },
+  tableRow: { 
+    flexDirection: 'row',
+    borderBottomColor: '#E5E7EB',
+    borderBottomWidth: 1,
+    paddingVertical: 10,
+    paddingHorizontal: 8,
+  },
+  tableCell: { 
+    flex: 1,
+    fontSize: 10,
+    color: '#374151',
+  },
+  tableHeaderCell: {
+    flex: 1,
+    fontSize: 10,
+    fontWeight: 'bold',
+    color: '#374151',
+  },
+  footer: {
+    position: 'absolute',
+    bottom: 30,
+    left: 40,
+    right: 40,
+    textAlign: 'center',
+    color: '#6B7280',
+    fontSize: 8,
+    borderTopColor: '#E5E7EB',
+    borderTopWidth: 1,
+    paddingTop: 10,
+  }
 });
 
 type PendingVolunteer = {
@@ -44,6 +123,7 @@ type ExportField = {
 
 export default function ImportExport() {
   const [pendingVolunteers, setPendingVolunteers] = useState<PendingVolunteer[]>([]);
+  const [volunteers, setVolunteers] = useState<any[]>([]);
   const [selectedVolunteers, setSelectedVolunteers] = useState<string[]>([]);
   const [exportFields, setExportFields] = useState<ExportField[]>([
     { id: 'firstName', label: 'Voornaam', checked: true },
@@ -52,7 +132,7 @@ export default function ImportExport() {
   ]);
   const { toast } = useToast();
 
-  // Fetch pending volunteers
+  // Fetch volunteers and pending volunteers
   useState(() => {
     const pendingRef = ref(db, "pending_volunteers");
     onValue(pendingRef, (snapshot) => {
@@ -62,6 +142,16 @@ export default function ImportExport() {
         ...(volunteer as Omit<PendingVolunteer, "id">),
       })) : [];
       setPendingVolunteers(volunteersList);
+    });
+
+    const volunteersRef = ref(db, "volunteers");
+    onValue(volunteersRef, (snapshot) => {
+      const data = snapshot.val();
+      const volunteersList = data ? Object.entries(data).map(([id, volunteer]) => ({
+        id,
+        ...volunteer,
+      })) : [];
+      setVolunteers(volunteersList);
     });
   });
 
@@ -93,16 +183,51 @@ export default function ImportExport() {
     }
   };
 
+  const handleReject = async () => {
+    try {
+      for (const volunteerId of selectedVolunteers) {
+        await remove(ref(db, `pending_volunteers/${volunteerId}`));
+      }
+
+      toast({
+        title: "Succes",
+        description: "Geselecteerde aanmeldingen zijn succesvol geweigerd.",
+      });
+      setSelectedVolunteers([]);
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Fout",
+        description: "Er is iets misgegaan bij het weigeren van de aanmeldingen.",
+      });
+    }
+  };
+
   // PDF Document Component
   const VolunteersPDF = ({ volunteers, fields }) => (
     <Document>
       <Page size="A4" style={styles.page}>
-        <Text style={styles.title}>MEFEN Vrijwilligerslijst</Text>
+        <View style={styles.header}>
+          <Image 
+            src="/static/Naamloos.png"
+            style={styles.logo}
+          />
+          <View style={styles.headerText}>
+            <Text style={styles.title}>MEFEN Vrijwilligerslijst</Text>
+            <Text style={styles.subtitle}>Overzicht van alle geregistreerde vrijwilligers</Text>
+            <Text style={styles.date}>
+              Gegenereerd op {format(new Date(), 'd MMMM yyyy', { locale: nl })}
+            </Text>
+          </View>
+        </View>
+
         <View style={styles.table}>
-          <View style={[styles.tableRow, styles.tableHeader]}>
+          <View style={styles.tableHeader}>
             {fields.map(field => (
               field.checked && (
-                <Text key={field.id} style={styles.tableCell}>{field.label}</Text>
+                <Text key={field.id} style={styles.tableHeaderCell}>
+                  {field.label}
+                </Text>
               )
             ))}
           </View>
@@ -118,6 +243,10 @@ export default function ImportExport() {
             </View>
           ))}
         </View>
+
+        <Text style={styles.footer}>
+          MEFEN Vrijwilligers Management Systeem
+        </Text>
       </Page>
     </Document>
   );
@@ -187,14 +316,25 @@ export default function ImportExport() {
                   </TableBody>
                 </Table>
               </div>
-              <Button
-                onClick={handleImport}
-                disabled={selectedVolunteers.length === 0}
-                className="mt-6 bg-[#963E56] hover:bg-[#963E56]/90 text-white"
-              >
-                <FileCheck className="h-4 w-4 mr-2" />
-                Importeer Geselecteerde ({selectedVolunteers.length})
-              </Button>
+              <div className="flex gap-4 mt-6">
+                <Button
+                  onClick={handleImport}
+                  disabled={selectedVolunteers.length === 0}
+                  className="bg-[#963E56] hover:bg-[#963E56]/90 text-white flex-1"
+                >
+                  <FileCheck className="h-4 w-4 mr-2" />
+                  Importeer Geselecteerde ({selectedVolunteers.length})
+                </Button>
+                <Button
+                  onClick={handleReject}
+                  disabled={selectedVolunteers.length === 0}
+                  variant="destructive"
+                  className="flex-1"
+                >
+                  <X className="h-4 w-4 mr-2" />
+                  Weiger Geselecteerde ({selectedVolunteers.length})
+                </Button>
+              </div>
             </>
           ) : (
             <div className="text-center py-12 text-gray-500">
@@ -239,7 +379,7 @@ export default function ImportExport() {
             </div>
 
             <PDFDownloadLink
-              document={<VolunteersPDF volunteers={[]} fields={exportFields} />}
+              document={<VolunteersPDF volunteers={volunteers} fields={exportFields} />}
               fileName="vrijwilligers.pdf"
               className="block w-full"
             >
