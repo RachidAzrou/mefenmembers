@@ -119,6 +119,7 @@ type CalendarPDFProps = {
 };
 
 export function CalendarPDF({ weekStart, plannings }: CalendarPDFProps) {
+  console.log('CalendarPDF rendering with:', { weekStart, plannings });
   const weekDays = Array.from({ length: 7 }).map((_, i) => addDays(weekStart, i));
 
   const getPlanningsForDay = (day: Date) => {
@@ -131,10 +132,6 @@ export function CalendarPDF({ weekStart, plannings }: CalendarPDFProps) {
     <Document>
       <Page size="A4" orientation="landscape" style={styles.page}>
         <View style={styles.header}>
-          <Image 
-            src={`${window.location.origin}/static/Naamloos.png`}
-            style={styles.logo}
-          />
           <View style={styles.headerText}>
             <Text style={styles.title}>MEFEN Weekplanning</Text>
             <Text style={styles.subtitle}>Roosteroverzicht Vrijwilligers</Text>
@@ -147,6 +144,7 @@ export function CalendarPDF({ weekStart, plannings }: CalendarPDFProps) {
         <View style={styles.calendar}>
           {weekDays.map((day) => {
             const dayPlannings = getPlanningsForDay(day);
+            console.log(`Plannings for ${format(day, 'yyyy-MM-dd')}:`, dayPlannings);
             return (
               <View key={day.toISOString()} style={styles.dayColumn}>
                 <Text style={styles.dayHeader}>

@@ -7,29 +7,6 @@ import { useState, useEffect } from "react";
 import { db } from "@/lib/firebase";
 import { ref, onValue } from "firebase/database";
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Input } from "@/components/ui/input";
-import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -37,16 +14,10 @@ import {
   DropdownMenuCheckboxItem,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-import { useToast } from "@/hooks/use-toast";
-import { PDFDownloadLink } from "@react-pdf/renderer";
-import { CalendarPDF } from "../pdf/calendar-pdf";
 import { Badge } from "@/components/ui/badge";
-import { Calendar } from "@/components/ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { cn } from "@/lib/utils";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { CalendarPDF } from "../pdf/calendar-pdf";
+import { PDFDownloadLink } from "@react-pdf/renderer";
 
 type Volunteer = {
   id: string;
@@ -67,45 +38,14 @@ type Planning = {
   endDate: string;
 };
 
-type Material = {
-  id: string;
-  typeId: string;
-  volunteerId?: string;
-  isCheckedOut: boolean;
-};
-
-const bulkPlanningSchema = z.object({
-  volunteerIds: z.array(z.string()).min(1, "Selecteer minimaal één vrijwilliger"),
-  roomIds: z.array(z.string()).min(1, "Selecteer minimaal één ruimte"),
-  startDate: z.string().min(1, "Startdatum is verplicht"),
-  endDate: z.string().min(1, "Einddatum is verplicht"),
-}).refine((data) => {
-  const start = new Date(data.startDate);
-  const end = new Date(data.endDate);
-  return end >= start;
-}, {
-  message: "Einddatum moet na startdatum liggen",
-  path: ["endDate"],
-});
-
 export function WeekView() {
   const [currentWeek, setCurrentWeek] = useState(new Date());
   const [plannings, setPlannings] = useState<Planning[]>([]);
   const [volunteers, setVolunteers] = useState<Volunteer[]>([]);
   const [rooms, setRooms] = useState<Room[]>([]);
-  const [materials, setMaterials] = useState<Material[]>([]);
   const [filterVolunteer, setFilterVolunteer] = useState<string | "_all">("_all");
   const [filterRoom, setFilterRoom] = useState<string | "_all">("_all");
   const [view, setView] = useState<"grid" | "list">("grid");
-  const { toast } = useToast();
-
-  const bulkForm = useForm<z.infer<typeof bulkPlanningSchema>>({
-    resolver: zodResolver(bulkPlanningSchema),
-    defaultValues: {
-      volunteerIds: [],
-      roomIds: [],
-    },
-  });
 
   const weekStart = startOfWeek(currentWeek, { weekStartsOn: 1 });
   const weekDays = Array.from({ length: 7 }).map((_, i) =>
@@ -114,120 +54,64 @@ export function WeekView() {
 
   useEffect(() => {
     const planningsRef = ref(db, "plannings");
-    onValue(planningsRef, (snapshot) => {
+    const unsubscribePlannings = onValue(planningsRef, (snapshot) => {
       const data = snapshot.val();
-      const planningsList = data ? Object.entries(data).map(([id, planning]) => ({
-        id,
-        ...(planning as Omit<Planning, "id">),
-      })) : [];
-      setPlannings(planningsList);
+      if (data) {
+        const planningsList = Object.entries(data).map(([id, planning]: [string, any]) => ({
+          id,
+          ...planning
+        }));
+        console.log('Fetched plannings:', planningsList);
+        setPlannings(planningsList);
+      } else {
+        setPlannings([]);
+      }
     });
 
     const volunteersRef = ref(db, "volunteers");
-    onValue(volunteersRef, (snapshot) => {
+    const unsubscribeVolunteers = onValue(volunteersRef, (snapshot) => {
       const data = snapshot.val();
-      const volunteersList = data ? Object.entries(data).map(([id, volunteer]) => ({
-        id,
-        ...(volunteer as Omit<Volunteer, "id">),
-      })) : [];
-      setVolunteers(volunteersList);
+      if (data) {
+        const volunteersList = Object.entries(data).map(([id, volunteer]: [string, any]) => ({
+          id,
+          ...volunteer
+        }));
+        console.log('Fetched volunteers:', volunteersList);
+        setVolunteers(volunteersList);
+      } else {
+        setVolunteers([]);
+      }
     });
 
     const roomsRef = ref(db, "rooms");
-    onValue(roomsRef, (snapshot) => {
+    const unsubscribeRooms = onValue(roomsRef, (snapshot) => {
       const data = snapshot.val();
-      const roomsList = data ? Object.entries(data).map(([id, room]) => ({
-        id,
-        ...(room as Omit<Room, "id">),
-      })) : [];
-      setRooms(roomsList);
+      if (data) {
+        const roomsList = Object.entries(data).map(([id, room]: [string, any]) => ({
+          id,
+          ...room
+        }));
+        console.log('Fetched rooms:', roomsList);
+        setRooms(roomsList);
+      } else {
+        setRooms([]);
+      }
     });
 
-    const materialsRef = ref(db, "materials");
-    onValue(materialsRef, (snapshot) => {
-      const data = snapshot.val();
-      const materialsList = data ? Object.entries(data).map(([id, material]) => ({
-        id,
-        ...(material as Omit<Material, "id">),
-      })) : [];
-      setMaterials(materialsList);
-    });
+    return () => {
+      unsubscribePlannings();
+      unsubscribeVolunteers();
+      unsubscribeRooms();
+    };
   }, []);
 
   const goToPreviousWeek = () => setCurrentWeek(addWeeks(currentWeek, -1));
   const goToNextWeek = () => setCurrentWeek(addWeeks(currentWeek, 1));
   const goToToday = () => setCurrentWeek(new Date());
 
-  const copyPreviousWeek = async () => {
-    try {
-      const prevWeekStart = subWeeks(weekStart, 1);
-      const planningsRef = ref(db, "plannings");
-      const snapshot = await get(planningsRef);
-      const existingPlannings = snapshot.val() || {};
-
-      const prevWeekPlannings = Object.values(existingPlannings)
-        .filter((planning: any) => {
-          const planningDate = new Date(planning.startDate);
-          return isWithinInterval(planningDate, {
-            start: prevWeekStart,
-            end: addDays(prevWeekStart, 6)
-          });
-        });
-
-      for (const planning of prevWeekPlannings) {
-        const startDate = new Date(planning.startDate);
-        const endDate = new Date(planning.endDate);
-        const daysDiff = 7;
-
-        await push(planningsRef, {
-          ...planning,
-          startDate: addDays(startDate, daysDiff).toISOString(),
-          endDate: addDays(endDate, daysDiff).toISOString(),
-        });
-      }
-
-      toast({
-        title: "Succes",
-        description: "Planningen van vorige week succesvol gekopieerd",
-      });
-    } catch (error) {
-      toast({
-        variant: "destructive",
-        title: "Fout",
-        description: "Kon planningen niet kopiëren",
-      });
-    }
-  };
-
   const publishSchedule = () => {
     const publicUrl = `${window.location.origin}/calendar/public`;
     window.open(publicUrl, '_blank');
-  };
-
-  const onSubmit = async (data: z.infer<typeof bulkPlanningSchema>) => {
-    try {
-      for (const volunteerId of data.volunteerIds) {
-        for (const roomId of data.roomIds) {
-          await push(ref(db, "plannings"), {
-            volunteerId,
-            roomId,
-            startDate: data.startDate,
-            endDate: data.endDate,
-          });
-        }
-      }
-      toast({
-        title: "Succes",
-        description: "Planningen succesvol toegevoegd",
-      });
-      bulkForm.reset();
-    } catch (error) {
-      toast({
-        variant: "destructive",
-        title: "Fout",
-        description: "Kon planningen niet toevoegen",
-      });
-    }
   };
 
   const filteredPlannings = plannings.filter(planning => {
@@ -245,6 +129,7 @@ export function WeekView() {
   };
 
   const getPlanningsForPDF = () => {
+    console.log('Generating PDF plannings...');
     let planningsForPDF = [];
 
     weekDays.forEach(day => {
@@ -266,11 +151,11 @@ export function WeekView() {
       });
     });
 
+    console.log('PDF plannings generated:', planningsForPDF);
     return planningsForPDF;
   };
 
-
-  const checkedOutMaterials = materials.filter(m => m.isCheckedOut).length;
+  const checkedOutMaterials = 0; // Placeholder - needs actual data
   const totalVolunteers = volunteers.length;
   const totalRooms = rooms.length;
   const activeVolunteers = plannings.filter(p => {
@@ -348,7 +233,7 @@ export function WeekView() {
               </DropdownMenuContent>
             </DropdownMenu>
 
-            <Button variant="outline" onClick={copyPreviousWeek}>
+            <Button variant="outline" onClick={goToPreviousWeek}>
               <Copy className="h-4 w-4 mr-2" />
               Vorige Week Kopiëren
             </Button>
@@ -386,12 +271,15 @@ export function WeekView() {
                     fileName={`planning-${format(weekStart, 'yyyy-MM-dd')}.pdf`}
                     className="flex items-center w-full px-2 py-1.5"
                   >
-                    {({ loading, error }) => (
-                      <>
-                        <Download className="h-4 w-4 mr-2" />
-                        {loading ? "Genereren..." : error ? "Fout bij genereren" : "PDF Exporteren"}
-                      </>
-                    )}
+                    {({ loading, error }) => {
+                      console.log('PDF generation status:', { loading, error });
+                      return (
+                        <>
+                          <Download className="h-4 w-4 mr-2" />
+                          {loading ? "Genereren..." : error ? `Fout: ${error.message}` : "PDF Exporteren"}
+                        </>
+                      );
+                    }}
                   </PDFDownloadLink>
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={publishSchedule}>
