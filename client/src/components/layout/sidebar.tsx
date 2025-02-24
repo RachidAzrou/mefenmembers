@@ -88,7 +88,29 @@ export function Sidebar() {
           isMobile && "shadow-xl"
         )}
       >
-        {/* User Profile Section */}
+        <div className="flex h-32 items-center justify-center bg-white border-b relative">
+          {!collapsed && (
+            <div className="w-full h-full flex items-center justify-center p-4">
+              <img
+                src="/static/Naamloos.png"
+                alt="MEFEN"
+                className="w-full h-full object-contain"
+              />
+            </div>
+          )}
+          {!isMobile && (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 hover:bg-gray-100"
+              onClick={() => setCollapsed(!collapsed)}
+            >
+              {collapsed ? <ChevronRight /> : <ChevronLeft />}
+            </Button>
+          )}
+        </div>
+
+        {/* User Profile Section - Now under logo */}
         <Link href="/profile">
           <div className={cn(
             "border-b p-4 cursor-pointer hover:bg-gray-50 transition-colors",
@@ -111,28 +133,6 @@ export function Sidebar() {
             </div>
           </div>
         </Link>
-
-        <div className="flex h-32 items-center justify-center bg-white border-b relative">
-          {!collapsed && (
-            <div className="w-full h-full flex items-center justify-center p-4">
-              <img
-                src="/static/Naamloos.png"
-                alt="MEFEN"
-                className="w-full h-full object-contain"
-              />
-            </div>
-          )}
-          {!isMobile && (
-            <Button
-              variant="ghost"
-              size="icon"
-              className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 hover:bg-gray-100"
-              onClick={() => setCollapsed(!collapsed)}
-            >
-              {collapsed ? <ChevronRight /> : <ChevronLeft />}
-            </Button>
-          )}
-        </div>
 
         <ScrollArea className="flex-1">
           <div className="space-y-1 p-2">

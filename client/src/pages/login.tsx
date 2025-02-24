@@ -133,6 +133,16 @@ export default function Login() {
                 )}
               </div>
 
+              <div className="text-right">
+                <button
+                  type="button"
+                  onClick={() => setResetDialogOpen(true)}
+                  className="text-[#963E56] hover:underline font-medium text-sm"
+                >
+                  Wachtwoord vergeten?
+                </button>
+              </div>
+
               <Button 
                 type="submit" 
                 className="w-full h-12 text-base font-medium bg-[#963E56] hover:bg-[#963E56]/90 transition-colors duration-300"
@@ -140,17 +150,10 @@ export default function Login() {
                 Inloggen
               </Button>
 
-              <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mt-4">
+              <div className="text-center mt-4">
                 <Link href="/register" className="text-[#963E56] hover:underline font-medium">
                   Registreer als vrijwilliger
                 </Link>
-                <button
-                  type="button"
-                  onClick={() => setResetDialogOpen(true)}
-                  className="text-[#963E56] hover:underline font-medium"
-                >
-                  Wachtwoord vergeten?
-                </button>
               </div>
             </form>
           </CardContent>

@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
 
-interface CollapsibleSectionProps extends React.HTMLAttributes<HTMLDivElement> {
+interface CollapsibleSectionProps extends aReact.HTMLAttributes<HTMLDivElement> {
   title: string
   defaultOpen?: boolean
   icon?: React.ReactNode

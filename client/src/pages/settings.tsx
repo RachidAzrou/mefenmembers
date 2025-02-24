@@ -21,12 +21,15 @@ import { db, auth } from "@/lib/firebase";
 import { ref, onValue, remove } from "firebase/database";
 import { createUserWithEmailAndPassword, sendPasswordResetEmail } from "firebase/auth";
 import { useToast } from "@/hooks/use-toast";
-import { Settings as SettingsIcon, UserPlus, Users } from "lucide-react";
+import { Settings as SettingsIcon, UserPlus, Users, Activity } from "lucide-react";
 import { useRole } from "@/hooks/use-role";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { UserAction } from "@/lib/activity-logger";
+import { format } from "date-fns";
+import { nl } from "date-fns/locale";
 
 type DatabaseUser = {
   uid: string;
@@ -52,6 +55,8 @@ export default function Settings() {
   const [users, setUsers] = useState<DatabaseUser[]>([]);
   const [changingPasswordFor, setChangingPasswordFor] = useState<string | null>(null);
   const [deletingUser, setDeletingUser] = useState<DatabaseUser | null>(null);
+  const [userLogs, setUserLogs] = useState<(UserAction & { id: string })[]>([]);
+  const [selectedDate, setSelectedDate] = useState<string>(format(new Date(), 'yyyy-MM-dd'));
   const { toast } = useToast();
   const { isAdmin } = useRole();
 
@@ -83,6 +88,29 @@ export default function Settings() {
 
     return () => unsubscribe();
   }, []);
+
+  useEffect(() => {
+    const logsRef = ref(db, "user_logs");
+    const unsubscribe = onValue(logsRef, (snapshot) => {
+      const data = snapshot.val();
+      if (data) {
+        const logsList = Object.entries(data).map(([id, log]: [string, any]) => ({
+          id,
+          ...log
+        }));
+        setUserLogs(logsList);
+      } else {
+        setUserLogs([]);
+      }
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  const filteredLogs = userLogs.filter(log => {
+    const logDate = new Date(log.timestamp).toISOString().split('T')[0];
+    return logDate === selectedDate;
+  }).sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
 
   const handleRoleChange = async (uid: string, email: string, newIsAdmin: boolean) => {
     try {
@@ -309,6 +337,63 @@ export default function Settings() {
                         <TableCell colSpan={3} className="text-center py-8 text-gray-500">
                           <Users className="h-8 w-8 mx-auto mb-2 opacity-50" />
                           <p>Geen gebruikers gevonden</p>
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
+            </div>
+          </AccordionContent>
+        </AccordionItem>
+
+        {/* User Activity Logs Section */}
+        <AccordionItem value="activity-logs" className="border rounded-lg overflow-hidden">
+          <AccordionTrigger className="px-6 py-4 bg-gray-50/80 hover:bg-gray-50/90 [&[data-state=open]>svg]:rotate-180">
+            <div className="flex items-center gap-2 text-[#963E56]">
+              <Activity className="h-5 w-5" />
+              <span className="font-semibold">Gebruikersactiviteit</span>
+            </div>
+          </AccordionTrigger>
+          <AccordionContent>
+            <div className="p-6">
+              <div className="flex items-center gap-4 mb-6">
+                <Input
+                  type="date"
+                  value={selectedDate}
+                  onChange={(e) => setSelectedDate(e.target.value)}
+                  className="w-auto"
+                />
+              </div>
+
+              <div className="rounded-lg border">
+                <Table>
+                  <TableHeader>
+                    <TableRow className="bg-gray-50/50">
+                      <TableHead>Tijdstip</TableHead>
+                      <TableHead>Gebruiker</TableHead>
+                      <TableHead>Actie</TableHead>
+                      <TableHead>Details</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredLogs.map((log) => (
+                      <TableRow key={log.id}>
+                        <TableCell className="whitespace-nowrap">
+                          {format(new Date(log.timestamp), "HH:mm:ss", { locale: nl })}
+                        </TableCell>
+                        <TableCell>{log.userEmail}</TableCell>
+                        <TableCell>{log.action}</TableCell>
+                        <TableCell className="max-w-xs truncate">
+                          {log.details || "-"}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                    {filteredLogs.length === 0 && (
+                      <TableRow>
+                        <TableCell colSpan={4} className="text-center py-8 text-gray-500">
+                          <Activity className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                          <p>Geen activiteiten gevonden voor deze datum</p>
                         </TableCell>
                       </TableRow>
                     )}
