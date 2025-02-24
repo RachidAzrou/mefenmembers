@@ -259,7 +259,7 @@ export default function ImportExport() {
       <Card className="shadow-md">
         <CardHeader className="border-b bg-gray-50/80">
           <CardTitle className="flex items-center gap-2 text-[#963E56]">
-            <Upload className="h-5 w-5" />
+            <FileCheck className="h-5 w-5" />
             Importeer Aanmeldingen
           </CardTitle>
         </CardHeader>

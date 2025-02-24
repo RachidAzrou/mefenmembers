@@ -6,17 +6,19 @@ import { Link, useLocation } from "wouter";
 import {
   LayoutDashboard, Users, Calendar, DoorOpen,
   Package2, LogOut, Menu, ChevronLeft, ChevronRight,
-  Download
+  Download, Settings
 } from "lucide-react";
 import { PiMosqueFill } from "react-icons/pi";
 import { useState, useEffect } from "react";
 import { auth } from "@/lib/firebase";
 import { signOut } from "firebase/auth";
+import { useRole } from "@/hooks/use-role";
 
 export function Sidebar() {
   const [location] = useLocation();
   const [collapsed, setCollapsed] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const { isAdmin } = useRole();
 
   useEffect(() => {
     const checkMobile = () => {
@@ -40,15 +42,16 @@ export function Sidebar() {
     }
   };
 
+  // Define menu items with role-based visibility
   const menuItems = [
     { icon: LayoutDashboard, label: "Dashboard", href: "/" },
     { icon: Calendar, label: "Planning", href: "/planning" },
     { icon: Users, label: "Vrijwilligers", href: "/volunteers" },
-    { icon: DoorOpen, label: "Ruimtes", href: "/rooms" },
+    { icon: DoorOpen, label: "Ruimtes", href: "/rooms", adminOnly: true },
     { icon: Package2, label: "Materialen", href: "/materials" },
     { icon: Download, label: "Import/Export", href: "/import-export" },
     { icon: PiMosqueFill, label: "Mijn Moskee", href: "/mosque" }
-  ];
+  ].filter(item => !item.adminOnly || isAdmin);
 
   return (
     <>
