@@ -13,12 +13,14 @@ import { useState, useEffect } from "react";
 import { auth } from "@/lib/firebase";
 import { signOut } from "firebase/auth";
 import { useRole } from "@/hooks/use-role";
+import { useNotifications } from "@/hooks/use-notifications";
 
 export function Sidebar() {
   const [location] = useLocation();
   const [collapsed, setCollapsed] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const { isAdmin } = useRole();
+  const { unreadCount, clearUnreadCount } = useNotifications();
 
   useEffect(() => {
     const checkMobile = () => {
@@ -49,7 +51,12 @@ export function Sidebar() {
     { icon: Users, label: "Vrijwilligers", href: "/volunteers" },
     { icon: DoorOpen, label: "Ruimtes", href: "/rooms", adminOnly: true },
     { icon: Package2, label: "Materialen", href: "/materials" },
-    { icon: FileJson, label: "Import/Export", href: "/import-export" },
+    { 
+      icon: FileJson, 
+      label: "Import/Export", 
+      href: "/import-export",
+      notificationCount: unreadCount
+    },
     { icon: PiMosqueFill, label: "Mijn Moskee", href: "/mosque" }
   ].filter(item => !item.adminOnly || isAdmin);
 
@@ -105,16 +112,26 @@ export function Sidebar() {
         <ScrollArea className="flex-1">
           <div className="space-y-1 p-2">
             {menuItems.map((item) => (
-              <Link key={item.href} href={item.href}>
+              <Link 
+                key={item.href} 
+                href={item.href}
+                onClick={() => {
+                  if (item.href === '/import-export') {
+                    clearUnreadCount();
+                  }
+                  if (isMobile) {
+                    setCollapsed(true);
+                  }
+                }}
+              >
                 <Button
                   variant={location === item.href ? "secondary" : "ghost"}
                   className={cn(
-                    "w-full justify-start h-12 md:h-11",
+                    "w-full justify-start h-12 md:h-11 relative",
                     location === item.href ? "bg-primary/10 text-primary hover:bg-primary/15" : "hover:bg-primary/5 hover:text-primary",
                     collapsed && "justify-center",
                     isMobile && !collapsed && "text-base"
                   )}
-                  onClick={() => isMobile && setCollapsed(true)}
                 >
                   <item.icon
                     className={cn(
@@ -126,6 +143,14 @@ export function Sidebar() {
                   {!collapsed && (
                     <span className={cn("ml-2", isMobile && "text-base")}>
                       {item.label}
+                    </span>
+                  )}
+                  {item.notificationCount > 0 && (
+                    <span className={cn(
+                      "absolute right-2 top-1/2 -translate-y-1/2 bg-red-500 text-white rounded-full text-xs px-2 py-0.5",
+                      collapsed && "right-1"
+                    )}>
+                      {item.notificationCount}
                     </span>
                   )}
                 </Button>

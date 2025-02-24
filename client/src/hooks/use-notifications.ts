@@ -4,9 +4,13 @@ import { ref, onValue } from 'firebase/database';
 import { db } from '@/lib/firebase';
 import { useToast } from '@/hooks/use-toast';
 
+// Keep track of shown notifications to prevent duplicates
+const shownNotifications = new Set<string>();
+
 export function useNotifications() {
   const { toast } = useToast();
   const [permission, setPermission] = useState<NotificationPermission>('default');
+  const [unreadCount, setUnreadCount] = useState(0);
 
   useEffect(() => {
     // Check if the browser supports notifications
@@ -50,13 +54,15 @@ export function useNotifications() {
       if (data) {
         const volunteers = Object.values(data);
         const latestVolunteer = volunteers[volunteers.length - 1] as any;
-        
-        // Check if the registration is recent (within the last minute)
-        const registrationTime = new Date(latestVolunteer.submittedAt).getTime();
-        const now = Date.now();
-        const isRecent = now - registrationTime < 60000; // 1 minute
 
-        if (isRecent) {
+        // Create a unique ID for this notification
+        const notificationId = `${latestVolunteer.firstName}_${latestVolunteer.lastName}_${latestVolunteer.submittedAt}`;
+
+        // Check if we've already shown this notification
+        if (!shownNotifications.has(notificationId)) {
+          shownNotifications.add(notificationId);
+          setUnreadCount(prev => prev + 1);
+
           // Show in-app notification
           toast({
             title: "Nieuwe Vrijwilliger Aanmelding",
@@ -78,5 +84,9 @@ export function useNotifications() {
     return () => unsubscribe();
   }, [toast, permission]);
 
-  return { permission, requestPermission };
+  const clearUnreadCount = () => {
+    setUnreadCount(0);
+  };
+
+  return { permission, requestPermission, unreadCount, clearUnreadCount };
 }
