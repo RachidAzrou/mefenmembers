@@ -1,7 +1,7 @@
 import { 
-  volunteers, rooms, materials, schedules, materialTypes,
-  type Volunteer, type Room, type Material, type Schedule, type MaterialType,
-  type InsertVolunteer, type InsertRoom, type InsertMaterial, type InsertSchedule, type InsertMaterialType
+  volunteers, rooms, materials, schedules, materialTypes, pendingVolunteers,
+  type Volunteer, type Room, type Material, type Schedule, type MaterialType, type PendingVolunteer,
+  type InsertVolunteer, type InsertRoom, type InsertMaterial, type InsertSchedule, type InsertMaterialType, type InsertPendingVolunteer
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, gte } from "drizzle-orm";
@@ -16,6 +16,12 @@ export interface IStorage {
   getVolunteer(id: number): Promise<Volunteer | undefined>;
   listVolunteers(): Promise<Volunteer[]>;
   createVolunteer(volunteer: InsertVolunteer): Promise<Volunteer>;
+
+  // Pending volunteer operations
+  getPendingVolunteer(id: number): Promise<PendingVolunteer | undefined>;
+  listPendingVolunteers(): Promise<PendingVolunteer[]>;
+  createPendingVolunteer(volunteer: InsertPendingVolunteer): Promise<PendingVolunteer>;
+  deletePendingVolunteer(id: number): Promise<void>;
 
   // Room operations
   getRoom(id: number): Promise<Room | undefined>;
@@ -51,6 +57,25 @@ export class DatabaseStorage implements IStorage {
       pool,
       createTableIfMissing: true,
     });
+  }
+
+  // Pending volunteer operations
+  async getPendingVolunteer(id: number): Promise<PendingVolunteer | undefined> {
+    const [volunteer] = await db.select().from(pendingVolunteers).where(eq(pendingVolunteers.id, id));
+    return volunteer;
+  }
+
+  async listPendingVolunteers(): Promise<PendingVolunteer[]> {
+    return await db.select().from(pendingVolunteers);
+  }
+
+  async createPendingVolunteer(volunteer: InsertPendingVolunteer): Promise<PendingVolunteer> {
+    const [created] = await db.insert(pendingVolunteers).values(volunteer).returning();
+    return created;
+  }
+
+  async deletePendingVolunteer(id: number): Promise<void> {
+    await db.delete(pendingVolunteers).where(eq(pendingVolunteers.id, id));
   }
 
   // Volunteer operations

@@ -15,6 +15,15 @@ export const volunteers = pgTable("volunteers", {
   phoneNumber: text("phone_number").notNull(),
 });
 
+export const pendingVolunteers = pgTable("pending_volunteers", {
+  id: serial("id").primaryKey(),
+  firstName: text("first_name").notNull(),
+  lastName: text("last_name").notNull(),
+  phoneNumber: text("phone_number").notNull(),
+  submittedAt: timestamp("submitted_at").notNull().defaultNow(),
+  status: text("status").notNull().default('pending'),
+});
+
 export const rooms = pgTable("rooms", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
@@ -42,16 +51,31 @@ export const schedules = pgTable("schedules", {
   endDate: timestamp("end_date").notNull(),
 });
 
+// Create insert schemas
 export const insertUserSchema = createInsertSchema(users);
 export const insertVolunteerSchema = createInsertSchema(volunteers);
+export const insertPendingVolunteerSchema = createInsertSchema(pendingVolunteers, {
+  submittedAt: z.coerce.date(),
+});
 export const insertRoomSchema = createInsertSchema(rooms);
 export const insertMaterialTypeSchema = createInsertSchema(materialTypes);
 export const insertMaterialSchema = createInsertSchema(materials);
 export const insertScheduleSchema = createInsertSchema(schedules);
 
+// Export types
 export type User = typeof users.$inferSelect;
 export type Volunteer = typeof volunteers.$inferSelect;
+export type PendingVolunteer = typeof pendingVolunteers.$inferSelect;
 export type Room = typeof rooms.$inferSelect;
 export type MaterialType = typeof materialTypes.$inferSelect;
 export type Material = typeof materials.$inferSelect;
 export type Schedule = typeof schedules.$inferSelect;
+
+// Export insert types
+export type InsertUser = z.infer<typeof insertUserSchema>;
+export type InsertVolunteer = z.infer<typeof insertVolunteerSchema>;
+export type InsertPendingVolunteer = z.infer<typeof insertPendingVolunteerSchema>;
+export type InsertRoom = z.infer<typeof insertRoomSchema>;
+export type InsertMaterial = z.infer<typeof insertMaterialSchema>;
+export type InsertSchedule = z.infer<typeof insertScheduleSchema>;
+export type InsertMaterialType = z.infer<typeof insertMaterialTypeSchema>;
