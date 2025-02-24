@@ -577,7 +577,11 @@ export function WeekView() {
                     document={
                       <CalendarPDF
                         weekStart={weekStart}
-                        plannings={filteredPlannings.map(p => ({
+                        plannings={filteredPlannings.filter(planning => {
+                          const startDate = new Date(planning.startDate);
+                          const endDate = new Date(planning.endDate);
+                          return weekDays.some(day => isWithinInterval(day, { start: startDate, end: endDate }));
+                        }).map(p => ({
                           room: rooms.find(r => r.id === p.roomId) || { name: 'Unknown' },
                           volunteer: volunteers.find(v => v.id === p.volunteerId) || { firstName: 'Unknown', lastName: '' }
                         }))}

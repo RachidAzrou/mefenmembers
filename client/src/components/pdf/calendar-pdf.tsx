@@ -127,10 +127,10 @@ export function CalendarPDF({ weekStart, plannings }: CalendarPDFProps) {
             style={styles.logo}
           />
           <View style={styles.headerText}>
-            <Text style={styles.title}>MEFEN Planning</Text>
-            <Text style={styles.subtitle}>Weekplanning vrijwilligers</Text>
+            <Text style={styles.title}>MEFEN Weekplanning</Text>
+            <Text style={styles.subtitle}>Roosteroverzicht Vrijwilligers</Text>
             <Text style={styles.date}>
-              Week van {format(weekStart, 'd MMMM yyyy', { locale: nl })}
+              Week van {format(weekStart, 'd MMMM yyyy', { locale: nl })} t/m {format(addDays(weekStart, 6), 'd MMMM yyyy', { locale: nl })}
             </Text>
           </View>
         </View>
@@ -164,7 +164,7 @@ export function CalendarPDF({ weekStart, plannings }: CalendarPDFProps) {
 
         {/* Footer */}
         <Text style={styles.footer}>
-          MEFEN Vrijwilligers Management Systeem
+          MEFEN Vrijwilligers Management Systeem • Gegenereerd op {format(new Date(), "d MMMM yyyy", { locale: nl })}
         </Text>
       </Page>
     </Document>

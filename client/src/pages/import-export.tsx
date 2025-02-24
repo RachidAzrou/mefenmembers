@@ -213,10 +213,10 @@ export default function ImportExport() {
             style={styles.logo}
           />
           <View style={styles.headerText}>
-            <Text style={styles.title}>MEFEN Vrijwilligerslijst</Text>
-            <Text style={styles.subtitle}>Overzicht van alle geregistreerde vrijwilligers</Text>
+            <Text style={styles.title}>MEFEN Vrijwilligersoverzicht</Text>
+            <Text style={styles.subtitle}>Volledige lijst van actieve vrijwilligers</Text>
             <Text style={styles.date}>
-              Gegenereerd op {format(new Date(), 'd MMMM yyyy', { locale: nl })}
+              Bijgewerkt op {format(new Date(), 'd MMMM yyyy', { locale: nl })}
             </Text>
           </View>
         </View>
@@ -245,7 +245,7 @@ export default function ImportExport() {
         </View>
 
         <Text style={styles.footer}>
-          MEFEN Vrijwilligers Management Systeem
+          MEFEN Vrijwilligers Management Systeem • Totaal aantal vrijwilligers: {volunteers.length}
         </Text>
       </Page>
     </Document>
