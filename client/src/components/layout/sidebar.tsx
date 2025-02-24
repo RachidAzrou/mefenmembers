@@ -42,7 +42,7 @@ export function Sidebar() {
     }
   };
 
-  // Define menu items with role-based visibility
+  // Define menu items without settings (moved to bottom)
   const menuItems = [
     { icon: LayoutDashboard, label: "Dashboard", href: "/" },
     { icon: Calendar, label: "Planning", href: "/planning" },
@@ -50,13 +50,11 @@ export function Sidebar() {
     { icon: DoorOpen, label: "Ruimtes", href: "/rooms", adminOnly: true },
     { icon: Package2, label: "Materialen", href: "/materials" },
     { icon: Download, label: "Import/Export", href: "/import-export" },
-    { icon: PiMosqueFill, label: "Mijn Moskee", href: "/mosque" },
-    { icon: Settings, label: "Instellingen", href: "/settings", adminOnly: true }
+    { icon: PiMosqueFill, label: "Mijn Moskee", href: "/mosque" }
   ].filter(item => !item.adminOnly || isAdmin);
 
   return (
     <>
-      {/* Mobile overlay */}
       {!collapsed && isMobile && (
         <div
           className="fixed inset-0 bg-black/20 backdrop-blur-sm z-40"
@@ -64,7 +62,6 @@ export function Sidebar() {
         />
       )}
 
-      {/* Mobile menu button */}
       {isMobile && collapsed && (
         <Button
           variant="ghost"
@@ -83,7 +80,6 @@ export function Sidebar() {
           isMobile && "shadow-xl"
         )}
       >
-        {/* Logo Section */}
         <div className="flex h-32 items-center justify-center bg-white border-b relative">
           {!collapsed && (
             <div className="w-full h-full flex items-center justify-center p-4">
@@ -106,7 +102,6 @@ export function Sidebar() {
           )}
         </div>
 
-        {/* Menu Items */}
         <ScrollArea className="flex-1">
           <div className="space-y-1 p-2">
             {menuItems.map((item) => (
@@ -139,8 +134,26 @@ export function Sidebar() {
           </div>
         </ScrollArea>
 
-        {/* Logout Button */}
-        <div className="p-2 border-t">
+        <div className="p-2 border-t space-y-2">
+          {isAdmin && (
+            <Link href="/settings">
+              <Button
+                variant={location === "/settings" ? "secondary" : "ghost"}
+                className={cn(
+                  "w-full justify-start h-12 md:h-11",
+                  location === "/settings" ? "bg-primary/10 text-primary hover:bg-primary/15" : "hover:bg-primary/5 hover:text-primary",
+                  collapsed && "justify-center"
+                )}
+                onClick={() => isMobile && setCollapsed(true)}
+              >
+                <Settings className="h-5 w-5" />
+                {!collapsed && (
+                  <span className="ml-2">Instellingen</span>
+                )}
+              </Button>
+            </Link>
+          )}
+
           <Button
             variant="ghost"
             className={cn(
