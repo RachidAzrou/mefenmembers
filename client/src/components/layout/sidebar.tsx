@@ -6,7 +6,7 @@ import { Link, useLocation } from "wouter";
 import {
   LayoutDashboard, Users, Calendar, DoorOpen,
   Package2, LogOut, Menu, ChevronLeft, ChevronRight,
-  Download, Settings, FileJson
+  Download, Settings, FileJson, User
 } from "lucide-react";
 import { PiMosqueFill } from "react-icons/pi";
 import { useState, useEffect } from "react";
@@ -21,6 +21,7 @@ export function Sidebar() {
   const [isMobile, setIsMobile] = useState(false);
   const { isAdmin } = useRole();
   const { unreadCount, clearUnreadCount } = useNotifications();
+  const currentUser = auth.currentUser;
 
   useEffect(() => {
     const checkMobile = () => {
@@ -160,6 +161,26 @@ export function Sidebar() {
         </ScrollArea>
 
         <div className="p-2 border-t space-y-2">
+          {/* User Profile Section */}
+          <div className={cn(
+            "p-2 border-b",
+            collapsed ? "text-center" : "flex items-center gap-3"
+          )}>
+            <div className="bg-primary/10 rounded-full p-2 inline-flex">
+              <User className="h-5 w-5 text-primary" />
+            </div>
+            {!collapsed && (
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium truncate">
+                  {currentUser?.email}
+                </p>
+                <p className="text-xs text-gray-500 truncate">
+                  {isAdmin ? "Administrator" : "Gebruiker"}
+                </p>
+              </div>
+            )}
+          </div>
+
           {isAdmin && (
             <Link href="/settings">
               <Button
