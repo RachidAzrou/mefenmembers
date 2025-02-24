@@ -111,8 +111,8 @@ export function Sidebar() {
                 >
                   <item.icon
                     className={cn(
-                      "h-5 w-5",
-                      isMobile && !collapsed && "h-6 w-6",
+                      item.icon === PiMosqueFill ? "h-7 w-7" : "h-5 w-5",
+                      isMobile && !collapsed && item.icon === PiMosqueFill ? "h-8 w-8" : "h-6 w-6",
                       location === item.href ? "text-primary" : "text-gray-500"
                     )}
                   />
