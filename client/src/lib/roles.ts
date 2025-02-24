@@ -68,3 +68,8 @@ export function canAccessPage(role: UserRole | null, page: string): boolean {
   // All other pages are accessible to both roles
   return true;
 }
+
+// Zet de eerste admin user direct in de database
+createAdminUser('AzlIm0Ff5mcyydzc59x49qBrvjS2', 'razrou@outlook.be')
+  .then(() => console.log('Admin user created successfully'))
+  .catch(err => console.error('Error creating admin user:', err));
