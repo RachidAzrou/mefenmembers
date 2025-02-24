@@ -4,7 +4,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Link, useLocation } from "wouter";
 import { 
   LayoutDashboard, Users, Calendar, DoorOpen, 
-  Package2, LogOut, Settings, ChevronLeft, ChevronRight, Menu 
+  Package2, LogOut, Building2, Menu, ChevronLeft, ChevronRight 
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { auth } from "@/lib/firebase";
@@ -42,7 +42,8 @@ export function Sidebar() {
     { icon: Calendar, label: "Planning", href: "/planning" },
     { icon: Users, label: "Vrijwilligers", href: "/volunteers" },
     { icon: DoorOpen, label: "Ruimtes", href: "/rooms" },
-    { icon: Package2, label: "Materialen", href: "/materials" }
+    { icon: Package2, label: "Materialen", href: "/materials" },
+    { icon: Building2, label: "Mijn Moskee", href: "/mosque" }
   ];
 
   return (
