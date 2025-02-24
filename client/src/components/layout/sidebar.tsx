@@ -2,10 +2,11 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Link, useLocation } from "wouter";
-import { 
-  LayoutDashboard, Users, Calendar, DoorOpen, 
-  Package2, LogOut, Building2, Menu, ChevronLeft, ChevronRight 
+import {
+  LayoutDashboard, Users, Calendar, DoorOpen,
+  Package2, LogOut, Building2, Menu, ChevronLeft, ChevronRight
 } from "lucide-react";
+import { FaMosque } from "react-icons/fa"; // Added import
 import { useState, useEffect } from "react";
 import { auth } from "@/lib/firebase";
 import { signOut } from "firebase/auth";
@@ -43,14 +44,14 @@ export function Sidebar() {
     { icon: Users, label: "Vrijwilligers", href: "/volunteers" },
     { icon: DoorOpen, label: "Ruimtes", href: "/rooms" },
     { icon: Package2, label: "Materialen", href: "/materials" },
-    { icon: Building2, label: "Mijn Moskee", href: "/mosque" }
+    { icon: FaMosque, label: "Mijn Moskee", href: "/mosque" } // Updated icon
   ];
 
   return (
     <>
       {/* Mobile overlay */}
       {!collapsed && isMobile && (
-        <div 
+        <div
           className="fixed inset-0 bg-black/20 backdrop-blur-sm z-40"
           onClick={() => setCollapsed(true)}
         />
@@ -68,7 +69,7 @@ export function Sidebar() {
         </Button>
       )}
 
-      <div 
+      <div
         className={cn(
           "fixed md:relative flex flex-col border-r bg-white/95 backdrop-blur-sm transition-all duration-300 h-screen z-50",
           collapsed ? (isMobile ? "-translate-x-full" : "w-16") : "w-64",
@@ -107,11 +108,13 @@ export function Sidebar() {
                   )}
                   onClick={() => isMobile && setCollapsed(true)}
                 >
-                  <item.icon className={cn(
-                    "h-5 w-5",
-                    isMobile && !collapsed && "h-6 w-6",
-                    location === item.href ? "text-primary" : "text-gray-500"
-                  )} />
+                  {React.createElement(item.icon, {
+                    className: cn(
+                      "h-5 w-5",
+                      isMobile && !collapsed && "h-6 w-6",
+                      location === item.href ? "text-primary" : "text-gray-500"
+                    )
+                  })}
                   {!collapsed && (
                     <span className={cn("ml-2", isMobile && "text-base")}>
                       {item.label}
