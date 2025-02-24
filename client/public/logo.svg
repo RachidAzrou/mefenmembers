@@ -1,0 +1,10 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Achtergrond cirkel -->
+  <circle cx="256" cy="256" r="256" fill="#963E56"/>
+  
+  <!-- "M" letter in wit -->
+  <path d="M128 128L192 256L256 128L320 256L384 128V384H128V128Z" fill="white"/>
+  
+  <!-- Subtiele schaduw voor diepte -->
+  <circle cx="256" cy="256" r="248" fill="#87364C" fill-opacity="0.1"/>
+</svg>
