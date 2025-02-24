@@ -8,14 +8,9 @@ import { db } from "@/lib/firebase";
 import { ref, push } from "firebase/database";
 import { useToast } from "@/hooks/use-toast";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { createUserInDatabase } from "@/lib/roles";
-import { createUserWithEmailAndPassword } from "firebase/auth";
-import { auth } from "@/lib/firebase";
 import { useLocation } from "wouter";
 
 const registerSchema = z.object({
-  email: z.string().email("Ongeldig e-mailadres"),
-  password: z.string().min(6, "Wachtwoord moet minimaal 6 tekens bevatten"),
   firstName: z.string().min(1, "Voornaam is verplicht"),
   lastName: z.string().min(1, "Achternaam is verplicht"),
   phoneNumber: z.string().min(1, "Telefoonnummer is verplicht"),
@@ -33,14 +28,7 @@ export default function Register() {
 
   const onSubmit = async (data: RegisterFormData) => {
     try {
-      // First create the Firebase Auth user
-      const userCredential = await createUserWithEmailAndPassword(auth, data.email, data.password);
-      const user = userCredential.user;
-
-      // Then create the user in the database (as medewerker by default)
-      await createUserInDatabase(user);
-
-      // Finally create the pending volunteer record
+      // Create the pending volunteer record
       await push(ref(db, "pending_volunteers"), {
         firstName: data.firstName,
         lastName: data.lastName,
@@ -50,8 +38,8 @@ export default function Register() {
       });
 
       toast({
-        title: "Succesvol geregistreerd",
-        description: "Je account is aangemaakt en je aanmelding wordt bekeken door de beheerder.",
+        title: "Succesvol aangemeld",
+        description: "Je aanmelding is ontvangen en wordt bekeken door de beheerder.",
       });
 
       // Redirect to login
@@ -60,7 +48,7 @@ export default function Register() {
       toast({
         variant: "destructive",
         title: "Fout",
-        description: "Er is iets misgegaan bij het registreren.",
+        description: "Er is iets misgegaan bij het aanmelden.",
       });
     }
   };
@@ -91,44 +79,6 @@ export default function Register() {
 
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 sm:space-y-5">
-                <FormField
-                  control={form.control}
-                  name="email"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-sm sm:text-base">E-mailadres</FormLabel>
-                      <FormControl>
-                        <Input 
-                          type="email"
-                          placeholder="E-mailadres" 
-                          className="h-10 sm:h-12 text-sm sm:text-base border-gray-200 focus:border-[#963E56] focus:ring-[#963E56]" 
-                          {...field} 
-                        />
-                      </FormControl>
-                      <FormMessage className="text-xs sm:text-sm" />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="password"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-sm sm:text-base">Wachtwoord</FormLabel>
-                      <FormControl>
-                        <Input 
-                          type="password"
-                          placeholder="Wachtwoord" 
-                          className="h-10 sm:h-12 text-sm sm:text-base border-gray-200 focus:border-[#963E56] focus:ring-[#963E56]" 
-                          {...field} 
-                        />
-                      </FormControl>
-                      <FormMessage className="text-xs sm:text-sm" />
-                    </FormItem>
-                  )}
-                />
-
                 <FormField
                   control={form.control}
                   name="firstName"
