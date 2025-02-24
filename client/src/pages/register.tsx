@@ -5,7 +5,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { db } from "@/lib/firebase";
-import { ref, push } from "firebase/database";
+import { ref, push, get, query, orderByChild, equalTo } from "firebase/database";
 import { useToast } from "@/hooks/use-toast";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useLocation } from "wouter";
@@ -26,8 +26,42 @@ export default function Register() {
     resolver: zodResolver(registerSchema),
   });
 
+  const checkForDuplicates = async (data: RegisterFormData) => {
+    // Check pending_volunteers
+    const pendingRef = ref(db, "pending_volunteers");
+    const pendingSnapshot = await get(pendingRef);
+    const pendingVolunteers = pendingSnapshot.val() || {};
+
+    // Check active volunteers
+    const volunteersRef = ref(db, "volunteers");
+    const volunteersSnapshot = await get(volunteersRef);
+    const volunteers = volunteersSnapshot.val() || {};
+
+    // Check for duplicates in both collections
+    const isDuplicate = [...Object.values(pendingVolunteers), ...Object.values(volunteers)].some(
+      (volunteer: any) =>
+        volunteer.firstName.toLowerCase() === data.firstName.toLowerCase() &&
+        volunteer.lastName.toLowerCase() === data.lastName.toLowerCase() &&
+        volunteer.phoneNumber === data.phoneNumber
+    );
+
+    return isDuplicate;
+  };
+
   const onSubmit = async (data: RegisterFormData) => {
     try {
+      // Check for duplicates before submitting
+      const isDuplicate = await checkForDuplicates(data);
+
+      if (isDuplicate) {
+        toast({
+          variant: "destructive",
+          title: "Registratie niet mogelijk",
+          description: "Er bestaat al een registratie met deze gegevens.",
+        });
+        return;
+      }
+
       // Create the pending volunteer record
       await push(ref(db, "pending_volunteers"), {
         firstName: data.firstName,

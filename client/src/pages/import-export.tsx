@@ -190,7 +190,27 @@ export default function ImportExport() {
           ...volunteer,
           status: 'pending'
         }));
+
+        // Sort by submission date, newest first
+        pendingList.sort((a, b) => 
+          new Date(b.submittedAt).getTime() - new Date(a.submittedAt).getTime()
+        );
+
         setPendingVolunteers(pendingList);
+
+        // Show notification for new registrations
+        if (pendingList.length > 0) {
+          const latestSubmission = new Date(pendingList[0].submittedAt);
+          const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
+
+          if (latestSubmission > fiveMinutesAgo) {
+            toast({
+              title: "Nieuwe Aanmelding",
+              description: "Er is een nieuwe vrijwilliger aanmelding binnengekomen.",
+              duration: 5000,
+            });
+          }
+        }
       } else {
         setPendingVolunteers([]);
       }
@@ -200,7 +220,7 @@ export default function ImportExport() {
       unsubscribeVolunteers();
       unsubscribePending();
     };
-  }, []);
+  }, [toast]);
 
   const handleImport = async () => {
     try {
@@ -252,23 +272,25 @@ export default function ImportExport() {
 
   return (
     <div className="space-y-6 max-w-5xl mx-auto px-4 py-6">
-      <div className="flex items-center gap-3 mb-8">
-        <Users className="h-8 w-8 text-[#963E56]" />
-        <h1 className="text-3xl font-bold text-[#963E56]">Import & Export</h1>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
+        <div className="flex items-center gap-3">
+          <Users className="h-8 w-8 text-[#963E56]" />
+          <h1 className="text-2xl sm:text-3xl font-bold text-[#963E56]">Import & Export</h1>
+        </div>
       </div>
 
       {/* Import Section */}
       <Card className="shadow-md">
         <CardHeader className="border-b bg-gray-50/80">
-          <CardTitle className="flex items-center gap-2 text-[#963E56]">
+          <CardTitle className="flex items-center gap-2 text-[#963E56] text-lg sm:text-xl">
             <FileDown className="h-5 w-5" />
             Importeer Aanmeldingen
           </CardTitle>
         </CardHeader>
-        <CardContent className="pt-6">
+        <CardContent className="pt-6 overflow-x-auto">
           {pendingVolunteers.length > 0 ? (
             <>
-              <div className="rounded-lg border">
+              <div className="rounded-lg border min-w-[600px] sm:min-w-0">
                 <Table>
                   <TableHeader>
                     <TableRow className="bg-gray-50/50">
@@ -284,8 +306,8 @@ export default function ImportExport() {
                       </TableHead>
                       <TableHead>Voornaam</TableHead>
                       <TableHead>Achternaam</TableHead>
-                      <TableHead>Telefoonnummer</TableHead>
-                      <TableHead>Aangemeld op</TableHead>
+                      <TableHead className="hidden sm:table-cell">Telefoonnummer</TableHead>
+                      <TableHead className="hidden sm:table-cell">Aangemeld op</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -305,8 +327,8 @@ export default function ImportExport() {
                         </TableCell>
                         <TableCell>{volunteer.firstName}</TableCell>
                         <TableCell>{volunteer.lastName}</TableCell>
-                        <TableCell>{volunteer.phoneNumber}</TableCell>
-                        <TableCell>
+                        <TableCell className="hidden sm:table-cell">{volunteer.phoneNumber}</TableCell>
+                        <TableCell className="hidden sm:table-cell">
                           {format(new Date(volunteer.submittedAt), 'd MMMM yyyy', { locale: nl })}
                         </TableCell>
                       </TableRow>
@@ -314,23 +336,23 @@ export default function ImportExport() {
                   </TableBody>
                 </Table>
               </div>
-              <div className="flex gap-4 mt-6">
+              <div className="flex flex-col sm:flex-row gap-4 mt-6">
                 <Button
                   onClick={handleImport}
                   disabled={selectedVolunteers.length === 0}
-                  className="bg-[#963E56] hover:bg-[#963E56]/90 text-white flex-1"
+                  className="bg-[#963E56] hover:bg-[#963E56]/90 text-white w-full sm:w-auto sm:flex-1"
                 >
-                  <FileUp className="h-4 w-4 mr-2" /> {/* Changed to FileUp icon */}
-                  Importeer Geselecteerde ({selectedVolunteers.length})
+                  <FileUp className="h-4 w-4 mr-2" />
+                  Importeer ({selectedVolunteers.length})
                 </Button>
                 <Button
                   onClick={handleReject}
                   disabled={selectedVolunteers.length === 0}
                   variant="destructive"
-                  className="flex-1"
+                  className="w-full sm:w-auto sm:flex-1"
                 >
                   <X className="h-4 w-4 mr-2" />
-                  Weiger Geselecteerde ({selectedVolunteers.length})
+                  Weiger ({selectedVolunteers.length})
                 </Button>
               </div>
             </>
@@ -347,14 +369,14 @@ export default function ImportExport() {
       {/* Export Section */}
       <Card className="shadow-md">
         <CardHeader className="border-b bg-gray-50/80">
-          <CardTitle className="flex items-center gap-2 text-[#963E56]">
+          <CardTitle className="flex items-center gap-2 text-[#963E56] text-lg sm:text-xl">
             <FileUp className="h-5 w-5" />
             Exporteer Vrijwilligerslijst
           </CardTitle>
         </CardHeader>
         <CardContent className="pt-6">
           <div className="space-y-6">
-            <div className="rounded-lg border p-6 bg-gray-50/30">
+            <div className="rounded-lg border p-4 sm:p-6 bg-gray-50/30">
               <h3 className="font-medium text-lg mb-4 text-gray-900">
                 Selecteer velden voor export:
               </h3>
@@ -366,7 +388,7 @@ export default function ImportExport() {
                       checked={field.checked}
                       onCheckedChange={(checked) => {
                         setExportFields(exportFields.map(f =>
-                          f.id === field.id ? { ...f, checked: checked } : f
+                          f.id === field.id ? { ...f, checked: !!checked } : f
                         ));
                       }}
                     />
@@ -387,7 +409,7 @@ export default function ImportExport() {
                 >
                   {({ loading }) => (
                     <Button
-                      className="bg-[#963E56] hover:bg-[#963E56]/90 text-white"
+                      className="bg-[#963E56] hover:bg-[#963E56]/90 text-white w-full sm:w-auto"
                       disabled={loading || exportFields.every(f => !f.checked)}
                     >
                       <Download className="h-4 w-4 mr-2" />
