@@ -8,15 +8,15 @@
   "theme_color": "#963E56",
   "icons": [
     {
-      "src": "/community_icon.svg",
+      "src": "/mosque-logo.png",
       "sizes": "512x512",
-      "type": "image/svg+xml",
+      "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/community_icon.svg",
+      "src": "/mosque-logo.png",
       "sizes": "512x512",
-      "type": "image/svg+xml",
+      "type": "image/png",
       "purpose": "maskable"
     }
   ],

@@ -1,9 +1,9 @@
-const CACHE_NAME = 'mefen-volunteerapp-v4'; // Increment version to force cache refresh
+const CACHE_NAME = 'mefen-volunteerapp-v5'; // Increment version to force cache refresh
 const urlsToCache = [
   '/',
   '/index.html',
   '/manifest.json',
-  '/community_icon.png',
+  '/mosque-logo.png',
   '/src/main.tsx',
   '/src/index.css',
   '/src/App.tsx',
