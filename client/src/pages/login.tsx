@@ -110,12 +110,9 @@ export default function Login() {
               </Button>
 
               <div className="text-center mt-4">
-                <p className="text-gray-600">
-                  Nog geen account?{" "}
-                  <Link href="/register" className="text-[#963E56] hover:underline font-medium">
-                    Registreer als vrijwilliger
-                  </Link>
-                </p>
+                <Link href="/register" className="text-[#963E56] hover:underline font-medium">
+                  Registreer als vrijwilliger
+                </Link>
               </div>
             </form>
           </CardContent>
