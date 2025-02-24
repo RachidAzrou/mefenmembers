@@ -1,28 +1,31 @@
-import { Document, Page, View, Text, StyleSheet, Image } from "@react-pdf/renderer";
-import { format } from "date-fns";
+import { Document, Page, View, Text, StyleSheet, Image, Font } from "@react-pdf/renderer";
+import { format, addDays } from "date-fns";
 import { nl } from "date-fns/locale";
 
-// Base64 encoded MEFEN logo.  REPLACE THIS WITH YOUR ACTUAL LOGO.
-const MEFEN_LOGO = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAHElEQVQI12P4//8/w38GIAXDIBKE0DHxgljNBAAO9TXL0Y4OHwAAAABJRU5ErkJggg=='; 
+// Register custom font for PDF
+Font.register({
+  family: 'Inter',
+  src: 'https://fonts.gstatic.com/s/inter/v12/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuLyfAZ9hiA.woff2',
+});
 
 const styles = StyleSheet.create({
-  page: {
+  page: { 
     padding: 40,
     backgroundColor: '#fff',
-    fontFamily: 'Helvetica',
+    fontFamily: 'Inter',
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 30,
-    borderBottomWidth: 1,
+    borderBottom: 1,
     borderBottomColor: '#E5E7EB',
     paddingBottom: 20,
   },
   headerText: {
     flex: 1,
   },
-  title: {
+  title: { 
     fontSize: 24,
     color: '#963E56',
     marginBottom: 5,
@@ -36,9 +39,10 @@ const styles = StyleSheet.create({
     color: '#6B7280',
     marginTop: 4,
   },
-  calendar: {
-    flexDirection: 'row',
-    gap: 10,
+  calendar: { 
+    display: 'flex',
+    flexDirection: "row",
+    gap: 15,
   },
   dayColumn: {
     flex: 1,
@@ -48,7 +52,7 @@ const styles = StyleSheet.create({
   },
   dayHeader: {
     fontSize: 14,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     color: '#374151',
     marginBottom: 4,
   },
@@ -57,7 +61,7 @@ const styles = StyleSheet.create({
     color: '#6B7280',
     marginBottom: 12,
     paddingBottom: 8,
-    borderBottomWidth: 1,
+    borderBottom: 1,
     borderBottomColor: '#E5E7EB',
   },
   planning: {
@@ -65,25 +69,18 @@ const styles = StyleSheet.create({
     padding: 8,
     backgroundColor: '#fff',
     borderRadius: 4,
-    borderLeftWidth: 2,
+    borderLeft: 2,
     borderLeftColor: '#963E56',
   },
   roomName: {
     fontSize: 11,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     color: '#963E56',
     marginBottom: 2,
   },
   volunteerName: {
     fontSize: 10,
     color: '#4B5563',
-  },
-  noPlanning: {
-    fontSize: 10,
-    color: '#9CA3AF',
-    fontStyle: 'italic',
-    textAlign: 'center',
-    marginTop: 8,
   },
   footer: {
     position: 'absolute',
@@ -93,36 +90,38 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     color: '#6B7280',
     fontSize: 8,
-    borderTopWidth: 1,
     borderTopColor: '#E5E7EB',
+    borderTopWidth: 1,
     paddingTop: 10,
   },
+  noPlanning: {
+    fontSize: 10,
+    color: '#9CA3AF',
+    fontStyle: 'italic',
+    textAlign: 'center',
+    marginTop: 8,
+  },
+  logo: {
+    width: 100,
+    height: 50,
+    objectFit: 'contain'
+  }
 });
 
 type Planning = {
+  room: { name: string };
+  volunteer: { firstName: string; lastName: string };
   date: Date;
-  volunteer: {
-    firstName: string;
-    lastName: string;
-  };
-  room: {
-    name: string;
-  };
 };
 
-type Props = {
+type CalendarPDFProps = {
   weekStart: Date;
   plannings: Planning[];
 };
 
-export function CalendarPDF({ weekStart, plannings }: Props) {
-  console.log('CalendarPDF received:', { weekStart, plannings });
-
-  const weekDays = Array.from({ length: 7 }, (_, i) => {
-    const day = new Date(weekStart);
-    day.setDate(weekStart.getDate() + i);
-    return day;
-  });
+export function CalendarPDF({ weekStart, plannings }: CalendarPDFProps) {
+  console.log('CalendarPDF props:', { weekStart, plannings });
+  const weekDays = Array.from({ length: 7 }).map((_, i) => addDays(weekStart, i));
 
   const getPlanningsForDay = (day: Date) => {
     return plannings.filter(planning => {
@@ -134,21 +133,25 @@ export function CalendarPDF({ weekStart, plannings }: Props) {
   return (
     <Document>
       <Page size="A4" orientation="landscape" style={styles.page}>
+        {/* Header */}
         <View style={styles.header}>
+          <Image 
+            src="/static/Naamloos.png"
+            style={styles.logo}
+          />
           <View style={styles.headerText}>
             <Text style={styles.title}>MEFEN Weekplanning</Text>
             <Text style={styles.subtitle}>Roosteroverzicht Vrijwilligers</Text>
             <Text style={styles.date}>
-              Week van {format(weekStart, 'd MMMM yyyy', { locale: nl })}
+              Week van {format(weekStart, 'd MMMM yyyy', { locale: nl })} t/m {format(addDays(weekStart, 6), 'd MMMM yyyy', { locale: nl })}
             </Text>
           </View>
         </View>
 
+        {/* Calendar Grid */}
         <View style={styles.calendar}>
           {weekDays.map((day) => {
             const dayPlannings = getPlanningsForDay(day);
-            console.log(`Plannings for ${format(day, 'yyyy-MM-dd')}:`, dayPlannings);
-
             return (
               <View key={day.toISOString()} style={styles.dayColumn}>
                 <Text style={styles.dayHeader}>
@@ -177,6 +180,7 @@ export function CalendarPDF({ weekStart, plannings }: Props) {
           })}
         </View>
 
+        {/* Footer */}
         <Text style={styles.footer}>
           MEFEN Vrijwilligers Management Systeem • Gegenereerd op {format(new Date(), "d MMMM yyyy", { locale: nl })}
         </Text>
