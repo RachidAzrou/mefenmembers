@@ -12,9 +12,11 @@ const urlsToCache = [
   '/src/index.css',
   '/src/App.tsx',
   '/src/pages/login.tsx',
+  '/src/pages/register.tsx', // Add register page
   '/src/pages/volunteers.tsx',
   '/src/pages/materials.tsx',
-  '/src/pages/planning.tsx'
+  '/src/pages/planning.tsx',
+  '/src/pages/import-export.tsx' // Add import/export page
 ];
 
 // Pre-cache during installation
