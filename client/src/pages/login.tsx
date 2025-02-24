@@ -43,7 +43,16 @@ export default function Login() {
   const onSubmit = async (data: LoginFormData) => {
     try {
       await signInWithEmailAndPassword(auth, data.email, data.password);
-      await logUserAction("Ingelogd", "Gebruiker succesvol ingelogd");
+      // Test logging with more detailed information
+      await logUserAction(
+        "Gebruiker ingelogd",
+        `Gebruiker ${data.email} heeft succesvol ingelogd`,
+        {
+          type: "auth",
+          id: data.email,
+          name: data.email
+        }
+      );
       setLocation("/");
     } catch (error) {
       toast({
