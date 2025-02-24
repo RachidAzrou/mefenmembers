@@ -26,26 +26,54 @@ export default function Register() {
     resolver: zodResolver(registerSchema),
   });
 
+  const normalizeString = (str: string) => str.toLowerCase().trim();
+
+  const normalizePhoneNumber = (phone: string) => {
+    // Remove all non-numeric characters
+    return phone.replace(/[^\d]/g, '');
+  };
+
   const checkForDuplicates = async (data: RegisterFormData) => {
-    // Check pending_volunteers
-    const pendingRef = ref(db, "pending_volunteers");
-    const pendingSnapshot = await get(pendingRef);
-    const pendingVolunteers = pendingSnapshot.val() || {};
+    try {
+      // Normalize input data
+      const normalizedInput = {
+        firstName: normalizeString(data.firstName),
+        lastName: normalizeString(data.lastName),
+        phoneNumber: normalizePhoneNumber(data.phoneNumber)
+      };
 
-    // Check active volunteers
-    const volunteersRef = ref(db, "volunteers");
-    const volunteersSnapshot = await get(volunteersRef);
-    const volunteers = volunteersSnapshot.val() || {};
+      // Check pending_volunteers
+      const pendingRef = ref(db, "pending_volunteers");
+      const pendingSnapshot = await get(pendingRef);
+      const pendingVolunteers = pendingSnapshot.val() || {};
 
-    // Check for duplicates in both collections
-    const isDuplicate = [...Object.values(pendingVolunteers), ...Object.values(volunteers)].some(
-      (volunteer: any) =>
-        volunteer.firstName.toLowerCase() === data.firstName.toLowerCase() &&
-        volunteer.lastName.toLowerCase() === data.lastName.toLowerCase() &&
-        volunteer.phoneNumber === data.phoneNumber
-    );
+      // Check active volunteers
+      const volunteersRef = ref(db, "volunteers");
+      const volunteersSnapshot = await get(volunteersRef);
+      const volunteers = volunteersSnapshot.val() || {};
 
-    return isDuplicate;
+      // Check for duplicates in both collections
+      const isDuplicate = [...Object.values(pendingVolunteers), ...Object.values(volunteers)].some(
+        (volunteer: any) => {
+          const normalizedVolunteer = {
+            firstName: normalizeString(volunteer.firstName),
+            lastName: normalizeString(volunteer.lastName),
+            phoneNumber: normalizePhoneNumber(volunteer.phoneNumber)
+          };
+
+          return (
+            normalizedVolunteer.firstName === normalizedInput.firstName &&
+            normalizedVolunteer.lastName === normalizedInput.lastName &&
+            normalizedVolunteer.phoneNumber === normalizedInput.phoneNumber
+          );
+        }
+      );
+
+      return isDuplicate;
+    } catch (error) {
+      console.error("Error checking for duplicates:", error);
+      return false; // In case of error, allow registration to proceed
+    }
   };
 
   const onSubmit = async (data: RegisterFormData) => {
@@ -62,14 +90,17 @@ export default function Register() {
         return;
       }
 
-      // Create the pending volunteer record
-      await push(ref(db, "pending_volunteers"), {
-        firstName: data.firstName,
-        lastName: data.lastName,
-        phoneNumber: data.phoneNumber,
+      // Normalize data before saving
+      const normalizedData = {
+        firstName: data.firstName.trim(),
+        lastName: data.lastName.trim(),
+        phoneNumber: normalizePhoneNumber(data.phoneNumber),
         submittedAt: new Date().toISOString(),
         status: 'pending'
-      });
+      };
+
+      // Create the pending volunteer record
+      await push(ref(db, "pending_volunteers"), normalizedData);
 
       toast({
         title: "Succesvol aangemeld",
