@@ -1,5 +1,5 @@
 import { User } from "firebase/auth";
-import { ref, get } from "firebase/database";
+import { ref, get, set } from "firebase/database";
 import { db } from "./firebase";
 
 export type UserRole = 'admin' | 'medewerker';
