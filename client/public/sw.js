@@ -1,4 +1,4 @@
-const CACHE_NAME = 'mefen-volunteerapp-v5'; // Increment version to force cache refresh
+const CACHE_NAME = 'mefen-volunteerapp-v6'; // Increment version to force cache refresh
 const urlsToCache = [
   '/',
   '/index.html',
@@ -23,6 +23,25 @@ self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then((cache) => cache.addAll(urlsToCache))
+  );
+});
+
+// Clean up old caches during activation
+self.addEventListener('activate', (event) => {
+  // Take control of all clients immediately
+  event.waitUntil(
+    Promise.all([
+      self.clients.claim(),
+      caches.keys().then((cacheNames) => {
+        return Promise.all(
+          cacheNames.map((cacheName) => {
+            if (cacheName !== CACHE_NAME) {
+              return caches.delete(cacheName);
+            }
+          })
+        );
+      })
+    ])
   );
 });
 
@@ -55,24 +74,5 @@ self.addEventListener('fetch', (event) => {
             return response || new Response('Offline content not available');
           });
       })
-  );
-});
-
-// Clean up old caches during activation
-self.addEventListener('activate', (event) => {
-  // Take control of all clients immediately
-  event.waitUntil(
-    Promise.all([
-      self.clients.claim(),
-      caches.keys().then((cacheNames) => {
-        return Promise.all(
-          cacheNames.map((cacheName) => {
-            if (cacheName !== CACHE_NAME) {
-              return caches.delete(cacheName);
-            }
-          })
-        );
-      })
-    ])
   );
 });
