@@ -2,14 +2,7 @@ import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { db } from "@/lib/firebase";
 import { ref, onValue, remove, push } from "firebase/database";
 import { useToast } from "@/hooks/use-toast";
@@ -192,14 +185,12 @@ export default function ImportExport() {
           status: 'pending'
         }));
 
-        // Sort by submission date, newest first
         pendingList.sort((a, b) =>
           new Date(b.submittedAt).getTime() - new Date(a.submittedAt).getTime()
         );
 
         setPendingVolunteers(pendingList);
 
-        // Show notification for new registrations
         if (pendingList.length > 0) {
           const latestSubmission = new Date(pendingList[0].submittedAt);
           const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
@@ -208,7 +199,7 @@ export default function ImportExport() {
             toast({
               title: "Nieuwe Aanmelding",
               description: "Er is een nieuwe vrijwilliger aanmelding binnengekomen.",
-              duration: 5000,
+              duration: 3000, // Updated duration
             });
           }
         }
@@ -225,6 +216,8 @@ export default function ImportExport() {
 
   const handleImport = async () => {
     try {
+      const importedVolunteers = [];
+
       for (const volunteerId of selectedVolunteers) {
         const volunteer = pendingVolunteers.find(v => v.id === volunteerId);
         if (volunteer) {
@@ -235,21 +228,24 @@ export default function ImportExport() {
           });
           await remove(ref(db, `pending_volunteers/${volunteerId}`));
 
-          await logUserAction(
-            UserActionTypes.IMPORT_VOLUNTEERS,
-            `Vrijwilliger ${volunteer.firstName} ${volunteer.lastName} geïmporteerd`,
-            {
-              type: "volunteer",
-              id: newVolunteerRef.key!,
-              name: `${volunteer.firstName} ${volunteer.lastName}`
-            }
-          );
+          importedVolunteers.push(`${volunteer.firstName} ${volunteer.lastName}`);
         }
       }
+
+      await logUserAction(
+        UserActionTypes.IMPORT_VOLUNTEERS,
+        `${selectedVolunteers.length} vrijwilligers geïmporteerd`,
+        {
+          type: "import",
+          id: new Date().toISOString(),
+          name: importedVolunteers.join(", ")
+        }
+      );
 
       toast({
         title: "Succes",
         description: "Geselecteerde vrijwilligers zijn succesvol geïmporteerd.",
+        duration: 3000,
       });
       setSelectedVolunteers([]);
     } catch (error) {
@@ -257,31 +253,37 @@ export default function ImportExport() {
         variant: "destructive",
         title: "Fout",
         description: "Er is iets misgegaan bij het importeren.",
+        duration: 3000,
       });
     }
   };
 
   const handleReject = async () => {
     try {
+      const rejectedVolunteers = [];
+
       for (const volunteerId of selectedVolunteers) {
         const volunteer = pendingVolunteers.find(v => v.id === volunteerId);
         if (volunteer) {
           await remove(ref(db, `pending_volunteers/${volunteerId}`));
-          await logUserAction(
-            UserActionTypes.VOLUNTEER_DELETE,
-            `Vrijwilliger aanmelding ${volunteer.firstName} ${volunteer.lastName} geweigerd`,
-            {
-              type: "volunteer",
-              id: volunteerId,
-              name: `${volunteer.firstName} ${volunteer.lastName}`
-            }
-          );
+          rejectedVolunteers.push(`${volunteer.firstName} ${volunteer.lastName}`);
         }
       }
+
+      await logUserAction(
+        UserActionTypes.VOLUNTEER_BULK_DELETE,
+        `${selectedVolunteers.length} vrijwilliger aanmeldingen geweigerd`,
+        {
+          type: "volunteer",
+          id: new Date().toISOString(),
+          name: rejectedVolunteers.join(", ")
+        }
+      );
 
       toast({
         title: "Succes",
         description: "Geselecteerde aanmeldingen zijn succesvol geweigerd.",
+        duration: 3000,
       });
       setSelectedVolunteers([]);
     } catch (error) {
@@ -289,6 +291,7 @@ export default function ImportExport() {
         variant: "destructive",
         title: "Fout",
         description: "Er is iets misgegaan bij het weigeren van de aanmeldingen.",
+        duration: 3000,
       });
     }
   };
@@ -302,7 +305,6 @@ export default function ImportExport() {
         </div>
       </div>
 
-      {/* Import Section */}
       <Card className="shadow-md">
         <CardHeader className="border-b bg-gray-50/80">
           <CardTitle className="flex items-center gap-2 text-[#963E56] text-lg sm:text-xl">
@@ -389,7 +391,6 @@ export default function ImportExport() {
         </CardContent>
       </Card>
 
-      {/* Export Section */}
       <Card className="shadow-md">
         <CardHeader className="border-b bg-gray-50/80">
           <CardTitle className="flex items-center gap-2 text-[#963E56] text-lg sm:text-xl">
@@ -432,7 +433,7 @@ export default function ImportExport() {
                   onClick={async () => {
                     await logUserAction(
                       UserActionTypes.GENERATE_VOLUNTEERS_PDF,
-                      `Vrijwilligers PDF gegenereerd`,
+                      `Vrijwilligers PDF gegenereerd (${volunteers.length} vrijwilligers)`,
                       {
                         type: "export",
                         id: new Date().toISOString(),

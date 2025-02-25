@@ -37,7 +37,7 @@ export function useNotifications() {
           toast({
             title: payload.notification?.title,
             description: payload.notification?.body,
-            duration: 5000,
+            duration: 3000, // Updated to 3 seconds
           });
         });
       }
@@ -67,7 +67,7 @@ export function useNotifications() {
           toast({
             title: "Nieuwe Vrijwilliger Aanmelding",
             description: `${latestVolunteer.firstName} ${latestVolunteer.lastName} heeft zich aangemeld.`,
-            duration: 5000,
+            duration: 3000, // Updated to 3 seconds
           });
 
           // Show push notification if permission is granted

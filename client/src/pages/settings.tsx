@@ -144,12 +144,14 @@ export default function Settings() {
       toast({
         title: "Succes",
         description: `Gebruiker ${email} is nu ${newIsAdmin ? 'admin' : 'medewerker'}`,
+        duration: 3000,
       });
     } catch (error) {
       toast({
         variant: "destructive",
         title: "Fout",
         description: "Kon gebruikersrol niet wijzigen",
+        duration: 3000,
       });
     }
   };
@@ -171,6 +173,7 @@ export default function Settings() {
       toast({
         title: "Succes",
         description: "Nieuwe gebruiker is succesvol aangemaakt",
+        duration: 3000,
       });
       form.reset();
     } catch (error: any) {
@@ -178,6 +181,7 @@ export default function Settings() {
         variant: "destructive",
         title: "Fout",
         description: error.message || "Kon gebruiker niet aanmaken",
+        duration: 3000,
       });
     }
   };
@@ -195,6 +199,7 @@ export default function Settings() {
       toast({
         title: "Succes",
         description: "Een wachtwoord reset link is verstuurd naar de gebruiker",
+        duration: 3000,
       });
       setChangingPasswordFor(null);
       passwordForm.reset();
@@ -203,6 +208,7 @@ export default function Settings() {
         variant: "destructive",
         title: "Fout",
         description: error.message || "Kon wachtwoord niet wijzigen",
+        duration: 3000,
       });
     }
   };
@@ -225,6 +231,7 @@ export default function Settings() {
       toast({
         title: "Succes",
         description: `Gebruiker ${deletingUser.email} is verwijderd`,
+        duration: 3000,
       });
       setDeletingUser(null);
     } catch (error: any) {
@@ -232,6 +239,7 @@ export default function Settings() {
         variant: "destructive",
         title: "Fout",
         description: error.message || "Kon gebruiker niet verwijderen",
+        duration: 3000,
       });
     }
   };

@@ -58,6 +58,7 @@ export default function Login() {
         variant: "destructive",
         title: "Fout",
         description: "Ongeldig e-mailadres of wachtwoord",
+        duration: 3000,
       });
     }
   };
@@ -77,6 +78,7 @@ export default function Login() {
       toast({
         title: "Wachtwoord reset link verzonden",
         description: "Controleer je e-mail voor instructies om je wachtwoord te resetten.",
+        duration: 3000,
       });
       setResetDialogOpen(false);
       resetForm.reset();
@@ -85,6 +87,7 @@ export default function Login() {
         variant: "destructive",
         title: "Fout",
         description: "Kon geen wachtwoord reset link verzenden. Controleer je e-mailadres.",
+        duration: 3000,
       });
     }
   };

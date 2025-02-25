@@ -211,6 +211,7 @@ export default function Materials() {
           variant: "destructive",
           title: "Fout",
           description: "Dit materiaal is al uitgeleend",
+          duration: 3000,
         });
         return;
       }
@@ -244,6 +245,7 @@ export default function Materials() {
         toast({
           title: "Succes",
           description: "Materiaal succesvol toegewezen",
+          duration: 3000,
         });
       }
       form.reset();
@@ -253,6 +255,7 @@ export default function Materials() {
         variant: "destructive",
         title: "Fout",
         description: "Kon materiaal niet toewijzen",
+        duration: 3000,
       });
     }
   };
@@ -273,6 +276,7 @@ export default function Materials() {
         toast({
           title: "Succes",
           description: "Materiaaltype succesvol bijgewerkt",
+          duration: 3000,
         });
         setEditingMaterialType(null);
       } else {
@@ -289,6 +293,7 @@ export default function Materials() {
         toast({
           title: "Succes",
           description: "Materiaaltype succesvol toegevoegd",
+          duration: 3000,
         });
       }
       typeForm.reset();
@@ -298,6 +303,7 @@ export default function Materials() {
         variant: "destructive",
         title: "Fout",
         description: "Kon materiaaltype niet opslaan",
+        duration: 3000,
       });
     }
   };
@@ -320,6 +326,7 @@ export default function Materials() {
       toast({
         title: "Succes",
         description: "Materiaaltype succesvol verwijderd",
+        duration: 3000,
       });
       setDeleteMaterialTypeId(null);
     } catch (error) {
@@ -327,6 +334,7 @@ export default function Materials() {
         variant: "destructive",
         title: "Fout",
         description: "Kon materiaaltype niet verwijderen",
+        duration: 3000,
       });
     }
   };
