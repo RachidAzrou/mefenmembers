@@ -9,7 +9,7 @@
 
   body {
     @apply font-sans antialiased text-foreground;
-    background: url('/static/123.jpg') center center/cover no-repeat,
+    background: url('/static/geometric-pattern.jpg') center center/cover no-repeat,
                 linear-gradient(135deg, rgba(245, 247, 250, 0.7), rgba(195, 207, 226, 0.7));
     background-blend-mode: overlay;
     min-height: 100vh;
