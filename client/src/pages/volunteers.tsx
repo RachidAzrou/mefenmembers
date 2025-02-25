@@ -10,11 +10,12 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { db } from "@/lib/firebase";
 import { ref, push, remove, update, onValue } from "firebase/database";
-import { UserPlus, Edit2, Trash2, Search, Users, CheckSquare, Square, Settings2, ChevronLeft, ChevronRight } from "lucide-react";
+import { UserPlus, Edit2, Trash2, Search, Users, CheckSquare, Square, Settings2, ChevronLeft, ChevronRight, ArrowUpDown } from "lucide-react";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Separator } from "@/components/ui/separator";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { logUserAction, UserActionTypes } from "@/lib/activity-logger";
 
 const volunteerSchema = z.object({
@@ -27,6 +28,8 @@ type Volunteer = z.infer<typeof volunteerSchema> & { id: string };
 
 const ITEMS_PER_PAGE = 10;
 
+type SortOrder = "firstName-asc" | "firstName-desc" | "lastName-asc" | "lastName-desc";
+
 export default function Volunteers() {
   const [volunteers, setVolunteers] = useState<Volunteer[]>([]);
   const [editingVolunteer, setEditingVolunteer] = useState<Volunteer | null>(null);
@@ -36,6 +39,7 @@ export default function Volunteers() {
   const [selectedVolunteers, setSelectedVolunteers] = useState<string[]>([]);
   const [isEditMode, setIsEditMode] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
+  const [sortOrder, setSortOrder] = useState<SortOrder>("lastName-asc");
   const { toast } = useToast();
 
   const form = useForm<z.infer<typeof volunteerSchema>>({
@@ -55,12 +59,19 @@ export default function Volunteers() {
         id,
         ...(volunteer as Omit<Volunteer, "id">),
       })) : [];
-
-      // Sort volunteers alphabetically by lastName
-      volunteersList.sort((a, b) => a.lastName.localeCompare(b.lastName));
       setVolunteers(volunteersList);
     });
   });
+
+  const sortVolunteers = (volunteers: Volunteer[], order: SortOrder) => {
+    const [field, direction] = order.split("-");
+    return [...volunteers].sort((a, b) => {
+      const compareValue = field === "firstName" 
+        ? a.firstName.localeCompare(b.firstName)
+        : a.lastName.localeCompare(b.lastName);
+      return direction === "asc" ? compareValue : -compareValue;
+    });
+  };
 
   const isDuplicateVolunteer = (data: z.infer<typeof volunteerSchema>, excludeId?: string) => {
     return volunteers.some(v => 
@@ -199,10 +210,13 @@ export default function Volunteers() {
     );
   };
 
-  const filteredVolunteers = volunteers.filter(volunteer => {
-    const searchString = `${volunteer.firstName} ${volunteer.lastName} ${volunteer.phoneNumber}`.toLowerCase();
-    return searchString.includes(searchTerm.toLowerCase());
-  });
+  const filteredVolunteers = sortVolunteers(
+    volunteers.filter(volunteer => {
+      const searchString = `${volunteer.firstName} ${volunteer.lastName} ${volunteer.phoneNumber}`.toLowerCase();
+      return searchString.includes(searchTerm.toLowerCase());
+    }),
+    sortOrder
+  );
 
   // Calculate pagination
   const totalPages = Math.ceil(filteredVolunteers.length / ITEMS_PER_PAGE);
@@ -229,14 +243,33 @@ export default function Volunteers() {
       </Card>
 
       <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
-        <div className="relative flex-1 w-full">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
-          <Input
-            placeholder="Zoeken..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-9 w-full"
-          />
+        <div className="flex flex-col sm:flex-row gap-4 flex-1 w-full">
+          <div className="relative flex-1 w-full">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
+            <Input
+              placeholder="Zoeken..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-9 w-full"
+            />
+          </div>
+          <Select
+            value={sortOrder}
+            onValueChange={(value: SortOrder) => setSortOrder(value)}
+          >
+            <SelectTrigger className="w-full sm:w-[200px]">
+              <div className="flex items-center gap-2">
+                <ArrowUpDown className="h-4 w-4" />
+                <span>Sorteren op</span>
+              </div>
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="firstName-asc">Voornaam (A-Z)</SelectItem>
+              <SelectItem value="firstName-desc">Voornaam (Z-A)</SelectItem>
+              <SelectItem value="lastName-asc">Achternaam (A-Z)</SelectItem>
+              <SelectItem value="lastName-desc">Achternaam (Z-A)</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
         <div className="flex items-center gap-2 w-full sm:w-auto">
           <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
