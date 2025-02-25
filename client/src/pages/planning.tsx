@@ -84,7 +84,21 @@ const planningSchema = z.object({
 type Planning = z.infer<typeof planningSchema> & { id: string };
 
 // PlanningTable component
-const PlanningTable = ({ plannings, emptyMessage }: { plannings: Planning[]; emptyMessage: string }) => {
+const PlanningTable = ({
+  plannings,
+  emptyMessage,
+  volunteers,
+  rooms,
+  onEdit,
+  onDelete
+}: {
+  plannings: Planning[];
+  emptyMessage: string;
+  volunteers: { id: string; firstName: string; lastName: string; }[];
+  rooms: { id: string; name: string; }[];
+  onEdit: (planning: Planning) => void;
+  onDelete: (id: string) => void;
+}) => {
   return (
     <div className="rounded-lg border bg-card">
       <Table>
@@ -116,7 +130,7 @@ const PlanningTable = ({ plannings, emptyMessage }: { plannings: Planning[]; emp
                       size="icon"
                       onClick={(e) => {
                         e.stopPropagation();
-                        handleEdit(planning);
+                        onEdit(planning);
                       }}
                       className="text-primary hover:text-primary hover:bg-primary/10"
                     >
@@ -127,7 +141,7 @@ const PlanningTable = ({ plannings, emptyMessage }: { plannings: Planning[]; emp
                       size="icon"
                       onClick={(e) => {
                         e.stopPropagation();
-                        setDeletePlanningId(planning.id);
+                        onDelete(planning.id);
                       }}
                       className="text-red-600 hover:text-red-700 hover:bg-red-50"
                     >
@@ -711,6 +725,10 @@ export default function Planning() {
           <PlanningTable
             plannings={filteredActivePlannings}
             emptyMessage="Geen actieve planningen gevonden"
+            volunteers={volunteers}
+            rooms={rooms}
+            onEdit={handleEdit}
+            onDelete={handleDelete}
           />
         </div>
       </CollapsibleSection>
@@ -744,6 +762,10 @@ export default function Planning() {
           <PlanningTable
             plannings={filteredUpcomingPlannings}
             emptyMessage="Geen toekomstige planningen gevonden"
+            volunteers={volunteers}
+            rooms={rooms}
+            onEdit={handleEdit}
+            onDelete={handleDelete}
           />
         </div>
       </CollapsibleSection>
@@ -768,6 +790,10 @@ export default function Planning() {
           <PlanningTable
             plannings={pastPlannings}
             emptyMessage="Geen afgelopen planningen gevonden"
+            volunteers={volunteers}
+            rooms={rooms}
+            onEdit={handleEdit}
+            onDelete={handleDelete}
           />
         </div>
       </CollapsibleSection>
