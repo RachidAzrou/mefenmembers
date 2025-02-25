@@ -43,6 +43,9 @@ import {
   House,
   Edit2,
   Trash2,
+  CheckSquare,
+  Square,
+  Settings2,
 } from "lucide-react";
 import { Form as FormComponent, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -80,13 +83,10 @@ export default function Planning() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [searchActive, setSearchActive] = useState("");
   const [searchUpcoming, setSearchUpcoming] = useState("");
-  const [selectedPlannings, setSelectedPlannings] = useState<string[]>([]); // New state for selected volunteer IDs
+  const [selectedPlannings, setSelectedPlannings] = useState<string[]>([]);
+  const [isEditMode, setIsEditMode] = useState(false);
   const { isAdmin } = useRole();
   const { toast } = useToast();
-
-  const form = useForm<z.infer<typeof planningSchema>>({
-    resolver: zodResolver(planningSchema),
-  });
 
   useState(() => {
     const volunteersRef = ref(db, "volunteers");
@@ -226,6 +226,30 @@ export default function Planning() {
       <Table>
         <TableHeader>
           <TableRow>
+            {isEditMode && (
+              <TableHead className="w-[50px]">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    const allIds = plannings.map(p => p.id);
+                    if (selectedPlannings.length === allIds.length) {
+                      setSelectedPlannings([]);
+                    } else {
+                      setSelectedPlannings(allIds);
+                    }
+                  }}
+                  className="hover:bg-transparent"
+                >
+                  {selectedPlannings.length === plannings.length ? (
+                    <CheckSquare className="h-4 w-4" />
+                  ) : (
+                    <Square className="h-4 w-4" />
+                  )}
+                </Button>
+              </TableHead>
+            )}
             <TableHead>Vrijwilliger</TableHead>
             <TableHead>Ruimte</TableHead>
             <TableHead>Periode</TableHead>
@@ -239,12 +263,31 @@ export default function Planning() {
             return (
               <TableRow
                 key={planning.id}
-                onClick={() => toggleSelectPlanning(planning.id)}
+                onClick={() => isEditMode && toggleSelectPlanning(planning.id)}
                 className={cn(
-                  "cursor-pointer hover:bg-gray-50",
+                  isEditMode && "cursor-pointer hover:bg-gray-50",
                   selectedPlannings.includes(planning.id) && "bg-primary/5"
                 )}
               >
+                {isEditMode && (
+                  <TableCell>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        toggleSelectPlanning(planning.id);
+                      }}
+                      className="hover:bg-transparent"
+                    >
+                      {selectedPlannings.includes(planning.id) ? (
+                        <CheckSquare className="h-4 w-4" />
+                      ) : (
+                        <Square className="h-4 w-4" />
+                      )}
+                    </Button>
+                  </TableCell>
+                )}
                 <TableCell className="font-medium">
                   {volunteer ? `${volunteer.firstName} ${volunteer.lastName}` : "-"}
                 </TableCell>
@@ -284,7 +327,7 @@ export default function Planning() {
           {plannings.length === 0 && (
             <TableRow>
               <TableCell
-                colSpan={4}
+                colSpan={isEditMode ? 5 : 4}
                 className="h-32 text-center text-muted-foreground"
               >
                 <CalendarDaysIcon className="h-8 w-8 mx-auto mb-2 opacity-50" />
@@ -477,6 +520,34 @@ export default function Planning() {
           <CalendarIcon className="h-8 w-8 text-primary" />
           <h1 className="text-3xl font-bold text-primary">Planning</h1>
         </div>
+
+        <div className="flex items-center gap-2">
+          <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+            <DialogTrigger asChild>
+              <Button className="bg-[#6BB85C] hover:bg-[#6BB85C]/90">
+                <CalendarIcon className="h-4 w-4 mr-2" />
+                Inplannen
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>
+                  {editingPlanning ? "Planning Bewerken" : "Vrijwilliger Inplannen"}
+                </DialogTitle>
+              </DialogHeader>
+              <PlanningForm form={form} onSubmit={onSubmit} editingPlanning={editingPlanning} volunteers={volunteers} rooms={rooms} />
+            </DialogContent>
+          </Dialog>
+
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => setIsEditMode(!isEditMode)}
+            className={cn(isEditMode && "bg-primary/10 text-primary")}
+          >
+            <Settings2 className="h-5 w-5" />
+          </Button>
+        </div>
       </div>
 
       <CollapsibleSection
@@ -602,7 +673,7 @@ export default function Planning() {
       </CollapsibleSection>
 
       {/* Bulk inplannen button */}
-      {selectedPlannings.length > 0 && (
+      {isEditMode && selectedPlannings.length > 0 && (
         <div className="fixed bottom-4 right-4 flex gap-2 bg-white p-4 rounded-lg shadow-lg border">
           <span className="text-sm text-gray-500 self-center mr-2">
             {selectedPlannings.length} geselecteerd
