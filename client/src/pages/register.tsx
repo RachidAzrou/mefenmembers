@@ -125,7 +125,7 @@ export default function Register() {
 
       setRegistrationStatus({
         type: 'success',
-        message: `Je aanmelding is ontvangen en wordt bekeken door de beheerder. Dankjewel voor je interesse om vrijwilliger te worden bij MEFEN! We nemen zo snel mogelijk contact met je op.`
+        message: 'Dankjewel voor je aanmelding! We nemen snel contact met je op.'
       });
       form.reset();
     } catch (error) {
@@ -163,19 +163,19 @@ export default function Register() {
             </div>
 
             {registrationStatus && (
-              <div className={`mb-6 p-6 rounded-lg text-center ${
-                registrationStatus.type === 'success'
-                  ? 'bg-green-50 border border-green-200 text-green-800'
-                  : 'bg-red-50 border border-red-200 text-red-800'
-              }`}>
-                <p className="text-base">{registrationStatus.message}</p>
-                {registrationStatus.type === 'success' && (
-                  <p className="mt-2 text-sm text-green-600">
-                    We zullen je contactgegevens gebruiken om je op de hoogte te houden.
+                <div className={`mb-6 p-6 rounded-lg text-center ${
+                  registrationStatus.type === 'success'
+                    ? 'bg-green-50 border border-green-200 text-green-800'
+                    : 'bg-red-50 border border-red-200 text-red-800'
+                }`}>
+                  <p className="text-base font-medium">
+                    {registrationStatus.type === 'success' 
+                      ? 'Dankjewel voor je aanmelding! We nemen snel contact met je op.'
+                      : registrationStatus.message
+                    }
                   </p>
-                )}
-              </div>
-            )}
+                </div>
+              )}
 
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 sm:space-y-5">
