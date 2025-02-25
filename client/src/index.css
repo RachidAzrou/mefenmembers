@@ -9,7 +9,7 @@
 
   body {
     @apply font-sans antialiased bg-background text-foreground;
-    background-image: url('/static/123.jpg');
+    background-image: url('../public/static/123.jpg');
     background-size: cover;
     background-attachment: fixed;
     background-position: center;
