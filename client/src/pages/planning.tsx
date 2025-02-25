@@ -308,35 +308,8 @@ const PlanningForm = ({ form, onSubmit, editingPlanning, volunteers, rooms }: {
             />
 
             {totalPlannings > 0 && (
-              <div className="bg-secondary/50 rounded-lg p-4 space-y-4">
-                <div className="font-medium">
-                  Bulk Planning Overzicht:
-                </div>
-                <div>
-                  <strong>Geselecteerde Vrijwilligers ({selectedVolunteers.length}):</strong>
-                  <ul className="list-disc pl-5 mt-1">
-                    {selectedVolunteers.map(id => {
-                      const volunteer = volunteers.find(v => v.id === id);
-                      return volunteer && (
-                        <li key={id}>{volunteer.firstName} {volunteer.lastName}</li>
-                      );
-                    })}
-                  </ul>
-                </div>
-                <div>
-                  <strong>Geselecteerde Ruimtes ({selectedRooms.length}):</strong>
-                  <ul className="list-disc pl-5 mt-1">
-                    {selectedRooms.map(id => {
-                      const room = rooms.find(r => r.id === id);
-                      return room && (
-                        <li key={id}>{room.name}</li>
-                      );
-                    })}
-                  </ul>
-                </div>
-                <div className="text-sm text-muted-foreground bg-primary/5 p-2 rounded">
-                  {`Er ${totalPlannings === 1 ? 'wordt' : 'worden'} ${totalPlannings} planning${totalPlannings === 1 ? '' : 'en'} aangemaakt`}
-                </div>
+              <div className="text-sm text-muted-foreground bg-primary/5 p-2 rounded">
+                {`Er ${totalPlannings === 1 ? 'wordt' : 'worden'} ${totalPlannings} planning${totalPlannings === 1 ? '' : 'en'} aangemaakt`}
               </div>
             )}
           </>
@@ -372,7 +345,11 @@ const PlanningForm = ({ form, onSubmit, editingPlanning, volunteers, rooms }: {
                     mode="single"
                     selected={field.value ? parseISO(field.value) : undefined}
                     onSelect={(date) => date && field.onChange(date.toISOString().split('T')[0])}
-                    disabled={(date) => date < new Date()}
+                    disabled={(date) => {
+                      const today = new Date();
+                      today.setHours(0, 0, 0, 0);
+                      return date < today;
+                    }}
                     initialFocus
                     locale={nl}
                   />
