@@ -6,7 +6,6 @@ import { nl } from "date-fns/locale";
 import { useState, useEffect } from "react";
 import { db } from "@/lib/firebase";
 import { ref, onValue } from "firebase/database";
-import { HiCalendar } from 'react-icons/hi';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -156,14 +155,12 @@ export function WeekView({ checkedOutMaterials }: WeekViewProps) {
 
   return (
     <div className="space-y-6 px-4 md:px-0">
-      {/* Header section */}
       <div className="text-center">
         <h2 className="text-xl md:text-2xl font-semibold text-[#D9A347]">
           Week van {format(weekStart, "d MMMM yyyy", { locale: nl })}
         </h2>
 
         <div className="mt-4 md:mt-6 flex flex-col sm:flex-row justify-between items-center gap-4">
-          {/* Left side - Navigation */}
           <div className="flex items-center gap-2">
             <Button
               variant="outline"
@@ -176,7 +173,6 @@ export function WeekView({ checkedOutMaterials }: WeekViewProps) {
             </Button>
           </div>
 
-          {/* Center - Navigation */}
           <div className="flex items-center gap-2">
             <Button variant="outline" size="icon" onClick={goToPreviousWeek} className="h-9 w-9 md:h-10 md:w-10">
               <ChevronLeft className="h-4 w-4" />
@@ -187,7 +183,6 @@ export function WeekView({ checkedOutMaterials }: WeekViewProps) {
             </Button>
           </div>
 
-          {/* Right side - Export */}
           <div className="flex items-center gap-2">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -225,7 +220,6 @@ export function WeekView({ checkedOutMaterials }: WeekViewProps) {
         </div>
       </div>
 
-      {/* Calendar Grid */}
       <div className="grid grid-cols-1 md:grid-cols-7 gap-4">
         {weekDays.map((day) => {
           const dayPlannings = getPlanningsForDay(day);
@@ -266,6 +260,10 @@ export function WeekView({ checkedOutMaterials }: WeekViewProps) {
                               : 'Niet toegewezen'
                             }
                           </div>
+                          <div className="text-xs text-muted-foreground mt-1">
+                            {format(new Date(planning.startDate), "HH:mm", { locale: nl })} - 
+                            {format(new Date(planning.endDate), "HH:mm", { locale: nl })}
+                          </div>
                         </div>
                       );
                     })
@@ -277,7 +275,6 @@ export function WeekView({ checkedOutMaterials }: WeekViewProps) {
         })}
       </div>
 
-      {/* Stats Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <Card>
           <CardContent className="pt-6">

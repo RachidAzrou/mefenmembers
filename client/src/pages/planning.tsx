@@ -56,6 +56,7 @@ import { cn } from "@/lib/utils";
 import { Switch } from "@/components/ui/switch";
 import { MultiSelect } from "@/components/ui/multi-select";
 import { Label } from "@/components/ui/label";
+import React from 'react';
 
 const planningSchema = z.object({
   volunteerId: z.string().min(1, "Vrijwilliger is verplicht").optional(),
@@ -92,6 +93,7 @@ const PlanningTable = ({
   onDelete,
   searchValue,
   onSearchChange,
+  showActions = false,
 }: {
   plannings: Planning[];
   emptyMessage: string;
@@ -101,6 +103,7 @@ const PlanningTable = ({
   onDelete: (id: string) => void;
   searchValue: string;
   onSearchChange: (value: string) => void;
+  showActions?: boolean;
 }) => {
   return (
     <div className="space-y-4">
@@ -122,7 +125,7 @@ const PlanningTable = ({
               <TableHead>Vrijwilliger</TableHead>
               <TableHead>Ruimte</TableHead>
               <TableHead>Periode</TableHead>
-              <TableHead className="w-[120px]">Acties</TableHead>
+              {showActions && <TableHead className="w-[120px]">Acties</TableHead>}
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -132,8 +135,10 @@ const PlanningTable = ({
               return (
                 <TableRow
                   key={planning.id}
-                  className="cursor-pointer hover:bg-muted/50"
-                  onClick={() => onEdit(planning)}
+                  className={cn(
+                    showActions && "cursor-pointer hover:bg-muted/50"
+                  )}
+                  onClick={showActions ? () => onEdit(planning) : undefined}
                 >
                   <TableCell className="font-medium">
                     {volunteer ? `${volunteer.firstName} ${volunteer.lastName}` : "-"}
@@ -142,39 +147,41 @@ const PlanningTable = ({
                   <TableCell className="whitespace-nowrap">
                     {format(new Date(planning.startDate), "d MMM yyyy", { locale: nl })} - {format(new Date(planning.endDate), "d MMM yyyy", { locale: nl })}
                   </TableCell>
-                  <TableCell>
-                    <div className="flex space-x-2">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onEdit(planning);
-                        }}
-                        className="h-8 w-8 text-primary hover:text-primary hover:bg-primary/10"
-                      >
-                        <Edit2 className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onDelete(planning.id);
-                        }}
-                        className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </TableCell>
+                  {showActions && (
+                    <TableCell>
+                      <div className="flex space-x-2">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onEdit(planning);
+                          }}
+                          className="h-8 w-8 text-primary hover:text-primary hover:bg-primary/10"
+                        >
+                          <Edit2 className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onDelete(planning.id);
+                          }}
+                          className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  )}
                 </TableRow>
               );
             })}
             {plannings.length === 0 && (
               <TableRow>
                 <TableCell
-                  colSpan={4}
+                  colSpan={showActions ? 4 : 3}
                   className="h-32 text-center text-muted-foreground"
                 >
                   <CalendarDaysIcon className="h-8 w-8 mx-auto mb-2 opacity-50" />
@@ -489,26 +496,16 @@ const PlanningSection = ({ title, icon, defaultOpen, children }: {
       )}>
         {children}
         {isEditing && (
-          <div className="absolute inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center">
-            <div className="bg-card p-4 rounded-lg shadow-lg space-y-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => {/* handle edit */}}
-                className="w-full"
-              >
-                <Edit2 className="h-4 w-4 mr-2" />
-                Bewerken
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => {/* handle delete */}}
-                className="w-full text-destructive hover:text-destructive"
-              >
-                <Trash2 className="h-4 w-4 mr-2" />
-                Verwijderen
-              </Button>
+          <div className="absolute inset-0 bg-background/80 backdrop-blur-sm rounded-lg">
+            <div className="p-4">
+              {React.Children.map(children, child => {
+                if (React.isValidElement(child)) {
+                  return React.cloneElement(child as React.ReactElement, {
+                    showActions: true
+                  });
+                }
+                return child;
+              })}
             </div>
           </div>
         )}
@@ -517,7 +514,7 @@ const PlanningSection = ({ title, icon, defaultOpen, children }: {
   );
 };
 
-export default function Planning() {
+const Planning = () => {
   const [plannings, setPlannings] = useState<Planning[]>([]);
   const [volunteers, setVolunteers] = useState<{ id: string; firstName: string; lastName: string; }[]>([]);
   const [rooms, setRooms] = useState<{ id: string; name: string; }[]>([]);
@@ -860,4 +857,6 @@ export default function Planning() {
       </AlertDialog>
     </div>
   );
-}
+};
+
+export default Planning;

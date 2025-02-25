@@ -5,11 +5,12 @@ import { Button } from "@/components/ui/button"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
 
-interface CollapsibleSectionProps extends aReact.HTMLAttributes<HTMLDivElement> {
+interface CollapsibleSectionProps extends React.HTMLAttributes<HTMLDivElement> {
   title: string
   defaultOpen?: boolean
   icon?: React.ReactNode
   children: React.ReactNode
+  action?: React.ReactNode
 }
 
 export function CollapsibleSection({
@@ -17,6 +18,7 @@ export function CollapsibleSection({
   defaultOpen = true,
   icon,
   children,
+  action,
   className,
   ...props
 }: CollapsibleSectionProps) {
@@ -36,12 +38,15 @@ export function CollapsibleSection({
                 {icon}
                 {title}
               </div>
-              <ChevronDown
-                className={cn(
-                  "ml-auto h-5 w-5 shrink-0 text-muted-foreground transition-transform",
-                  isOpen && "rotate-180"
-                )}
-              />
+              <div className="ml-auto flex items-center gap-2">
+                {action}
+                <ChevronDown
+                  className={cn(
+                    "h-5 w-5 shrink-0 text-muted-foreground transition-transform",
+                    isOpen && "rotate-180"
+                  )}
+                />
+              </div>
             </Button>
           </CollapsibleTrigger>
           <CollapsibleContent>
