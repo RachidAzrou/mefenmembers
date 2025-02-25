@@ -1,6 +1,6 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, ChevronRight, Download, Share2, Share, Copy, Package2, Users2, UserCheck, House } from "lucide-react";
+import { ChevronLeft, ChevronRight, Download, Share2, Share, Copy, Package2, Users2, UserCheck, House, Clock } from "lucide-react";
 import { format, addWeeks, startOfWeek, addDays, isWithinInterval } from "date-fns";
 import { nl } from "date-fns/locale";
 import { useState, useEffect } from "react";
@@ -254,15 +254,19 @@ export function WeekView({ checkedOutMaterials }: WeekViewProps) {
                           <div className="font-medium text-primary text-sm md:text-base">
                             {room?.name || 'Onbekende ruimte'}
                           </div>
-                          <div className="text-xs md:text-sm text-muted-foreground mt-1">
-                            {volunteer
-                              ? `${volunteer.firstName} ${volunteer.lastName}`
-                              : 'Niet toegewezen'
-                            }
-                          </div>
-                          <div className="text-xs text-muted-foreground mt-1">
-                            {format(new Date(planning.startDate), "HH:mm", { locale: nl })} - 
-                            {format(new Date(planning.endDate), "HH:mm", { locale: nl })}
+                          <div className="text-xs md:text-sm text-muted-foreground mt-1 flex flex-col gap-0.5">
+                            <div className="flex items-center">
+                              <Users2 className="h-3.5 w-3.5 mr-1.5 text-muted-foreground/70" />
+                              {volunteer
+                                ? `${volunteer.firstName} ${volunteer.lastName}`
+                                : 'Niet toegewezen'
+                              }
+                            </div>
+                            <div className="flex items-center">
+                              <Clock className="h-3.5 w-3.5 mr-1.5 text-muted-foreground/70" />
+                              {format(new Date(planning.startDate), "HH:mm", { locale: nl })} - 
+                              {format(new Date(planning.endDate), "HH:mm", { locale: nl })}
+                            </div>
                           </div>
                         </div>
                       );
