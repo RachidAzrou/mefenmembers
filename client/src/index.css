@@ -8,24 +8,12 @@
   }
 
   body {
-    @apply font-sans antialiased bg-background text-foreground;
-    background: linear-gradient(135deg, rgba(245, 247, 250, 0.7), rgba(195, 207, 226, 0.7)),
-                url('/static/123.jpg');
-    background-size: cover;
-    background-attachment: fixed;
-    background-position: center;
+    @apply font-sans antialiased text-foreground;
+    background: url('/static/123.jpg') center center/cover no-repeat,
+                linear-gradient(135deg, rgba(245, 247, 250, 0.7), rgba(195, 207, 226, 0.7));
+    background-blend-mode: overlay;
+    min-height: 100vh;
     position: relative;
-  }
-
-  body::before {
-    content: '';
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: rgba(255, 255, 255, 0.7);
-    z-index: -1;
   }
 
   /* Make containers slightly transparent to show pattern */
