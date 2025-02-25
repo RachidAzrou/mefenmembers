@@ -43,11 +43,11 @@ import {
   Search,
   Flashlight,
 } from "lucide-react";
-import { 
+import {
   GiMonclerJacket,
   GiWalkieTalkie,
 } from 'react-icons/gi';
-import { 
+import {
   TbJacket,
 } from 'react-icons/tb';
 import { useRole } from "@/hooks/use-role";
@@ -63,6 +63,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { Edit2 } from 'lucide-react';
 
 const materialSchema = z.object({
   typeId: z.string().min(1, "Type materiaal is verplicht"),
@@ -349,203 +350,10 @@ export default function Materials() {
 
   return (
     <div className="container mx-auto px-4 py-6 max-w-7xl space-y-6">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+      <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
         <div className="flex items-center gap-3">
           <Package2 className="h-8 w-8 text-primary" />
           <h1 className="text-3xl font-bold text-primary">Materiaalbeheer</h1>
-        </div>
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-4">
-            {isAdmin && (
-              <>
-                <Dialog open={isTypesDialogOpen} onOpenChange={setIsTypesDialogOpen}>
-                  <DialogTrigger asChild>
-                    <Button variant="outline">
-                      <Plus className="h-4 w-4 mr-2" />
-                      Type Toevoegen
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent>
-                    <DialogHeader>
-                      <DialogTitle>
-                        {editingMaterialType ? "Materiaaltype Bewerken" : "Nieuw Materiaaltype"}
-                      </DialogTitle>
-                    </DialogHeader>
-                    <Form {...typeForm}>
-                      <form onSubmit={typeForm.handleSubmit(onSubmitType)} className="space-y-4">
-                        <FormField
-                          control={typeForm.control}
-                          name="name"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Naam</FormLabel>
-                              <FormControl>
-                                <Input {...field} placeholder="Materiaaltype naam" />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        <FormField
-                          control={typeForm.control}
-                          name="maxCount"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Maximum aantal</FormLabel>
-                              <FormControl>
-                                <Input
-                                  type="number"
-                                  min={1}
-                                  max={100}
-                                  {...field}
-                                  placeholder="Maximum aantal"
-                                />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        <Button type="submit" className="w-full">
-                          {editingMaterialType ? "Bijwerken" : "Toevoegen"}
-                        </Button>
-                      </form>
-                    </Form>
-                  </DialogContent>
-                </Dialog>
-                <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-                  <DialogTrigger asChild>
-                    <Button className="bg-[#6BB85C] hover:bg-[#6BB85C]/90 text-white">
-                      <Package2 className="h-4 w-4 mr-2" />
-                      Toewijzen
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent>
-                    <DialogHeader>
-                      <DialogTitle>
-                        {editingMaterial ? "Materiaal Bewerken" : "Materiaal Toewijzen"}
-                      </DialogTitle>
-                    </DialogHeader>
-                    <Form {...form}>
-                      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                        <FormField
-                          control={form.control}
-                          name="typeId"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Type Materiaal</FormLabel>
-                              <Select
-                                onValueChange={field.onChange}
-                                defaultValue={field.value}
-                              >
-                                <FormControl>
-                                  <SelectTrigger>
-                                    <SelectValue placeholder="Selecteer type" />
-                                  </SelectTrigger>
-                                </FormControl>
-                                <SelectContent>
-                                  {materialTypes.map((type) => (
-                                    <SelectItem key={type.id} value={type.id}>
-                                      {type.name}
-                                    </SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        <FormField
-                          control={form.control}
-                          name="volunteerId"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Vrijwilliger</FormLabel>
-                              <Select
-                                onValueChange={field.onChange}
-                                defaultValue={field.value}
-                              >
-                                <FormControl>
-                                  <SelectTrigger>
-                                    <SelectValue placeholder="Selecteer vrijwilliger" />
-                                  </SelectTrigger>
-                                </FormControl>
-                                <SelectContent>
-                                  {volunteers.map((volunteer) => (
-                                    <SelectItem key={volunteer.id} value={volunteer.id}>
-                                      {volunteer.firstName} {volunteer.lastName}
-                                    </SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        <FormField
-                          control={form.control}
-                          name="number"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Nummer</FormLabel>
-                              <Select
-                                onValueChange={(value) => field.onChange(parseInt(value))}
-                                defaultValue={field.value?.toString()}
-                              >
-                                <FormControl>
-                                  <SelectTrigger>
-                                    <SelectValue placeholder="Selecteer nummer" />
-                                  </SelectTrigger>
-                                </FormControl>
-                                <SelectContent>
-                                  {Array.from({ length: maxNumber }).map((_, i) => (
-                                    <SelectItem key={i + 1} value={(i + 1).toString()}>
-                                      {i + 1}
-                                    </SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        <Button type="submit" className="w-full">
-                          {editingMaterial ? "Materiaal Bijwerken" : "Materiaal Toewijzen"}
-                        </Button>
-                      </form>
-                    </Form>
-                  </DialogContent>
-                </Dialog>
-              </>
-            )}
-          </div>
-          <div className="relative w-64">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <InputComponent
-              placeholder="Zoeken..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-9"
-            />
-          </div>
-          {isAdmin && (
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    onClick={() => setIsEditMode(!isEditMode)}
-                    className={`${isEditMode ? "bg-primary/10 text-primary" : ""}`}
-                  >
-                    <Settings2 className="h-5 w-5" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  {isEditMode ? "Bewerken afsluiten" : "Lijst bewerken"}
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-          )}
         </div>
       </div>
 
@@ -573,161 +381,347 @@ export default function Materials() {
         ))}
       </div>
 
-      <div className="space-y-6">
-        {isAdmin && (
-          <div className="flex items-center justify-between">
-            <h2 className="text-lg font-semibold">Materiaallijst</h2>
+      {/* Search and Action Controls */}
+      <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
+        <div className="relative flex-1 w-full sm:max-w-md">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <InputComponent
+            placeholder="Zoeken..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-9"
+          />
+        </div>
 
+        {isAdmin && (
+          <div className="flex items-center gap-2 self-end">
+            <Dialog open={isTypesDialogOpen} onOpenChange={setIsTypesDialogOpen}>
+              <DialogTrigger asChild>
+                <Button variant="outline">
+                  <Plus className="h-4 w-4 mr-2" />
+                  Type Toevoegen
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>
+                    {editingMaterialType ? "Materiaaltype Bewerken" : "Nieuw Materiaaltype"}
+                  </DialogTitle>
+                </DialogHeader>
+                <Form {...typeForm}>
+                  <form onSubmit={typeForm.handleSubmit(onSubmitType)} className="space-y-4">
+                    <FormField
+                      control={typeForm.control}
+                      name="name"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Naam</FormLabel>
+                          <FormControl>
+                            <Input {...field} placeholder="Materiaaltype naam" />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={typeForm.control}
+                      name="maxCount"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Maximum aantal</FormLabel>
+                          <FormControl>
+                            <Input
+                              type="number"
+                              min={1}
+                              max={100}
+                              {...field}
+                              placeholder="Maximum aantal"
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <Button type="submit" className="w-full">
+                      {editingMaterialType ? "Bijwerken" : "Toevoegen"}
+                    </Button>
+                  </form>
+                </Form>
+              </DialogContent>
+            </Dialog>
+
+            <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+              <DialogTrigger asChild>
+                <Button className="bg-[#6BB85C] hover:bg-[#6BB85C]/90 text-white">
+                  <Package2 className="h-4 w-4 mr-2" />
+                  Toewijzen
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>
+                    {editingMaterial ? "Materiaal Bewerken" : "Materiaal Toewijzen"}
+                  </DialogTitle>
+                </DialogHeader>
+                <Form {...form}>
+                  <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                    <FormField
+                      control={form.control}
+                      name="typeId"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Type Materiaal</FormLabel>
+                          <Select
+                            onValueChange={field.onChange}
+                            defaultValue={field.value}
+                          >
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Selecteer type" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {materialTypes.map((type) => (
+                                <SelectItem key={type.id} value={type.id}>
+                                  {type.name}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="volunteerId"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Vrijwilliger</FormLabel>
+                          <Select
+                            onValueChange={field.onChange}
+                            defaultValue={field.value}
+                          >
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Selecteer vrijwilliger" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {volunteers.map((volunteer) => (
+                                <SelectItem key={volunteer.id} value={volunteer.id}>
+                                  {volunteer.firstName} {volunteer.lastName}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="number"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Nummer</FormLabel>
+                          <Select
+                            onValueChange={(value) => field.onChange(parseInt(value))}
+                            defaultValue={field.value?.toString()}
+                          >
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Selecteer nummer" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {Array.from({ length: maxNumber }).map((_, i) => (
+                                <SelectItem key={i + 1} value={(i + 1).toString()}>
+                                  {i + 1}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <Button type="submit" className="w-full">
+                      {editingMaterial ? "Materiaal Bijwerken" : "Materiaal Toewijzen"}
+                    </Button>
+                  </form>
+                </Form>
+              </DialogContent>
+            </Dialog>
+
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => setIsEditMode(!isEditMode)}
+                    className={`${isEditMode ? "bg-primary/10 text-primary" : ""}`}
+                  >
+                    <Settings2 className="h-5 w-5" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  {isEditMode ? "Bewerken afsluiten" : "Lijst bewerken"}
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           </div>
         )}
+      </div>
 
-        <div className="rounded-lg border bg-card">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                {isEditMode && (
-                  <TableHead className="w-[50px]">
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={toggleSelectAll}
-                            className="hover:bg-transparent"
-                          >
-                            {selectedMaterials.length === filteredMaterials.length ? (
-                              <CheckSquare className="h-4 w-4" />
-                            ) : (
-                              <Square className="h-4 w-4" />
-                            )}
-                          </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          {selectedMaterials.length === filteredMaterials.length ?
-                            "Deselecteer alles" : "Selecteer alles"}
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
-                  </TableHead>
-                )}
-                <TableHead>Type</TableHead>
-                <TableHead>Nummer</TableHead>
-                <TableHead>Vrijwilliger</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="w-[100px]">Acties</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredMaterials.map((item) => {
-                const type = materialTypes.find((t) => t.id === item.typeId);
-                const volunteer = volunteers.find((v) => v.id === item.volunteerId);
-                return (
-                  <TableRow key={item.id} className="group">
-                    {isEditMode && (
-                      <TableCell>
+      {/* Materials List */}
+      <div className="rounded-lg border bg-card">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              {isEditMode && (
+                <TableHead className="w-[50px]">
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
                         <Button
                           variant="ghost"
                           size="icon"
-                          onClick={() => toggleSelect(item.id)}
+                          onClick={toggleSelectAll}
                           className="hover:bg-transparent"
                         >
-                          {selectedMaterials.includes(item.id) ? (
+                          {selectedMaterials.length === filteredMaterials.length ? (
                             <CheckSquare className="h-4 w-4" />
                           ) : (
                             <Square className="h-4 w-4" />
                           )}
                         </Button>
-                      </TableCell>
-                    )}
-                    <TableCell>{type?.name || "-"}</TableCell>
-                    <TableCell>{item.number}</TableCell>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        {selectedMaterials.length === filteredMaterials.length ?
+                          "Deselecteer alles" : "Selecteer alles"}
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </TableHead>
+              )}
+              <TableHead>Type</TableHead>
+              <TableHead>Nummer</TableHead>
+              <TableHead>Vrijwilliger</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead className="w-[100px]">Acties</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {filteredMaterials.map((item) => {
+              const type = materialTypes.find((t) => t.id === item.typeId);
+              const volunteer = volunteers.find((v) => v.id === item.volunteerId);
+              return (
+                <TableRow key={item.id} className="group">
+                  {isEditMode && (
                     <TableCell>
-                      {volunteer
-                        ? `${volunteer.firstName} ${volunteer.lastName}`
-                        : "-"}
-                    </TableCell>
-                    <TableCell>
-                      <Badge
-                        variant={item.isCheckedOut ? "default" : "secondary"}
-                        className="font-normal"
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => toggleSelect(item.id)}
+                        className="hover:bg-transparent"
                       >
-                        {item.isCheckedOut ? "Uitgeleend" : "Beschikbaar"}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex space-x-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                        {isEditMode && (
-                          <TooltipProvider>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  onClick={() => handleEdit(item)}
-                                  className="text-primary hover:text-primary hover:bg-primary/10"
-                                >
-                                  <Edit2 className="h-4 w-4" />
-                                </Button>
-                              </TooltipTrigger>
-                              <TooltipContent>Bewerken</TooltipContent>
-                            </Tooltip>
-                          </TooltipProvider>
+                        {selectedMaterials.includes(item.id) ? (
+                          <CheckSquare className="h-4 w-4" />
+                        ) : (
+                          <Square className="h-4 w-4" />
                         )}
-                        {item.isCheckedOut && (
-                          <TooltipProvider>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  onClick={() => handleReturn(item.id)}
-                                  className="text-primary hover:text-primary hover:bg-primary/10"
-                                >
-                                  <RotateCcw className="h-4 w-4" />
-                                </Button>
-                              </TooltipTrigger>
-                              <TooltipContent>Retourneren</TooltipContent>
-                            </Tooltip>
-                          </TooltipProvider>
-                        )}
-                      </div>
+                      </Button>
                     </TableCell>
-                  </TableRow>
-                );
-              })}
-              {filteredMaterials.length === 0 && (
-                <TableRow>
-                  <TableCell
-                    colSpan={isEditMode ? 6 : 5}
-                    className="h-32 text-center text-muted-foreground"
-                  >
-                    <Package2 className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                    Geen materialen gevonden
+                  )}
+                  <TableCell>{type?.name || "-"}</TableCell>
+                  <TableCell>{item.number}</TableCell>
+                  <TableCell>
+                    {volunteer
+                      ? `${volunteer.firstName} ${volunteer.lastName}`
+                      : "-"}
+                  </TableCell>
+                  <TableCell>
+                    <Badge
+                      variant={item.isCheckedOut ? "default" : "secondary"}
+                      className="font-normal"
+                    >
+                      {item.isCheckedOut ? "Uitgeleend" : "Beschikbaar"}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex space-x-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                      {isEditMode && (
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => handleEdit(item)}
+                                className="text-primary hover:text-primary hover:bg-primary/10"
+                              >
+                                <Edit2 className="h-4 w-4" />
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>Bewerken</TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      )}
+                      {item.isCheckedOut && (
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => handleReturn(item.id)}
+                                className="text-primary hover:text-primary hover:bg-primary/10"
+                              >
+                                <RotateCcw className="h-4 w-4" />
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>Retourneren</TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      )}
+                    </div>
                   </TableCell>
                 </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </div>
-
-        {isEditMode && selectedMaterials.length > 0 && (
-          <div className="fixed bottom-4 right-4 flex items-center gap-3 bg-white p-4 rounded-lg shadow-lg border animate-in slide-in-from-bottom-2">
-            <span className="text-sm text-muted-foreground">
-              {selectedMaterials.length} geselecteerd
-            </span>
-            <Separator orientation="vertical" className="h-6" />
-            <Button
-              variant="default"
-              onClick={() => handleBulkReturn(selectedMaterials)}
-              className="bg-primary hover:bg-primary/90"
-            >
-              <RotateCcw className="h-4 w-4 mr-2" />
-              Retourneren
-            </Button>
-          </div>
-        )}
+              );
+            })}
+            {filteredMaterials.length === 0 && (
+              <TableRow>
+                <TableCell
+                  colSpan={isEditMode ? 6 : 5}
+                  className="h-32 text-center text-muted-foreground"
+                >
+                  <Package2 className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                  Geen materialen gevonden
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
       </div>
+
+      {isEditMode && selectedMaterials.length > 0 && (
+        <div className="fixed bottom-4 right-4 flex items-center gap-3 bg-white p-4 rounded-lg shadow-lg border animate-in slide-in-from-bottom-2">
+          <span className="text-sm text-muted-foreground">
+            {selectedMaterials.length} geselecteerd
+          </span>
+          <Separator orientation="vertical" className="h-6" />
+          <Button
+            variant="default"
+            onClick={() => handleBulkReturn(selectedMaterials)}
+            className="bg-primary hover:bg-primary/90"
+          >
+            <RotateCcw className="h-4 w-4 mr-2" />
+            Retourneren
+          </Button>
+        </div>
+      )}
       <AlertDialog
         open={!!deleteMaterialTypeId}
         onOpenChange={() => setDeleteMaterialTypeId(null)}
