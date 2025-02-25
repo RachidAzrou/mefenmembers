@@ -73,6 +73,7 @@ export function Sidebar() {
 
   return (
     <>
+      {/* Backdrop voor mobiel menu */}
       {!collapsed && isMobile && (
         <div
           className="fixed inset-0 bg-black/20 backdrop-blur-sm z-40"
@@ -80,24 +81,27 @@ export function Sidebar() {
         />
       )}
 
+      {/* Menu knop voor mobiel */}
       {isMobile && collapsed && (
         <Button
           variant="ghost"
           size="icon"
-          className="fixed top-4 left-4 z-50 md:hidden"
+          className="fixed top-4 left-4 z-50 md:hidden w-12 h-12 rounded-full bg-white shadow-lg hover:bg-gray-50"
           onClick={() => setCollapsed(false)}
         >
           <Menu className="h-6 w-6" />
         </Button>
       )}
 
+      {/* Sidebar container */}
       <div
         className={cn(
           "fixed md:relative flex flex-col border-r bg-white/95 backdrop-blur-sm transition-all duration-300 h-screen z-50",
-          collapsed ? (isMobile ? "-translate-x-full" : "w-16") : "w-64",
+          collapsed ? (isMobile ? "-translate-x-full" : "w-16") : "w-[280px] sm:w-64",
           isMobile && "shadow-xl"
         )}
       >
+        {/* Logo sectie */}
         <div className="flex h-32 items-center justify-center bg-white border-b relative">
           {!collapsed && (
             <div className="w-full h-full flex items-center justify-center p-4">
@@ -120,6 +124,7 @@ export function Sidebar() {
           )}
         </div>
 
+        {/* Profiel sectie */}
         <Link href="/profile">
           <div className={cn(
             "border-b p-4 cursor-pointer hover:bg-gray-50 transition-colors",
@@ -143,6 +148,7 @@ export function Sidebar() {
           </div>
         </Link>
 
+        {/* Menu items */}
         <ScrollArea className="flex-1">
           <div className="space-y-1 p-2">
             {menuItems.map((item) => (
@@ -161,7 +167,7 @@ export function Sidebar() {
                 <Button
                   variant={location === item.href ? "secondary" : "ghost"}
                   className={cn(
-                    "w-full justify-start h-12 md:h-11 relative",
+                    "w-full justify-start h-14 md:h-12 relative",
                     location === item.href ? "bg-primary/10 text-primary hover:bg-primary/15" : "hover:bg-primary/5 hover:text-primary",
                     collapsed && "justify-center",
                     isMobile && !collapsed && "text-base"
@@ -169,19 +175,21 @@ export function Sidebar() {
                 >
                   {React.createElement(item.icon, {
                     className: cn(
-                      "h-5 w-5",
-                      isMobile && !collapsed ? "h-6 w-6" : "h-5 w-5",
+                      "h-6 w-6 md:h-5 md:w-5",
                       location === item.href ? "text-primary" : "text-gray-500"
                     )
                   })}
                   {!collapsed && (
-                    <span className={cn("ml-2", isMobile && "text-base")}>
+                    <span className={cn(
+                      "ml-3",
+                      isMobile && "text-base font-medium"
+                    )}>
                       {item.label}
                     </span>
                   )}
                   {item.notificationCount > 0 && (
                     <span className={cn(
-                      "absolute right-2 top-1/2 -translate-y-1/2 bg-red-500 text-white rounded-full text-xs px-2 py-0.5",
+                      "absolute right-2 top-1/2 -translate-y-1/2 bg-red-500 text-white rounded-full px-2 py-0.5 min-w-[1.5rem] text-center text-sm",
                       collapsed && "right-1"
                     )}>
                       {item.notificationCount}
@@ -193,21 +201,22 @@ export function Sidebar() {
           </div>
         </ScrollArea>
 
+        {/* Footer sectie */}
         <div className="p-2 border-t space-y-2">
           {isAdmin && (
             <Link href="/settings">
               <Button
                 variant={location === "/settings" ? "secondary" : "ghost"}
                 className={cn(
-                  "w-full justify-start h-12 md:h-11",
+                  "w-full justify-start h-14 md:h-12",
                   location === "/settings" ? "bg-primary/10 text-primary hover:bg-primary/15" : "hover:bg-primary/5 hover:text-primary",
                   collapsed && "justify-center"
                 )}
                 onClick={() => isMobile && setCollapsed(true)}
               >
-                <Settings className="h-5 w-5" />
+                <Settings className="h-6 w-6 md:h-5 md:w-5" />
                 {!collapsed && (
-                  <span className="ml-2">Instellingen</span>
+                  <span className="ml-3">Instellingen</span>
                 )}
               </Button>
             </Link>
@@ -216,14 +225,14 @@ export function Sidebar() {
           <Button
             variant="ghost"
             className={cn(
-              "w-full justify-start h-12 md:h-11 text-red-600 hover:text-red-700 hover:bg-red-50",
+              "w-full justify-start h-14 md:h-12 text-red-600 hover:text-red-700 hover:bg-red-50",
               collapsed && "justify-center"
             )}
             onClick={handleLogout}
           >
-            <LogOut className="h-5 w-5" />
+            <LogOut className="h-6 w-6 md:h-5 md:w-5" />
             {!collapsed && (
-              <span className="ml-2">Afmelden</span>
+              <span className="ml-3">Afmelden</span>
             )}
           </Button>
         </div>

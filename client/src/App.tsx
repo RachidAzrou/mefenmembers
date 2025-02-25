@@ -31,9 +31,9 @@ function AuthenticatedLayout({ children }: { children: React.ReactNode }) {
   }, [permission, requestPermission]);
 
   return (
-    <div className="flex min-h-screen bg-gray-50">
+    <div className="flex min-h-screen bg-gray-50/80 relative">
       <Sidebar />
-      <main className="flex-1 p-4 md:p-6 w-full max-w-[100vw] overflow-x-hidden">
+      <main className="flex-1 p-3 sm:p-4 md:p-6 w-full max-w-screen overflow-x-hidden pt-16 md:pt-6">
         <div className="container mx-auto max-w-7xl">
           {children}
         </div>
