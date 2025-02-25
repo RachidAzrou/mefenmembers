@@ -346,8 +346,8 @@ const PlanningForm = ({ form, onSubmit, editingPlanning, volunteers, rooms }: {
                       </FormControl>
                     </PopoverTrigger>
                     <PopoverContent className="p-0 w-[var(--radix-popover-trigger-width)]" align="start">
-                      <div className="flex flex-col h-[300px]">
-                        <div className="border-b px-3 py-2">
+                      <div className="flex flex-col" style={{ height: '300px' }}>
+                        <div className="border-b p-2 bg-white">
                           <input
                             className="w-full border-0 bg-transparent text-sm placeholder:text-muted-foreground focus:outline-none"
                             placeholder="Zoek vrijwilliger..."
@@ -355,7 +355,13 @@ const PlanningForm = ({ form, onSubmit, editingPlanning, volunteers, rooms }: {
                             onChange={(e) => setVolunteerSearch(e.target.value)}
                           />
                         </div>
-                        <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-border">
+                        <div
+                          className="flex-1 overflow-y-auto overscroll-contain"
+                          style={{
+                            scrollbarWidth: 'thin',
+                            scrollbarColor: 'rgb(203 213 225) transparent'
+                          }}
+                        >
                           {filteredVolunteers.length === 0 ? (
                             <div className="p-6 text-center text-sm text-muted-foreground">
                               Geen vrijwilligers gevonden
@@ -406,7 +412,14 @@ const PlanningForm = ({ form, onSubmit, editingPlanning, volunteers, rooms }: {
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <div className="h-[200px] overflow-y-auto scrollbar-thin scrollbar-thumb-border">
+                      <div
+                        className="overflow-y-auto overscroll-contain"
+                        style={{
+                          height: '200px',
+                          scrollbarWidth: 'thin',
+                          scrollbarColor: 'rgb(203 213 225) transparent'
+                        }}
+                      >
                         {rooms.map((room) => (
                           <SelectItem key={room.id} value={room.id}>
                             {room.name}
@@ -447,8 +460,8 @@ const PlanningForm = ({ form, onSubmit, editingPlanning, volunteers, rooms }: {
                       </Button>
                     </PopoverTrigger>
                     <PopoverContent className="p-0 w-[var(--radix-popover-trigger-width)]" align="start">
-                      <div className="flex flex-col h-[300px]">
-                        <div className="border-b px-3 py-2">
+                      <div className="flex flex-col" style={{ height: '300px' }}>
+                        <div className="border-b p-2 bg-white">
                           <input
                             className="w-full border-0 bg-transparent text-sm placeholder:text-muted-foreground focus:outline-none"
                             placeholder="Zoek vrijwilligers..."
@@ -456,7 +469,13 @@ const PlanningForm = ({ form, onSubmit, editingPlanning, volunteers, rooms }: {
                             onChange={(e) => setVolunteerSearch(e.target.value)}
                           />
                         </div>
-                        <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-border">
+                        <div
+                          className="flex-1 overflow-y-auto overscroll-contain"
+                          style={{
+                            scrollbarWidth: 'thin',
+                            scrollbarColor: 'rgb(203 213 225) transparent'
+                          }}
+                        >
                           {filteredVolunteers.length === 0 ? (
                             <div className="p-6 text-center text-sm text-muted-foreground">
                               Geen vrijwilligers gevonden
@@ -521,7 +540,14 @@ const PlanningForm = ({ form, onSubmit, editingPlanning, volunteers, rooms }: {
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <div className="h-[200px] overflow-y-auto scrollbar-thin scrollbar-thumb-border">
+                      <div
+                        className="overflow-y-auto overscroll-contain"
+                        style={{
+                          height: '200px',
+                          scrollbarWidth: 'thin',
+                          scrollbarColor: 'rgb(203 213 225) transparent'
+                        }}
+                      >
                         {rooms.map((room) => (
                           <SelectItem key={room.id} value={room.id}>
                             {room.name}
