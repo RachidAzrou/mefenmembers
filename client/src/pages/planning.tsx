@@ -285,7 +285,6 @@ const PlanningForm = ({ form, onSubmit, editingPlanning, volunteers, rooms }: {
   rooms: { id: string; name: string; }[];
 }) => {
   const [volunteerSearch, setVolunteerSearch] = useState("");
-  const [roomSearch, setRoomSearch] = useState("");
 
   const filteredVolunteers = volunteers.filter(volunteer =>
     `${volunteer.firstName} ${volunteer.lastName}`
@@ -293,17 +292,9 @@ const PlanningForm = ({ form, onSubmit, editingPlanning, volunteers, rooms }: {
       .includes(volunteerSearch.toLowerCase())
   );
 
-  const filteredRooms = rooms.filter(room =>
-    room.name.toLowerCase().includes(roomSearch.toLowerCase())
-  );
-
   const isBulkPlanning = form.watch("isBulkPlanning");
   const selectedVolunteers = form.watch("selectedVolunteers") || [];
   const selectedRooms = form.watch("selectedRooms") || [];
-  const startDate = form.watch("startDate");
-  const endDate = form.watch("endDate");
-
-  const totalPlannings = selectedVolunteers.length * selectedRooms.length;
 
   return (
     <FormComponent {...form}>
@@ -358,11 +349,13 @@ const PlanningForm = ({ form, onSubmit, editingPlanning, volunteers, rooms }: {
                       <Command className="max-h-full">
                         <CommandInput
                           placeholder="Zoek vrijwilliger..."
+                          value={volunteerSearch}
+                          onValueChange={setVolunteerSearch}
                           className="h-9 border-none focus:ring-0"
                         />
                         <CommandEmpty>Geen vrijwilligers gevonden.</CommandEmpty>
                         <CommandGroup className="max-h-[40vh] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent">
-                          {volunteers.map((volunteer) => (
+                          {filteredVolunteers.map((volunteer) => (
                             <CommandItem
                               key={volunteer.id}
                               value={`${volunteer.firstName} ${volunteer.lastName}`}
@@ -402,7 +395,7 @@ const PlanningForm = ({ form, onSubmit, editingPlanning, volunteers, rooms }: {
                         <SelectValue placeholder="Selecteer ruimte" />
                       </SelectTrigger>
                     </FormControl>
-                    <SelectContent>
+                    <SelectContent className="max-h-[40vh] overflow-y-auto">
                       {rooms.map((room) => (
                         <SelectItem key={room.id} value={room.id}>
                           {room.name}
@@ -488,61 +481,28 @@ const PlanningForm = ({ form, onSubmit, editingPlanning, volunteers, rooms }: {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Ruimtes</FormLabel>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button
-                        variant="outline"
-                        role="combobox"
-                        className={cn(
-                          "w-full justify-between",
-                          !field.value?.length && "text-muted-foreground"
-                        )}
-                      >
-                        <span className="truncate">
-                          {(field.value || []).length === 0
-                            ? "Selecteer ruimtes..."
-                            : `${(field.value || []).length} ruimte(s) geselecteerd`}
-                        </span>
-                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-full p-0" align="start" style={{ maxHeight: '60vh' }}>
-                      <Command className="max-h-full">
-                        <CommandInput
-                          placeholder="Zoek ruimtes..."
-                          value={roomSearch}
-                          onValueChange={setRoomSearch}
-                          className="h-9 border-none focus:ring-0"
-                        />
-                        <CommandEmpty>Geen ruimtes gevonden.</CommandEmpty>
-                        <CommandGroup className="max-h-[40vh] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent">
-                          {filteredRooms.map(room => (
-                            <CommandItem
-                              key={room.id}
-                              onSelect={() => {
-                                const currentSelected = field.value || [];
-                                const newSelected = currentSelected.includes(room.id)
-                                  ? currentSelected.filter(id => id !== room.id)
-                                  : [...currentSelected, room.id];
-                                field.onChange(newSelected);
-                              }}
-                              className="flex items-center justify-between py-2 px-2 cursor-pointer hover:bg-accent"
-                            >
-                              <div className="flex items-center">
-                                <Check
-                                  className={cn(
-                                    "mr-2 h-4 w-4",
-                                    (field.value || []).includes(room.id) ? "opacity-100" : "opacity-0"
-                                  )}
-                                />
-                                {room.name}
-                              </div>
-                            </CommandItem>
-                          ))}
-                        </CommandGroup>
-                      </Command>
-                    </PopoverContent>
-                  </Popover>
+                  <Select
+                    multiple
+                    value={field.value}
+                    onValueChange={field.onChange}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecteer ruimtes">
+                          {field.value?.length
+                            ? `${field.value.length} ruimte(s) geselecteerd`
+                            : "Selecteer ruimtes"}
+                        </SelectValue>
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent className="max-h-[40vh] overflow-y-auto">
+                      {rooms.map((room) => (
+                        <SelectItem key={room.id} value={room.id}>
+                          {room.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                   <div className="mt-1 text-sm text-muted-foreground">
                     {selectedRooms.length > 0 && (
                       `${selectedRooms.length} ${selectedRooms.length === 1 ? 'ruimte' : 'ruimtes'} geselecteerd`
@@ -552,12 +512,6 @@ const PlanningForm = ({ form, onSubmit, editingPlanning, volunteers, rooms }: {
                 </FormItem>
               )}
             />
-
-            {totalPlannings > 0 && (
-              <div className="text-sm text-muted-foreground bg-primary/5 p-2 rounded">
-                {`Er ${totalPlannings === 1 ? 'wordt' : 'worden'} ${totalPlannings} planning${totalPlannings === 1 ? '' : 'en'} aangemaakt`}
-              </div>
-            )}
           </>
         )}
 
@@ -653,8 +607,8 @@ const PlanningForm = ({ form, onSubmit, editingPlanning, volunteers, rooms }: {
                       }
                     }}
                     disabled={(date) => {
-                      if (!startDate) return true;
-                      const minDate = parseISO(startDate);
+                      if (!form.getValues("startDate")) return true;
+                      const minDate = parseISO(form.getValues("startDate"));
                       minDate.setHours(0, 0, 0, 0);
                       date.setHours(0, 0, 0, 0);
                       return date < minDate;
@@ -672,10 +626,10 @@ const PlanningForm = ({ form, onSubmit, editingPlanning, volunteers, rooms }: {
         <Button
           type="submit"
           className="w-full bg-[#6BB85C] hover:bg-[#6BB85C]/90"
-          disabled={isBulkPlanning && totalPlannings === 0}
+          disabled={isBulkPlanning && selectedRooms.length === 0 && selectedVolunteers.length === 0}
         >
           {isBulkPlanning
-            ? `${totalPlannings === 0 ? 'Selecteer vrijwilligers en ruimtes' : `${totalPlannings} Planning${totalPlannings === 1 ? '' : 'en'} Toevoegen`}`
+            ? `${selectedRooms.length === 0 && selectedVolunteers.length === 0 ? 'Selecteer vrijwilligers en ruimtes' : `${selectedVolunteers.length * selectedRooms.length} Planning${selectedVolunteers.length * selectedRooms.length === 1 ? '' : 'en'} Toevoegen`}`
             : (editingPlanning ? "Planning Bijwerken" : "Inplannen")
           }
         </Button>
@@ -960,8 +914,8 @@ const Planning = () => {
 
   const filterPlannings = (planningsList: Planning[], searchTerm: string): Planning[] => {
     if (!searchTerm.trim()) return planningsList;
-
     const term = searchTerm.toLowerCase();
+
     return planningsList.filter(planning => {
       const volunteer = volunteers.find(v => v.id === planning.volunteerId);
       const room = rooms.find(r => r.id === planning.roomId);
@@ -976,7 +930,7 @@ const Planning = () => {
   };
 
   const filteredActivePlannings = filterPlannings(activePlannings, searchActive);
-  const filteredUpcomingPlannings =filterPlannings(upcomingPlannings, searchUpcoming);
+  const filteredUpcomingPlannings = filterPlannings(upcomingPlannings, searchUpcoming);
   const filteredPastPlannings = filterPlannings(pastPlannings, searchPast);
 
   return (
