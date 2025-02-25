@@ -266,14 +266,17 @@ export default function Materials() {
         isCheckedOut: false,
       });
       toast({
-        title: "Succes",
-        description: "Materiaal succesvol geretourneerd",
+        title: "Materiaal Geretourneerd",
+        description: "Het materiaal is succesvol geretourneerd",
+        duration: 3000,
+        variant: "success",
       });
     } catch (error) {
       toast({
         variant: "destructive",
         title: "Fout",
         description: "Kon materiaal niet retourneren",
+        duration: 3000,
       });
     }
   };
@@ -298,6 +301,8 @@ export default function Materials() {
   };
 
   const filteredMaterials = materials.filter(material => {
+    if (!material.isCheckedOut) return false;
+
     const type = materialTypes.find(t => t.id === material.typeId);
     const volunteer = volunteers.find(v => v.id === material.volunteerId);
     const searchString = `${type?.name || ''} ${volunteer?.firstName || ''} ${volunteer?.lastName || ''} ${material.number}`.toLowerCase();
