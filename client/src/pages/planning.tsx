@@ -33,22 +33,22 @@ import { z } from "zod";
 import { db } from "@/lib/firebase";
 import { ref, push, remove, update, onValue } from "firebase/database";
 import {
-  Calendar as CalendarIcon,
-  Edit2,
-  Trash2,
-  Users,
-  Users2,
-  CalendarDays,
+  CalendarIcon,
+  Calendar as CalendarDaysIcon,
+  ChevronDown,
   Building,
   Search,
 } from "lucide-react";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Form as FormComponent, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { format } from "date-fns";
 import { nl } from "date-fns/locale";
 import { Card, CardContent } from "@/components/ui/card";
 import { CollapsibleSection } from "@/components/ui/collapsible-section";
 import { useRole } from "@/hooks/use-role";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { cn } from "@/lib/utils";
 
 const planningSchema = z.object({
   volunteerId: z.string().min(1, "Vrijwilliger is verplicht"),
@@ -274,6 +274,153 @@ export default function Planning() {
     </div>
   );
 
+  const PlanningForm = ({ form, onSubmit, editingPlanning, volunteers, rooms }: {
+    form: any;
+    onSubmit: any;
+    editingPlanning: any;
+    volunteers: any;
+    rooms: any;
+  }) => (
+    <FormComponent {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+        <FormField
+          control={form.control}
+          name="volunteerId"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Vrijwilliger</FormLabel>
+              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecteer vrijwilliger" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  {volunteers.map((volunteer) => (
+                    <SelectItem key={volunteer.id} value={volunteer.id}>
+                      {volunteer.firstName} {volunteer.lastName}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="roomId"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Ruimte</FormLabel>
+              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecteer ruimte" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  {rooms.map((room) => (
+                    <SelectItem key={room.id} value={room.id}>
+                      {room.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="startDate"
+          render={({ field }) => (
+            <FormItem className="flex flex-col">
+              <FormLabel>Startdatum</FormLabel>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <FormControl>
+                    <Button
+                      variant={"outline"}
+                      className={cn(
+                        "w-full pl-3 text-left font-normal",
+                        !field.value && "text-muted-foreground"
+                      )}
+                    >
+                      {field.value ? (
+                        format(new Date(field.value), "EEEE d MMMM yyyy", { locale: nl })
+                      ) : (
+                        <span>Kies een datum</span>
+                      )}
+                      <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                    </Button>
+                  </FormControl>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={field.value ? new Date(field.value) : undefined}
+                    onSelect={(date) => field.onChange(date?.toISOString().split('T')[0])}
+                    disabled={(date) => date < new Date()}
+                    initialFocus
+                    locale={nl}
+                  />
+                </PopoverContent>
+              </Popover>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="endDate"
+          render={({ field }) => (
+            <FormItem className="flex flex-col">
+              <FormLabel>Einddatum</FormLabel>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <FormControl>
+                    <Button
+                      variant={"outline"}
+                      className={cn(
+                        "w-full pl-3 text-left font-normal",
+                        !field.value && "text-muted-foreground"
+                      )}
+                    >
+                      {field.value ? (
+                        format(new Date(field.value), "EEEE d MMMM yyyy", { locale: nl })
+                      ) : (
+                        <span>Kies een datum</span>
+                      )}
+                      <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                    </Button>
+                  </FormControl>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={field.value ? new Date(field.value) : undefined}
+                    onSelect={(date) => field.onChange(date?.toISOString().split('T')[0])}
+                    disabled={(date) => {
+                      const startDate = form.getValues("startDate");
+                      return date < (startDate ? new Date(startDate) : new Date());
+                    }}
+                    initialFocus
+                    locale={nl}
+                  />
+                </PopoverContent>
+              </Popover>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <Button type="submit" className="w-full bg-[#6BB85C] hover:bg-[#6BB85C]/90">
+          {editingPlanning ? "Planning Bijwerken" : "Inplannen"}
+        </Button>
+      </form>
+    </FormComponent>
+  );
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
@@ -285,7 +432,7 @@ export default function Planning() {
 
       <CollapsibleSection
         title="Planning Overzicht"
-        icon={<CalendarDays className="h-5 w-5 text-primary" />}
+        icon={<CalendarDaysIcon className="h-5 w-5 text-primary" />}
         defaultOpen={true}
       >
         <div className="space-y-4">
@@ -293,7 +440,7 @@ export default function Planning() {
             <Card>
               <CardContent className="pt-6">
                 <div className="flex items-center">
-                  <CalendarDays className="h-8 w-8 text-primary/80" />
+                  <CalendarDaysIcon className="h-8 w-8 text-primary/80" />
                   <div className="ml-4">
                     <h3 className="text-sm font-medium text-gray-500">Totaal Planningen</h3>
                     <p className="text-2xl font-bold text-primary">{plannings.length}</p>
@@ -342,101 +489,7 @@ export default function Planning() {
                       {editingPlanning ? "Planning Bewerken" : "Vrijwilliger Inplannen"}
                     </DialogTitle>
                   </DialogHeader>
-                  <Form {...form}>
-                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                      <FormField
-                        control={form.control}
-                        name="volunteerId"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Vrijwilliger</FormLabel>
-                            <Select
-                              onValueChange={field.onChange}
-                              defaultValue={field.value}
-                            >
-                              <FormControl>
-                                <SelectTrigger>
-                                  <SelectValue placeholder="Selecteer vrijwilliger" />
-                                </SelectTrigger>
-                              </FormControl>
-                              <SelectContent>
-                                {volunteers.map((volunteer) => (
-                                  <SelectItem key={volunteer.id} value={volunteer.id}>
-                                    {volunteer.firstName} {volunteer.lastName}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={form.control}
-                        name="roomId"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Ruimte</FormLabel>
-                            <Select
-                              onValueChange={field.onChange}
-                              defaultValue={field.value}
-                            >
-                              <FormControl>
-                                <SelectTrigger>
-                                  <SelectValue placeholder="Selecteer ruimte" />
-                                </SelectTrigger>
-                              </FormControl>
-                              <SelectContent>
-                                {rooms.map((room) => (
-                                  <SelectItem key={room.id} value={room.id}>
-                                    {room.name}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={form.control}
-                        name="startDate"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Startdatum</FormLabel>
-                            <FormControl>
-                              <Input
-                                type="date"
-                                {...field}
-                                min={new Date().toISOString().split('T')[0]}
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={form.control}
-                        name="endDate"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Einddatum</FormLabel>
-                            <FormControl>
-                              <Input
-                                type="date"
-                                {...field}
-                                min={form.watch("startDate") || new Date().toISOString().split('T')[0]}
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <Button type="submit" className="w-full bg-[#6BB85C] hover:bg-[#6BB85C]/90 text-white">
-                        {editingPlanning ? "Planning Bijwerken" : "Planning Toevoegen"}
-                      </Button>
-                    </form>
-                  </Form>
+                  <PlanningForm form={form} onSubmit={onSubmit} editingPlanning={editingPlanning} volunteers={volunteers} rooms={rooms} />
                 </DialogContent>
               </Dialog>
             </div>

@@ -1,7 +1,7 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight, Download, Share2, Share, Copy, Package2, Users2, UserCheck, House } from "lucide-react";
-import { format, addWeeks, startOfWeek, addDays, isWithinInterval, isBefore, isAfter, startOfDay, endOfDay } from "date-fns";
+import { format, addWeeks, startOfWeek, addDays, isWithinInterval } from "date-fns";
 import { nl } from "date-fns/locale";
 import { useState, useEffect } from "react";
 import { db } from "@/lib/firebase";
@@ -15,7 +15,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { CalendarPDF } from "../pdf/calendar-pdf";
 import { PDFDownloadLink } from "@react-pdf/renderer";
-import { Badge } from "@/components/ui/badge";
 
 type Volunteer = {
   id: string;
@@ -34,31 +33,6 @@ type Planning = {
   roomId: string;
   startDate: string;
   endDate: string;
-};
-
-const getPlanningStatus = (planning: Planning) => {
-  const now = startOfDay(new Date());
-  const planningDate = startOfDay(new Date(planning.startDate));
-
-  if (format(now, 'yyyy-MM-dd') === format(planningDate, 'yyyy-MM-dd')) {
-    return {
-      label: "Actief",
-      variant: "default" as const,
-      className: "bg-green-500/10 text-green-500 border-green-500/20"
-    };
-  } else if (isBefore(now, planningDate)) {
-    return {
-      label: "Toekomstig",
-      variant: "outline" as const,
-      className: "bg-blue-500/10 text-blue-500 border-blue-500/20"
-    };
-  } else {
-    return {
-      label: "Afgelopen",
-      variant: "secondary" as const,
-      className: "bg-gray-500/10 text-gray-500 border-gray-500/20"
-    };
-  }
 };
 
 export function WeekView() {
@@ -176,7 +150,6 @@ export function WeekView() {
   const totalRooms = rooms.length;
   const activeVolunteers = plannings.filter(p => new Date(p.endDate) >= new Date()).length;
 
-
   return (
     <div className="space-y-6">
       {/* Header section */}
@@ -262,18 +235,13 @@ export function WeekView() {
                     dayPlannings.map(planning => {
                       const volunteer = volunteers.find(v => v.id === planning.volunteerId);
                       const room = rooms.find(r => r.id === planning.roomId);
-                      const status = getPlanningStatus(planning);
-
                       return (
                         <div
                           key={planning.id}
                           className="p-3 rounded-lg bg-primary/5 border border-primary/10"
                         >
-                          <div className="flex items-center justify-between font-medium text-primary">
-                            <span>{room?.name || 'Onbekende ruimte'}</span>
-                            <Badge variant={status.variant} className={status.className}>
-                              {status.label}
-                            </Badge>
+                          <div className="font-medium text-primary">
+                            {room?.name || 'Onbekende ruimte'}
                           </div>
                           <div className="text-sm text-gray-600 mt-1">
                             {volunteer
@@ -291,7 +259,6 @@ export function WeekView() {
           );
         })}
       </div>
-
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-8">
