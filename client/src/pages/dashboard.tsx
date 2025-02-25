@@ -56,13 +56,27 @@ export default function Dashboard() {
     const materialsRef = ref(db, "materials");
     onValue(materialsRef, (snapshot) => {
       const data = snapshot.val();
-      const materialsList = data ? Object.entries(data).map(([id, material]: [string, any]) => ({
-        id,
-        ...material
-      })).filter((material: Material) => material.isCheckedOut) : [];
+      const materialsList = data ? Object.entries(data)
+        .map(([id, material]: [string, any]) => ({
+          id,
+          ...material
+        }))
+        .filter((material: Material) => material.isCheckedOut) : [];
       setCheckedOutMaterials(materialsList);
     });
   }, []);
+
+  // Groupeer materialen per type voor overzichtelijke weergave
+  const materialsByType = checkedOutMaterials.reduce((acc, material) => {
+    const type = materialTypes.find(t => t.id === material.typeId);
+    if (!type) return acc;
+
+    if (!acc[type.name]) {
+      acc[type.name] = [];
+    }
+    acc[type.name].push(material);
+    return acc;
+  }, {} as Record<string, Material[]>);
 
   return (
     <div className="space-y-6">
@@ -79,17 +93,21 @@ export default function Dashboard() {
               </div>
             </div>
             {checkedOutMaterials.length > 0 && (
-              <div className="mt-4 space-y-2">
-                {checkedOutMaterials.map(material => {
-                  const type = materialTypes.find(t => t.id === material.typeId);
-                  const volunteer = volunteers.find(v => v.id === material.volunteerId);
-                  return (
-                    <div key={material.id} className="text-sm">
-                      <span className="font-medium">{type?.name} #{material.number}</span>
-                      <span className="text-muted-foreground"> - {volunteer ? `${volunteer.firstName} ${volunteer.lastName}` : 'Onbekend'}</span>
-                    </div>
-                  );
-                })}
+              <div className="mt-4 space-y-4">
+                {Object.entries(materialsByType).map(([typeName, materials]) => (
+                  <div key={typeName} className="space-y-2">
+                    <h4 className="text-sm font-medium text-muted-foreground">{typeName}</h4>
+                    {materials.map(material => {
+                      const volunteer = volunteers.find(v => v.id === material.volunteerId);
+                      return (
+                        <div key={material.id} className="text-sm pl-2">
+                          <span className="font-medium">#{material.number}</span>
+                          <span className="text-muted-foreground"> - {volunteer ? `${volunteer.firstName} ${volunteer.lastName}` : 'Onbekend'}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                ))}
               </div>
             )}
           </CardContent>

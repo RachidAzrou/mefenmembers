@@ -301,6 +301,7 @@ export default function Materials() {
   };
 
   const filteredMaterials = materials.filter(material => {
+    // Toon alleen uitgeleende materialen
     if (!material.isCheckedOut) return false;
 
     const type = materialTypes.find(t => t.id === material.typeId);
