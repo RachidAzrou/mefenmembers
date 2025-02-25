@@ -10,7 +10,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { db } from "@/lib/firebase";
 import { ref, push, remove, update, onValue } from "firebase/database";
-import { UserPlus, Edit2, Trash2, Search, Users, CheckSquare, Square, Settings2 } from "lucide-react";
+import { UserPlus, Edit2, Trash2, Search, Users, CheckSquare, Square, Settings2, ChevronLeft, ChevronRight } from "lucide-react";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -25,6 +25,8 @@ const volunteerSchema = z.object({
 
 type Volunteer = z.infer<typeof volunteerSchema> & { id: string };
 
+const ITEMS_PER_PAGE = 10;
+
 export default function Volunteers() {
   const [volunteers, setVolunteers] = useState<Volunteer[]>([]);
   const [editingVolunteer, setEditingVolunteer] = useState<Volunteer | null>(null);
@@ -33,6 +35,7 @@ export default function Volunteers() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedVolunteers, setSelectedVolunteers] = useState<string[]>([]);
   const [isEditMode, setIsEditMode] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
   const { toast } = useToast();
 
   const form = useForm<z.infer<typeof volunteerSchema>>({
@@ -52,13 +55,35 @@ export default function Volunteers() {
         id,
         ...(volunteer as Omit<Volunteer, "id">),
       })) : [];
+
+      // Sort volunteers alphabetically by lastName
+      volunteersList.sort((a, b) => a.lastName.localeCompare(b.lastName));
       setVolunteers(volunteersList);
     });
   });
 
+  const isDuplicateVolunteer = (data: z.infer<typeof volunteerSchema>, excludeId?: string) => {
+    return volunteers.some(v => 
+      v.firstName.toLowerCase() === data.firstName.toLowerCase() &&
+      v.lastName.toLowerCase() === data.lastName.toLowerCase() &&
+      v.phoneNumber === data.phoneNumber &&
+      v.id !== excludeId
+    );
+  };
+
   const onSubmit = async (data: z.infer<typeof volunteerSchema>) => {
     try {
       if (editingVolunteer) {
+        if (isDuplicateVolunteer(data, editingVolunteer.id)) {
+          toast({
+            variant: "destructive",
+            title: "Fout",
+            description: "Deze vrijwilliger bestaat al",
+            duration: 3000,
+          });
+          return;
+        }
+
         await update(ref(db, `volunteers/${editingVolunteer.id}`), data);
         await logUserAction(
           UserActionTypes.VOLUNTEER_UPDATE,
@@ -72,8 +97,19 @@ export default function Volunteers() {
         toast({
           title: "Succes",
           description: "Vrijwilliger succesvol bijgewerkt",
+          duration: 3000,
         });
       } else {
+        if (isDuplicateVolunteer(data)) {
+          toast({
+            variant: "destructive",
+            title: "Fout",
+            description: "Deze vrijwilliger bestaat al",
+            duration: 3000,
+          });
+          return;
+        }
+
         const newVolunteerRef = await push(ref(db, "volunteers"), data);
         await logUserAction(
           UserActionTypes.VOLUNTEER_CREATE,
@@ -87,6 +123,7 @@ export default function Volunteers() {
         toast({
           title: "Succes",
           description: "Vrijwilliger succesvol toegevoegd",
+          duration: 3000,
         });
       }
       form.reset();
@@ -97,6 +134,7 @@ export default function Volunteers() {
         variant: "destructive",
         title: "Fout",
         description: "Kon vrijwilliger niet opslaan",
+        duration: 3000,
       });
     }
   };
@@ -105,7 +143,6 @@ export default function Volunteers() {
     try {
       const volunteersToDelete = volunteers.filter(v => ids.includes(v.id));
 
-      // Log each deletion individually for better tracking
       for (const volunteer of volunteersToDelete) {
         await remove(ref(db, `volunteers/${volunteer.id}`));
         await logUserAction(
@@ -122,6 +159,7 @@ export default function Volunteers() {
       toast({
         title: "Succes",
         description: `${ids.length} vrijwilliger(s) succesvol verwijderd`,
+        duration: 3000,
       });
       setDeleteVolunteerId(null);
       setSelectedVolunteers([]);
@@ -130,6 +168,7 @@ export default function Volunteers() {
         variant: "destructive",
         title: "Fout",
         description: "Kon vrijwilliger(s) niet verwijderen",
+        duration: 3000,
       });
     }
   };
@@ -165,6 +204,11 @@ export default function Volunteers() {
     return searchString.includes(searchTerm.toLowerCase());
   });
 
+  // Calculate pagination
+  const totalPages = Math.ceil(filteredVolunteers.length / ITEMS_PER_PAGE);
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const paginatedVolunteers = filteredVolunteers.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-3">
@@ -172,7 +216,6 @@ export default function Volunteers() {
         <h1 className="text-3xl font-bold text-primary">Vrijwilligers</h1>
       </div>
 
-      {/* Statistics Card */}
       <Card>
         <CardContent className="pt-6">
           <div className="flex items-center">
@@ -185,21 +228,20 @@ export default function Volunteers() {
         </CardContent>
       </Card>
 
-      {/* Search and Add Controls */}
       <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
-        <div className="relative flex-1 w-full sm:max-w-md">
+        <div className="relative flex-1 w-full">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
           <Input
             placeholder="Zoeken..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-9"
+            className="pl-9 w-full"
           />
         </div>
-        <div className="flex items-center gap-2 self-end">
+        <div className="flex items-center gap-2 w-full sm:w-auto">
           <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
             <DialogTrigger asChild>
-              <Button className="bg-[#6BB85C] hover:bg-[#6BB85C]/90">
+              <Button className="bg-[#6BB85C] hover:bg-[#6BB85C]/90 flex-1 sm:flex-none">
                 <UserPlus className="h-4 w-4 mr-2" />
                 Vrijwilliger Toevoegen
               </Button>
@@ -278,102 +320,131 @@ export default function Volunteers() {
         </div>
       </div>
 
-      <div className="rounded-lg border bg-card">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              {isEditMode && (
-                <TableHead className="w-[50px]">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={toggleSelectAll}
-                    className="hover:bg-transparent"
-                  >
-                    {selectedVolunteers.length === filteredVolunteers.length ? (
-                      <CheckSquare className="h-4 w-4" />
-                    ) : (
-                      <Square className="h-4 w-4" />
-                    )}
-                  </Button>
-                </TableHead>
-              )}
-              <TableHead>Voornaam</TableHead>
-              <TableHead>Achternaam</TableHead>
-              <TableHead>Telefoonnummer</TableHead>
-              {isEditMode && <TableHead className="w-[100px]">Acties</TableHead>}
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {filteredVolunteers.map((volunteer) => (
-              <TableRow key={volunteer.id}>
+      <div className="rounded-lg border bg-card overflow-x-auto">
+        <div className="min-w-[800px]">
+          <Table>
+            <TableHeader>
+              <TableRow>
                 {isEditMode && (
-                  <TableCell>
+                  <TableHead className="w-[50px]">
                     <Button
                       variant="ghost"
                       size="icon"
-                      onClick={() => toggleSelect(volunteer.id)}
+                      onClick={toggleSelectAll}
                       className="hover:bg-transparent"
                     >
-                      {selectedVolunteers.includes(volunteer.id) ? (
+                      {selectedVolunteers.length === paginatedVolunteers.length ? (
                         <CheckSquare className="h-4 w-4" />
                       ) : (
                         <Square className="h-4 w-4" />
                       )}
                     </Button>
-                  </TableCell>
+                  </TableHead>
                 )}
-                <TableCell>{volunteer.firstName}</TableCell>
-                <TableCell>{volunteer.lastName}</TableCell>
-                <TableCell>{volunteer.phoneNumber}</TableCell>
-                {isEditMode && (
-                  <TableCell>
-                    <div className="flex space-x-2">
+                <TableHead>Voornaam</TableHead>
+                <TableHead>Achternaam</TableHead>
+                <TableHead>Telefoonnummer</TableHead>
+                {isEditMode && <TableHead className="w-[100px]">Acties</TableHead>}
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {paginatedVolunteers.map((volunteer) => (
+                <TableRow key={volunteer.id}>
+                  {isEditMode && (
+                    <TableCell>
                       <Button
                         variant="ghost"
                         size="icon"
-                        onClick={() => handleEdit(volunteer)}
-                        className="text-primary hover:text-primary hover:bg-primary/10"
+                        onClick={() => toggleSelect(volunteer.id)}
+                        className="hover:bg-transparent"
                       >
-                        <Edit2 className="h-4 w-4" />
+                        {selectedVolunteers.includes(volunteer.id) ? (
+                          <CheckSquare className="h-4 w-4" />
+                        ) : (
+                          <Square className="h-4 w-4" />
+                        )}
                       </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => setDeleteVolunteerId(volunteer.id)}
-                        className="text-destructive hover:text-destructive hover:bg-destructive/10"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
+                    </TableCell>
+                  )}
+                  <TableCell>{volunteer.firstName}</TableCell>
+                  <TableCell>{volunteer.lastName}</TableCell>
+                  <TableCell>{volunteer.phoneNumber}</TableCell>
+                  {isEditMode && (
+                    <TableCell>
+                      <div className="flex space-x-2">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleEdit(volunteer)}
+                          className="text-primary hover:text-primary hover:bg-primary/10"
+                        >
+                          <Edit2 className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => setDeleteVolunteerId(volunteer.id)}
+                          className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  )}
+                </TableRow>
+              ))}
+              {filteredVolunteers.length === 0 && (
+                <TableRow>
+                  <TableCell
+                    colSpan={isEditMode ? 5 : 4}
+                    className="h-32 text-center text-muted-foreground"
+                  >
+                    <Users className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                    Geen vrijwilligers gevonden
                   </TableCell>
-                )}
-              </TableRow>
-            ))}
-            {filteredVolunteers.length === 0 && (
-              <TableRow>
-                <TableCell
-                  colSpan={isEditMode ? 5 : 4}
-                  className="text-center py-6 text-muted-foreground"
-                >
-                  Geen vrijwilligers gevonden
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </div>
       </div>
+
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div className="flex justify-center items-center gap-4 mt-4">
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+            disabled={currentPage === 1}
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </Button>
+          <span className="text-sm text-muted-foreground">
+            Pagina {currentPage} van {totalPages}
+          </span>
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+            disabled={currentPage === totalPages}
+          >
+            <ChevronRight className="h-4 w-4" />
+          </Button>
+        </div>
+      )}
 
       {/* Bulk Actions */}
       {isEditMode && selectedVolunteers.length > 0 && (
-        <div className="fixed bottom-4 right-4 flex items-center gap-3 bg-white p-4 rounded-lg shadow-lg border animate-in slide-in-from-bottom-2">
-          <span className="text-sm text-muted-foreground">
+        <div className="fixed bottom-4 left-4 right-4 sm:left-auto sm:right-4 flex items-center gap-3 bg-white p-4 rounded-lg shadow-lg border animate-in slide-in-from-bottom-2">
+          <span className="text-sm text-muted-foreground hidden sm:inline">
             {selectedVolunteers.length} geselecteerd
           </span>
-          <Separator orientation="vertical" className="h-6" />
+          <Separator orientation="vertical" className="h-6 hidden sm:block" />
           <Button
             variant="destructive"
             onClick={() => setDeleteVolunteerId("bulk")}
+            className="w-full sm:w-auto"
           >
             <Trash2 className="h-4 w-4 mr-2" />
             Verwijderen
