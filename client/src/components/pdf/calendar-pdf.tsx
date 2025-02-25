@@ -17,20 +17,20 @@ const styles = StyleSheet.create({
     paddingBottom: 10,
   },
   logo: {
-    width: 50,
+    width: 100,
     marginRight: 15,
   },
   headerText: {
     flex: 1,
   },
   title: {
-    fontSize: 16,
+    fontSize: 18,
     color: '#D9A347',
     marginBottom: 2,
     textAlign: 'left',
   },
   weekInfo: {
-    fontSize: 10,
+    fontSize: 12,
     color: '#4B5563',
   },
   calendar: {
@@ -50,12 +50,12 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   dayName: {
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: 'bold',
-    color: '#1F2937',
+    color: '#D9A347',
   },
   dayDate: {
-    fontSize: 8,
+    fontSize: 9,
     color: '#6B7280',
     marginTop: 2,
   },
@@ -66,9 +66,9 @@ const styles = StyleSheet.create({
     borderTopColor: '#E5E7EB',
   },
   roomName: {
-    fontSize: 9,
+    fontSize: 10,
     fontWeight: 'bold',
-    color: '#6BB85C',
+    color: '#2F7A1F',
     marginBottom: 4,
   },
   planning: {
@@ -80,11 +80,11 @@ const styles = StyleSheet.create({
     borderLeftColor: '#6BB85C',
   },
   volunteerName: {
-    fontSize: 8,
+    fontSize: 9,
     color: '#4B5563',
   },
   timeSlot: {
-    fontSize: 7,
+    fontSize: 8,
     color: '#6B7280',
     marginTop: 1,
   },
@@ -126,7 +126,6 @@ type CalendarPDFProps = {
 export function CalendarPDF({ weekStart, plannings, logoUrl }: CalendarPDFProps) {
   const weekDays = Array.from({ length: 7 }).map((_, i) => addDays(weekStart, i));
 
-  // Group plannings by day and room
   const getPlanningsForDay = (day: Date) => {
     const dayPlannings = plannings.filter(planning => 
       format(planning.date, 'yyyy-MM-dd') === format(day, 'yyyy-MM-dd')
