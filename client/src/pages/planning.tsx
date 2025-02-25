@@ -143,9 +143,18 @@ const PlanningTable = ({
                   <TableCell className="font-medium">
                     {volunteer ? `${volunteer.firstName} ${volunteer.lastName}` : "-"}
                   </TableCell>
-                  <TableCell>{room ? room.name : "-"}</TableCell>
-                  <TableCell className="whitespace-nowrap">
-                    {format(new Date(planning.startDate), "d MMM yyyy", { locale: nl })} - {format(new Date(planning.endDate), "d MMM yyyy", { locale: nl })}
+                  <TableCell className="whitespace-normal">
+                    {room ? room.name : "-"}
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex flex-col gap-1 text-sm">
+                      <div className="whitespace-nowrap">
+                        {format(new Date(planning.startDate), "EEEE d MMM yyyy", { locale: nl })}
+                      </div>
+                      <div className="whitespace-nowrap text-muted-foreground">
+                        {format(new Date(planning.endDate), "EEEE d MMM yyyy", { locale: nl })}
+                      </div>
+                    </div>
                   </TableCell>
                   {showActions && (
                     <TableCell>
@@ -472,48 +481,48 @@ const PlanningSection = ({ title, icon, defaultOpen, children }: {
   const [isEditing, setIsEditing] = useState(false);
 
   return (
-      <CollapsibleSection
-        title={title}
-        icon={icon}
-        defaultOpen={defaultOpen}
-        action={
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={(e) => {
-              e.stopPropagation(); // Voorkom dat de container inklapt
-              setIsEditing(!isEditing);
-            }}
-            className={cn(
-              "h-8 w-8",
-              isEditing && "text-primary bg-primary/10"
-            )}
-          >
-            <Settings2 className="h-4 w-4" />
-          </Button>
-        }
-      >
-        <div className={cn(
-          "space-y-4",
-          isEditing && "relative"
-        )}>
-          {children}
-          {isEditing && (
-            <div className="absolute inset-0 bg-background/80 backdrop-blur-sm rounded-lg">
-              <div className="p-4">
-                {React.Children.map(children, child => {
-                  if (React.isValidElement(child)) {
-                    return React.cloneElement(child as React.ReactElement, {
-                      showActions: true
-                    });
-                  }
-                  return child;
-                })}
-              </div>
-            </div>
+    <CollapsibleSection
+      title={title}
+      icon={icon}
+      defaultOpen={defaultOpen}
+      action={
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={(e) => {
+            e.stopPropagation(); // Voorkom dat de container inklapt
+            setIsEditing(!isEditing);
+          }}
+          className={cn(
+            "h-8 w-8",
+            isEditing && "text-primary bg-primary/10"
           )}
-        </div>
-      </CollapsibleSection>
+        >
+          <Settings2 className="h-4 w-4" />
+        </Button>
+      }
+    >
+      <div className={cn(
+        "space-y-4",
+        isEditing && "relative"
+      )}>
+        {children}
+        {isEditing && (
+          <div className="absolute inset-0 bg-background/80 backdrop-blur-sm rounded-lg">
+            <div className="p-4">
+              {React.Children.map(children, child => {
+                if (React.isValidElement(child)) {
+                  return React.cloneElement(child as React.ReactElement, {
+                    showActions: true
+                  });
+                }
+                return child;
+              })}
+            </div>
+          </div>
+        )}
+      </div>
+    </CollapsibleSection>
   );
 };
 
