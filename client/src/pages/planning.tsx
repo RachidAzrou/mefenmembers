@@ -332,20 +332,60 @@ const PlanningForm = ({ form, onSubmit, editingPlanning, volunteers, rooms }: {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Vrijwilliger</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecteer vrijwilliger" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {volunteers.map((volunteer) => (
-                        <SelectItem key={volunteer.id} value={volunteer.id}>
-                          {volunteer.firstName} {volunteer.lastName}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <FormControl>
+                        <Button
+                          variant="outline"
+                          role="combobox"
+                          className={cn(
+                            "w-full justify-between",
+                            !field.value && "text-muted-foreground"
+                          )}
+                        >
+                          {field.value ? (
+                            <span>
+                              {volunteers.find(v => v.id === field.value)?.firstName} {volunteers.find(v => v.id === field.value)?.lastName}
+                            </span>
+                          ) : (
+                            <span>Selecteer vrijwilliger</span>
+                          )}
+                          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                        </Button>
+                      </FormControl>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-full p-0" align="start" style={{ maxHeight: '60vh' }}>
+                      <Command className="max-h-full">
+                        <CommandInput
+                          placeholder="Zoek vrijwilliger..."
+                          className="h-9 border-none focus:ring-0"
+                        />
+                        <CommandEmpty>Geen vrijwilligers gevonden.</CommandEmpty>
+                        <CommandGroup className="max-h-[40vh] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent">
+                          {volunteers.map((volunteer) => (
+                            <CommandItem
+                              key={volunteer.id}
+                              value={`${volunteer.firstName} ${volunteer.lastName}`}
+                              onSelect={() => {
+                                field.onChange(volunteer.id);
+                              }}
+                              className="flex items-center justify-between py-2 px-2 cursor-pointer hover:bg-accent"
+                            >
+                              <div className="flex items-center">
+                                <Check
+                                  className={cn(
+                                    "mr-2 h-4 w-4",
+                                    field.value === volunteer.id ? "opacity-100" : "opacity-0"
+                                  )}
+                                />
+                                {volunteer.firstName} {volunteer.lastName}
+                              </div>
+                            </CommandItem>
+                          ))}
+                        </CommandGroup>
+                      </Command>
+                    </PopoverContent>
+                  </Popover>
                   <FormMessage />
                 </FormItem>
               )}
@@ -885,8 +925,7 @@ const Planning = () => {
         "info"
       );
       setDeletePlanningId(null);
-    } catch (error) {
-      showToast(
+    } catch (error) {      showToast(
         "Fout",
         "Er is een fout opgetreden bij het verwijderen van de planning",
         "destructive"
