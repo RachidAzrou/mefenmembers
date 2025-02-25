@@ -40,10 +40,6 @@ import {
   Trash2,
   CheckSquare,
   Square,
-  Shirt,
-  Shield,
-  Lamp,
-  Radio,
   Settings2,
 } from "lucide-react";
 import { useRole } from "@/hooks/use-role";
@@ -72,6 +68,13 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import {
+  GiPoliceBadge,
+  GiPoliceOfficerHead,
+  GiFlashlight,
+  GiWalkieTalkie,
+  GiMonclerJacket,
+} from 'react-icons/gi';
 
 const materialSchema = z.object({
   typeId: z.string().min(1, "Type materiaal is verplicht"),
@@ -106,10 +109,10 @@ type Volunteer = {
 
 const getMaterialIcon = (materialName: string) => {
   const name = materialName.toLowerCase();
-  if (name.includes('jas')) return <Shirt className="h-8 w-8 text-primary/80" />;
-  if (name.includes('hesje')) return <Shield className="h-8 w-8 text-primary/80" />;
-  if (name.includes('lamp')) return <Lamp className="h-8 w-8 text-primary/80" />;
-  if (name.includes('walkie')) return <Radio className="h-8 w-8 text-primary/80" />;
+  if (name.includes('jas')) return <GiMonclerJacket className="h-8 w-8 text-primary/80" />;
+  if (name.includes('hesje')) return <GiPoliceBadge className="h-8 w-8 text-primary/80" />;
+  if (name.includes('lamp')) return <GiFlashlight className="h-8 w-8 text-primary/80" />;
+  if (name.includes('walkie')) return <GiWalkieTalkie className="h-8 w-8 text-primary/80" />;
   return <Package2 className="h-8 w-8 text-primary/80" />;
 };
 
