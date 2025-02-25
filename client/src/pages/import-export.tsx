@@ -13,7 +13,7 @@ import {
 import { db } from "@/lib/firebase";
 import { ref, onValue, remove, push } from "firebase/database";
 import { useToast } from "@/hooks/use-toast";
-import { Download, Upload, Users, X, FileUp, FileDown } from "lucide-react";
+import { Download, Upload, Users, X, FileUp, FileDown, FileJson } from "lucide-react";
 import { PDFDownloadLink } from "@react-pdf/renderer";
 import { Document, Page, Text, View, StyleSheet, Image } from '@react-pdf/renderer';
 import { format } from 'date-fns';
@@ -192,7 +192,7 @@ export default function ImportExport() {
         }));
 
         // Sort by submission date, newest first
-        pendingList.sort((a, b) => 
+        pendingList.sort((a, b) =>
           new Date(b.submittedAt).getTime() - new Date(a.submittedAt).getTime()
         );
 
@@ -272,9 +272,9 @@ export default function ImportExport() {
 
   return (
     <div className="space-y-6 max-w-5xl mx-auto px-4 py-6">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div className="flex items-center gap-3">
-          <Users className="h-8 w-8 text-[#963E56]" />
+          <FileJson className="h-8 w-8 text-[#963E56]" />
           <h1 className="text-2xl sm:text-3xl font-bold text-[#963E56]">Import & Export</h1>
         </div>
       </div>

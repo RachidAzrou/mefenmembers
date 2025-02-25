@@ -4,11 +4,11 @@ import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Link, useLocation } from "wouter";
 import {
-  LayoutDashboard, Users, Calendar, DoorOpen,
+  LayoutDashboard, Users, Calendar, 
   Package2, LogOut, Menu, ChevronLeft, ChevronRight,
   Settings, FileJson, User
 } from "lucide-react";
-import { PiMosqueFill } from "react-icons/pi";
+import { FaMosque, FaWarehouse } from 'react-icons/fa';
 import { useState, useEffect } from "react";
 import { auth } from "@/lib/firebase";
 import { signOut } from "firebase/auth";
@@ -50,7 +50,7 @@ export function Sidebar() {
     { icon: LayoutDashboard, label: "Dashboard", href: "/" },
     { icon: Calendar, label: "Planning", href: "/planning" },
     { icon: Users, label: "Vrijwilligers", href: "/volunteers" },
-    { icon: DoorOpen, label: "Ruimtes", href: "/rooms", adminOnly: true },
+    { icon: FaWarehouse, label: "Ruimtes", href: "/rooms", adminOnly: true },
     { icon: Package2, label: "Materialen", href: "/materials" },
     { 
       icon: FileJson, 
@@ -58,7 +58,7 @@ export function Sidebar() {
       href: "/import-export",
       notificationCount: unreadCount
     },
-    { icon: PiMosqueFill, label: "Mijn Moskee", href: "/mosque" }
+    { icon: FaMosque, label: "Mijn Moskee", href: "/mosque" }
   ].filter(item => !item.adminOnly || isAdmin);
 
   return (
@@ -158,13 +158,13 @@ export function Sidebar() {
                     isMobile && !collapsed && "text-base"
                   )}
                 >
-                  <item.icon
-                    className={cn(
-                      item.icon === PiMosqueFill ? "h-7 w-7" : "h-5 w-5",
-                      isMobile && !collapsed && item.icon === PiMosqueFill ? "h-8 w-8" : "h-6 w-6",
+                  {React.createElement(item.icon, {
+                    className: cn(
+                      "h-5 w-5",
+                      isMobile && !collapsed ? "h-6 w-6" : "h-5 w-5",
                       location === item.href ? "text-primary" : "text-gray-500"
-                    )}
-                  />
+                    )
+                  })}
                   {!collapsed && (
                     <span className={cn("ml-2", isMobile && "text-base")}>
                       {item.label}

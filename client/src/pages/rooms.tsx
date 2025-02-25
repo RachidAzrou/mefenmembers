@@ -138,6 +138,7 @@ export default function Rooms() {
           title: "Succes",
           description: "Ruimte succesvol bijgewerkt",
         });
+        setEditingRoom(null);
       } else {
         await push(ref(db, "rooms"), data);
         toast({
@@ -146,7 +147,6 @@ export default function Rooms() {
         });
       }
       form.reset();
-      setEditingRoom(null);
       setDialogOpen(false);
     } catch (error) {
       toast({
@@ -186,65 +186,6 @@ export default function Rooms() {
         <div className="flex items-center gap-3">
           <FaWarehouse className="h-8 w-8 text-primary" />
           <h1 className="text-3xl font-bold text-primary">Ruimtes</h1>
-        </div>
-        <div className="flex items-center gap-2">
-          {isAdmin && (
-            <>
-              <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-                <DialogTrigger asChild>
-                  <Button className="bg-[#6BB85C] hover:bg-[#6BB85C]/90">
-                    <BsPlus className="h-4 w-4 mr-2" />
-                    Ruimte Toevoegen
-                  </Button>
-                </DialogTrigger>
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle>
-                      {editingRoom ? "Ruimte Bewerken" : "Nieuwe Ruimte Toevoegen"}
-                    </DialogTitle>
-                  </DialogHeader>
-                  <Form {...form}>
-                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                      <FormField
-                        control={form.control}
-                        name="name"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Ruimtenaam</FormLabel>
-                            <FormControl>
-                              <Input {...field} placeholder="Ruimtenaam" />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <Button type="submit" className="w-full">
-                        {editingRoom ? "Bijwerken" : "Toevoegen"}
-                      </Button>
-                    </form>
-                  </Form>
-                </DialogContent>
-              </Dialog>
-
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      onClick={() => setIsEditMode(!isEditMode)}
-                      className={`${isEditMode ? "bg-primary/10 text-primary" : ""}`}
-                    >
-                      <Settings2 className="h-5 w-5" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    {isEditMode ? "Bewerken afsluiten" : "Lijst bewerken"}
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-            </>
-          )}
         </div>
       </div>
 
@@ -297,6 +238,65 @@ export default function Rooms() {
           </div>
         )}
       </div>
+
+      {/* Controls moved below the grid */}
+      {isAdmin && (
+        <div className="flex justify-end items-center gap-2 pt-4">
+          <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+            <DialogTrigger asChild>
+              <Button className="bg-[#6BB85C] hover:bg-[#6BB85C]/90">
+                <BsPlus className="h-4 w-4 mr-2" />
+                Ruimte Toevoegen
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>
+                  {editingRoom ? "Ruimte Bewerken" : "Nieuwe Ruimte Toevoegen"}
+                </DialogTitle>
+              </DialogHeader>
+              <Form {...form}>
+                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                  <FormField
+                    control={form.control}
+                    name="name"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Ruimtenaam</FormLabel>
+                        <FormControl>
+                          <Input {...field} placeholder="Ruimtenaam" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <Button type="submit" className="w-full">
+                    {editingRoom ? "Bijwerken" : "Toevoegen"}
+                  </Button>
+                </form>
+              </Form>
+            </DialogContent>
+          </Dialog>
+
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => setIsEditMode(!isEditMode)}
+                  className={`${isEditMode ? "bg-primary/10 text-primary" : ""}`}
+                >
+                  <Settings2 className="h-5 w-5" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                {isEditMode ? "Bewerken afsluiten" : "Lijst bewerken"}
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        </div>
+      )}
 
       <AlertDialog
         open={!!deleteRoomId}
