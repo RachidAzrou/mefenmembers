@@ -345,40 +345,43 @@ const PlanningForm = ({ form, onSubmit, editingPlanning, volunteers, rooms }: {
                         </Button>
                       </FormControl>
                     </PopoverTrigger>
-                    <PopoverContent
-                      className="w-[var(--radix-popover-trigger-width)] p-0"
-                      align="start"
-                      sideOffset={4}
-                    >
-                      <Command className="h-full">
-                        <CommandInput
+                    <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0" align="start">
+                      <div className="border-b p-2">
+                        <input
+                          className="w-full border-0 bg-transparent p-1 text-sm placeholder:text-muted-foreground focus:outline-none"
                           placeholder="Zoek vrijwilliger..."
                           value={volunteerSearch}
-                          onValueChange={setVolunteerSearch}
-                          className="h-9"
+                          onChange={(e) => setVolunteerSearch(e.target.value)}
                         />
-                        <CommandEmpty>Geen vrijwilligers gevonden.</CommandEmpty>
-                        <div className="h-[200px] overflow-y-scroll">
-                          <CommandGroup>
+                      </div>
+                      <div className="max-h-[300px] overflow-y-auto">
+                        {filteredVolunteers.length === 0 ? (
+                          <div className="relative p-6 text-center text-sm text-muted-foreground">
+                            Geen vrijwilligers gevonden
+                          </div>
+                        ) : (
+                          <div className="p-1">
                             {filteredVolunteers.map((volunteer) => (
-                              <CommandItem
+                              <div
                                 key={volunteer.id}
-                                value={`${volunteer.firstName} ${volunteer.lastName}`}
-                                onSelect={() => field.onChange(volunteer.id)}
-                                className="flex items-center gap-2 px-2 py-1.5 cursor-pointer hover:bg-accent"
+                                className={cn(
+                                  "relative flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground",
+                                  field.value === volunteer.id && "bg-accent"
+                                )}
+                                onClick={() => field.onChange(volunteer.id)}
                               >
                                 <Check
                                   className={cn(
-                                    "h-4 w-4",
+                                    "mr-2 h-4 w-4",
                                     field.value === volunteer.id ? "opacity-100" : "opacity-0"
                                   )}
                                 />
-                                {volunteer.firstName} {volunteer.lastName}
-                              </CommandItem>
+                                <span>{volunteer.firstName} {volunteer.lastName}</span>
+                              </div>
                             ))}
-                          </CommandGroup>
-                        </div>
-                      </Command>
+                          </div>
+                        )}
+                      </div>
                     </PopoverContent>
                   </Popover>
                   <FormMessage />
@@ -398,11 +401,8 @@ const PlanningForm = ({ form, onSubmit, editingPlanning, volunteers, rooms }: {
                         <SelectValue placeholder="Selecteer ruimte" />
                       </SelectTrigger>
                     </FormControl>
-                    <SelectContent
-                      position="popper"
-                      sideOffset={4}
-                    >
-                      <div className="h-[200px] overflow-y-scroll">
+                    <SelectContent>
+                      <div className="max-h-[300px] overflow-y-auto p-1">
                         {rooms.map((room) => (
                           <SelectItem key={room.id} value={room.id}>
                             {room.name}
@@ -442,43 +442,49 @@ const PlanningForm = ({ form, onSubmit, editingPlanning, volunteers, rooms }: {
                         <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                       </Button>
                     </PopoverTrigger>
-                    <PopoverContent
-                      className="w-[var(--radix-popover-trigger-width)] p-0"
-                      align="start"
-                      sideOffset={4}
-                    >
-                      <Command shouldFilter={false} className="max-h-[300px]">
-                        <CommandInput
+                    <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0" align="start">
+                      <div className="border-b p-2">
+                        <input
+                          className="w-full border-0 bg-transparent p-1 text-sm placeholder:text-muted-foreground focus:outline-none"
                           placeholder="Zoek vrijwilligers..."
                           value={volunteerSearch}
-                          onValueChange={setVolunteerSearch}
-                          className="h-9"
+                          onChange={(e) => setVolunteerSearch(e.target.value)}
                         />
-                        <CommandEmpty>Geen vrijwilligers gevonden.</CommandEmpty>
-                        <CommandGroup className="overflow-y-auto" style={{ maxHeight: "200px" }}>
-                          {filteredVolunteers.map(volunteer => (
-                            <CommandItem
-                              key={volunteer.id}
-                              onSelect={() => {
-                                const currentSelected = field.value || [];
-                                const newSelected = currentSelected.includes(volunteer.id)
-                                  ? currentSelected.filter(id => id !== volunteer.id)
-                                  : [...currentSelected, volunteer.id];
-                                field.onChange(newSelected);
-                              }}
-                              className="flex items-center gap-2 px-2 py-1.5 cursor-pointer hover:bg-accent"
-                            >
-                              <Check
+                      </div>
+                      <div className="max-h-[300px] overflow-y-auto">
+                        {filteredVolunteers.length === 0 ? (
+                          <div className="relative p-6 text-center text-sm text-muted-foreground">
+                            Geen vrijwilligers gevonden
+                          </div>
+                        ) : (
+                          <div className="p-1">
+                            {filteredVolunteers.map((volunteer) => (
+                              <div
+                                key={volunteer.id}
                                 className={cn(
-                                  "h-4 w-4",
-                                  (field.value || []).includes(volunteer.id) ? "opacity-100" : "opacity-0"
+                                  "relative flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground",
+                                  (field.value || []).includes(volunteer.id) && "bg-accent"
                                 )}
-                              />
-                              {volunteer.firstName} {volunteer.lastName}
-                            </CommandItem>
-                          ))}
-                        </CommandGroup>
-                      </Command>
+                                onClick={() => {
+                                  const currentSelected = field.value || [];
+                                  const newSelected = currentSelected.includes(volunteer.id)
+                                    ? currentSelected.filter(id => id !== volunteer.id)
+                                    : [...currentSelected, volunteer.id];
+                                  field.onChange(newSelected);
+                                }}
+                              >
+                                <Check
+                                  className={cn(
+                                    "mr-2 h-4 w-4",
+                                    (field.value || []).includes(volunteer.id) ? "opacity-100" : "opacity-0"
+                                  )}
+                                />
+                                <span>{volunteer.firstName} {volunteer.lastName}</span>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
                     </PopoverContent>
                   </Popover>
                   <FormMessage />
@@ -506,17 +512,14 @@ const PlanningForm = ({ form, onSubmit, editingPlanning, volunteers, rooms }: {
                         </SelectValue>
                       </SelectTrigger>
                     </FormControl>
-                    <SelectContent
-                      position="popper"
-                      sideOffset={4}
-                      className="overflow-y-auto"
-                      style={{ maxHeight: "300px" }}
-                    >
-                      {rooms.map((room) => (
-                        <SelectItem key={room.id} value={room.id}>
-                          {room.name}
-                        </SelectItem>
-                      ))}
+                    <SelectContent>
+                      <div className="max-h-[300px] overflow-y-auto p-1">
+                        {rooms.map((room) => (
+                          <SelectItem key={room.id} value={room.id}>
+                            {room.name}
+                          </SelectItem>
+                        ))}
+                      </div>
                     </SelectContent>
                   </Select>
                   <FormMessage />
