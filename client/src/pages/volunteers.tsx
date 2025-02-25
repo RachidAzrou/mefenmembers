@@ -42,6 +42,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { Separator } from "@/components/ui/separator";
 
 const volunteerSchema = z.object({
   firstName: z.string().min(1, "Voornaam is verplicht"),
@@ -322,7 +323,7 @@ export default function Volunteers() {
               <TableHead>Voornaam</TableHead>
               <TableHead>Achternaam</TableHead>
               <TableHead>Telefoonnummer</TableHead>
-              <TableHead className="w-[100px]">Acties</TableHead>
+              {isEditMode && <TableHead className="w-[100px]">Acties</TableHead>}
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -347,14 +348,14 @@ export default function Volunteers() {
                 <TableCell>{volunteer.firstName}</TableCell>
                 <TableCell>{volunteer.lastName}</TableCell>
                 <TableCell>{volunteer.phoneNumber}</TableCell>
-                <TableCell className="flex space-x-2">
-                  {isEditMode && (
-                    <>
+                {isEditMode && (
+                  <TableCell>
+                    <div className="flex space-x-2">
                       <Button
                         variant="ghost"
                         size="icon"
                         onClick={() => handleEdit(volunteer)}
-                        className="text-[#6BB85C] hover:text-[#6BB85C] hover:bg-[#6BB85C]/10"
+                        className="text-primary hover:text-primary hover:bg-primary/10"
                       >
                         <Edit2 className="h-4 w-4" />
                       </Button>
@@ -362,18 +363,21 @@ export default function Volunteers() {
                         variant="ghost"
                         size="icon"
                         onClick={() => setDeleteVolunteerId(volunteer.id)}
-                        className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                        className="text-destructive hover:text-destructive hover:bg-destructive/10"
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
-                    </>
-                  )}
-                </TableCell>
+                    </div>
+                  </TableCell>
+                )}
               </TableRow>
             ))}
             {filteredVolunteers.length === 0 && (
               <TableRow>
-                <TableCell colSpan={5} className="text-center py-6 text-gray-500">
+                <TableCell 
+                  colSpan={isEditMode ? 5 : 4} 
+                  className="text-center py-6 text-muted-foreground"
+                >
                   Geen vrijwilligers gevonden
                 </TableCell>
               </TableRow>
@@ -384,10 +388,11 @@ export default function Volunteers() {
 
       {/* Bulk Actions */}
       {isEditMode && selectedVolunteers.length > 0 && (
-        <div className="fixed bottom-4 right-4 flex gap-2 bg-white p-4 rounded-lg shadow-lg border">
-          <span className="text-sm text-gray-500 self-center mr-2">
+        <div className="fixed bottom-4 right-4 flex items-center gap-3 bg-white p-4 rounded-lg shadow-lg border animate-in slide-in-from-bottom-2">
+          <span className="text-sm text-muted-foreground">
             {selectedVolunteers.length} geselecteerd
           </span>
+          <Separator orientation="vertical" className="h-6" />
           <Button
             variant="destructive"
             onClick={() => setDeleteVolunteerId("bulk")}

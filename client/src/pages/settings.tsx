@@ -463,10 +463,8 @@ export default function Settings() {
                     <TableRow className="bg-gray-50/50">
                       <TableHead className="w-[180px]">Tijdstip</TableHead>
                       <TableHead>Gebruiker</TableHead>
-                      <TableHead>Actie</TableHead>
-                      <TableHead>Object Type</TableHead>
-                      <TableHead>Object Naam</TableHead>
-                      <TableHead>Details</TableHead>
+                      <TableHead>Activiteit</TableHead>
+                      <TableHead>Object</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -476,17 +474,28 @@ export default function Settings() {
                           {format(new Date(log.timestamp), "d MMM yyyy HH:mm:ss", { locale: nl })}
                         </TableCell>
                         <TableCell>{log.userEmail}</TableCell>
-                        <TableCell>{log.action}</TableCell>
-                        <TableCell>{log.targetType || "-"}</TableCell>
-                        <TableCell>{log.targetName || "-"}</TableCell>
-                        <TableCell className="max-w-xs truncate">
-                          {log.details || "-"}
+                        <TableCell>
+                          {log.action === 'checkout' && 'Materiaal uitgeleend'}
+                          {log.action === 'return' && 'Materiaal geretourneerd'}
+                          {!['checkout', 'return'].includes(log.action) && log.action}
+                        </TableCell>
+                        <TableCell>
+                          {log.targetType === 'material' ? (
+                            <div className="flex items-center gap-1">
+                              <span className="font-medium">{log.targetName}</span>
+                              {log.materialNumber && (
+                                <span className="text-muted-foreground">#{log.materialNumber}</span>
+                              )}
+                            </div>
+                          ) : (
+                            log.targetName || '-'
+                          )}
                         </TableCell>
                       </TableRow>
                     ))}
                     {filteredLogs.length === 0 && (
                       <TableRow>
-                        <TableCell colSpan={6} className="text-center py-8 text-gray-500">
+                        <TableCell colSpan={4} className="text-center py-8 text-gray-500">
                           <Activity className="h-8 w-8 mx-auto mb-2 opacity-50" />
                           <p>Geen activiteiten gevonden voor de geselecteerde filters</p>
                         </TableCell>

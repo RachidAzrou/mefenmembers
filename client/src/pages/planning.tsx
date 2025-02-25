@@ -42,7 +42,8 @@ import {
   Trash2,
   Plus,
   Settings2,
-  Package2,
+  CheckSquare,
+  Square,
 } from "lucide-react";
 import { Form as FormComponent, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -58,15 +59,7 @@ import { Switch } from "@/components/ui/switch";
 import { MultiSelect } from "@/components/ui/multi-select";
 import { Label } from "@/components/ui/label";
 import React from 'react';
-
-interface ActivityLog {
-  id: string;
-  volunteerId: string;
-  materialTypeId: string;
-  materialNumber: string;
-  action: 'checkout' | 'checkin';
-  timestamp: string;
-}
+import { Separator } from "@/components/ui/separator";
 
 interface MaterialType {
   id: string;
@@ -120,6 +113,24 @@ const PlanningTable = ({
   onSearchChange: (value: string) => void;
   showActions?: boolean;
 }) => {
+  const [selectedPlannings, setSelectedPlannings] = useState<string[]>([]);
+
+  const toggleSelectAll = () => {
+    if (selectedPlannings.length === plannings.length) {
+      setSelectedPlannings([]);
+    } else {
+      setSelectedPlannings(plannings.map(p => p.id));
+    }
+  };
+
+  const toggleSelect = (id: string) => {
+    setSelectedPlannings(prev =>
+      prev.includes(id)
+        ? prev.filter(p => p !== id)
+        : [...prev, id]
+    );
+  };
+
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
@@ -137,6 +148,22 @@ const PlanningTable = ({
         <Table>
           <TableHeader>
             <TableRow>
+              {showActions && (
+                <TableHead className="w-[50px]">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={toggleSelectAll}
+                    className="hover:bg-transparent"
+                  >
+                    {selectedPlannings.length === plannings.length ? (
+                      <CheckSquare className="h-4 w-4" />
+                    ) : (
+                      <Square className="h-4 w-4" />
+                    )}
+                  </Button>
+                </TableHead>
+              )}
               <TableHead>Vrijwilliger</TableHead>
               <TableHead>Ruimte</TableHead>
               <TableHead>Periode</TableHead>
@@ -151,10 +178,25 @@ const PlanningTable = ({
                 <TableRow
                   key={planning.id}
                   className={cn(
-                    showActions && "cursor-pointer hover:bg-muted/50"
+                    showActions && "hover:bg-muted/50"
                   )}
-                  onClick={showActions ? () => onEdit(planning) : undefined}
                 >
+                  {showActions && (
+                    <TableCell>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => toggleSelect(planning.id)}
+                        className="hover:bg-transparent"
+                      >
+                        {selectedPlannings.includes(planning.id) ? (
+                          <CheckSquare className="h-4 w-4" />
+                        ) : (
+                          <Square className="h-4 w-4" />
+                        )}
+                      </Button>
+                    </TableCell>
+                  )}
                   <TableCell className="font-medium">
                     {volunteer ? `${volunteer.firstName} ${volunteer.lastName}` : "-"}
                   </TableCell>
@@ -177,10 +219,7 @@ const PlanningTable = ({
                         <Button
                           variant="ghost"
                           size="icon"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            onEdit(planning);
-                          }}
+                          onClick={() => onEdit(planning)}
                           className="h-8 w-8 text-primary hover:text-primary hover:bg-primary/10"
                         >
                           <Edit2 className="h-4 w-4" />
@@ -188,10 +227,7 @@ const PlanningTable = ({
                         <Button
                           variant="ghost"
                           size="icon"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            onDelete(planning.id);
-                          }}
+                          onClick={() => onDelete(planning.id)}
                           className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
                         >
                           <Trash2 className="h-4 w-4" />
@@ -205,7 +241,7 @@ const PlanningTable = ({
             {plannings.length === 0 && (
               <TableRow>
                 <TableCell
-                  colSpan={showActions ? 4 : 3}
+                  colSpan={showActions ? 5 : 3}
                   className="h-32 text-center text-muted-foreground"
                 >
                   <CalendarDaysIcon className="h-8 w-8 mx-auto mb-2 opacity-50" />
@@ -216,6 +252,24 @@ const PlanningTable = ({
           </TableBody>
         </Table>
       </div>
+      {showActions && selectedPlannings.length > 0 && (
+        <div className="fixed bottom-4 right-4 flex items-center gap-3 bg-white p-4 rounded-lg shadow-lg border animate-in slide-in-from-bottom-2">
+          <span className="text-sm text-muted-foreground">
+            {selectedPlannings.length} geselecteerd
+          </span>
+          <Separator orientation="vertical" className="h-6" />
+          <Button
+            variant="destructive"
+            onClick={() => {
+              selectedPlannings.forEach(id => onDelete(id));
+              setSelectedPlannings([]);
+            }}
+          >
+            <Trash2 className="h-4 w-4 mr-2" />
+            Verwijderen
+          </Button>
+        </div>
+      )}
     </div>
   );
 };
@@ -505,7 +559,7 @@ const PlanningSection = ({ title, icon, defaultOpen, children }: {
           variant="ghost"
           size="icon"
           onClick={(e) => {
-            e.stopPropagation(); // Voorkom dat de container inklapt
+            e.stopPropagation(); 
             setIsEditing(!isEditing);
           }}
           className={cn(
@@ -517,23 +571,23 @@ const PlanningSection = ({ title, icon, defaultOpen, children }: {
         </Button>
       }
     >
-      <div className={cn(
-        "space-y-4",
-        isEditing && "relative"
-      )}>
-        {children}
+      <div className="relative">
+        <div className={cn(
+          "space-y-4",
+          isEditing && "invisible"
+        )}>
+          {children}
+        </div>
         {isEditing && (
-          <div className="absolute inset-0 bg-background/80 backdrop-blur-sm rounded-lg">
-            <div className="p-4">
-              {React.Children.map(children, child => {
-                if (React.isValidElement(child)) {
-                  return React.cloneElement(child as React.ReactElement, {
-                    showActions: true
-                  });
-                }
-                return child;
-              })}
-            </div>
+          <div className="absolute inset-0">
+            {React.Children.map(children, child => {
+              if (React.isValidElement(child)) {
+                return React.cloneElement(child as React.ReactElement, {
+                  showActions: true
+                });
+              }
+              return child;
+            })}
           </div>
         )}
       </div>
@@ -551,8 +605,6 @@ const Planning = () => {
   const [searchActive, setSearchActive] = useState("");
   const [searchUpcoming, setSearchUpcoming] = useState("");
   const [searchPast, setSearchPast] = useState("");
-  const [activityLogs, setActivityLogs] = useState<ActivityLog[]>([]);
-  const [materialTypes, setMaterialTypes] = useState<MaterialType[]>([]);
   const { isAdmin } = useRole();
   const { toast } = useToast();
 
@@ -594,26 +646,6 @@ const Planning = () => {
         ...planning
       })) : [];
       setPlannings(planningsList);
-    });
-
-    const activityLogsRef = ref(db, "activityLogs");
-    onValue(activityLogsRef, (snapshot) => {
-      const data = snapshot.val();
-      const logsList = data ? Object.entries(data).map(([id, log]: [string, any]) => ({
-        id,
-        ...log
-      })).sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()) : [];
-      setActivityLogs(logsList);
-    });
-
-    const materialTypesRef = ref(db, "materialTypes");
-    onValue(materialTypesRef, (snapshot) => {
-      const data = snapshot.val();
-      const typesList = data ? Object.entries(data).map(([id, type]: [string, any]) => ({
-        id,
-        ...type
-      })) : [];
-      setMaterialTypes(typesList);
     });
   }, []);
 
@@ -842,7 +874,7 @@ const Planning = () => {
           volunteers={volunteers}
           rooms={rooms}
           onEdit={handleEdit}
-          onDelete={setDeletePlanningId}
+          onDelete={handleDelete}
           searchValue={searchActive}
           onSearchChange={setSearchActive}
         />
@@ -859,7 +891,7 @@ const Planning = () => {
           volunteers={volunteers}
           rooms={rooms}
           onEdit={handleEdit}
-          onDelete={setDeletePlanningId}
+          onDelete={handleDelete}
           searchValue={searchUpcoming}
           onSearchChange={setSearchUpcoming}
         />
@@ -876,70 +908,28 @@ const Planning = () => {
           volunteers={volunteers}
           rooms={rooms}
           onEdit={handleEdit}
-          onDelete={setDeletePlanningId}
+          onDelete={handleDelete}
           searchValue={searchPast}
           onSearchChange={setSearchPast}
         />
       </PlanningSection>
 
-      <CollapsibleSection
-        title="Materiaal Activiteit"
-        icon={<Package2 className="h-5 w-5 text-primary" />}
-        defaultOpen={false}
-      >
-        <div className="space-y-4">
-          {activityLogs.length === 0 ? (
-            <p className="text-center text-muted-foreground py-8">
-              Geen activiteit gevonden
-            </p>
-          ) : (
-            <div className="space-y-3">
-              {activityLogs.map((log) => {
-                const volunteer = volunteers.find(v => v.id === log.volunteerId);
-                const materialType = materialTypes.find(t => t.id === log.materialTypeId);
-
-                return (
-                  <div key={log.id} className="flex items-start space-x-4 p-3 rounded-lg border bg-card">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2">
-                        <span className="font-medium">
-                          {volunteer ? `${volunteer.firstName} ${volunteer.lastName}` : 'Onbekende vrijwilliger'}
-                        </span>
-                        <span className="text-muted-foreground">
-                          heeft {log.action === 'checkout' ? 'uitgeleend' : 'geretourneerd'}:
-                        </span>
-                      </div>
-                      <div className="text-sm text-muted-foreground mt-1">
-                        {materialType?.name || 'Onbekend materiaal'} #{log.materialNumber}
-                      </div>
-                      <div className="text-xs text-muted-foreground mt-1">
-                        {format(new Date(log.timestamp), "d MMMM yyyy 'om' HH:mm", { locale: nl })}
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </div>
-      </CollapsibleSection>
-
       <AlertDialog
         open={!!deletePlanningId}
-        onOpenChange={(open) => !open && setDeletePlanningId(null)}
+        onOpenChange={() => setDeletePlanningId(null)}
       >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Weet je het zeker?</AlertDialogTitle>
             <AlertDialogDescription>
-              Deze actie kan niet ongedaan worden gemaakt. Dit zal de planning permanent verwijderen.
+              Deze actie kan niet ongedaan worden gemaakt.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Annuleren</AlertDialogCancel>
             <AlertDialogAction
               onClick={() => deletePlanningId && handleDelete(deletePlanningId)}
-              className="bg-red-600 hover:bg-red-700"
+              className="bg-red-600 hover:bgred-700"
             >
               Verwijderen
             </AlertDialogAction>
