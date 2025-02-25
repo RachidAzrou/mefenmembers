@@ -555,13 +555,13 @@ export default function Materials() {
           />
         </div>
 
-        {isAdmin && (
-          <div className="flex items-center gap-2 w-full sm:w-auto">
+        <div className="flex flex-col sm:flex-row items-center gap-2 w-full sm:w-auto">
+          {isAdmin && (
             <Dialog open={isTypesDialogOpen} onOpenChange={setIsTypesDialogOpen}>
               <DialogTrigger asChild>
-                <Button variant="outline" className="flex-1 sm:flex-none">
-                  <Plus className="h-4 w-4 mr-2" />
-                  Type Toevoegen
+                <Button variant="outline" className="w-full sm:w-auto">
+                  <Settings2 className="h-4 w-4 mr-2" />
+                  Types Beheren
                 </Button>
               </DialogTrigger>
               <DialogContent>
@@ -611,15 +611,16 @@ export default function Materials() {
                 </Form>
               </DialogContent>
             </Dialog>
+          )}
 
-            <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-              <DialogTrigger asChild>
-                <Button className="bg-[#6BB85C] hover:bg-[#6BB85C]/90 text-white flex-1 sm:flex-none">
-                  <Package2 className="h-4 w-4 mr-2" />
-                  Toewijzen
-                </Button>
-              </DialogTrigger>
-              <DialogContent>
+          <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+            <DialogTrigger asChild>
+              <Button className="bg-[#6BB85C] hover:bg-[#6BB85C]/90 text-white w-full sm:w-auto">
+                <Package2 className="h-4 w-4 mr-2" />
+                Toewijzen
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
                 <DialogHeader>
                   <DialogTitle>
                     {editingMaterial ? "Materiaal Bewerken" : "Materiaal Toewijzen"}
@@ -714,8 +715,9 @@ export default function Materials() {
                   </form>
                 </Form>
               </DialogContent>
-            </Dialog>
+          </Dialog>
 
+          {isAdmin && (
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
@@ -723,7 +725,7 @@ export default function Materials() {
                     variant="outline"
                     size="icon"
                     onClick={() => setIsEditMode(!isEditMode)}
-                    className={`${isEditMode ? "bg-primary/10 text-primary" : ""}`}
+                    className={`${isEditMode ? "bg-primary/10 text-primary" : ""} w-full sm:w-auto`}
                   >
                     <Settings2 className="h-5 w-5" />
                   </Button>
@@ -733,12 +735,12 @@ export default function Materials() {
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
-          </div>
-        )}
+          )}
+        </div>
       </div>
 
-      <div className="rounded-lg border bg-card overflow-x-auto">
-        <div className="min-w-[800px]">
+      <div className="rounded-lg border bg-card">
+        <div className="overflow-x-auto">
           <Table>
             <TableHeader>
               <TableRow>
@@ -769,10 +771,10 @@ export default function Materials() {
                   </TableHead>
                 )}
                 <TableHead>Type</TableHead>
-                <TableHead>Nummer</TableHead>
+                <TableHead className="hidden sm:table-cell">Nummer</TableHead>
                 <TableHead>Vrijwilliger</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="w-[100px]">Acties</TableHead>
+                <TableHead className="hidden sm:table-cell">Status</TableHead>
+                <TableHead>Acties</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -797,14 +799,21 @@ export default function Materials() {
                         </Button>
                       </TableCell>
                     )}
-                    <TableCell>{type?.name || "-"}</TableCell>
-                    <TableCell>{item.number}</TableCell>
+                    <TableCell>
+                      <div className="flex flex-col">
+                        <span>{type?.name || "-"}</span>
+                        <span className="text-sm text-muted-foreground sm:hidden">
+                          #{item.number}
+                        </span>
+                      </div>
+                    </TableCell>
+                    <TableCell className="hidden sm:table-cell">{item.number}</TableCell>
                     <TableCell>
                       {volunteer
                         ? `${volunteer.firstName} ${volunteer.lastName}`
                         : "-"}
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="hidden sm:table-cell">
                       <Badge
                         variant={item.isCheckedOut ? "default" : "secondary"}
                         className="font-normal"
@@ -813,8 +822,8 @@ export default function Materials() {
                       </Badge>
                     </TableCell>
                     <TableCell>
-                      <div className="flex space-x-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                        {isEditMode && (
+                      <div className="flex space-x-2">
+                        {isAdmin && isEditMode && (
                           <TooltipProvider>
                             <Tooltip>
                               <TooltipTrigger asChild>
@@ -870,21 +879,21 @@ export default function Materials() {
       </div>
 
       {isEditMode && selectedMaterials.length > 0 && (
-        <div className="fixed bottom-4 left-4 right-4 sm:left-auto sm:right-4 flex items-center gap-3 bg-white p-4 rounded-lg shadow-lg border animate-in slide-in-from-bottom-2">
-          <span className="text-sm text-muted-foreground hidden sm:inline">
+        <div className="fixed bottom-4 left-4 right-4 flex items-center justify-between bg-card p-4 rounded-lg shadow-lg border animate-in slide-in-from-bottom-2">
+          <span className="text-sm text-muted-foreground">
             {selectedMaterials.length} geselecteerd
           </span>
-          <Separator orientation="vertical" className="h-6 hidden sm:block" />
           <Button
             variant="default"
             onClick={() => handleBulkReturn(selectedMaterials)}
-            className="bg-primary hover:bg-primary/90 w-full sm:w-auto"
+            className="bg-primary hover:bg-primary/90"
           >
             <RotateCcw className="h-4 w-4 mr-2" />
-            {selectedMaterials.length} Retourneren
+            Retourneren
           </Button>
         </div>
       )}
+
       <AlertDialog
         open={!!deleteMaterialTypeId}
         onOpenChange={() => setDeleteMaterialTypeId(null)}
