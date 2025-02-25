@@ -47,7 +47,7 @@ import {
 } from "lucide-react";
 import { Form as FormComponent, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { format } from "date-fns";
+import { format, addDays, isValid, parseISO } from "date-fns";
 import { nl } from "date-fns/locale";
 import { Card, CardContent } from "@/components/ui/card";
 import { CollapsibleSection } from "@/components/ui/collapsible-section";
@@ -57,7 +57,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
 import { Switch } from "@/components/ui/switch";
 import { MultiSelect } from "@/components/ui/multi-select";
-import { Label } from "@/components/ui/label"; // Added import
+import { Label } from "@/components/ui/label";
 
 const planningSchema = z.object({
   volunteerId: z.string().min(1, "Vrijwilliger is verplicht").optional(),
@@ -68,9 +68,9 @@ const planningSchema = z.object({
   selectedVolunteers: z.array(z.string()).optional(),
   selectedRooms: z.array(z.string()).optional(),
 }).refine((data) => {
-  const start = new Date(data.startDate);
-  const end = new Date(data.endDate);
-  return end >= start;
+  const start = parseISO(data.startDate);
+  const end = parseISO(data.endDate);
+  return isValid(start) && isValid(end) && end >= start;
 }, {
   message: "Einddatum moet na startdatum liggen",
   path: ["endDate"],
@@ -332,31 +332,44 @@ export default function Planning() {
       </Table>
     </div>
   );
+};
 
-  const PlanningForm = ({ form, onSubmit, editingPlanning, volunteers, rooms }: {
-    form: ReturnType<typeof useForm<z.infer<typeof planningSchema>>>;
-    onSubmit: (data: z.infer<typeof planningSchema>) => Promise<void>;
-    editingPlanning: Planning | null;
-    volunteers: { id: string; firstName: string; lastName: string; }[];
-    rooms: { id: string; name: string; }[];
-  }) => (
+const PlanningForm = ({ form, onSubmit, editingPlanning, volunteers, rooms }: {
+  form: ReturnType<typeof useForm<z.infer<typeof planningSchema>>>;
+  onSubmit: (data: z.infer<typeof planningSchema>) => Promise<void>;
+  editingPlanning: Planning | null;
+  volunteers: { id: string; firstName: string; lastName: string; }[];
+  rooms: { id: string; name: string; }[];
+}) => {
+  const isBulkPlanning = form.watch("isBulkPlanning");
+  const selectedVolunteers = form.watch("selectedVolunteers") || [];
+  const selectedRooms = form.watch("selectedRooms") || [];
+  const startDate = form.watch("startDate");
+  const endDate = form.watch("endDate");
+
+  // Calculate total plannings for bulk mode
+  const totalPlannings = selectedVolunteers.length * selectedRooms.length;
+
+  return (
     <FormComponent {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
         <div className="flex items-center space-x-2 pb-4 border-b">
           <Switch
-            checked={form.watch("isBulkPlanning")}
+            checked={isBulkPlanning}
             onCheckedChange={(checked) => {
               form.setValue("isBulkPlanning", checked);
               if (!checked) {
                 form.setValue("selectedVolunteers", []);
                 form.setValue("selectedRooms", []);
               }
+              form.setValue("volunteerId", undefined);
+              form.setValue("roomId", undefined);
             }}
           />
           <Label>Bulk Inplannen</Label>
         </div>
 
-        {!form.watch("isBulkPlanning") ? (
+        {!isBulkPlanning ? (
           <>
             <FormField
               control={form.control}
@@ -424,6 +437,11 @@ export default function Planning() {
                     onChange={field.onChange}
                     placeholder="Selecteer vrijwilligers"
                   />
+                  <div className="mt-1 text-sm text-muted-foreground">
+                    {selectedVolunteers.length > 0 && (
+                      `${selectedVolunteers.length} ${selectedVolunteers.length === 1 ? 'vrijwilliger' : 'vrijwilligers'} geselecteerd`
+                    )}
+                  </div>
                   <FormMessage />
                 </FormItem>
               )}
@@ -443,10 +461,48 @@ export default function Planning() {
                     onChange={field.onChange}
                     placeholder="Selecteer ruimtes"
                   />
+                  <div className="mt-1 text-sm text-muted-foreground">
+                    {selectedRooms.length > 0 && (
+                      `${selectedRooms.length} ${selectedRooms.length === 1 ? 'ruimte' : 'ruimtes'} geselecteerd`
+                    )}
+                  </div>
                   <FormMessage />
                 </FormItem>
               )}
             />
+
+            {totalPlannings > 0 && (
+              <div className="bg-secondary/50 rounded-lg p-4 space-y-4">
+                <div className="font-medium">
+                  Bulk Planning Overzicht:
+                </div>
+                <div>
+                  <strong>Geselecteerde Vrijwilligers ({selectedVolunteers.length}):</strong>
+                  <ul className="list-disc pl-5 mt-1">
+                    {selectedVolunteers.map(id => {
+                      const volunteer = volunteers.find(v => v.id === id);
+                      return volunteer && (
+                        <li key={id}>{volunteer.firstName} {volunteer.lastName}</li>
+                      );
+                    })}
+                  </ul>
+                </div>
+                <div>
+                  <strong>Geselecteerde Ruimtes ({selectedRooms.length}):</strong>
+                  <ul className="list-disc pl-5 mt-1">
+                    {selectedRooms.map(id => {
+                      const room = rooms.find(r => r.id === id);
+                      return room && (
+                        <li key={id}>{room.name}</li>
+                      );
+                    })}
+                  </ul>
+                </div>
+                <div className="text-sm text-muted-foreground bg-primary/5 p-2 rounded">
+                  {`Er ${totalPlannings === 1 ? 'wordt' : 'worden'} ${totalPlannings} planning${totalPlannings === 1 ? '' : 'en'} aangemaakt`}
+                </div>
+              </div>
+            )}
           </>
         )}
 
@@ -467,7 +523,7 @@ export default function Planning() {
                       )}
                     >
                       {field.value ? (
-                        format(new Date(field.value), "EEEE d MMMM yyyy", { locale: nl })
+                        format(parseISO(field.value), "EEEE d MMMM yyyy", { locale: nl })
                       ) : (
                         <span>Kies een datum</span>
                       )}
@@ -478,8 +534,8 @@ export default function Planning() {
                 <PopoverContent className="w-auto p-0" align="start">
                   <Calendar
                     mode="single"
-                    selected={field.value ? new Date(field.value) : undefined}
-                    onSelect={(date) => field.onChange(date?.toISOString().split('T')[0])}
+                    selected={field.value ? parseISO(field.value) : undefined}
+                    onSelect={(date) => date && field.onChange(date.toISOString().split('T')[0])}
                     disabled={(date) => date < new Date()}
                     initialFocus
                     locale={nl}
@@ -490,6 +546,7 @@ export default function Planning() {
             </FormItem>
           )}
         />
+
         <FormField
           control={form.control}
           name="endDate"
@@ -507,7 +564,7 @@ export default function Planning() {
                       )}
                     >
                       {field.value ? (
-                        format(new Date(field.value), "EEEE d MMMM yyyy", { locale: nl })
+                        format(parseISO(field.value), "EEEE d MMMM yyyy", { locale: nl })
                       ) : (
                         <span>Kies een datum</span>
                       )}
@@ -518,11 +575,11 @@ export default function Planning() {
                 <PopoverContent className="w-auto p-0" align="start">
                   <Calendar
                     mode="single"
-                    selected={field.value ? new Date(field.value) : undefined}
-                    onSelect={(date) => field.onChange(date?.toISOString().split('T')[0])}
+                    selected={field.value ? parseISO(field.value) : undefined}
+                    onSelect={(date) => date && field.onChange(date.toISOString().split('T')[0])}
                     disabled={(date) => {
-                      const startDate = form.getValues("startDate");
-                      return date < (startDate ? new Date(startDate) : new Date());
+                      const minDate = startDate ? parseISO(startDate) : new Date();
+                      return date < minDate;
                     }}
                     initialFocus
                     locale={nl}
@@ -533,15 +590,21 @@ export default function Planning() {
             </FormItem>
           )}
         />
-        <Button type="submit" className="w-full bg-[#6BB85C] hover:bg-[#6BB85C]/90">
-          {form.watch("isBulkPlanning")
-            ? "Bulk Inplannen"
+
+        <Button 
+          type="submit" 
+          className="w-full bg-[#6BB85C] hover:bg-[#6BB85C]/90"
+          disabled={isBulkPlanning && totalPlannings === 0}
+        >
+          {isBulkPlanning
+            ? `${totalPlannings === 0 ? 'Selecteer vrijwilligers en ruimtes' : `${totalPlannings} Planning${totalPlannings === 1 ? '' : 'en'} Toevoegen`}`
             : (editingPlanning ? "Planning Bijwerken" : "Inplannen")
           }
         </Button>
       </form>
     </FormComponent>
   );
+};
 
   return (
     <div className="space-y-6">
@@ -550,7 +613,6 @@ export default function Planning() {
           <CalendarIcon className="h-8 w-8 text-primary" />
           <h1 className="text-3xl font-bold text-primary">Planning</h1>
         </div>
-
       </div>
 
       <CollapsibleSection
@@ -599,26 +661,50 @@ export default function Planning() {
         </div>
       </CollapsibleSection>
 
+      <div className="flex justify-end mt-6 mb-6">
+        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+          <DialogTrigger asChild>
+            <Button className="bg-[#6BB85C] hover:bg-[#6BB85C]/90">
+              <Plus className="h-4 w-4 mr-2" />
+              Nieuwe Planning
+            </Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>
+                {editingPlanning ? "Planning Bewerken" : "Nieuwe Planning"}
+              </DialogTitle>
+            </DialogHeader>
+            <PlanningForm form={form} onSubmit={onSubmit} editingPlanning={editingPlanning} volunteers={volunteers} rooms={rooms} />
+          </DialogContent>
+        </Dialog>
+      </div>
+
       <CollapsibleSection
         title="Actieve Planningen"
         icon={<Users2 className="h-5 w-5 text-primary" />}
         defaultOpen={true}
-        action={
-          <Button variant="outline" size="sm" onClick={() => setDialogOpen(true)}>
-            <Plus className="h-4 w-4 mr-2" />
-            Toevoegen
-          </Button>
-        }
       >
         <div className="space-y-4">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
-            <Input
-              placeholder="Zoek op vrijwilliger of ruimte..."
-              value={searchActive}
-              onChange={(e) => setSearchActive(e.target.value)}
-              className="pl-9"
-            />
+          <div className="flex justify-between items-center">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
+              <Input
+                placeholder="Zoek op vrijwilliger of ruimte..."
+                value={searchActive}
+                onChange={(e) => setSearchActive(e.target.value)}
+                className="pl-9"
+              />
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setDialogOpen(true)}
+              className="ml-4"
+            >
+              <Edit2 className="h-4 w-4 mr-2" />
+              Bewerken
+            </Button>
           </div>
           <PlanningTable
             plannings={filteredActivePlannings}
@@ -631,22 +717,27 @@ export default function Planning() {
         title="Toekomstige Planningen"
         icon={<Users2 className="h-5 w-5 text-primary" />}
         defaultOpen={true}
-        action={
-          <Button variant="outline" size="sm" onClick={() => setDialogOpen(true)}>
-            <Plus className="h-4 w-4 mr-2" />
-            Toevoegen
-          </Button>
-        }
       >
         <div className="space-y-4">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
-            <Input
-              placeholder="Zoek op vrijwilliger of ruimte..."
-              value={searchUpcoming}
-              onChange={(e) => setSearchUpcoming(e.target.value)}
-              className="pl-9"
-            />
+          <div className="flex justify-between items-center">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
+              <Input
+                placeholder="Zoek op vrijwilliger of ruimte..."
+                value={searchUpcoming}
+                onChange={(e) => setSearchUpcoming(e.target.value)}
+                className="pl-9"
+              />
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setDialogOpen(true)}
+              className="ml-4"
+            >
+              <Edit2 className="h-4 w-4 mr-2" />
+              Bewerken
+            </Button>
           </div>
           <PlanningTable
             plannings={filteredUpcomingPlannings}
@@ -659,37 +750,25 @@ export default function Planning() {
         title="Afgelopen Planningen"
         icon={<Users2 className="h-5 w-5 text-primary" />}
         defaultOpen={false}
-        action={
-          <Button variant="outline" size="sm" onClick={() => setDialogOpen(true)}>
-            <Plus className="h-4 w-4 mr-2" />
-            Toevoegen
-          </Button>
-        }
       >
-        <PlanningTable
-          plannings={pastPlannings}
-          emptyMessage="Geen afgelopen planningen gevonden"
-        />
-      </CollapsibleSection>
-
-      <div className="flex justify-end mt-6">
-        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-          <DialogTrigger asChild>
-            <Button className="bg-[#6BB85C] hover:bg-[#6BB85C]/90">
-              <Plus className="h-4 w-4 mr-2" />
-              Inplannen
+        <div className="space-y-4">
+          <div className="flex justify-between items-center mb-4">
+            <div className="flex-1"></div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setDialogOpen(true)}
+            >
+              <Edit2 className="h-4 w-4 mr-2" />
+              Bewerken
             </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>
-                {editingPlanning ? "Planning Bewerken" : "Vrijwilliger Inplannen"}
-              </DialogTitle>
-            </DialogHeader>
-            <PlanningForm form={form} onSubmit={onSubmit} editingPlanning={editingPlanning} volunteers={volunteers} rooms={rooms} />
-          </DialogContent>
-        </Dialog>
-      </div>
+          </div>
+          <PlanningTable
+            plannings={pastPlannings}
+            emptyMessage="Geen afgelopen planningen gevonden"
+          />
+        </div>
+      </CollapsibleSection>
 
       <AlertDialog
         open={!!deletePlanningId}

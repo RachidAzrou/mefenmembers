@@ -1,4 +1,5 @@
 import * as React from "react";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Command,
@@ -12,7 +13,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { Check, ChevronsUpDown } from "lucide-react";
+import { Check, ChevronsUpDown, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export type Option = {
@@ -34,56 +35,98 @@ export function MultiSelect({
   placeholder = "Selecteer opties...",
 }: MultiSelectProps) {
   const [open, setOpen] = React.useState(false);
+  const [search, setSearch] = React.useState("");
 
-  const handleSelect = (value: string) => {
-    if (selected.includes(value)) {
-      onChange(selected.filter((item) => item !== value));
-    } else {
-      onChange([...selected, value]);
-    }
-  };
+  const selectedItems = options.filter((option) => selected.includes(option.value));
+  const filteredOptions = options.filter(option => 
+    option.label.toLowerCase().includes(search.toLowerCase())
+  );
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <Button
-          variant="outline"
-          role="combobox"
-          aria-expanded={open}
-          className="w-full justify-between"
-        >
-          <span className="truncate">
-            {selected.length === 0
-              ? placeholder
-              : `${selected.length} geselecteerd`}
-          </span>
-          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent className="w-full p-0">
-        <Command>
-          <CommandInput placeholder={placeholder} />
-          <CommandEmpty>Geen opties gevonden.</CommandEmpty>
-          <CommandGroup className="max-h-64 overflow-auto">
-            {options.map((option) => (
-              <CommandItem
-                key={option.value}
-                onSelect={() => handleSelect(option.value)}
-              >
-                <Check
-                  className={cn(
-                    "mr-2 h-4 w-4",
-                    selected.includes(option.value)
-                      ? "opacity-100"
-                      : "opacity-0"
+    <div className="flex flex-col gap-2">
+      <Popover open={open} onOpenChange={setOpen}>
+        <PopoverTrigger asChild>
+          <Button
+            variant="outline"
+            role="combobox"
+            aria-expanded={open}
+            className={cn(
+              "w-full justify-between",
+              !selected.length && "text-muted-foreground"
+            )}
+          >
+            <span className="truncate">
+              {selected.length === 0
+                ? placeholder
+                : `${selected.length} ${selected.length === 1 ? 'item' : 'items'} geselecteerd`}
+            </span>
+            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent className="w-full p-0">
+          <Command shouldFilter={false}>
+            <CommandInput 
+              placeholder={`Zoek ${placeholder.toLowerCase()}`}
+              value={search}
+              onValueChange={setSearch}
+            />
+            <CommandEmpty>Geen opties gevonden.</CommandEmpty>
+            <CommandGroup className="max-h-64 overflow-auto">
+              {filteredOptions.map((option) => (
+                <CommandItem
+                  key={option.value}
+                  onSelect={() => {
+                    const newSelected = selected.includes(option.value)
+                      ? selected.filter((value) => value !== option.value)
+                      : [...selected, option.value];
+                    onChange(newSelected);
+                  }}
+                  className="flex items-center justify-between"
+                >
+                  <div className="flex items-center">
+                    <Check
+                      className={cn(
+                        "mr-2 h-4 w-4",
+                        selected.includes(option.value)
+                          ? "opacity-100"
+                          : "opacity-0"
+                      )}
+                    />
+                    {option.label}
+                  </div>
+                  {selected.includes(option.value) && (
+                    <Badge variant="secondary" className="ml-2">
+                      Geselecteerd
+                    </Badge>
                   )}
-                />
-                {option.label}
-              </CommandItem>
-            ))}
-          </CommandGroup>
-        </Command>
-      </PopoverContent>
-    </Popover>
+                </CommandItem>
+              ))}
+            </CommandGroup>
+          </Command>
+        </PopoverContent>
+      </Popover>
+
+      {selectedItems.length > 0 && (
+        <div className="flex flex-wrap gap-2">
+          {selectedItems.map((item) => (
+            <Badge
+              key={item.value}
+              variant="secondary"
+              className="flex items-center gap-1 py-1 px-2"
+            >
+              {item.label}
+              <X
+                className="h-3 w-3 cursor-pointer hover:text-destructive"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  onChange(selected.filter((value) => value !== item.value));
+                }}
+              />
+            </Badge>
+          ))}
+        </div>
+      )}
+    </div>
   );
 }
