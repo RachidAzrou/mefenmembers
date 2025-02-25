@@ -83,7 +83,7 @@ const planningSchema = z.object({
 
 type Planning = z.infer<typeof planningSchema> & { id: string };
 
-// PlanningTable component
+// Modified PlanningTable component
 const PlanningTable = ({
   plannings,
   emptyMessage,
@@ -100,76 +100,83 @@ const PlanningTable = ({
   onDelete: (id: string) => void;
 }) => {
   return (
-    <div className="rounded-lg border bg-card">
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Vrijwilliger</TableHead>
-            <TableHead>Ruimte</TableHead>
-            <TableHead>Periode</TableHead>
-            <TableHead className="w-[100px]">Acties</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {plannings.map((planning) => {
-            const volunteer = volunteers.find((v) => v.id === planning.volunteerId);
-            const room = rooms.find((r) => r.id === planning.roomId);
-            return (
-              <TableRow key={planning.id}>
-                <TableCell className="font-medium">
-                  {volunteer ? `${volunteer.firstName} ${volunteer.lastName}` : "-"}
-                </TableCell>
-                <TableCell>{room ? room.name : "-"}</TableCell>
-                <TableCell className="whitespace-nowrap">
-                  {format(new Date(planning.startDate), "d MMM yyyy", { locale: nl })} - {format(new Date(planning.endDate), "d MMM yyyy", { locale: nl })}
-                </TableCell>
-                <TableCell>
-                  <div className="flex space-x-2">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onEdit(planning);
-                      }}
-                      className="text-primary hover:text-primary hover:bg-primary/10"
-                    >
-                      <Edit2 className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onDelete(planning.id);
-                      }}
-                      className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
+    <div className="space-y-4">
+      <div className="flex justify-between items-center">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
+          <Input
+            placeholder="Zoek op vrijwilliger of ruimte..."
+            value={searchActive}
+            onChange={(e) => setSearchActive(e.target.value)}
+            className="pl-9"
+          />
+        </div>
+      </div>
+      <div className="rounded-lg border bg-card">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Vrijwilliger</TableHead>
+              <TableHead>Ruimte</TableHead>
+              <TableHead>Periode</TableHead>
+              {/* <TableHead className="w-[120px]">Acties</TableHead> */}
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {plannings.map((planning) => {
+              const volunteer = volunteers.find((v) => v.id === planning.volunteerId);
+              const room = rooms.find((r) => r.id === planning.roomId);
+              return (
+                <TableRow key={planning.id}>
+                  <TableCell className="font-medium">
+                    {volunteer ? `${volunteer.firstName} ${volunteer.lastName}` : "-"}
+                  </TableCell>
+                  <TableCell>{room ? room.name : "-"}</TableCell>
+                  <TableCell className="whitespace-nowrap">
+                    {format(new Date(planning.startDate), "d MMM yyyy", { locale: nl })} - {format(new Date(planning.endDate), "d MMM yyyy", { locale: nl })}
+                  </TableCell>
+                  {/* <TableCell>
+                    <div className="flex space-x-2">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => onEdit(planning)}
+                        className="h-8 w-8 text-primary hover:text-primary hover:bg-primary/10"
+                      >
+                        <Edit2 className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => onDelete(planning.id)}
+                        className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </TableCell> */}
+                </TableRow>
+              );
+            })}
+            {plannings.length === 0 && (
+              <TableRow>
+                <TableCell
+                  colSpan={3}
+                  className="h-32 text-center text-muted-foreground"
+                >
+                  <CalendarDaysIcon className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                  {emptyMessage}
                 </TableCell>
               </TableRow>
-            );
-          })}
-          {plannings.length === 0 && (
-            <TableRow>
-              <TableCell
-                colSpan={4}
-                className="h-32 text-center text-muted-foreground"
-              >
-                <CalendarDaysIcon className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                {emptyMessage}
-              </TableCell>
-            </TableRow>
-          )}
-        </TableBody>
-      </Table>
+            )}
+          </TableBody>
+        </Table>
+      </div>
     </div>
   );
 };
 
-// PlanningForm component
+// PlanningForm component (remains unchanged)
 const PlanningForm = ({ form, onSubmit, editingPlanning, volunteers, rooms }: {
   form: ReturnType<typeof useForm<z.infer<typeof planningSchema>>>;
   onSubmit: (data: z.infer<typeof planningSchema>) => Promise<void>;
@@ -344,7 +351,14 @@ const PlanningForm = ({ form, onSubmit, editingPlanning, volunteers, rooms }: {
                   <Calendar
                     mode="single"
                     selected={field.value ? parseISO(field.value) : undefined}
-                    onSelect={(date) => date && field.onChange(date.toISOString().split('T')[0])}
+                    onSelect={(date) => {
+                      if (date) {
+                        // Zorg ervoor dat de tijd op middernacht staat
+                        const selectedDate = new Date(date);
+                        selectedDate.setHours(0, 0, 0, 0);
+                        field.onChange(format(selectedDate, 'yyyy-MM-dd'));
+                      }
+                    }}
                     disabled={(date) => {
                       const today = new Date();
                       today.setHours(0, 0, 0, 0);
@@ -389,9 +403,17 @@ const PlanningForm = ({ form, onSubmit, editingPlanning, volunteers, rooms }: {
                   <Calendar
                     mode="single"
                     selected={field.value ? parseISO(field.value) : undefined}
-                    onSelect={(date) => date && field.onChange(date.toISOString().split('T')[0])}
+                    onSelect={(date) => {
+                      if (date) {
+                        // Zorg ervoor dat de tijd op middernacht staat
+                        const selectedDate = new Date(date);
+                        selectedDate.setHours(0, 0, 0, 0);
+                        field.onChange(format(selectedDate, 'yyyy-MM-dd'));
+                      }
+                    }}
                     disabled={(date) => {
                       const minDate = startDate ? parseISO(startDate) : new Date();
+                      minDate.setHours(0, 0, 0, 0);
                       return date < minDate;
                     }}
                     initialFocus
@@ -419,7 +441,7 @@ const PlanningForm = ({ form, onSubmit, editingPlanning, volunteers, rooms }: {
   );
 };
 
-// Main Planning component
+// Main Planning component (remains unchanged)
 export default function Planning() {
   const [plannings, setPlannings] = useState<Planning[]>([]);
   const [volunteers, setVolunteers] = useState<{ id: string; firstName: string; lastName: string; }[]>([]);
@@ -678,36 +700,14 @@ export default function Planning() {
         icon={<Users2 className="h-5 w-5 text-primary" />}
         defaultOpen={true}
       >
-        <div className="space-y-4">
-          <div className="flex justify-between items-center">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
-              <Input
-                placeholder="Zoek op vrijwilliger of ruimte..."
-                value={searchActive}
-                onChange={(e) => setSearchActive(e.target.value)}
-                className="pl-9"
-              />
-            </div>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setDialogOpen(true)}
-              className="ml-4"
-            >
-              <Edit2 className="h-4 w-4 mr-2" />
-              Bewerken
-            </Button>
-          </div>
-          <PlanningTable
-            plannings={filteredActivePlannings}
-            emptyMessage="Geen actieve planningen gevonden"
-            volunteers={volunteers}
-            rooms={rooms}
-            onEdit={handleEdit}
-            onDelete={handleDelete}
-          />
-        </div>
+        <PlanningTable
+          plannings={filteredActivePlannings}
+          emptyMessage="Geen actieve planningen gevonden"
+          volunteers={volunteers}
+          rooms={rooms}
+          onEdit={handleEdit}
+          onDelete={setDeletePlanningId}
+        />
       </CollapsibleSection>
 
       <CollapsibleSection
@@ -715,36 +715,14 @@ export default function Planning() {
         icon={<Users2 className="h-5 w-5 text-primary" />}
         defaultOpen={true}
       >
-        <div className="space-y-4">
-          <div className="flex justify-between items-center">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
-              <Input
-                placeholder="Zoek op vrijwilliger of ruimte..."
-                value={searchUpcoming}
-                onChange={(e) => setSearchUpcoming(e.target.value)}
-                className="pl-9"
-              />
-            </div>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setDialogOpen(true)}
-              className="ml-4"
-            >
-              <Edit2 className="h-4 w-4 mr-2" />
-              Bewerken
-            </Button>
-          </div>
-          <PlanningTable
-            plannings={filteredUpcomingPlannings}
-            emptyMessage="Geen toekomstige planningen gevonden"
-            volunteers={volunteers}
-            rooms={rooms}
-            onEdit={handleEdit}
-            onDelete={handleDelete}
-          />
-        </div>
+        <PlanningTable
+          plannings={filteredUpcomingPlannings}
+          emptyMessage="Geen toekomstige planningen gevonden"
+          volunteers={volunteers}
+          rooms={rooms}
+          onEdit={handleEdit}
+          onDelete={setDeletePlanningId}
+        />
       </CollapsibleSection>
 
       <CollapsibleSection
@@ -752,27 +730,14 @@ export default function Planning() {
         icon={<Users2 className="h-5 w-5 text-primary" />}
         defaultOpen={false}
       >
-        <div className="space-y-4">
-          <div className="flex justify-between items-center mb-4">
-            <div className="flex-1"></div>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setDialogOpen(true)}
-            >
-              <Edit2 className="h-4 w-4 mr-2" />
-              Bewerken
-            </Button>
-          </div>
-          <PlanningTable
-            plannings={pastPlannings}
-            emptyMessage="Geen afgelopen planningen gevonden"
-            volunteers={volunteers}
-            rooms={rooms}
-            onEdit={handleEdit}
-            onDelete={handleDelete}
-          />
-        </div>
+        <PlanningTable
+          plannings={pastPlannings}
+          emptyMessage="Geen afgelopen planningen gevonden"
+          volunteers={volunteers}
+          rooms={rooms}
+          onEdit={handleEdit}
+          onDelete={setDeletePlanningId}
+        />
       </CollapsibleSection>
 
       <AlertDialog
