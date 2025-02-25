@@ -41,6 +41,7 @@ import {
   Edit2,
   Trash2,
   Plus,
+  Settings2,
 } from "lucide-react";
 import { Form as FormComponent, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -455,6 +456,67 @@ const PlanningForm = ({ form, onSubmit, editingPlanning, volunteers, rooms }: {
   );
 };
 
+const PlanningSection = ({ title, icon, defaultOpen, children }: {
+  title: string;
+  icon: React.ReactNode;
+  defaultOpen: boolean;
+  children: React.ReactNode;
+}) => {
+  const [isEditing, setIsEditing] = useState(false);
+
+  return (
+    <CollapsibleSection
+      title={title}
+      icon={icon}
+      defaultOpen={defaultOpen}
+      action={
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => setIsEditing(!isEditing)}
+          className={cn(
+            "h-8 w-8",
+            isEditing && "text-primary bg-primary/10"
+          )}
+        >
+          <Settings2 className="h-4 w-4" />
+        </Button>
+      }
+    >
+      <div className={cn(
+        "space-y-4",
+        isEditing && "relative"
+      )}>
+        {children}
+        {isEditing && (
+          <div className="absolute inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center">
+            <div className="bg-card p-4 rounded-lg shadow-lg space-y-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {/* handle edit */}}
+                className="w-full"
+              >
+                <Edit2 className="h-4 w-4 mr-2" />
+                Bewerken
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {/* handle delete */}}
+                className="w-full text-destructive hover:text-destructive"
+              >
+                <Trash2 className="h-4 w-4 mr-2" />
+                Verwijderen
+              </Button>
+            </div>
+          </div>
+        )}
+      </div>
+    </CollapsibleSection>
+  );
+};
+
 export default function Planning() {
   const [plannings, setPlannings] = useState<Planning[]>([]);
   const [volunteers, setVolunteers] = useState<{ id: string; firstName: string; lastName: string; }[]>([]);
@@ -509,6 +571,15 @@ export default function Planning() {
     });
   }, []);
 
+  const showToast = (title: string, description: string, variant: "default" | "destructive" = "default") => {
+    toast({
+      title,
+      description,
+      duration: 3000, // 3 seconds
+      variant,
+    });
+  };
+
   const onSubmit = async (data: z.infer<typeof planningSchema>) => {
     try {
       if (data.isBulkPlanning) {
@@ -526,23 +597,17 @@ export default function Planning() {
           }
         }
 
-        toast({
-          title: "Succes",
-          description: `${volunteers.length * rooms.length} planningen succesvol toegevoegd`,
-        });
+        showToast(
+          "Succes",
+          `${volunteers.length * rooms.length} planningen succesvol toegevoegd`
+        );
       } else {
         if (editingPlanning) {
           await update(ref(db, `plannings/${editingPlanning.id}`), data);
-          toast({
-            title: "Succes",
-            description: "Planning succesvol bijgewerkt",
-          });
+          showToast("Succes", "Planning succesvol bijgewerkt");
         } else {
           await push(ref(db, "plannings"), data);
-          toast({
-            title: "Succes",
-            description: "Planning succesvol toegevoegd",
-          });
+          showToast("Succes", "Planning succesvol toegevoegd");
         }
       }
 
@@ -550,11 +615,11 @@ export default function Planning() {
       setEditingPlanning(null);
       setDialogOpen(false);
     } catch (error) {
-      toast({
-        variant: "destructive",
-        title: "Fout",
-        description: "Kon planning niet opslaan",
-      });
+      showToast(
+        "Fout",
+        "Kon planning niet opslaan",
+        "destructive"
+      );
     }
   };
 
@@ -575,17 +640,14 @@ export default function Planning() {
   const handleDelete = async (id: string) => {
     try {
       await remove(ref(db, `plannings/${id}`));
-      toast({
-        title: "Succes",
-        description: "Planning succesvol verwijderd",
-      });
+      showToast("Succes", "Planning succesvol verwijderd");
       setDeletePlanningId(null);
     } catch (error) {
-      toast({
-        variant: "destructive",
-        title: "Fout",
-        description: "Kon planning niet verwijderen",
-      });
+      showToast(
+        "Fout",
+        "Kon planning niet verwijderen",
+        "destructive"
+      );
     }
   };
 
@@ -710,7 +772,7 @@ export default function Planning() {
         </Dialog>
       </div>
 
-      <CollapsibleSection
+      <PlanningSection
         title="Actieve Planningen"
         icon={<Users2 className="h-5 w-5 text-primary" />}
         defaultOpen={true}
@@ -725,9 +787,9 @@ export default function Planning() {
           searchValue={searchActive}
           onSearchChange={setSearchActive}
         />
-      </CollapsibleSection>
+      </PlanningSection>
 
-      <CollapsibleSection
+      <PlanningSection
         title="Toekomstige Planningen"
         icon={<Users2 className="h-5 w-5 text-primary" />}
         defaultOpen={true}
@@ -742,9 +804,9 @@ export default function Planning() {
           searchValue={searchUpcoming}
           onSearchChange={setSearchUpcoming}
         />
-      </CollapsibleSection>
+      </PlanningSection>
 
-      <CollapsibleSection
+      <PlanningSection
         title="Afgelopen Planningen"
         icon={<Users2 className="h-5 w-5 text-primary" />}
         defaultOpen={false}
@@ -759,7 +821,7 @@ export default function Planning() {
           searchValue={searchPast}
           onSearchChange={setSearchPast}
         />
-      </CollapsibleSection>
+      </PlanningSection>
 
       <AlertDialog
         open={!!deletePlanningId}
