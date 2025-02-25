@@ -31,7 +31,21 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { db } from "@/lib/firebase";
 import { ref, push, update, remove, onValue } from "firebase/database";
-import { Package2, Edit2, RotateCcw, Search, Plus, Trash2, CheckSquare, Square } from "lucide-react";
+import {
+  Package2,
+  Edit2,
+  RotateCcw,
+  Search,
+  Plus,
+  Trash2,
+  CheckSquare,
+  Square,
+  Shirt,
+  Shield,
+  Lamp,
+  Radio,
+  Settings2,
+} from "lucide-react";
 import { useRole } from "@/hooks/use-role";
 import {
   Form,
@@ -88,6 +102,15 @@ type Volunteer = {
   id: string;
   firstName: string;
   lastName: string;
+};
+
+const getMaterialIcon = (materialName: string) => {
+  const name = materialName.toLowerCase();
+  if (name.includes('jas')) return <Shirt className="h-8 w-8 text-primary/80" />;
+  if (name.includes('hesje')) return <Shield className="h-8 w-8 text-primary/80" />;
+  if (name.includes('lamp')) return <Lamp className="h-8 w-8 text-primary/80" />;
+  if (name.includes('walkie')) return <Radio className="h-8 w-8 text-primary/80" />;
+  return <Package2 className="h-8 w-8 text-primary/80" />;
 };
 
 export default function Materials() {
@@ -524,9 +547,14 @@ export default function Materials() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="flex items-baseline justify-between">
-                <div className="text-2xl font-bold">{stat.count}</div>
-                <div className="text-sm text-muted-foreground">van {stat.total}</div>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center">
+                  {getMaterialIcon(stat.name)}
+                  <div className="ml-3">
+                    <div className="text-2xl font-bold">{stat.count}</div>
+                    <div className="text-sm text-muted-foreground">van {stat.total}</div>
+                  </div>
+                </div>
               </div>
             </CardContent>
           </Card>
@@ -541,16 +569,17 @@ export default function Materials() {
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button
-                    variant="ghost"
-                    size="icon"
+                    variant="outline"
+                    size="sm"
                     onClick={() => setIsEditMode(!isEditMode)}
-                    className={`hover:bg-gray-100 ${isEditMode ? "bg-gray-100 text-primary" : ""}`}
+                    className={`${isEditMode ? "bg-primary/10 text-primary" : ""}`}
                   >
-                    <Edit2 className="h-5 w-5" />
+                    <Settings2 className="h-4 w-4 mr-2" />
+                    {isEditMode ? "Bewerken afsluiten" : "Lijst bewerken"}
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent>
-                  {isEditMode ? "Bewerken afsluiten" : "Bewerken"}
+                  {isEditMode ? "Bewerkmodus afsluiten" : "Lijst bewerken"}
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
@@ -580,7 +609,7 @@ export default function Materials() {
                           </Button>
                         </TooltipTrigger>
                         <TooltipContent>
-                          {selectedMaterials.length === filteredMaterials.length ? 
+                          {selectedMaterials.length === filteredMaterials.length ?
                             "Deselecteer alles" : "Selecteer alles"}
                         </TooltipContent>
                       </Tooltip>
@@ -624,7 +653,7 @@ export default function Materials() {
                         : "-"}
                     </TableCell>
                     <TableCell>
-                      <Badge 
+                      <Badge
                         variant={item.isCheckedOut ? "default" : "secondary"}
                         className="font-normal"
                       >
@@ -674,8 +703,8 @@ export default function Materials() {
               })}
               {filteredMaterials.length === 0 && (
                 <TableRow>
-                  <TableCell 
-                    colSpan={isEditMode ? 6 : 5} 
+                  <TableCell
+                    colSpan={isEditMode ? 6 : 5}
                     className="h-32 text-center text-muted-foreground"
                   >
                     <Package2 className="h-8 w-8 mx-auto mb-2 opacity-50" />
