@@ -216,18 +216,30 @@ export default function Materials() {
         return;
       }
 
+      const materialType = materialTypes.find(t => t.id === data.typeId);
+      const volunteer = volunteers.find(v => v.id === data.volunteerId);
+
       if (editingMaterial) {
         await update(ref(db, `materials/${editingMaterial.id}`), {
           ...data,
           isCheckedOut: true,
         });
-        await logActivity('checkout', {
-          ...editingMaterial,
-          ...data,
-        }, data.volunteerId);
+
+        await logUserAction(
+          UserActionTypes.MATERIAL_CHECKOUT,
+          `${materialType?.name || 'Materiaal'} #${data.number} uitgeleend aan ${volunteer ? `${volunteer.firstName} ${volunteer.lastName}` : 'onbekende vrijwilliger'}`,
+          {
+            type: "material",
+            id: editingMaterial.id,
+            name: materialType?.name || 'Onbekend materiaal',
+            materialNumber: data.number.toString(),
+            volunteerName: volunteer ? `${volunteer.firstName} ${volunteer.lastName}` : undefined
+          }
+        );
+
         toast({
-          title: "Materiaal Geretourneerd",
-          description: "Het materiaal is succesvol geretourneerd",
+          title: "Materiaal Uitgeleend",
+          description: "Het materiaal is succesvol uitgeleend",
           duration: 3000,
           variant: "success",
         });
@@ -237,11 +249,19 @@ export default function Materials() {
           ...data,
           isCheckedOut: true,
         });
-        await logActivity('checkout', {
-          id: newMaterialRef.key!,
-          ...data,
-          isCheckedOut: true,
-        }, data.volunteerId);
+
+        await logUserAction(
+          UserActionTypes.MATERIAL_CHECKOUT,
+          `${materialType?.name || 'Materiaal'} #${data.number} uitgeleend aan ${volunteer ? `${volunteer.firstName} ${volunteer.lastName}` : 'onbekende vrijwilliger'}`,
+          {
+            type: "material",
+            id: newMaterialRef.key!,
+            name: materialType?.name || 'Onbekend materiaal',
+            materialNumber: data.number.toString(),
+            volunteerName: volunteer ? `${volunteer.firstName} ${volunteer.lastName}` : undefined
+          }
+        );
+
         toast({
           title: "Succes",
           description: "Materiaal succesvol toegewezen",
@@ -344,12 +364,25 @@ export default function Materials() {
       const material = materials.find(m => m.id === materialId);
       if (!material) return;
 
+      const materialType = materialTypes.find(t => t.id === material.typeId);
+      const volunteer = volunteers.find(v => v.id === material.volunteerId);
+
       await update(ref(db, `materials/${materialId}`), {
         volunteerId: null,
         isCheckedOut: false,
       });
 
-      await logActivity('return', material, material.volunteerId || '');
+      await logUserAction(
+        UserActionTypes.MATERIAL_RETURN,
+        `${materialType?.name || 'Materiaal'} #${material.number} geretourneerd van ${volunteer ? `${volunteer.firstName} ${volunteer.lastName}` : 'onbekende vrijwilliger'}`,
+        {
+          type: "material",
+          id: material.id,
+          name: materialType?.name || 'Onbekend materiaal',
+          materialNumber: material.number.toString(),
+          volunteerName: volunteer ? `${volunteer.firstName} ${volunteer.lastName}` : undefined
+        }
+      );
 
       toast({
         title: "Materiaal Geretourneerd",
