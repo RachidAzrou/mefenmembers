@@ -345,34 +345,34 @@ const PlanningForm = ({ form, onSubmit, editingPlanning, volunteers, rooms }: {
                         </Button>
                       </FormControl>
                     </PopoverTrigger>
-                    <PopoverContent className="w-full p-0" align="start" style={{ maxHeight: '60vh' }}>
-                      <Command className="max-h-full">
+                    <PopoverContent 
+                      className="w-[var(--radix-popover-trigger-width)] p-0" 
+                      style={{ maxHeight: '300px' }}
+                      align="start"
+                    >
+                      <Command className="w-full">
                         <CommandInput
                           placeholder="Zoek vrijwilliger..."
                           value={volunteerSearch}
                           onValueChange={setVolunteerSearch}
-                          className="h-9 border-none focus:ring-0"
+                          className="h-9"
                         />
                         <CommandEmpty>Geen vrijwilligers gevonden.</CommandEmpty>
-                        <CommandGroup className="max-h-[40vh] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent">
+                        <CommandGroup className="overflow-y-auto max-h-[200px]">
                           {filteredVolunteers.map((volunteer) => (
                             <CommandItem
                               key={volunteer.id}
                               value={`${volunteer.firstName} ${volunteer.lastName}`}
-                              onSelect={() => {
-                                field.onChange(volunteer.id);
-                              }}
-                              className="flex items-center justify-between py-2 px-2 cursor-pointer hover:bg-accent"
+                              onSelect={() => field.onChange(volunteer.id)}
+                              className="flex items-center gap-2 px-2 py-1.5"
                             >
-                              <div className="flex items-center">
-                                <Check
-                                  className={cn(
-                                    "mr-2 h-4 w-4",
-                                    field.value === volunteer.id ? "opacity-100" : "opacity-0"
-                                  )}
-                                />
-                                {volunteer.firstName} {volunteer.lastName}
-                              </div>
+                              <Check
+                                className={cn(
+                                  "h-4 w-4",
+                                  field.value === volunteer.id ? "opacity-100" : "opacity-0"
+                                )}
+                              />
+                              {volunteer.firstName} {volunteer.lastName}
                             </CommandItem>
                           ))}
                         </CommandGroup>
@@ -383,6 +383,7 @@ const PlanningForm = ({ form, onSubmit, editingPlanning, volunteers, rooms }: {
                 </FormItem>
               )}
             />
+
             <FormField
               control={form.control}
               name="roomId"
@@ -395,7 +396,11 @@ const PlanningForm = ({ form, onSubmit, editingPlanning, volunteers, rooms }: {
                         <SelectValue placeholder="Selecteer ruimte" />
                       </SelectTrigger>
                     </FormControl>
-                    <SelectContent className="max-h-[40vh] overflow-y-auto">
+                    <SelectContent 
+                      className="max-h-[300px] overflow-y-auto"
+                      position="popper"
+                      sideOffset={4}
+                    >
                       {rooms.map((room) => (
                         <SelectItem key={room.id} value={room.id}>
                           {room.name}
@@ -434,16 +439,20 @@ const PlanningForm = ({ form, onSubmit, editingPlanning, volunteers, rooms }: {
                         <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                       </Button>
                     </PopoverTrigger>
-                    <PopoverContent className="w-full p-0" align="start" style={{ maxHeight: '60vh' }}>
-                      <Command className="max-h-full">
+                    <PopoverContent 
+                      className="w-[var(--radix-popover-trigger-width)] p-0" 
+                      style={{ maxHeight: '300px' }}
+                      align="start"
+                    >
+                      <Command className="w-full">
                         <CommandInput
                           placeholder="Zoek vrijwilligers..."
                           value={volunteerSearch}
                           onValueChange={setVolunteerSearch}
-                          className="h-9 border-none focus:ring-0"
+                          className="h-9"
                         />
                         <CommandEmpty>Geen vrijwilligers gevonden.</CommandEmpty>
-                        <CommandGroup className="max-h-[40vh] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent">
+                        <CommandGroup className="overflow-y-auto max-h-[200px]">
                           {filteredVolunteers.map(volunteer => (
                             <CommandItem
                               key={volunteer.id}
@@ -454,17 +463,15 @@ const PlanningForm = ({ form, onSubmit, editingPlanning, volunteers, rooms }: {
                                   : [...currentSelected, volunteer.id];
                                 field.onChange(newSelected);
                               }}
-                              className="flex items-center justify-between py-2 px-2 cursor-pointer hover:bg-accent"
+                              className="flex items-center gap-2 px-2 py-1.5"
                             >
-                              <div className="flex items-center">
-                                <Check
-                                  className={cn(
-                                    "mr-2 h-4 w-4",
-                                    (field.value || []).includes(volunteer.id) ? "opacity-100" : "opacity-0"
-                                  )}
-                                />
-                                {volunteer.firstName} {volunteer.lastName}
-                              </div>
+                              <Check
+                                className={cn(
+                                  "h-4 w-4",
+                                  (field.value || []).includes(volunteer.id) ? "opacity-100" : "opacity-0"
+                                )}
+                              />
+                              {volunteer.firstName} {volunteer.lastName}
                             </CommandItem>
                           ))}
                         </CommandGroup>
@@ -475,6 +482,7 @@ const PlanningForm = ({ form, onSubmit, editingPlanning, volunteers, rooms }: {
                 </FormItem>
               )}
             />
+
             <FormField
               control={form.control}
               name="selectedRooms"
@@ -495,7 +503,11 @@ const PlanningForm = ({ form, onSubmit, editingPlanning, volunteers, rooms }: {
                         </SelectValue>
                       </SelectTrigger>
                     </FormControl>
-                    <SelectContent className="max-h-[40vh] overflow-y-auto">
+                    <SelectContent 
+                      className="max-h-[300px] overflow-y-auto"
+                      position="popper"
+                      sideOffset={4}
+                    >
                       {rooms.map((room) => (
                         <SelectItem key={room.id} value={room.id}>
                           {room.name}
@@ -503,11 +515,6 @@ const PlanningForm = ({ form, onSubmit, editingPlanning, volunteers, rooms }: {
                       ))}
                     </SelectContent>
                   </Select>
-                  <div className="mt-1 text-sm text-muted-foreground">
-                    {selectedRooms.length > 0 && (
-                      `${selectedRooms.length} ${selectedRooms.length === 1 ? 'ruimte' : 'ruimtes'} geselecteerd`
-                    )}
-                  </div>
                   <FormMessage />
                 </FormItem>
               )}
