@@ -346,11 +346,10 @@ const PlanningForm = ({ form, onSubmit, editingPlanning, volunteers, rooms }: {
                       </FormControl>
                     </PopoverTrigger>
                     <PopoverContent 
-                      className="w-[var(--radix-popover-trigger-width)] p-0" 
-                      style={{ maxHeight: '300px' }}
+                      className="p-0 w-[var(--radix-popover-trigger-width)]" 
                       align="start"
                     >
-                      <Command className="w-full">
+                      <Command>
                         <CommandInput
                           placeholder="Zoek vrijwilliger..."
                           value={volunteerSearch}
@@ -358,24 +357,26 @@ const PlanningForm = ({ form, onSubmit, editingPlanning, volunteers, rooms }: {
                           className="h-9"
                         />
                         <CommandEmpty>Geen vrijwilligers gevonden.</CommandEmpty>
-                        <CommandGroup className="overflow-y-auto max-h-[200px]">
-                          {filteredVolunteers.map((volunteer) => (
-                            <CommandItem
-                              key={volunteer.id}
-                              value={`${volunteer.firstName} ${volunteer.lastName}`}
-                              onSelect={() => field.onChange(volunteer.id)}
-                              className="flex items-center gap-2 px-2 py-1.5"
-                            >
-                              <Check
-                                className={cn(
-                                  "h-4 w-4",
-                                  field.value === volunteer.id ? "opacity-100" : "opacity-0"
-                                )}
-                              />
-                              {volunteer.firstName} {volunteer.lastName}
-                            </CommandItem>
-                          ))}
-                        </CommandGroup>
+                        <div className="max-h-[200px] overflow-y-auto">
+                          <CommandGroup>
+                            {filteredVolunteers.map((volunteer) => (
+                              <CommandItem
+                                key={volunteer.id}
+                                value={`${volunteer.firstName} ${volunteer.lastName}`}
+                                onSelect={() => field.onChange(volunteer.id)}
+                                className="flex items-center gap-2 px-2 py-1.5"
+                              >
+                                <Check
+                                  className={cn(
+                                    "h-4 w-4",
+                                    field.value === volunteer.id ? "opacity-100" : "opacity-0"
+                                  )}
+                                />
+                                {volunteer.firstName} {volunteer.lastName}
+                              </CommandItem>
+                            ))}
+                          </CommandGroup>
+                        </div>
                       </Command>
                     </PopoverContent>
                   </Popover>
@@ -397,7 +398,8 @@ const PlanningForm = ({ form, onSubmit, editingPlanning, volunteers, rooms }: {
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent 
-                      className="max-h-[300px] overflow-y-auto"
+                      className="overflow-y-auto"
+                      style={{ maxHeight: "200px" }}
                       position="popper"
                       sideOffset={4}
                     >
@@ -440,11 +442,10 @@ const PlanningForm = ({ form, onSubmit, editingPlanning, volunteers, rooms }: {
                       </Button>
                     </PopoverTrigger>
                     <PopoverContent 
-                      className="w-[var(--radix-popover-trigger-width)] p-0" 
-                      style={{ maxHeight: '300px' }}
+                      className="p-0 w-[var(--radix-popover-trigger-width)]" 
                       align="start"
                     >
-                      <Command className="w-full">
+                      <Command>
                         <CommandInput
                           placeholder="Zoek vrijwilligers..."
                           value={volunteerSearch}
@@ -452,29 +453,31 @@ const PlanningForm = ({ form, onSubmit, editingPlanning, volunteers, rooms }: {
                           className="h-9"
                         />
                         <CommandEmpty>Geen vrijwilligers gevonden.</CommandEmpty>
-                        <CommandGroup className="overflow-y-auto max-h-[200px]">
-                          {filteredVolunteers.map(volunteer => (
-                            <CommandItem
-                              key={volunteer.id}
-                              onSelect={() => {
-                                const currentSelected = field.value || [];
-                                const newSelected = currentSelected.includes(volunteer.id)
-                                  ? currentSelected.filter(id => id !== volunteer.id)
-                                  : [...currentSelected, volunteer.id];
-                                field.onChange(newSelected);
-                              }}
-                              className="flex items-center gap-2 px-2 py-1.5"
-                            >
-                              <Check
-                                className={cn(
-                                  "h-4 w-4",
-                                  (field.value || []).includes(volunteer.id) ? "opacity-100" : "opacity-0"
-                                )}
-                              />
-                              {volunteer.firstName} {volunteer.lastName}
-                            </CommandItem>
-                          ))}
-                        </CommandGroup>
+                        <div className="max-h-[200px] overflow-y-auto">
+                          <CommandGroup>
+                            {filteredVolunteers.map(volunteer => (
+                              <CommandItem
+                                key={volunteer.id}
+                                onSelect={() => {
+                                  const currentSelected = field.value || [];
+                                  const newSelected = currentSelected.includes(volunteer.id)
+                                    ? currentSelected.filter(id => id !== volunteer.id)
+                                    : [...currentSelected, volunteer.id];
+                                  field.onChange(newSelected);
+                                }}
+                                className="flex items-center gap-2 px-2 py-1.5"
+                              >
+                                <Check
+                                  className={cn(
+                                    "h-4 w-4",
+                                    (field.value || []).includes(volunteer.id) ? "opacity-100" : "opacity-0"
+                                  )}
+                                />
+                                {volunteer.firstName} {volunteer.lastName}
+                              </CommandItem>
+                            ))}
+                          </CommandGroup>
+                        </div>
                       </Command>
                     </PopoverContent>
                   </Popover>
@@ -504,7 +507,8 @@ const PlanningForm = ({ form, onSubmit, editingPlanning, volunteers, rooms }: {
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent 
-                      className="max-h-[300px] overflow-y-auto"
+                      className="overflow-y-auto"
+                      style={{ maxHeight: "200px" }}
                       position="popper"
                       sideOffset={4}
                     >
@@ -937,7 +941,7 @@ const Planning = () => {
   };
 
   const filteredActivePlannings = filterPlannings(activePlannings, searchActive);
-  const filteredUpcomingPlannings = filterPlannings(upcomingPlannings, searchUpcoming);
+  const filteredUpcomingPlannings= filterPlannings(upcomingPlannings, searchUpcoming);
   const filteredPastPlannings = filterPlannings(pastPlannings, searchPast);
 
   return (
