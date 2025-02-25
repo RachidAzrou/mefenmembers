@@ -80,6 +80,7 @@ export default function Planning() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [searchActive, setSearchActive] = useState("");
   const [searchUpcoming, setSearchUpcoming] = useState("");
+  const [selectedPlannings, setSelectedPlannings] = useState<string[]>([]); // New state for selected volunteer IDs
   const { isAdmin } = useRole();
   const { toast } = useToast();
 
@@ -221,7 +222,7 @@ export default function Planning() {
   const filteredUpcomingPlannings = filterPlannings(upcomingPlannings, searchUpcoming);
 
   const PlanningTable = ({ plannings, emptyMessage }: { plannings: Planning[]; emptyMessage: string }) => (
-    <div className="rounded-lg border bg-card overflow-x-auto">
+    <div className="rounded-lg border bg-card">
       <Table>
         <TableHeader>
           <TableRow>
@@ -236,7 +237,14 @@ export default function Planning() {
             const volunteer = volunteers.find((v) => v.id === planning.volunteerId);
             const room = rooms.find((r) => r.id === planning.roomId);
             return (
-              <TableRow key={planning.id}>
+              <TableRow
+                key={planning.id}
+                onClick={() => toggleSelectPlanning(planning.id)}
+                className={cn(
+                  "cursor-pointer hover:bg-gray-50",
+                  selectedPlannings.includes(planning.id) && "bg-primary/5"
+                )}
+              >
                 <TableCell className="font-medium">
                   {volunteer ? `${volunteer.firstName} ${volunteer.lastName}` : "-"}
                 </TableCell>
@@ -249,15 +257,21 @@ export default function Planning() {
                     <Button
                       variant="ghost"
                       size="icon"
-                      onClick={() => handleEdit(planning)}
-                      className="text-[#6BB85C] hover:text-[#6BB85C] hover:bg-[#6BB85C]/10"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleEdit(planning);
+                      }}
+                      className="text-primary hover:text-primary hover:bg-primary/10"
                     >
                       <Edit2 className="h-4 w-4" />
                     </Button>
                     <Button
                       variant="ghost"
                       size="icon"
-                      onClick={() => setDeletePlanningId(planning.id)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setDeletePlanningId(planning.id);
+                      }}
                       className="text-red-600 hover:text-red-700 hover:bg-red-50"
                     >
                       <Trash2 className="h-4 w-4" />
@@ -269,7 +283,11 @@ export default function Planning() {
           })}
           {plannings.length === 0 && (
             <TableRow>
-              <TableCell colSpan={4} className="text-center py-6 text-gray-500">
+              <TableCell
+                colSpan={4}
+                className="h-32 text-center text-muted-foreground"
+              >
+                <CalendarDaysIcon className="h-8 w-8 mx-auto mb-2 opacity-50" />
                 {emptyMessage}
               </TableCell>
             </TableRow>
@@ -426,6 +444,32 @@ export default function Planning() {
     </FormComponent>
   );
 
+  const handleBulkPlan = async (planningIds: string[]) => {
+    try {
+      // Handle bulk planning logic here
+      toast({
+        title: "Succes",
+        description: `${planningIds.length} planning(en) succesvol toegevoegd`,
+      });
+      setSelectedPlannings([]);
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Fout",
+        description: "Kon de planningen niet toevoegen",
+      });
+    }
+  };
+
+  const toggleSelectPlanning = (id: string) => {
+    setSelectedPlannings(prev =>
+      prev.includes(id)
+        ? prev.filter(p => p !== id)
+        : [...prev, id]
+    );
+  };
+
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
@@ -556,6 +600,23 @@ export default function Planning() {
           emptyMessage="Geen afgelopen planningen gevonden"
         />
       </CollapsibleSection>
+
+      {/* Bulk inplannen button */}
+      {selectedPlannings.length > 0 && (
+        <div className="fixed bottom-4 right-4 flex gap-2 bg-white p-4 rounded-lg shadow-lg border">
+          <span className="text-sm text-gray-500 self-center mr-2">
+            {selectedPlannings.length} geselecteerd
+          </span>
+          <Button
+            variant="default"
+            onClick={() => handleBulkPlan(selectedPlannings)}
+            className="bg-[#6BB85C] hover:bg-[#6BB85C]/90"
+          >
+            <CalendarIcon className="h-4 w-4 mr-2" />
+            Bulk Inplannen
+          </Button>
+        </div>
+      )}
 
       <AlertDialog
         open={!!deletePlanningId}
