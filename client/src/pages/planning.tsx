@@ -284,6 +284,19 @@ const PlanningForm = ({ form, onSubmit, editingPlanning, volunteers, rooms }: {
   volunteers: { id: string; firstName: string; lastName: string; }[];
   rooms: { id: string; name: string; }[];
 }) => {
+  const [volunteerSearch, setVolunteerSearch] = useState("");
+  const [roomSearch, setRoomSearch] = useState("");
+
+  const filteredVolunteers = volunteers.filter(volunteer =>
+    `${volunteer.firstName} ${volunteer.lastName}`
+      .toLowerCase()
+      .includes(volunteerSearch.toLowerCase())
+  );
+
+  const filteredRooms = rooms.filter(room =>
+    room.name.toLowerCase().includes(roomSearch.toLowerCase())
+  );
+
   const isBulkPlanning = form.watch("isBulkPlanning");
   const selectedVolunteers = form.watch("selectedVolunteers") || [];
   const selectedRooms = form.watch("selectedRooms") || [];
@@ -392,11 +405,13 @@ const PlanningForm = ({ form, onSubmit, editingPlanning, volunteers, rooms }: {
                       <Command className="max-h-full">
                         <CommandInput
                           placeholder="Zoek vrijwilligers..."
+                          value={volunteerSearch}
+                          onValueChange={setVolunteerSearch}
                           className="h-9 border-none focus:ring-0"
                         />
                         <CommandEmpty>Geen vrijwilligers gevonden.</CommandEmpty>
                         <CommandGroup className="max-h-[40vh] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent">
-                          {volunteers.map(volunteer => (
+                          {filteredVolunteers.map(volunteer => (
                             <CommandItem
                               key={volunteer.id}
                               onSelect={() => {
@@ -455,11 +470,13 @@ const PlanningForm = ({ form, onSubmit, editingPlanning, volunteers, rooms }: {
                       <Command className="max-h-full">
                         <CommandInput
                           placeholder="Zoek ruimtes..."
+                          value={roomSearch}
+                          onValueChange={setRoomSearch}
                           className="h-9 border-none focus:ring-0"
                         />
                         <CommandEmpty>Geen ruimtes gevonden.</CommandEmpty>
                         <CommandGroup className="max-h-[40vh] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent">
-                          {rooms.map(room => (
+                          {filteredRooms.map(room => (
                             <CommandItem
                               key={room.id}
                               onSelect={() => {
@@ -900,8 +917,7 @@ const Planning = () => {
     } else {
       acc.pastPlannings.push(planning);
     }
-    return acc;
-  }, { activePlannings: [], upcomingPlannings: [], pastPlannings: [] });
+    return acc;  }, { activePlannings: [], upcomingPlannings: [], pastPlannings: [] });
 
   const filterPlannings = (planningsList: Planning[], searchTerm: string): Planning[] => {
     if (!searchTerm.trim()) return planningsList;
