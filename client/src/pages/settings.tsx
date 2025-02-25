@@ -42,7 +42,7 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { format } from "date-fns";
 import { nl } from "date-fns/locale";
-import { logUserAction, UserActionTypes } from "@/lib/activity-logger";
+import { logUserAction, UserActionTypes, UserAction } from "@/lib/activity-logger";
 
 type DatabaseUser = {
   uid: string;
@@ -236,44 +236,42 @@ export default function Settings() {
     }
   };
 
-  const getActionDescription = (log: UserAction) => {
-    // Materiaal acties
-    if (log.action === UserActionTypes.MATERIAL_CHECKOUT || 
-        log.action === UserActionTypes.MATERIAL_RETURN) {
-      return `${log.targetName} #${log.materialNumber}`;
-    }
-
-    // Vrijwilliger acties
-    if (log.action.includes('vrijwilliger')) {
-      return log.targetName || '-';
-    }
-
-    // Planning acties
-    if (log.action.includes('planning')) {
-      return log.targetName || 'Onbekende planning';
-    }
-
-    // Gebruiker acties
-    if (log.action.includes('gebruiker')) {
-      return log.targetName || 'Onbekende gebruiker';
-    }
-
-    // Materiaaltype acties
-    if (log.action.includes('materiaaltype')) {
-      return log.targetName || 'Onbekend materiaaltype';
-    }
-
-    // Overige acties
-    return log.targetName || '-';
-  };
-
   const getActionIcon = (action: string) => {
     if (action.includes('materiaal')) return '📦';
     if (action.includes('vrijwilliger')) return '👤';
     if (action.includes('planning')) return '📅';
     if (action.includes('gebruiker')) return '👥';
     if (action.includes('ingelogd') || action.includes('uitgelogd')) return '🔑';
+    if (action.includes('export')) return '📤';
+    if (action.includes('import')) return '📥';
+    if (action.includes('pdf') || action.includes('PDF')) return '📄';
     return '📝';
+  };
+
+  const getActionDescription = (log: UserAction) => {
+    const type = log.targetType?.toLowerCase();
+    const name = log.targetName || '-';
+
+    switch (type) {
+      case 'material':
+        if (log.materialNumber) {
+          return `${name} #${log.materialNumber}${log.volunteerName ? ` (${log.volunteerName})` : ''}`;
+        }
+        return name;
+
+      case 'volunteer':
+      case 'planning':
+      case 'user':
+      case 'auth':
+        return name;
+
+      case 'export':
+      case 'import':
+        return `${name} (${format(new Date(log.timestamp), 'dd/MM/yyyy')})`;
+
+      default:
+        return name;
+    }
   };
 
   if (!isAdmin) {

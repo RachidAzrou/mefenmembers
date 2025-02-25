@@ -26,16 +26,21 @@ export const UserActionTypes = {
   MATERIAL_TYPE_CREATE: "Materiaaltype aangemaakt",
   MATERIAL_TYPE_UPDATE: "Materiaaltype bijgewerkt",
   MATERIAL_TYPE_DELETE: "Materiaaltype verwijderd",
+  MATERIAL_BULK_RETURN: "Meerdere materialen geretourneerd",
+  MATERIAL_BULK_CHECKOUT: "Meerdere materialen uitgeleend",
 
   // Volunteer related actions
   VOLUNTEER_CREATE: "Vrijwilliger toegevoegd",
   VOLUNTEER_UPDATE: "Vrijwilliger bijgewerkt",
   VOLUNTEER_DELETE: "Vrijwilliger verwijderd",
+  VOLUNTEER_BULK_DELETE: "Meerdere vrijwilligers verwijderd",
 
   // Planning related actions
   PLANNING_CREATE: "Planning toegevoegd",
   PLANNING_UPDATE: "Planning bijgewerkt",
   PLANNING_DELETE: "Planning verwijderd",
+  PLANNING_BULK_CREATE: "Bulk planning toegevoegd",
+  PLANNING_BULK_DELETE: "Meerdere planningen verwijderd",
 
   // Room related actions
   ROOM_CREATE: "Ruimte toegevoegd",
@@ -45,7 +50,20 @@ export const UserActionTypes = {
   // User management actions
   USER_CREATE: "Gebruiker aangemaakt",
   USER_ROLE_UPDATE: "Gebruikersrol gewijzigd",
-  USER_DELETE: "Gebruiker verwijderd"
+  USER_DELETE: "Gebruiker verwijderd",
+
+  // Import/Export actions
+  EXPORT_VOLUNTEERS: "Vrijwilligers geëxporteerd",
+  EXPORT_MATERIALS: "Materialen geëxporteerd",
+  EXPORT_PLANNING: "Planning geëxporteerd",
+  IMPORT_VOLUNTEERS: "Vrijwilligers geïmporteerd",
+  IMPORT_MATERIALS: "Materialen geïmporteerd",
+  IMPORT_PLANNING: "Planning geïmporteerd",
+
+  // PDF Generation
+  GENERATE_PLANNING_PDF: "Planning PDF gegenereerd",
+  GENERATE_VOLUNTEERS_PDF: "Vrijwilligers PDF gegenereerd",
+  GENERATE_MATERIALS_PDF: "Materialen PDF gegenereerd"
 } as const;
 
 export async function logUserAction(

@@ -19,6 +19,7 @@ import { Document, Page, Text, View, StyleSheet, Image } from '@react-pdf/render
 import { format } from 'date-fns';
 import { nl } from 'date-fns/locale';
 import { useRole } from "@/hooks/use-role";
+import { logUserAction, UserActionTypes } from "@/lib/activity-logger";
 
 const styles = StyleSheet.create({
   page: {
@@ -227,12 +228,22 @@ export default function ImportExport() {
       for (const volunteerId of selectedVolunteers) {
         const volunteer = pendingVolunteers.find(v => v.id === volunteerId);
         if (volunteer) {
-          await push(ref(db, "volunteers"), {
+          const newVolunteerRef = await push(ref(db, "volunteers"), {
             firstName: volunteer.firstName,
             lastName: volunteer.lastName,
             phoneNumber: volunteer.phoneNumber
           });
           await remove(ref(db, `pending_volunteers/${volunteerId}`));
+
+          await logUserAction(
+            UserActionTypes.IMPORT_VOLUNTEERS,
+            `Vrijwilliger ${volunteer.firstName} ${volunteer.lastName} geïmporteerd`,
+            {
+              type: "volunteer",
+              id: newVolunteerRef.key!,
+              name: `${volunteer.firstName} ${volunteer.lastName}`
+            }
+          );
         }
       }
 
@@ -253,7 +264,19 @@ export default function ImportExport() {
   const handleReject = async () => {
     try {
       for (const volunteerId of selectedVolunteers) {
-        await remove(ref(db, `pending_volunteers/${volunteerId}`));
+        const volunteer = pendingVolunteers.find(v => v.id === volunteerId);
+        if (volunteer) {
+          await remove(ref(db, `pending_volunteers/${volunteerId}`));
+          await logUserAction(
+            UserActionTypes.VOLUNTEER_DELETE,
+            `Vrijwilliger aanmelding ${volunteer.firstName} ${volunteer.lastName} geweigerd`,
+            {
+              type: "volunteer",
+              id: volunteerId,
+              name: `${volunteer.firstName} ${volunteer.lastName}`
+            }
+          );
+        }
       }
 
       toast({
@@ -406,6 +429,17 @@ export default function ImportExport() {
                 <PDFDownloadLink
                   document={<VolunteersPDF volunteers={volunteers} fields={exportFields} />}
                   fileName={`vrijwilligers-${format(new Date(), 'yyyy-MM-dd')}.pdf`}
+                  onClick={async () => {
+                    await logUserAction(
+                      UserActionTypes.GENERATE_VOLUNTEERS_PDF,
+                      `Vrijwilligers PDF gegenereerd`,
+                      {
+                        type: "export",
+                        id: new Date().toISOString(),
+                        name: `vrijwilligers-${format(new Date(), 'yyyy-MM-dd')}.pdf`
+                      }
+                    );
+                  }}
                 >
                   {({ loading }) => (
                     <Button

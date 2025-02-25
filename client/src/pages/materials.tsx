@@ -64,6 +64,8 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { Edit2 } from 'lucide-react';
+import { logUserAction, UserActionTypes } from "@/lib/activity-logger";
+
 
 // Add type definition for activity log
 type ActivityLog = {
@@ -74,6 +76,7 @@ type ActivityLog = {
   volunteerId: string;
   timestamp: string;
 };
+
 
 const materialSchema = z.object({
   typeId: z.string().min(1, "Type materiaal is verplicht"),
@@ -258,13 +261,31 @@ export default function Materials() {
     try {
       if (editingMaterialType) {
         await update(ref(db, `materialTypes/${editingMaterialType.id}`), data);
+        await logUserAction(
+          UserActionTypes.MATERIAL_TYPE_UPDATE,
+          `Materiaaltype ${data.name} bijgewerkt`,
+          {
+            type: "material",
+            id: editingMaterialType.id,
+            name: data.name
+          }
+        );
         toast({
           title: "Succes",
           description: "Materiaaltype succesvol bijgewerkt",
         });
         setEditingMaterialType(null);
       } else {
-        await push(ref(db, "materialTypes"), data);
+        const newTypeRef = await push(ref(db, "materialTypes"), data);
+        await logUserAction(
+          UserActionTypes.MATERIAL_TYPE_CREATE,
+          `Nieuw materiaaltype ${data.name} aangemaakt`,
+          {
+            type: "material",
+            id: newTypeRef.key!,
+            name: data.name
+          }
+        );
         toast({
           title: "Succes",
           description: "Materiaaltype succesvol toegevoegd",
@@ -283,7 +304,19 @@ export default function Materials() {
 
   const handleDeleteMaterialType = async (id: string) => {
     try {
+      const materialType = materialTypes.find(t => t.id === id);
+      if (!materialType) return;
+
       await remove(ref(db, `materialTypes/${id}`));
+      await logUserAction(
+        UserActionTypes.MATERIAL_TYPE_DELETE,
+        `Materiaaltype ${materialType.name} verwijderd`,
+        {
+          type: "material",
+          id: id,
+          name: materialType.name
+        }
+      );
       toast({
         title: "Succes",
         description: "Materiaaltype succesvol verwijderd",
@@ -384,6 +417,7 @@ export default function Materials() {
     try {
       const updates = {};
       const loggingPromises = [];
+      const materialsList = [];
 
       for (const id of materialIds) {
         const material = materials.find(m => m.id === id);
@@ -392,8 +426,27 @@ export default function Materials() {
         updates[`materials/${id}/volunteerId`] = null;
         updates[`materials/${id}/isCheckedOut`] = false;
 
+        const type = materialTypes.find(t => t.id === material.typeId);
+        const volunteer = volunteers.find(v => v.id === material.volunteerId);
+        materialsList.push({
+          name: type?.name || 'Onbekend materiaal',
+          number: material.number,
+          volunteer: volunteer ? `${volunteer.firstName} ${volunteer.lastName}` : 'Onbekend'
+        });
+
         loggingPromises.push(
-          logActivity('return', material, material.volunteerId || '')
+          logUserAction(
+            UserActionTypes.MATERIAL_BULK_RETURN,
+            `${type?.name || 'Materiaal'} #${material.number} geretourneerd van ${volunteer ? `${volunteer.firstName} ${volunteer.lastName}` : 'onbekende vrijwilliger'}`,
+            {
+              type: "material",
+              id: material.id,
+              name: type?.name || 'Onbekend materiaal',
+              materialNumber: material.number.toString(),
+              volunteerId: material.volunteerId,
+              volunteerName: volunteer ? `${volunteer.firstName} ${volunteer.lastName}` : undefined
+            }
+          )
         );
       }
 
