@@ -35,7 +35,11 @@ type Planning = {
   endDate: string;
 };
 
-export function WeekView() {
+type WeekViewProps = {
+  checkedOutMaterials: number;
+}
+
+export function WeekView({ checkedOutMaterials }: WeekViewProps) {
   const [currentWeek, setCurrentWeek] = useState(new Date());
   const [plannings, setPlannings] = useState<Planning[]>([]);
   const [volunteers, setVolunteers] = useState<Volunteer[]>([]);
@@ -145,7 +149,6 @@ export function WeekView() {
     return planningsForPDF;
   };
 
-  const checkedOutMaterials = 0;
   const totalVolunteers = volunteers.length;
   const totalRooms = rooms.length;
   const activeVolunteers = plannings.filter(p => new Date(p.endDate) >= new Date()).length;

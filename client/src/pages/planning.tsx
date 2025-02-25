@@ -571,11 +571,11 @@ export default function Planning() {
     });
   }, []);
 
-  const showToast = (title: string, description: string, variant: "default" | "destructive" = "default") => {
+  const showToast = (title: string, description: string, variant: "default" | "success" | "destructive" | "info" = "default") => {
     toast({
       title,
       description,
-      duration: 3000, // 3 seconds
+      duration: 3000,
       variant,
     });
   };
@@ -598,16 +598,25 @@ export default function Planning() {
         }
 
         showToast(
-          "Succes",
-          `${volunteers.length * rooms.length} planningen succesvol toegevoegd`
+          "Planningen Toegevoegd",
+          `${volunteers.length * rooms.length} planningen zijn succesvol toegevoegd`,
+          "success"
         );
       } else {
         if (editingPlanning) {
           await update(ref(db, `plannings/${editingPlanning.id}`), data);
-          showToast("Succes", "Planning succesvol bijgewerkt");
+          showToast(
+            "Planning Bijgewerkt",
+            "De planning is succesvol bijgewerkt",
+            "success"
+          );
         } else {
           await push(ref(db, "plannings"), data);
-          showToast("Succes", "Planning succesvol toegevoegd");
+          showToast(
+            "Planning Toegevoegd",
+            "De nieuwe planning is succesvol toegevoegd",
+            "success"
+          );
         }
       }
 
@@ -640,12 +649,16 @@ export default function Planning() {
   const handleDelete = async (id: string) => {
     try {
       await remove(ref(db, `plannings/${id}`));
-      showToast("Succes", "Planning succesvol verwijderd");
+      showToast(
+        "Planning Verwijderd",
+        "De planning is succesvol verwijderd",
+        "info"
+      );
       setDeletePlanningId(null);
     } catch (error) {
       showToast(
         "Fout",
-        "Kon planning niet verwijderen",
+        "Er is een fout opgetreden bij het verwijderen van de planning",
         "destructive"
       );
     }
