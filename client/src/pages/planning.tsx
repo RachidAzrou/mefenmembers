@@ -48,6 +48,7 @@ import { format } from "date-fns";
 import { nl } from "date-fns/locale";
 import { Card, CardContent } from "@/components/ui/card";
 import { CollapsibleSection } from "@/components/ui/collapsible-section";
+import { useRole } from "@/hooks/use-role";
 
 const planningSchema = z.object({
   volunteerId: z.string().min(1, "Vrijwilliger is verplicht"),
@@ -63,35 +64,19 @@ const planningSchema = z.object({
   path: ["endDate"],
 });
 
-type Volunteer = {
-  id: string;
-  firstName: string;
-  lastName: string;
-};
-
-type Room = {
-  id: string;
-  name: string;
-};
-
-type Planning = {
-  id: string;
-  volunteerId: string;
-  roomId: string;
-  startDate: string;
-  endDate: string;
-};
+type Planning = z.infer<typeof planningSchema> & { id: string };
 
 export default function Planning() {
-  const [volunteers, setVolunteers] = useState<Volunteer[]>([]);
-  const [rooms, setRooms] = useState<Room[]>([]);
   const [plannings, setPlannings] = useState<Planning[]>([]);
+  const [volunteers, setVolunteers] = useState<{ id: string; firstName: string; lastName: string; }[]>([]);
+  const [rooms, setRooms] = useState<{ id: string; name: string; }[]>([]);
   const [editingPlanning, setEditingPlanning] = useState<Planning | null>(null);
   const [deletePlanningId, setDeletePlanningId] = useState<string | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
-  const { toast } = useToast();
   const [searchActive, setSearchActive] = useState("");
   const [searchUpcoming, setSearchUpcoming] = useState("");
+  const { isAdmin } = useRole();
+  const { toast } = useToast();
 
   const form = useForm<z.infer<typeof planningSchema>>({
     resolver: zodResolver(planningSchema),
@@ -103,7 +88,7 @@ export default function Planning() {
       const data = snapshot.val();
       const volunteersList = data ? Object.entries(data).map(([id, volunteer]) => ({
         id,
-        ...(volunteer as Omit<Volunteer, "id">),
+        ...(volunteer as Omit<{ firstName: string; lastName: string; }, "id">),
       })) : [];
       setVolunteers(volunteersList);
     });
@@ -113,7 +98,7 @@ export default function Planning() {
       const data = snapshot.val();
       const roomsList = data ? Object.entries(data).map(([id, room]) => ({
         id,
-        ...(room as Omit<Room, "id">),
+        ...(room as Omit<{ name: string; }, "id">),
       })) : [];
       setRooms(roomsList);
     });
@@ -189,13 +174,12 @@ export default function Planning() {
   const uniqueVolunteersScheduled = new Set(plannings.map(p => p.volunteerId)).size;
   const uniqueRoomsScheduled = new Set(plannings.map(p => p.roomId)).size;
 
-  // Get all plannings sorted by start date
-  const sortedPlannings = [...plannings].sort((a, b) => {
-    return new Date(a.startDate).getTime() - new Date(b.startDate).getTime();
-  });
-
   // Group plannings by status
-  const { activePlannings, upcomingPlannings, pastPlannings } = plannings.reduce((acc, planning) => {
+  const { activePlannings, upcomingPlannings, pastPlannings } = plannings.reduce<{
+    activePlannings: Planning[];
+    upcomingPlannings: Planning[];
+    pastPlannings: Planning[];
+  }>((acc, planning) => {
     const now = new Date();
     now.setHours(0, 0, 0, 0);
     const start = new Date(planning.startDate);
@@ -211,7 +195,27 @@ export default function Planning() {
     return acc;
   }, { activePlannings: [], upcomingPlannings: [], pastPlannings: [] });
 
-  const PlanningTable = ({ plannings, emptyMessage }: {plannings: Planning[], emptyMessage: string}) => (
+  const filterPlannings = (planningsList: Planning[], searchTerm: string): Planning[] => {
+    if (!searchTerm.trim()) return planningsList;
+
+    const term = searchTerm.toLowerCase();
+    return planningsList.filter(planning => {
+      const volunteer = volunteers.find(v => v.id === planning.volunteerId);
+      const room = rooms.find(r => r.id === planning.roomId);
+
+      const volunteerName = volunteer
+        ? `${volunteer.firstName} ${volunteer.lastName}`.toLowerCase()
+        : '';
+      const roomName = room?.name.toLowerCase() || '';
+
+      return volunteerName.includes(term) || roomName.includes(term);
+    });
+  };
+
+  const filteredActivePlannings = filterPlannings(activePlannings, searchActive);
+  const filteredUpcomingPlannings = filterPlannings(upcomingPlannings, searchUpcoming);
+
+  const PlanningTable = ({ plannings, emptyMessage }: { plannings: Planning[]; emptyMessage: string }) => (
     <div className="rounded-lg border bg-card overflow-x-auto">
       <Table>
         <TableHeader>
@@ -270,144 +274,12 @@ export default function Planning() {
     </div>
   );
 
-  const filterPlannings = (plannings: Planning[], searchTerm: string) => {
-    if (!searchTerm.trim()) return plannings;
-
-    const term = searchTerm.toLowerCase();
-    return plannings.filter(planning => {
-      const volunteer = volunteers.find(v => v.id === planning.volunteerId);
-      const room = rooms.find(r => r.id === planning.roomId);
-
-      const volunteerName = volunteer 
-        ? `${volunteer.firstName} ${volunteer.lastName}`.toLowerCase() 
-        : '';
-      const roomName = room?.name.toLowerCase() || '';
-
-      return volunteerName.includes(term) || roomName.includes(term);
-    });
-  };
-
-  const filteredActivePlannings = filterPlannings(activePlannings, searchActive);
-  const filteredUpcomingPlannings = filterPlannings(upcomingPlannings, searchUpcoming);
-
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
         <div className="flex items-center gap-3">
           <CalendarIcon className="h-8 w-8 text-primary" />
           <h1 className="text-3xl font-bold text-primary">Planning</h1>
-        </div>
-        <div className="flex gap-2">
-          <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-            <DialogTrigger asChild>
-              <Button className="bg-[#6BB85C] hover:bg-[#6BB85C]/90 text-white">
-                <CalendarIcon className="h-4 w-4 mr-2" />
-                Inplannen
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>
-                  {editingPlanning ? "Planning Bewerken" : "Vrijwilliger Inplannen"}
-                </DialogTitle>
-              </DialogHeader>
-              <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                  <FormField
-                    control={form.control}
-                    name="volunteerId"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Vrijwilliger</FormLabel>
-                        <Select
-                          onValueChange={field.onChange}
-                          defaultValue={field.value}
-                        >
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Selecteer vrijwilliger" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            {volunteers.map((volunteer) => (
-                              <SelectItem key={volunteer.id} value={volunteer.id}>
-                                {volunteer.firstName} {volunteer.lastName}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="roomId"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Ruimte</FormLabel>
-                        <Select
-                          onValueChange={field.onChange}
-                          defaultValue={field.value}
-                        >
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Selecteer ruimte" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            {rooms.map((room) => (
-                              <SelectItem key={room.id} value={room.id}>
-                                {room.name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="startDate"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Startdatum</FormLabel>
-                        <FormControl>
-                          <Input
-                            type="date"
-                            {...field}
-                            min={new Date().toISOString().split('T')[0]}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="endDate"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Einddatum</FormLabel>
-                        <FormControl>
-                          <Input
-                            type="date"
-                            {...field}
-                            min={form.watch("startDate") || new Date().toISOString().split('T')[0]}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <Button type="submit" className="w-full bg-[#6BB85C] hover:bg-[#6BB85C]/90 text-white">
-                    {editingPlanning ? "Planning Bijwerken" : "Planning Toevoegen"}
-                  </Button>
-                </form>
-              </Form>
-            </DialogContent>
-          </Dialog>
         </div>
       </div>
 
@@ -416,42 +288,159 @@ export default function Planning() {
         icon={<CalendarDays className="h-5 w-5 text-primary" />}
         defaultOpen={true}
       >
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center">
-                <CalendarDays className="h-8 w-8 text-primary/80" />
-                <div className="ml-4">
-                  <h3 className="text-sm font-medium text-gray-500">Totaal Planningen</h3>
-                  <p className="text-2xl font-bold text-primary">{plannings.length}</p>
+        <div className="space-y-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <Card>
+              <CardContent className="pt-6">
+                <div className="flex items-center">
+                  <CalendarDays className="h-8 w-8 text-primary/80" />
+                  <div className="ml-4">
+                    <h3 className="text-sm font-medium text-gray-500">Totaal Planningen</h3>
+                    <p className="text-2xl font-bold text-primary">{plannings.length}</p>
+                  </div>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
 
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center">
-                <Users2 className="h-8 w-8 text-primary/80" />
-                <div className="ml-4">
-                  <h3 className="text-sm font-medium text-gray-500">Unieke Vrijwilligers</h3>
-                  <p className="text-2xl font-bold text-primary">{uniqueVolunteersScheduled}</p>
+            <Card>
+              <CardContent className="pt-6">
+                <div className="flex items-center">
+                  <Users2 className="h-8 w-8 text-primary/80" />
+                  <div className="ml-4">
+                    <h3 className="text-sm font-medium text-gray-500">Unieke Vrijwilligers</h3>
+                    <p className="text-2xl font-bold text-primary">{uniqueVolunteersScheduled}</p>
+                  </div>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
 
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center">
-                <Building className="h-8 w-8 text-primary/80" />
-                <div className="ml-4">
-                  <h3 className="text-sm font-medium text-gray-500">Bezette Ruimtes</h3>
-                  <p className="text-2xl font-bold text-primary">{uniqueRoomsScheduled}</p>
+            <Card>
+              <CardContent className="pt-6">
+                <div className="flex items-center">
+                  <Building className="h-8 w-8 text-primary/80" />
+                  <div className="ml-4">
+                    <h3 className="text-sm font-medium text-gray-500">Bezette Ruimtes</h3>
+                    <p className="text-2xl font-bold text-primary">{uniqueRoomsScheduled}</p>
+                  </div>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          </div>
+
+          {isAdmin && (
+            <div className="flex justify-end mt-6">
+              <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button className="bg-[#6BB85C] hover:bg-[#6BB85C]/90 text-white">
+                    <CalendarIcon className="h-4 w-4 mr-2" />
+                    Inplannen
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>
+                      {editingPlanning ? "Planning Bewerken" : "Vrijwilliger Inplannen"}
+                    </DialogTitle>
+                  </DialogHeader>
+                  <Form {...form}>
+                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                      <FormField
+                        control={form.control}
+                        name="volunteerId"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Vrijwilliger</FormLabel>
+                            <Select
+                              onValueChange={field.onChange}
+                              defaultValue={field.value}
+                            >
+                              <FormControl>
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Selecteer vrijwilliger" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                {volunteers.map((volunteer) => (
+                                  <SelectItem key={volunteer.id} value={volunteer.id}>
+                                    {volunteer.firstName} {volunteer.lastName}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="roomId"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Ruimte</FormLabel>
+                            <Select
+                              onValueChange={field.onChange}
+                              defaultValue={field.value}
+                            >
+                              <FormControl>
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Selecteer ruimte" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                {rooms.map((room) => (
+                                  <SelectItem key={room.id} value={room.id}>
+                                    {room.name}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="startDate"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Startdatum</FormLabel>
+                            <FormControl>
+                              <Input
+                                type="date"
+                                {...field}
+                                min={new Date().toISOString().split('T')[0]}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="endDate"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Einddatum</FormLabel>
+                            <FormControl>
+                              <Input
+                                type="date"
+                                {...field}
+                                min={form.watch("startDate") || new Date().toISOString().split('T')[0]}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <Button type="submit" className="w-full bg-[#6BB85C] hover:bg-[#6BB85C]/90 text-white">
+                        {editingPlanning ? "Planning Bijwerken" : "Planning Toevoegen"}
+                      </Button>
+                    </form>
+                  </Form>
+                </DialogContent>
+              </Dialog>
+            </div>
+          )}
         </div>
       </CollapsibleSection>
 
@@ -470,8 +459,8 @@ export default function Planning() {
               className="pl-9"
             />
           </div>
-          <PlanningTable 
-            plannings={filteredActivePlannings} 
+          <PlanningTable
+            plannings={filteredActivePlannings}
             emptyMessage="Geen actieve planningen gevonden"
           />
         </div>
@@ -492,8 +481,8 @@ export default function Planning() {
               className="pl-9"
             />
           </div>
-          <PlanningTable 
-            plannings={filteredUpcomingPlannings} 
+          <PlanningTable
+            plannings={filteredUpcomingPlannings}
             emptyMessage="Geen toekomstige planningen gevonden"
           />
         </div>
@@ -504,8 +493,8 @@ export default function Planning() {
         icon={<Users className="h-5 w-5 text-primary" />}
         defaultOpen={false}
       >
-        <PlanningTable 
-          plannings={pastPlannings} 
+        <PlanningTable
+          plannings={pastPlannings}
           emptyMessage="Geen afgelopen planningen gevonden"
         />
       </CollapsibleSection>

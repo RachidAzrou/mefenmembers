@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   Table,
   TableBody,
@@ -30,7 +31,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { db } from "@/lib/firebase";
-import { ref, push, update, remove, onValue } from "firebase/database";
+import { ref, push, remove, update, onValue } from "firebase/database";
 import {
   Package2,
   Edit2,
@@ -58,7 +59,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Input } from "@/components/ui/input";
+import { Input as InputComponent } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
@@ -370,10 +371,173 @@ export default function Materials() {
           <Package2 className="h-8 w-8 text-primary" />
           <h1 className="text-3xl font-bold text-primary">Materiaalbeheer</h1>
         </div>
-        <div className="flex items-center gap-2 w-full sm:w-auto">
-          <div className="relative flex-1 sm:w-64">
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-4">
+            {isAdmin && (
+              <>
+                <Dialog open={isTypesDialogOpen} onOpenChange={setIsTypesDialogOpen}>
+                  <DialogTrigger asChild>
+                    <Button variant="outline">
+                      <Plus className="h-4 w-4 mr-2" />
+                      Type Toevoegen
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>
+                        {editingMaterialType ? "Materiaaltype Bewerken" : "Nieuw Materiaaltype"}
+                      </DialogTitle>
+                    </DialogHeader>
+                    <Form {...typeForm}>
+                      <form onSubmit={typeForm.handleSubmit(onSubmitType)} className="space-y-4">
+                        <FormField
+                          control={typeForm.control}
+                          name="name"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Naam</FormLabel>
+                              <FormControl>
+                                <Input {...field} placeholder="Materiaaltype naam" />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={typeForm.control}
+                          name="maxCount"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Maximum aantal</FormLabel>
+                              <FormControl>
+                                <Input
+                                  type="number"
+                                  min={1}
+                                  max={100}
+                                  {...field}
+                                  placeholder="Maximum aantal"
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <Button type="submit" className="w-full">
+                          {editingMaterialType ? "Bijwerken" : "Toevoegen"}
+                        </Button>
+                      </form>
+                    </Form>
+                  </DialogContent>
+                </Dialog>
+                <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+                  <DialogTrigger asChild>
+                    <Button className="bg-[#6BB85C] hover:bg-[#6BB85C]/90 text-white">
+                      <Package2 className="h-4 w-4 mr-2" />
+                      Toewijzen
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>
+                        {editingMaterial ? "Materiaal Bewerken" : "Materiaal Toewijzen"}
+                      </DialogTitle>
+                    </DialogHeader>
+                    <Form {...form}>
+                      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                        <FormField
+                          control={form.control}
+                          name="typeId"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Type Materiaal</FormLabel>
+                              <Select
+                                onValueChange={field.onChange}
+                                defaultValue={field.value}
+                              >
+                                <FormControl>
+                                  <SelectTrigger>
+                                    <SelectValue placeholder="Selecteer type" />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  {materialTypes.map((type) => (
+                                    <SelectItem key={type.id} value={type.id}>
+                                      {type.name}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={form.control}
+                          name="volunteerId"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Vrijwilliger</FormLabel>
+                              <Select
+                                onValueChange={field.onChange}
+                                defaultValue={field.value}
+                              >
+                                <FormControl>
+                                  <SelectTrigger>
+                                    <SelectValue placeholder="Selecteer vrijwilliger" />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  {volunteers.map((volunteer) => (
+                                    <SelectItem key={volunteer.id} value={volunteer.id}>
+                                      {volunteer.firstName} {volunteer.lastName}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={form.control}
+                          name="number"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Nummer</FormLabel>
+                              <Select
+                                onValueChange={(value) => field.onChange(parseInt(value))}
+                                defaultValue={field.value?.toString()}
+                              >
+                                <FormControl>
+                                  <SelectTrigger>
+                                    <SelectValue placeholder="Selecteer nummer" />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  {Array.from({ length: maxNumber }).map((_, i) => (
+                                    <SelectItem key={i + 1} value={(i + 1).toString()}>
+                                      {i + 1}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <Button type="submit" className="w-full">
+                          {editingMaterial ? "Materiaal Bijwerken" : "Materiaal Toewijzen"}
+                        </Button>
+                      </form>
+                    </Form>
+                  </DialogContent>
+                </Dialog>
+              </>
+            )}
+          </div>
+          <div className="relative w-64">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
+            <InputComponent
               placeholder="Zoeken..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
@@ -381,165 +545,23 @@ export default function Materials() {
             />
           </div>
           {isAdmin && (
-            <>
-              <Dialog open={isTypesDialogOpen} onOpenChange={setIsTypesDialogOpen}>
-                <DialogTrigger asChild>
-                  <Button variant="outline">
-                    <Plus className="h-4 w-4 mr-2" />
-                    Type Toevoegen
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => setIsEditMode(!isEditMode)}
+                    className={`${isEditMode ? "bg-primary/10 text-primary" : ""}`}
+                  >
+                    <Settings2 className="h-5 w-5" />
                   </Button>
-                </DialogTrigger>
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle>
-                      {editingMaterialType ? "Materiaaltype Bewerken" : "Nieuw Materiaaltype"}
-                    </DialogTitle>
-                  </DialogHeader>
-                  <Form {...typeForm}>
-                    <form onSubmit={typeForm.handleSubmit(onSubmitType)} className="space-y-4">
-                      <FormField
-                        control={typeForm.control}
-                        name="name"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Naam</FormLabel>
-                            <FormControl>
-                              <Input {...field} placeholder="Materiaaltype naam" />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={typeForm.control}
-                        name="maxCount"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Maximum aantal</FormLabel>
-                            <FormControl>
-                              <Input
-                                type="number"
-                                min={1}
-                                max={100}
-                                {...field}
-                                placeholder="Maximum aantal"
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <Button type="submit" className="w-full">
-                        {editingMaterialType ? "Bijwerken" : "Toevoegen"}
-                      </Button>
-                    </form>
-                  </Form>
-                </DialogContent>
-              </Dialog>
-              <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-                <DialogTrigger asChild>
-                  <Button>
-                    <Package2 className="h-4 w-4 mr-2" />
-                    Toewijzen
-                  </Button>
-                </DialogTrigger>
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle>
-                      {editingMaterial ? "Materiaal Bewerken" : "Materiaal Toewijzen"}
-                    </DialogTitle>
-                  </DialogHeader>
-                  <Form {...form}>
-                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                      <FormField
-                        control={form.control}
-                        name="typeId"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Type Materiaal</FormLabel>
-                            <Select
-                              onValueChange={field.onChange}
-                              defaultValue={field.value}
-                            >
-                              <FormControl>
-                                <SelectTrigger>
-                                  <SelectValue placeholder="Selecteer type" />
-                                </SelectTrigger>
-                              </FormControl>
-                              <SelectContent>
-                                {materialTypes.map((type) => (
-                                  <SelectItem key={type.id} value={type.id}>
-                                    {type.name}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={form.control}
-                        name="volunteerId"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Vrijwilliger</FormLabel>
-                            <Select
-                              onValueChange={field.onChange}
-                              defaultValue={field.value}
-                            >
-                              <FormControl>
-                                <SelectTrigger>
-                                  <SelectValue placeholder="Selecteer vrijwilliger" />
-                                </SelectTrigger>
-                              </FormControl>
-                              <SelectContent>
-                                {volunteers.map((volunteer) => (
-                                  <SelectItem key={volunteer.id} value={volunteer.id}>
-                                    {volunteer.firstName} {volunteer.lastName}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={form.control}
-                        name="number"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Nummer</FormLabel>
-                            <Select
-                              onValueChange={(value) => field.onChange(parseInt(value))}
-                              defaultValue={field.value?.toString()}
-                            >
-                              <FormControl>
-                                <SelectTrigger>
-                                  <SelectValue placeholder="Selecteer nummer" />
-                                </SelectTrigger>
-                              </FormControl>
-                              <SelectContent>
-                                {Array.from({ length: maxNumber }).map((_, i) => (
-                                  <SelectItem key={i + 1} value={(i + 1).toString()}>
-                                    {i + 1}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <Button type="submit" className="w-full">
-                        {editingMaterial ? "Materiaal Bijwerken" : "Materiaal Toewijzen"}
-                      </Button>
-                    </form>
-                  </Form>
-                </DialogContent>
-              </Dialog>
-            </>
+                </TooltipTrigger>
+                <TooltipContent>
+                  {isEditMode ? "Bewerken afsluiten" : "Lijst bewerken"}
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           )}
         </div>
       </div>
@@ -572,24 +594,7 @@ export default function Materials() {
         {isAdmin && (
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-semibold">Materiaallijst</h2>
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setIsEditMode(!isEditMode)}
-                    className={`${isEditMode ? "bg-primary/10 text-primary" : ""}`}
-                  >
-                    <Settings2 className="h-4 w-4 mr-2" />
-                    {isEditMode ? "Bewerken afsluiten" : "Lijst bewerken"}
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  {isEditMode ? "Bewerkmodus afsluiten" : "Lijst bewerken"}
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
+
           </div>
         )}
 
