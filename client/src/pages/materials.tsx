@@ -97,6 +97,7 @@ export default function Materials() {
   const { toast } = useToast();
   const { isAdmin } = useRole();
   const [selectedMaterials, setSelectedMaterials] = useState<string[]>([]);
+  const [isEditMode, setIsEditMode] = useState(false);
 
   const form = useForm<z.infer<typeof materialSchema>>({
     resolver: zodResolver(materialSchema),
@@ -131,7 +132,7 @@ export default function Materials() {
         id,
         ...(material as Omit<Material, "id">),
       })) : [];
-      setMaterials(materialsList); // Removed filter, showing all materials
+      setMaterials(materialsList); 
     });
 
     const volunteersRef = ref(db, "volunteers");
@@ -344,60 +345,70 @@ export default function Materials() {
             />
           </div>
           {isAdmin && (
-            <Dialog open={isTypesDialogOpen} onOpenChange={setIsTypesDialogOpen}>
-              <DialogTrigger asChild>
-                <Button className="bg-primary hover:bg-primary/90">
-                  <Plus className="h-4 w-4 mr-2" />
-                  Materiaaltype
-                </Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>
-                    {editingMaterialType ? "Materiaaltype Bewerken" : "Nieuw Materiaaltype"}
-                  </DialogTitle>
-                </DialogHeader>
-                <Form {...typeForm}>
-                  <form onSubmit={typeForm.handleSubmit(onSubmitType)} className="space-y-4">
-                    <FormField
-                      control={typeForm.control}
-                      name="name"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Naam</FormLabel>
-                          <FormControl>
-                            <Input {...field} placeholder="Materiaaltype naam" />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={typeForm.control}
-                      name="maxCount"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Maximum aantal</FormLabel>
-                          <FormControl>
-                            <Input
-                              type="number"
-                              min={1}
-                              max={100}
-                              {...field}
-                              placeholder="Maximum aantal"
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <Button type="submit" className="w-full">
-                      {editingMaterialType ? "Bijwerken" : "Toevoegen"}
-                    </Button>
-                  </form>
-                </Form>
-              </DialogContent>
-            </Dialog>
+            <>
+              <Button
+                variant="outline"
+                onClick={() => setIsEditMode(!isEditMode)}
+                className={isEditMode ? "bg-gray-100" : ""}
+              >
+                <Edit2 className="h-4 w-4 mr-2" />
+                {isEditMode ? "Bewerken Afsluiten" : "Bewerken"}
+              </Button>
+              <Dialog open={isTypesDialogOpen} onOpenChange={setIsTypesDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button className="bg-primary hover:bg-primary/90">
+                    <Plus className="h-4 w-4 mr-2" />
+                    Materiaaltype
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>
+                      {editingMaterialType ? "Materiaaltype Bewerken" : "Nieuw Materiaaltype"}
+                    </DialogTitle>
+                  </DialogHeader>
+                  <Form {...typeForm}>
+                    <form onSubmit={typeForm.handleSubmit(onSubmitType)} className="space-y-4">
+                      <FormField
+                        control={typeForm.control}
+                        name="name"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Naam</FormLabel>
+                            <FormControl>
+                              <Input {...field} placeholder="Materiaaltype naam" />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={typeForm.control}
+                        name="maxCount"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Maximum aantal</FormLabel>
+                            <FormControl>
+                              <Input
+                                type="number"
+                                min={1}
+                                max={100}
+                                {...field}
+                                placeholder="Maximum aantal"
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <Button type="submit" className="w-full">
+                        {editingMaterialType ? "Bijwerken" : "Toevoegen"}
+                      </Button>
+                    </form>
+                  </Form>
+                </DialogContent>
+              </Dialog>
+            </>
           )}
           <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
             <DialogTrigger asChild>
@@ -536,7 +547,7 @@ export default function Materials() {
         ))}
       </div>
 
-      {isAdmin && (
+      {isAdmin && isEditMode && (
         <div className="rounded-lg border bg-card">
           <Table>
             <TableHeader>
@@ -608,20 +619,22 @@ export default function Materials() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="w-[50px]">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={toggleSelectAll}
-                  className="hover:bg-transparent"
-                >
-                  {selectedMaterials.length === filteredMaterials.length ? (
-                    <CheckSquare className="h-4 w-4" />
-                  ) : (
-                    <Square className="h-4 w-4" />
-                  )}
-                </Button>
-              </TableHead>
+              {isEditMode && (
+                <TableHead className="w-[50px]">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={toggleSelectAll}
+                    className="hover:bg-transparent"
+                  >
+                    {selectedMaterials.length === filteredMaterials.length ? (
+                      <CheckSquare className="h-4 w-4" />
+                    ) : (
+                      <Square className="h-4 w-4" />
+                    )}
+                  </Button>
+                </TableHead>
+              )}
               <TableHead>Type</TableHead>
               <TableHead>Nummer</TableHead>
               <TableHead>Vrijwilliger</TableHead>
@@ -635,20 +648,22 @@ export default function Materials() {
               const volunteer = volunteers.find((v) => v.id === item.volunteerId);
               return (
                 <TableRow key={item.id}>
-                  <TableCell>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => toggleSelect(item.id)}
-                      className="hover:bg-transparent"
-                    >
-                      {selectedMaterials.includes(item.id) ? (
-                        <CheckSquare className="h-4 w-4" />
-                      ) : (
-                        <Square className="h-4 w-4" />
-                      )}
-                    </Button>
-                  </TableCell>
+                  {isEditMode && (
+                    <TableCell>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => toggleSelect(item.id)}
+                        className="hover:bg-transparent"
+                      >
+                        {selectedMaterials.includes(item.id) ? (
+                          <CheckSquare className="h-4 w-4" />
+                        ) : (
+                          <Square className="h-4 w-4" />
+                        )}
+                      </Button>
+                    </TableCell>
+                  )}
                   <TableCell>{type?.name || "-"}</TableCell>
                   <TableCell>{item.number}</TableCell>
                   <TableCell>
@@ -662,14 +677,16 @@ export default function Materials() {
                     </Badge>
                   </TableCell>
                   <TableCell className="flex space-x-2">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => handleEdit(item)}
-                      className="text-[#6BB85C] hover:text-[#6BB85C] hover:bg-[#6BB85C]/10"
-                    >
-                      <Edit2 className="h-4 w-4" />
-                    </Button>
+                    {isEditMode && (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => handleEdit(item)}
+                        className="text-[#6BB85C] hover:text-[#6BB85C] hover:bg-[#6BB85C]/10"
+                      >
+                        <Edit2 className="h-4 w-4" />
+                      </Button>
+                    )}
                     <Button
                       variant="ghost"
                       size="icon"
@@ -684,7 +701,7 @@ export default function Materials() {
             })}
             {filteredMaterials.length === 0 && (
               <TableRow>
-                <TableCell colSpan={6} className="text-center py-6 text-gray-500">
+                <TableCell colSpan={isEditMode ? 6 : 5} className="text-center py-6 text-gray-500">
                   Geen materialen gevonden
                 </TableCell>
               </TableRow>
@@ -693,8 +710,8 @@ export default function Materials() {
         </Table>
       </div>
 
-      {/* Bulk Actions */}
-      {selectedMaterials.length > 0 && (
+      {/* Bulk Actions - Only show when in edit mode */}
+      {isEditMode && selectedMaterials.length > 0 && (
         <div className="fixed bottom-4 right-4 flex gap-2 bg-white p-4 rounded-lg shadow-lg border">
           <span className="text-sm text-gray-500 self-center mr-2">
             {selectedMaterials.length} geselecteerd
