@@ -44,6 +44,8 @@ import {
   Settings2,
   CheckSquare,
   Square,
+  ChevronsUpDown,
+  Check,
 } from "lucide-react";
 import { Form as FormComponent, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -56,7 +58,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
 import { Switch } from "@/components/ui/switch";
-import { MultiSelect } from "@/components/ui/multi-select";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "@/components/ui/command";
 import { Label } from "@/components/ui/label";
 import React from 'react';
 import { Separator } from "@/components/ui/separator";
@@ -368,20 +370,55 @@ const PlanningForm = ({ form, onSubmit, editingPlanning, volunteers, rooms }: {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Vrijwilligers</FormLabel>
-                  <MultiSelect
-                    options={volunteers.map(v => ({
-                      value: v.id,
-                      label: `${v.firstName} ${v.lastName}`
-                    }))}
-                    selected={field.value || []}
-                    onChange={field.onChange}
-                    placeholder="Selecteer vrijwilligers"
-                  />
-                  <div className="mt-1 text-sm text-muted-foreground">
-                    {selectedVolunteers.length > 0 && (
-                      `${selectedVolunteers.length} ${selectedVolunteers.length === 1 ? 'vrijwilliger' : 'vrijwilligers'} geselecteerd`
-                    )}
-                  </div>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        role="combobox"
+                        className={cn(
+                          "w-full justify-between",
+                          !field.value?.length && "text-muted-foreground"
+                        )}
+                      >
+                        <span className="truncate">
+                          {field.value?.length === 0
+                            ? "Selecteer vrijwilligers..."
+                            : `${field.value.length} vrijwilliger(s) geselecteerd`}
+                        </span>
+                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-full p-0" align="start" style={{ maxHeight: '300px' }}>
+                      <Command>
+                        <CommandInput
+                          placeholder="Zoek vrijwilligers..."
+                          className="h-9"
+                        />
+                        <CommandEmpty>Geen vrijwilligers gevonden.</CommandEmpty>
+                        <CommandGroup className="overflow-y-auto max-h-[250px] scrollbar">
+                          {volunteers.map(volunteer => (
+                            <CommandItem
+                              key={volunteer.id}
+                              onSelect={() => {
+                                const newSelected = field.value?.includes(volunteer.id)
+                                  ? field.value.filter(id => id !== volunteer.id)
+                                  : [...(field.value || []), volunteer.id];
+                                field.onChange(newSelected);
+                              }}
+                            >
+                              <Check
+                                className={cn(
+                                  "mr-2 h-4 w-4",
+                                  field.value?.includes(volunteer.id) ? "opacity-100" : "opacity-0"
+                                )}
+                              />
+                              {volunteer.firstName} {volunteer.lastName}
+                            </CommandItem>
+                          ))}
+                        </CommandGroup>
+                      </Command>
+                    </PopoverContent>
+                  </Popover>
                   <FormMessage />
                 </FormItem>
               )}
@@ -885,7 +922,7 @@ const Planning = () => {
                   <Building className="h-8 w-8 text-primary/80" />
                   <div className="ml-4">
                     <h3 className="text-sm font-medium text-gray-500">Bezette Ruimtes</h3>
-                    <p className="text-2xl font-bold text-primary">{uniqueRoomsScheduled}</p>
+                    <p className="text-2xlfont-bold text-primary">{uniqueRoomsScheduled}</p>
                   </div>
                 </div>
               </CardContent>
