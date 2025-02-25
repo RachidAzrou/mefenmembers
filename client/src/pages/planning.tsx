@@ -56,7 +56,6 @@ import { Switch } from "@/components/ui/switch";
 import { MultiSelect } from "@/components/ui/multi-select";
 import { Label } from "@/components/ui/label";
 
-// Schema and types remain unchanged
 const planningSchema = z.object({
   volunteerId: z.string().min(1, "Vrijwilliger is verplicht").optional(),
   roomId: z.string().min(1, "Ruimte is verplicht").optional(),
@@ -83,14 +82,15 @@ const planningSchema = z.object({
 
 type Planning = z.infer<typeof planningSchema> & { id: string };
 
-// Modified PlanningTable component
 const PlanningTable = ({
   plannings,
   emptyMessage,
   volunteers,
   rooms,
   onEdit,
-  onDelete
+  onDelete,
+  searchValue,
+  onSearchChange,
 }: {
   plannings: Planning[];
   emptyMessage: string;
@@ -98,6 +98,8 @@ const PlanningTable = ({
   rooms: { id: string; name: string; }[];
   onEdit: (planning: Planning) => void;
   onDelete: (id: string) => void;
+  searchValue: string;
+  onSearchChange: (value: string) => void;
 }) => {
   return (
     <div className="space-y-4">
@@ -106,8 +108,8 @@ const PlanningTable = ({
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
           <Input
             placeholder="Zoek op vrijwilliger of ruimte..."
-            value={searchActive}
-            onChange={(e) => setSearchActive(e.target.value)}
+            value={searchValue}
+            onChange={(e) => onSearchChange(e.target.value)}
             className="pl-9"
           />
         </div>
@@ -119,7 +121,7 @@ const PlanningTable = ({
               <TableHead>Vrijwilliger</TableHead>
               <TableHead>Ruimte</TableHead>
               <TableHead>Periode</TableHead>
-              {/* <TableHead className="w-[120px]">Acties</TableHead> */}
+              <TableHead className="w-[120px]">Acties</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -127,7 +129,11 @@ const PlanningTable = ({
               const volunteer = volunteers.find((v) => v.id === planning.volunteerId);
               const room = rooms.find((r) => r.id === planning.roomId);
               return (
-                <TableRow key={planning.id}>
+                <TableRow
+                  key={planning.id}
+                  className="cursor-pointer hover:bg-muted/50"
+                  onClick={() => onEdit(planning)}
+                >
                   <TableCell className="font-medium">
                     {volunteer ? `${volunteer.firstName} ${volunteer.lastName}` : "-"}
                   </TableCell>
@@ -135,12 +141,15 @@ const PlanningTable = ({
                   <TableCell className="whitespace-nowrap">
                     {format(new Date(planning.startDate), "d MMM yyyy", { locale: nl })} - {format(new Date(planning.endDate), "d MMM yyyy", { locale: nl })}
                   </TableCell>
-                  {/* <TableCell>
+                  <TableCell>
                     <div className="flex space-x-2">
                       <Button
                         variant="ghost"
                         size="icon"
-                        onClick={() => onEdit(planning)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onEdit(planning);
+                        }}
                         className="h-8 w-8 text-primary hover:text-primary hover:bg-primary/10"
                       >
                         <Edit2 className="h-4 w-4" />
@@ -148,20 +157,23 @@ const PlanningTable = ({
                       <Button
                         variant="ghost"
                         size="icon"
-                        onClick={() => onDelete(planning.id)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onDelete(planning.id);
+                        }}
                         className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
                     </div>
-                  </TableCell> */}
+                  </TableCell>
                 </TableRow>
               );
             })}
             {plannings.length === 0 && (
               <TableRow>
                 <TableCell
-                  colSpan={3}
+                  colSpan={4}
                   className="h-32 text-center text-muted-foreground"
                 >
                   <CalendarDaysIcon className="h-8 w-8 mx-auto mb-2 opacity-50" />
@@ -176,7 +188,6 @@ const PlanningTable = ({
   );
 };
 
-// PlanningForm component (remains unchanged)
 const PlanningForm = ({ form, onSubmit, editingPlanning, volunteers, rooms }: {
   form: ReturnType<typeof useForm<z.infer<typeof planningSchema>>>;
   onSubmit: (data: z.infer<typeof planningSchema>) => Promise<void>;
@@ -190,7 +201,6 @@ const PlanningForm = ({ form, onSubmit, editingPlanning, volunteers, rooms }: {
   const startDate = form.watch("startDate");
   const endDate = form.watch("endDate");
 
-  // Calculate total plannings for bulk mode
   const totalPlannings = selectedVolunteers.length * selectedRooms.length;
 
   return (
@@ -353,15 +363,20 @@ const PlanningForm = ({ form, onSubmit, editingPlanning, volunteers, rooms }: {
                     selected={field.value ? parseISO(field.value) : undefined}
                     onSelect={(date) => {
                       if (date) {
-                        // Zorg ervoor dat de tijd op middernacht staat
-                        const selectedDate = new Date(date);
-                        selectedDate.setHours(0, 0, 0, 0);
-                        field.onChange(format(selectedDate, 'yyyy-MM-dd'));
+                        const formattedDate = format(date, 'yyyy-MM-dd');
+                        field.onChange(formattedDate);
+
+                        // Als de einddatum voor de nieuwe startdatum ligt, reset deze
+                        const endDate = form.getValues("endDate");
+                        if (endDate && parseISO(endDate) < parseISO(formattedDate)) {
+                          form.setValue("endDate", formattedDate);
+                        }
                       }
                     }}
                     disabled={(date) => {
                       const today = new Date();
                       today.setHours(0, 0, 0, 0);
+                      date.setHours(0, 0, 0, 0);
                       return date < today;
                     }}
                     initialFocus
@@ -405,15 +420,14 @@ const PlanningForm = ({ form, onSubmit, editingPlanning, volunteers, rooms }: {
                     selected={field.value ? parseISO(field.value) : undefined}
                     onSelect={(date) => {
                       if (date) {
-                        // Zorg ervoor dat de tijd op middernacht staat
-                        const selectedDate = new Date(date);
-                        selectedDate.setHours(0, 0, 0, 0);
-                        field.onChange(format(selectedDate, 'yyyy-MM-dd'));
+                        field.onChange(format(date, 'yyyy-MM-dd'));
                       }
                     }}
                     disabled={(date) => {
-                      const minDate = startDate ? parseISO(startDate) : new Date();
+                      if (!startDate) return true;
+                      const minDate = parseISO(startDate);
                       minDate.setHours(0, 0, 0, 0);
+                      date.setHours(0, 0, 0, 0);
                       return date < minDate;
                     }}
                     initialFocus
@@ -441,7 +455,6 @@ const PlanningForm = ({ form, onSubmit, editingPlanning, volunteers, rooms }: {
   );
 };
 
-// Main Planning component (remains unchanged)
 export default function Planning() {
   const [plannings, setPlannings] = useState<Planning[]>([]);
   const [volunteers, setVolunteers] = useState<{ id: string; firstName: string; lastName: string; }[]>([]);
@@ -451,6 +464,7 @@ export default function Planning() {
   const [deletePlanningId, setDeletePlanningId] = useState<string | null>(null);
   const [searchActive, setSearchActive] = useState("");
   const [searchUpcoming, setSearchUpcoming] = useState("");
+  const [searchPast, setSearchPast] = useState("");
   const { isAdmin } = useRole();
   const { toast } = useToast();
 
@@ -620,6 +634,7 @@ export default function Planning() {
 
   const filteredActivePlannings = filterPlannings(activePlannings, searchActive);
   const filteredUpcomingPlannings = filterPlannings(upcomingPlannings, searchUpcoming);
+  const filteredPastPlannings = filterPlannings(pastPlannings, searchPast);
 
   return (
     <div className="space-y-6">
@@ -707,6 +722,8 @@ export default function Planning() {
           rooms={rooms}
           onEdit={handleEdit}
           onDelete={setDeletePlanningId}
+          searchValue={searchActive}
+          onSearchChange={setSearchActive}
         />
       </CollapsibleSection>
 
@@ -722,6 +739,8 @@ export default function Planning() {
           rooms={rooms}
           onEdit={handleEdit}
           onDelete={setDeletePlanningId}
+          searchValue={searchUpcoming}
+          onSearchChange={setSearchUpcoming}
         />
       </CollapsibleSection>
 
@@ -731,12 +750,14 @@ export default function Planning() {
         defaultOpen={false}
       >
         <PlanningTable
-          plannings={pastPlannings}
+          plannings={filteredPastPlannings}
           emptyMessage="Geen afgelopen planningen gevonden"
           volunteers={volunteers}
           rooms={rooms}
           onEdit={handleEdit}
           onDelete={setDeletePlanningId}
+          searchValue={searchPast}
+          onSearchChange={setSearchPast}
         />
       </CollapsibleSection>
 
