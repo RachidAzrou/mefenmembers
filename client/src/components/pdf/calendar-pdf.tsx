@@ -17,7 +17,7 @@ const styles = StyleSheet.create({
     paddingBottom: 10,
   },
   logo: {
-    width: 100,
+    width: 120,
     marginRight: 15,
   },
   headerText: {
@@ -25,7 +25,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 18,
-    color: '#D9A347',
+    color: '#963E56', // burgundy color
     marginBottom: 2,
     textAlign: 'left',
   },
@@ -52,7 +52,7 @@ const styles = StyleSheet.create({
   dayName: {
     fontSize: 11,
     fontWeight: 'bold',
-    color: '#D9A347',
+    color: '#963E56', // burgundy color
   },
   dayDate: {
     fontSize: 9,
@@ -68,7 +68,7 @@ const styles = StyleSheet.create({
   roomName: {
     fontSize: 10,
     fontWeight: 'bold',
-    color: '#2F7A1F',
+    color: '#963E56', // burgundy color
     marginBottom: 4,
   },
   planning: {
@@ -77,7 +77,7 @@ const styles = StyleSheet.create({
     padding: 4,
     marginBottom: 4,
     borderLeft: 1,
-    borderLeftColor: '#6BB85C',
+    borderLeftColor: '#963E56', // burgundy color
   },
   volunteerName: {
     fontSize: 9,
@@ -150,7 +150,7 @@ export function CalendarPDF({ weekStart, plannings, logoUrl }: CalendarPDFProps)
         <View style={styles.header}>
           {logoUrl && <Image src={logoUrl} style={styles.logo} />}
           <View style={styles.headerText}>
-            <Text style={styles.title}>MEFEN Planning</Text>
+            <Text style={styles.title}>Planning Vrijwilligers</Text>
             <Text style={styles.weekInfo}>
               Week van {format(weekStart, 'd MMMM yyyy', { locale: nl })}
             </Text>
