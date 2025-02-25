@@ -1,31 +1,9 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -35,14 +13,9 @@ import { ref, push, remove, update, onValue } from "firebase/database";
 import { UserPlus, Edit2, Trash2, Search, Users, CheckSquare, Square, Settings2 } from "lucide-react";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Card, CardContent } from "@/components/ui/card";
-import { logUserAction } from "@/lib/activity-logger";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Separator } from "@/components/ui/separator";
+import { logUserAction, UserActionTypes } from "@/lib/activity-logger";
 
 const volunteerSchema = z.object({
   firstName: z.string().min(1, "Voornaam is verplicht"),
@@ -88,11 +61,11 @@ export default function Volunteers() {
       if (editingVolunteer) {
         await update(ref(db, `volunteers/${editingVolunteer.id}`), data);
         await logUserAction(
-          "Vrijwilliger bijgewerkt",
-          `${'Bijgewerkt'}: ${data.firstName} ${data.lastName}`,
+          UserActionTypes.VOLUNTEER_UPDATE,
+          `Vrijwilliger ${data.firstName} ${data.lastName} bijgewerkt`,
           {
             type: "volunteer",
-            id: editingVolunteer?.id,
+            id: editingVolunteer.id,
             name: `${data.firstName} ${data.lastName}`
           }
         );
@@ -101,13 +74,13 @@ export default function Volunteers() {
           description: "Vrijwilliger succesvol bijgewerkt",
         });
       } else {
-        await push(ref(db, "volunteers"), data);
+        const newVolunteerRef = await push(ref(db, "volunteers"), data);
         await logUserAction(
-          "Vrijwilliger toegevoegd",
-          `${'Toegevoegd'}: ${data.firstName} ${data.lastName}`,
+          UserActionTypes.VOLUNTEER_CREATE,
+          `Nieuwe vrijwilliger ${data.firstName} ${data.lastName} toegevoegd`,
           {
             type: "volunteer",
-            id: null,
+            id: newVolunteerRef.key!,
             name: `${data.firstName} ${data.lastName}`
           }
         );
@@ -131,16 +104,21 @@ export default function Volunteers() {
   const handleDelete = async (ids: string[]) => {
     try {
       const volunteersToDelete = volunteers.filter(v => ids.includes(v.id));
-      await Promise.all(ids.map(id => remove(ref(db, `volunteers/${id}`))));
-      await logUserAction(
-        "Vrijwilliger(s) verwijderd",
-        `${ids.length} vrijwilliger(s) verwijderd`,
-        {
-          type: "volunteer",
-          id: ids.join(','),
-          name: volunteersToDelete.map(v => `${v.firstName} ${v.lastName}`).join(', ')
-        }
-      );
+
+      // Log each deletion individually for better tracking
+      for (const volunteer of volunteersToDelete) {
+        await remove(ref(db, `volunteers/${volunteer.id}`));
+        await logUserAction(
+          UserActionTypes.VOLUNTEER_DELETE,
+          `Vrijwilliger ${volunteer.firstName} ${volunteer.lastName} verwijderd`,
+          {
+            type: "volunteer",
+            id: volunteer.id,
+            name: `${volunteer.firstName} ${volunteer.lastName}`
+          }
+        );
+      }
+
       toast({
         title: "Succes",
         description: `${ids.length} vrijwilliger(s) succesvol verwijderd`,
@@ -374,8 +352,8 @@ export default function Volunteers() {
             ))}
             {filteredVolunteers.length === 0 && (
               <TableRow>
-                <TableCell 
-                  colSpan={isEditMode ? 5 : 4} 
+                <TableCell
+                  colSpan={isEditMode ? 5 : 4}
                   className="text-center py-6 text-muted-foreground"
                 >
                   Geen vrijwilligers gevonden

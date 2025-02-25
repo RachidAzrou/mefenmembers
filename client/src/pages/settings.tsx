@@ -15,20 +15,20 @@ import {
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
-} from "@/components/ui/accordion"
+} from "@/components/ui/accordion";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select"
-import { Calendar } from "@/components/ui/calendar"
+} from "@/components/ui/select";
+import { Calendar } from "@/components/ui/calendar";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@/components/ui/popover"
+} from "@/components/ui/popover";
 import { updateUserRole } from "@/lib/roles";
 import { db, auth } from "@/lib/firebase";
 import { ref, onValue, remove } from "firebase/database";
@@ -40,10 +40,9 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { UserAction } from "@/lib/activity-logger";
 import { format } from "date-fns";
 import { nl } from "date-fns/locale";
-import { logUserAction } from "@/lib/activity-logger";
+import { logUserAction, UserActionTypes } from "@/lib/activity-logger";
 
 type DatabaseUser = {
   uid: string;
@@ -134,8 +133,13 @@ export default function Settings() {
     try {
       await updateUserRole(uid, email, newIsAdmin);
       await logUserAction(
-        "Gebruikersrol gewijzigd",
-        `${email} is gewijzigd naar ${newIsAdmin ? 'administrator' : 'medewerker'}`
+        UserActionTypes.USER_ROLE_UPDATE,
+        `${email} is nu ${newIsAdmin ? 'administrator' : 'medewerker'}`,
+        {
+          type: "user",
+          id: uid,
+          name: email
+        }
       );
       toast({
         title: "Succes",
@@ -155,8 +159,13 @@ export default function Settings() {
       const userCredential = await createUserWithEmailAndPassword(auth, data.email, data.password);
       await updateUserRole(userCredential.user.uid, data.email, data.isAdmin);
       await logUserAction(
-        "Nieuwe gebruiker aangemaakt",
-        `Gebruiker ${data.email} aangemaakt als ${data.isAdmin ? 'administrator' : 'medewerker'}`
+        UserActionTypes.USER_CREATE,
+        `Nieuwe gebruiker ${data.email} aangemaakt als ${data.isAdmin ? 'administrator' : 'medewerker'}`,
+        {
+          type: "user",
+          id: userCredential.user.uid,
+          name: data.email
+        }
       );
 
       toast({
@@ -204,8 +213,13 @@ export default function Settings() {
     try {
       await remove(ref(db, `users/${deletingUser.uid}`));
       await logUserAction(
-        "Gebruiker verwijderd",
-        `Gebruiker ${deletingUser.email} is verwijderd`
+        UserActionTypes.USER_DELETE,
+        `Gebruiker ${deletingUser.email} is verwijderd`,
+        {
+          type: "user",
+          id: deletingUser.uid,
+          name: deletingUser.email
+        }
       );
 
       toast({
@@ -220,6 +234,46 @@ export default function Settings() {
         description: error.message || "Kon gebruiker niet verwijderen",
       });
     }
+  };
+
+  const getActionDescription = (log: UserAction) => {
+    // Materiaal acties
+    if (log.action === UserActionTypes.MATERIAL_CHECKOUT || 
+        log.action === UserActionTypes.MATERIAL_RETURN) {
+      return `${log.targetName} #${log.materialNumber}`;
+    }
+
+    // Vrijwilliger acties
+    if (log.action.includes('vrijwilliger')) {
+      return log.targetName || '-';
+    }
+
+    // Planning acties
+    if (log.action.includes('planning')) {
+      return log.targetName || 'Onbekende planning';
+    }
+
+    // Gebruiker acties
+    if (log.action.includes('gebruiker')) {
+      return log.targetName || 'Onbekende gebruiker';
+    }
+
+    // Materiaaltype acties
+    if (log.action.includes('materiaaltype')) {
+      return log.targetName || 'Onbekend materiaaltype';
+    }
+
+    // Overige acties
+    return log.targetName || '-';
+  };
+
+  const getActionIcon = (action: string) => {
+    if (action.includes('materiaal')) return '📦';
+    if (action.includes('vrijwilliger')) return '👤';
+    if (action.includes('planning')) return '📅';
+    if (action.includes('gebruiker')) return '👥';
+    if (action.includes('ingelogd') || action.includes('uitgelogd')) return '🔑';
+    return '📝';
   };
 
   if (!isAdmin) {
@@ -240,7 +294,6 @@ export default function Settings() {
       </div>
 
       <Accordion type="single" collapsible className="space-y-4">
-        {/* Add New User Section */}
         <AccordionItem value="add-user" className="border rounded-lg overflow-hidden">
           <AccordionTrigger className="px-6 py-4 bg-gray-50/80 hover:bg-gray-50/90 [&[data-state=open]>svg]:rotate-180">
             <div className="flex items-center gap-2 text-[#963E56]">
@@ -303,7 +356,6 @@ export default function Settings() {
           </AccordionContent>
         </AccordionItem>
 
-        {/* Users List Section */}
         <AccordionItem value="manage-users" className="border rounded-lg overflow-hidden">
           <AccordionTrigger className="px-6 py-4 bg-gray-50/80 hover:bg-gray-50/90 [&[data-state=open]>svg]:rotate-180">
             <div className="flex items-center gap-2 text-[#963E56]">
@@ -380,7 +432,6 @@ export default function Settings() {
           </AccordionContent>
         </AccordionItem>
 
-        {/* User Activity Logs Section */}
         <AccordionItem value="activity-logs" className="border rounded-lg overflow-hidden">
           <AccordionTrigger className="px-6 py-4 bg-gray-50/80 hover:bg-gray-50/90 [&[data-state=open]>svg]:rotate-180">
             <div className="flex items-center gap-2 text-[#963E56]">
@@ -475,22 +526,12 @@ export default function Settings() {
                         </TableCell>
                         <TableCell>{log.userEmail}</TableCell>
                         <TableCell>
-                          {log.action === 'checkout' && 'Materiaal uitgeleend'}
-                          {log.action === 'return' && 'Materiaal geretourneerd'}
-                          {!['checkout', 'return'].includes(log.action) && log.action}
+                          <div className="flex items-center gap-2">
+                            <span className="text-lg">{getActionIcon(log.action)}</span>
+                            <span>{log.action}</span>
+                          </div>
                         </TableCell>
-                        <TableCell>
-                          {log.targetType === 'material' ? (
-                            <div className="flex items-center gap-1">
-                              <span className="font-medium">{log.targetName}</span>
-                              {log.materialNumber && (
-                                <span className="text-muted-foreground">#{log.materialNumber}</span>
-                              )}
-                            </div>
-                          ) : (
-                            log.targetName || '-'
-                          )}
-                        </TableCell>
+                        <TableCell>{getActionDescription(log)}</TableCell>
                       </TableRow>
                     ))}
                     {filteredLogs.length === 0 && (
@@ -513,7 +554,6 @@ export default function Settings() {
         </AccordionItem>
       </Accordion>
 
-      {/* Password Change Dialog */}
       {changingPasswordFor && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <Card className="w-full max-w-md mx-4">
@@ -549,7 +589,6 @@ export default function Settings() {
         </div>
       )}
 
-      {/* Delete User Dialog */}
       {deletingUser && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <Card className="w-full max-w-md mx-4">

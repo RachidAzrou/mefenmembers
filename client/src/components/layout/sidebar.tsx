@@ -14,6 +14,7 @@ import { auth } from "@/lib/firebase";
 import { signOut } from "firebase/auth";
 import { useRole } from "@/hooks/use-role";
 import { useNotifications } from "@/hooks/use-notifications";
+import { logUserAction, UserActionTypes } from "@/lib/activity-logger";
 
 export function Sidebar() {
   const [location] = useLocation();
@@ -38,7 +39,17 @@ export function Sidebar() {
 
   const handleLogout = async () => {
     try {
+      const userEmail = auth.currentUser?.email;
       await signOut(auth);
+      await logUserAction(
+        UserActionTypes.LOGOUT,
+        undefined,
+        {
+          type: "auth",
+          id: userEmail || 'unknown',
+          name: userEmail || 'unknown'
+        }
+      );
       window.location.href = "/login";
     } catch (error) {
       console.error("Logout error:", error);

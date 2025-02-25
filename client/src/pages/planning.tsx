@@ -60,6 +60,7 @@ import { MultiSelect } from "@/components/ui/multi-select";
 import { Label } from "@/components/ui/label";
 import React from 'react';
 import { Separator } from "@/components/ui/separator";
+import { logUserAction, UserActionTypes } from "@/lib/activity-logger";
 
 interface MaterialType {
   id: string;
@@ -559,7 +560,7 @@ const PlanningSection = ({ title, icon, defaultOpen, children }: {
           variant="ghost"
           size="icon"
           onClick={(e) => {
-            e.stopPropagation(); 
+            e.stopPropagation();
             setIsEditing(!isEditing);
           }}
           className={cn(
@@ -666,12 +667,25 @@ const Planning = () => {
 
         for (const volunteerId of volunteers) {
           for (const roomId of rooms) {
+            const volunteer = volunteers.find(v => v.id === volunteerId);
+            const room = rooms.find(r => r.id === roomId);
+
             await push(ref(db, "plannings"), {
               volunteerId,
               roomId,
               startDate: data.startDate,
               endDate: data.endDate,
             });
+
+            await logUserAction(
+              UserActionTypes.PLANNING_CREATE,
+              `Bulk planning toegevoegd voor ${volunteer?.firstName} ${volunteer?.lastName} in ${room?.name}`,
+              {
+                type: "planning",
+                id: volunteerId + "_" + roomId,
+                name: `${volunteer?.firstName} ${volunteer?.lastName} - ${room?.name}`
+              }
+            );
           }
         }
 
@@ -681,15 +695,36 @@ const Planning = () => {
           "success"
         );
       } else {
+        const volunteer = volunteers.find(v => v.id === data.volunteerId);
+        const room = rooms.find(r => r.id === data.roomId);
+
         if (editingPlanning) {
           await update(ref(db, `plannings/${editingPlanning.id}`), data);
+          await logUserAction(
+            UserActionTypes.PLANNING_UPDATE,
+            `Planning bijgewerkt voor ${volunteer?.firstName} ${volunteer?.lastName} in ${room?.name}`,
+            {
+              type: "planning",
+              id: editingPlanning.id,
+              name: `${volunteer?.firstName} ${volunteer?.lastName} - ${room?.name}`
+            }
+          );
           showToast(
             "Planning Bijgewerkt",
             "De planning is succesvol bijgewerkt",
             "success"
           );
         } else {
-          await push(ref(db, "plannings"), data);
+          const newPlanningRef = await push(ref(db, "plannings"), data);
+          await logUserAction(
+            UserActionTypes.PLANNING_CREATE,
+            `Nieuwe planning toegevoegd voor ${volunteer?.firstName} ${volunteer?.lastName} in ${room?.name}`,
+            {
+              type: "planning",
+              id: newPlanningRef.key!,
+              name: `${volunteer?.firstName} ${volunteer?.lastName} - ${room?.name}`
+            }
+          );
           showToast(
             "Planning Toegevoegd",
             "De nieuwe planning is succesvol toegevoegd",
@@ -726,7 +761,22 @@ const Planning = () => {
 
   const handleDelete = async (id: string) => {
     try {
+      const planning = plannings.find(p => p.id === id);
+      if (!planning) return;
+
+      const volunteer = volunteers.find(v => v.id === planning.volunteerId);
+      const room = rooms.find(r => r.id === planning.roomId);
+
       await remove(ref(db, `plannings/${id}`));
+      await logUserAction(
+        UserActionTypes.PLANNING_DELETE,
+        `Planning verwijderd voor ${volunteer?.firstName} ${volunteer?.lastName} in ${room?.name}`,
+        {
+          type: "planning",
+          id: id,
+          name: `${volunteer?.firstName} ${volunteer?.lastName} - ${room?.name}`
+        }
+      );
       showToast(
         "Planning Verwijderd",
         "De planning is succesvol verwijderd",

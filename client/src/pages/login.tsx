@@ -13,7 +13,7 @@ import { Link } from "wouter";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useState } from "react";
-import { logUserAction } from "@/lib/activity-logger";
+import { logUserAction, UserActionTypes } from "@/lib/activity-logger";
 
 const loginSchema = z.object({
   email: z.string().email("Ongeldig e-mailadres"),
@@ -43,10 +43,9 @@ export default function Login() {
   const onSubmit = async (data: LoginFormData) => {
     try {
       await signInWithEmailAndPassword(auth, data.email, data.password);
-      // Test logging with more detailed information
       await logUserAction(
-        "Gebruiker ingelogd",
-        `Gebruiker ${data.email} heeft succesvol ingelogd`,
+        UserActionTypes.LOGIN,
+        undefined,
         {
           type: "auth",
           id: data.email,
@@ -67,8 +66,13 @@ export default function Login() {
     try {
       await sendPasswordResetEmail(auth, data.email);
       await logUserAction(
-        "Wachtwoord reset aangevraagd",
-        `Wachtwoord reset aangevraagd voor ${data.email}`
+        UserActionTypes.PASSWORD_RESET,
+        `Wachtwoord reset aangevraagd voor ${data.email}`,
+        {
+          type: "auth",
+          id: data.email,
+          name: data.email
+        }
       );
       toast({
         title: "Wachtwoord reset link verzonden",

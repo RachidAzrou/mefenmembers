@@ -7,10 +7,46 @@ export type UserAction = {
   action: string;
   details?: string;
   timestamp: string;
-  targetType?: string; // 'volunteer', 'material', 'schedule', etc.
+  targetType?: string; // 'volunteer', 'material', 'schedule', 'room', 'user', 'auth'
   targetId?: string;   // ID of the affected item
   targetName?: string; // Name/description of the affected item
+  volunteerName?: string; // For material checkouts/returns
+  materialNumber?: string; // For material checkouts/returns
 };
+
+export const UserActionTypes = {
+  // Auth related actions
+  LOGIN: "Ingelogd",
+  LOGOUT: "Uitgelogd",
+  PASSWORD_RESET: "Wachtwoord reset aangevraagd",
+
+  // Material related actions
+  MATERIAL_CHECKOUT: "Materiaal uitgeleend",
+  MATERIAL_RETURN: "Materiaal geretourneerd",
+  MATERIAL_TYPE_CREATE: "Materiaaltype aangemaakt",
+  MATERIAL_TYPE_UPDATE: "Materiaaltype bijgewerkt",
+  MATERIAL_TYPE_DELETE: "Materiaaltype verwijderd",
+
+  // Volunteer related actions
+  VOLUNTEER_CREATE: "Vrijwilliger toegevoegd",
+  VOLUNTEER_UPDATE: "Vrijwilliger bijgewerkt",
+  VOLUNTEER_DELETE: "Vrijwilliger verwijderd",
+
+  // Planning related actions
+  PLANNING_CREATE: "Planning toegevoegd",
+  PLANNING_UPDATE: "Planning bijgewerkt",
+  PLANNING_DELETE: "Planning verwijderd",
+
+  // Room related actions
+  ROOM_CREATE: "Ruimte toegevoegd",
+  ROOM_UPDATE: "Ruimte bijgewerkt",
+  ROOM_DELETE: "Ruimte verwijderd",
+
+  // User management actions
+  USER_CREATE: "Gebruiker aangemaakt",
+  USER_ROLE_UPDATE: "Gebruikersrol gewijzigd",
+  USER_DELETE: "Gebruiker verwijderd"
+} as const;
 
 export async function logUserAction(
   action: string,
@@ -19,6 +55,8 @@ export async function logUserAction(
     type?: string;
     id?: string;
     name?: string;
+    volunteerName?: string;
+    materialNumber?: string;
   }
 ) {
   try {
@@ -38,13 +76,14 @@ export async function logUserAction(
         targetType: targetInfo.type,
         targetId: targetInfo.id,
         targetName: targetInfo.name,
+        volunteerName: targetInfo.volunteerName,
+        materialNumber: targetInfo.materialNumber,
       }),
     };
 
-    console.log("Attempting to log action:", logEntry);
     const logsRef = ref(db, "user_logs");
     await push(logsRef, logEntry);
-    console.log("Action logged successfully");
+    console.log("Action logged successfully:", logEntry);
 
     return true;
   } catch (error) {
