@@ -88,6 +88,10 @@ export default function Planning() {
   const { isAdmin } = useRole();
   const { toast } = useToast();
 
+  const form = useForm<z.infer<typeof planningSchema>>({
+    resolver: zodResolver(planningSchema),
+  });
+
   useState(() => {
     const volunteersRef = ref(db, "volunteers");
     onValue(volunteersRef, (snapshot) => {
@@ -341,11 +345,11 @@ export default function Planning() {
   );
 
   const PlanningForm = ({ form, onSubmit, editingPlanning, volunteers, rooms }: {
-    form: any;
-    onSubmit: any;
-    editingPlanning: any;
-    volunteers: any;
-    rooms: any;
+    form: ReturnType<typeof useForm<z.infer<typeof planningSchema>>>;
+    onSubmit: (data: z.infer<typeof planningSchema>) => Promise<void>;
+    editingPlanning: Planning | null;
+    volunteers: { id: string; firstName: string; lastName: string; }[];
+    rooms: { id: string; name: string; }[];
   }) => (
     <FormComponent {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -512,7 +516,6 @@ export default function Planning() {
     );
   };
 
-
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
@@ -593,27 +596,6 @@ export default function Planning() {
               </CardContent>
             </Card>
           </div>
-
-          {isAdmin && (
-            <div className="flex justify-end mt-6">
-              <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-                <DialogTrigger asChild>
-                  <Button className="bg-[#6BB85C] hover:bg-[#6BB85C]/90 text-white">
-                    <CalendarIcon className="h-4 w-4 mr-2" />
-                    Inplannen
-                  </Button>
-                </DialogTrigger>
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle>
-                      {editingPlanning ? "Planning Bewerken" : "Vrijwilliger Inplannen"}
-                    </DialogTitle>
-                  </DialogHeader>
-                  <PlanningForm form={form} onSubmit={onSubmit} editingPlanning={editingPlanning} volunteers={volunteers} rooms={rooms} />
-                </DialogContent>
-              </Dialog>
-            </div>
-          )}
         </div>
       </CollapsibleSection>
 
