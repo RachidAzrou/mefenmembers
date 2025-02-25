@@ -63,8 +63,12 @@ export function MultiSelect({
             <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="w-full p-0" align="start">
-          <Command shouldFilter={false}>
+        <PopoverContent 
+          className="w-full p-0" 
+          align="start"
+          style={{ maxHeight: '60vh' }}
+        >
+          <Command className="max-h-full">
             <CommandInput 
               placeholder={`Zoek ${placeholder.toLowerCase()}`}
               value={search}
@@ -72,7 +76,7 @@ export function MultiSelect({
               className="border-none focus:ring-0"
             />
             <CommandEmpty>Geen opties gevonden.</CommandEmpty>
-            <CommandGroup className="max-h-[300px] overflow-auto">
+            <CommandGroup className="max-h-[40vh] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent">
               {filteredOptions.map((option) => (
                 <CommandItem
                   key={option.value}
@@ -82,7 +86,7 @@ export function MultiSelect({
                       : [...selected, option.value];
                     onChange(newSelected);
                   }}
-                  className="flex items-center justify-between py-2"
+                  className="flex items-center justify-between py-2 px-2 cursor-pointer hover:bg-accent"
                 >
                   <div className="flex items-center">
                     <Check
