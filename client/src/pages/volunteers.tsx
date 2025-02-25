@@ -32,10 +32,16 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { db } from "@/lib/firebase";
 import { ref, push, remove, update, onValue } from "firebase/database";
-import { UserPlus, Edit2, Trash2, Search, Users, CheckSquare, Square } from "lucide-react";
+import { UserPlus, Edit2, Trash2, Search, Users, CheckSquare, Square, Settings2 } from "lucide-react";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Card, CardContent } from "@/components/ui/card";
 import { logUserAction } from "@/lib/activity-logger";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 const volunteerSchema = z.object({
   firstName: z.string().min(1, "Voornaam is verplicht"),
@@ -52,6 +58,7 @@ export default function Volunteers() {
   const [searchTerm, setSearchTerm] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedVolunteers, setSelectedVolunteers] = useState<string[]>([]);
+  const [isEditMode, setIsEditMode] = useState(false);
   const { toast } = useToast();
 
   const form = useForm<z.infer<typeof volunteerSchema>>({
@@ -181,21 +188,36 @@ export default function Volunteers() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
-        <div className="flex items-center gap-3">
-          <Users className="h-8 w-8 text-primary" />
-          <h1 className="text-3xl font-bold text-primary">Vrijwilligers</h1>
-        </div>
-        <div className="flex items-center gap-2 w-full sm:w-auto">
-          <div className="relative flex-1 sm:w-64">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
-            <Input
-              placeholder="Zoeken..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-9"
-            />
+      <div className="flex items-center gap-3">
+        <Users className="h-8 w-8 text-primary" />
+        <h1 className="text-3xl font-bold text-primary">Vrijwilligers</h1>
+      </div>
+
+      {/* Statistics Card */}
+      <Card>
+        <CardContent className="pt-6">
+          <div className="flex items-center">
+            <Users className="h-8 w-8 text-primary/80" />
+            <div className="ml-4">
+              <h3 className="text-sm font-medium text-gray-500">Totaal Aantal Vrijwilligers</h3>
+              <p className="text-2xl font-bold text-primary">{volunteers.length}</p>
+            </div>
           </div>
+        </CardContent>
+      </Card>
+
+      {/* Search and Add Controls */}
+      <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
+        <div className="relative flex-1 w-full sm:max-w-md">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
+          <Input
+            placeholder="Zoeken..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-9"
+          />
+        </div>
+        <div className="flex items-center gap-2 self-end">
           <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
             <DialogTrigger asChild>
               <Button className="bg-[#6BB85C] hover:bg-[#6BB85C]/90">
@@ -257,21 +279,25 @@ export default function Volunteers() {
               </Form>
             </DialogContent>
           </Dialog>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => setIsEditMode(!isEditMode)}
+                  className={`${isEditMode ? "bg-primary/10 text-primary" : ""}`}
+                >
+                  <Settings2 className="h-5 w-5" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                {isEditMode ? "Bewerken afsluiten" : "Lijst bewerken"}
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
         </div>
       </div>
-
-      {/* Statistics Card */}
-      <Card>
-        <CardContent className="pt-6">
-          <div className="flex items-center">
-            <Users className="h-8 w-8 text-primary/80" />
-            <div className="ml-4">
-              <h3 className="text-sm font-medium text-gray-500">Totaal Aantal Vrijwilligers</h3>
-              <p className="text-2xl font-bold text-primary">{volunteers.length}</p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
 
       <div className="rounded-lg border bg-card">
         <Table>
@@ -318,22 +344,26 @@ export default function Volunteers() {
                 <TableCell>{volunteer.lastName}</TableCell>
                 <TableCell>{volunteer.phoneNumber}</TableCell>
                 <TableCell className="flex space-x-2">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => handleEdit(volunteer)}
-                    className="text-[#6BB85C] hover:text-[#6BB85C] hover:bg-[#6BB85C]/10"
-                  >
-                    <Edit2 className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => setDeleteVolunteerId(volunteer.id)}
-                    className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
+                  {isEditMode && (
+                    <>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => handleEdit(volunteer)}
+                        className="text-[#6BB85C] hover:text-[#6BB85C] hover:bg-[#6BB85C]/10"
+                      >
+                        <Edit2 className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => setDeleteVolunteerId(volunteer.id)}
+                        className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </>
+                  )}
                 </TableCell>
               </TableRow>
             ))}
