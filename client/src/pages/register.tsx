@@ -79,7 +79,7 @@ export default function Register() {
             phoneNumber: normalizePhoneNumber(volunteer.phoneNumber)
           };
 
-          const nameMatch = 
+          const nameMatch =
             normalizedVolunteer.firstName === normalizedInput.firstName &&
             normalizedVolunteer.lastName === normalizedInput.lastName;
 
@@ -125,7 +125,7 @@ export default function Register() {
 
       setRegistrationStatus({
         type: 'success',
-        message: 'Je aanmelding is ontvangen en wordt bekeken door de beheerder.'
+        message: `Je aanmelding is ontvangen en wordt bekeken door de beheerder. Dankjewel voor je interesse om vrijwilliger te worden bij MEFEN! We nemen zo snel mogelijk contact met je op.`
       });
       form.reset();
     } catch (error) {
@@ -148,9 +148,9 @@ export default function Register() {
           <CardContent className="p-4 sm:p-6 md:p-8">
             <div className="text-center mb-6 sm:mb-8">
               <div className="w-full flex justify-center items-center">
-                <img 
-                  src="/static/Naamloos.png" 
-                  alt="MEFEN" 
+                <img
+                  src="/static/Naamloos.png"
+                  alt="MEFEN"
                   className="h-16 sm:h-20 md:h-24 mx-auto mb-3 sm:mb-4"
                 />
               </div>
@@ -163,12 +163,17 @@ export default function Register() {
             </div>
 
             {registrationStatus && (
-              <div className={`mb-6 p-4 rounded-lg text-sm ${
-                registrationStatus.type === 'success' 
-                  ? 'bg-white border' 
+              <div className={`mb-6 p-6 rounded-lg text-center ${
+                registrationStatus.type === 'success'
+                  ? 'bg-green-50 border border-green-200 text-green-800'
                   : 'bg-red-50 border border-red-200 text-red-800'
               }`}>
-                <p>{registrationStatus.message}</p>
+                <p className="text-base">{registrationStatus.message}</p>
+                {registrationStatus.type === 'success' && (
+                  <p className="mt-2 text-sm text-green-600">
+                    We zullen je contactgegevens gebruiken om je op de hoogte te houden.
+                  </p>
+                )}
               </div>
             )}
 
@@ -181,10 +186,10 @@ export default function Register() {
                     <FormItem>
                       <FormLabel className="text-sm sm:text-base">Voornaam</FormLabel>
                       <FormControl>
-                        <Input 
-                          placeholder="Voornaam" 
-                          className="h-10 sm:h-12 text-sm sm:text-base border-gray-200 focus:border-[#963E56] focus:ring-[#963E56]" 
-                          {...field} 
+                        <Input
+                          placeholder="Voornaam"
+                          className="h-10 sm:h-12 text-sm sm:text-base border-gray-200 focus:border-[#963E56] focus:ring-[#963E56]"
+                          {...field}
                         />
                       </FormControl>
                       <FormMessage className="text-xs sm:text-sm" />
@@ -199,10 +204,10 @@ export default function Register() {
                     <FormItem>
                       <FormLabel className="text-sm sm:text-base">Achternaam</FormLabel>
                       <FormControl>
-                        <Input 
-                          placeholder="Achternaam" 
-                          className="h-10 sm:h-12 text-sm sm:text-base border-gray-200 focus:border-[#963E56] focus:ring-[#963E56]" 
-                          {...field} 
+                        <Input
+                          placeholder="Achternaam"
+                          className="h-10 sm:h-12 text-sm sm:text-base border-gray-200 focus:border-[#963E56] focus:ring-[#963E56]"
+                          {...field}
                         />
                       </FormControl>
                       <FormMessage className="text-xs sm:text-sm" />
@@ -217,10 +222,10 @@ export default function Register() {
                     <FormItem>
                       <FormLabel className="text-sm sm:text-base">Telefoonnummer</FormLabel>
                       <FormControl>
-                        <Input 
-                          placeholder="Telefoonnummer" 
-                          className="h-10 sm:h-12 text-sm sm:text-base border-gray-200 focus:border-[#963E56] focus:ring-[#963E56]" 
-                          {...field} 
+                        <Input
+                          placeholder="Telefoonnummer"
+                          className="h-10 sm:h-12 text-sm sm:text-base border-gray-200 focus:border-[#963E56] focus:ring-[#963E56]"
+                          {...field}
                         />
                       </FormControl>
                       <FormMessage className="text-xs sm:text-sm" />
@@ -228,8 +233,8 @@ export default function Register() {
                   )}
                 />
 
-                <Button 
-                  type="submit" 
+                <Button
+                  type="submit"
                   className="w-full h-10 sm:h-12 text-sm sm:text-base font-medium bg-[#963E56] hover:bg-[#963E56]/90 transition-colors duration-300"
                   disabled={isSubmitting}
                 >

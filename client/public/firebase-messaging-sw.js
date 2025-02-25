@@ -36,20 +36,46 @@ importScripts('https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js')
 importScripts('https://www.gstatic.com/firebasejs/9.0.0/firebase-messaging-compat.js');
 
 firebase.initializeApp({
-  messagingSenderId: 'your-messaging-sender-id',
-  projectId: 'your-project-id',
   apiKey: 'your-api-key',
+  projectId: 'your-project-id',
+  messagingSenderId: 'your-messaging-sender-id',
   appId: 'your-app-id',
 });
 
 const messaging = firebase.messaging();
 
 messaging.onBackgroundMessage((payload) => {
-  const notificationTitle = payload.notification.title;
+  const notificationTitle = payload.notification.title || 'Nieuwe Vrijwilliger Aanmelding';
   const notificationOptions = {
-    body: payload.notification.body,
-    icon: '/static/Naamloos.png'
+    body: payload.notification.body || 'Er heeft zich een nieuwe vrijwilliger aangemeld.',
+    icon: '/static/Naamloos.png',
+    badge: '/static/icon-512x512.png',
+    tag: 'volunteer-registration',
+    data: payload.data,
+    actions: [{
+      action: 'view_registration',
+      title: 'Bekijk Aanmelding'
+    }]
   };
 
   self.registration.showNotification(notificationTitle, notificationOptions);
+});
+
+self.addEventListener('notificationclick', (event) => {
+  const rootUrl = self.location.origin;
+  event.notification.close();
+  event.waitUntil(
+    clients.matchAll({type: 'window'}).then(windowClients => {
+      // Als we een open venster hebben, focus daar op
+      for (let client of windowClients) {
+        if (client.url === rootUrl + '/volunteers' && 'focus' in client) {
+          return client.focus();
+        }
+      }
+      // Anders open een nieuw venster
+      if (clients.openWindow) {
+        return clients.openWindow('/volunteers');
+      }
+    })
+  );
 });
