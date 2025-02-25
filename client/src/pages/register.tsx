@@ -44,9 +44,7 @@ export default function Register() {
   const normalizePhoneNumber = (phone: string) => {
     const cleaned = phone.replace(/[^\d]/g, '');
     if (cleaned.startsWith('31')) {
-      return cleaned;
-    } else if (cleaned.startsWith('0')) {
-      return '31' + cleaned.substring(1);
+      return cleaned.substring(2);
     }
     return cleaned;
   };
@@ -169,7 +167,7 @@ export default function Register() {
                     : 'bg-red-50 border border-red-200 text-red-800'
                 }`}>
                   <p className="text-base font-medium">
-                    {registrationStatus.type === 'success' 
+                    {registrationStatus.type === 'success'
                       ? 'Dankjewel voor je aanmelding! We nemen snel contact met je op.'
                       : registrationStatus.message
                     }
