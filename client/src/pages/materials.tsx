@@ -65,6 +65,16 @@ import {
 } from "@/components/ui/tooltip";
 import { Edit2 } from 'lucide-react';
 
+// Add type definition for activity log
+type ActivityLog = {
+  id: string;
+  action: 'checkout' | 'return';
+  materialTypeId: string;
+  materialNumber: number;
+  volunteerId: string;
+  timestamp: string;
+};
+
 const materialSchema = z.object({
   typeId: z.string().min(1, "Type materiaal is verplicht"),
   volunteerId: z.string().min(1, "Vrijwilliger is verplicht"),
@@ -167,6 +177,24 @@ export default function Materials() {
     });
   });
 
+  const logActivity = async (
+    action: 'checkout' | 'return',
+    material: Material,
+    volunteerId: string
+  ) => {
+    try {
+      await push(ref(db, "activityLogs"), {
+        action,
+        materialTypeId: material.typeId,
+        materialNumber: material.number,
+        volunteerId,
+        timestamp: new Date().toISOString()
+      });
+    } catch (error) {
+      console.error("Failed to log activity:", error);
+    }
+  };
+
   const onSubmit = async (data: z.infer<typeof materialSchema>) => {
     try {
       const existingMaterial = materials.find(
@@ -189,16 +217,27 @@ export default function Materials() {
           ...data,
           isCheckedOut: true,
         });
+        await logActivity('checkout', {
+          ...editingMaterial,
+          ...data,
+        }, data.volunteerId);
         toast({
-          title: "Succes",
-          description: "Materiaal succesvol bijgewerkt",
+          title: "Materiaal Geretourneerd",
+          description: "Het materiaal is succesvol geretourneerd",
+          duration: 3000,
+          variant: "success",
         });
         setEditingMaterial(null);
       } else {
-        await push(ref(db, "materials"), {
+        const newMaterialRef = await push(ref(db, "materials"), {
           ...data,
           isCheckedOut: true,
         });
+        await logActivity('checkout', {
+          id: newMaterialRef.key!,
+          ...data,
+          isCheckedOut: true,
+        }, data.volunteerId);
         toast({
           title: "Succes",
           description: "Materiaal succesvol toegewezen",
@@ -261,10 +300,16 @@ export default function Materials() {
 
   const handleReturn = async (materialId: string) => {
     try {
+      const material = materials.find(m => m.id === materialId);
+      if (!material) return;
+
       await update(ref(db, `materials/${materialId}`), {
         volunteerId: null,
         isCheckedOut: false,
       });
+
+      await logActivity('return', material, material.volunteerId || '');
+
       toast({
         title: "Materiaal Geretourneerd",
         description: "Het materiaal is succesvol geretourneerd",
@@ -301,7 +346,6 @@ export default function Materials() {
   };
 
   const filteredMaterials = materials.filter(material => {
-    // Toon alleen uitgeleende materialen
     if (!material.isCheckedOut) return false;
 
     const type = materialTypes.find(t => t.id === material.typeId);
@@ -313,7 +357,6 @@ export default function Materials() {
   const selectedType = materialTypes.find(t => t.id === form.watch("typeId"));
   const maxNumber = selectedType?.maxCount || 100;
 
-  // Calculate statistics
   const checkedOutMaterials = materials.filter(m => m.isCheckedOut).length;
   const checkedOutByType = materialTypes.map(type => ({
     name: type.name,
@@ -321,7 +364,6 @@ export default function Materials() {
     total: type.maxCount
   }));
 
-  // Add bulk selection toggle
   const toggleSelectAll = () => {
     if (selectedMaterials.length === filteredMaterials.length) {
       setSelectedMaterials([]);
@@ -341,15 +383,37 @@ export default function Materials() {
   const handleBulkReturn = async (materialIds: string[]) => {
     try {
       const updates = {};
-      materialIds.forEach(id => {
+      const loggingPromises = [];
+
+      for (const id of materialIds) {
+        const material = materials.find(m => m.id === id);
+        if (!material) continue;
+
         updates[`materials/${id}/volunteerId`] = null;
         updates[`materials/${id}/isCheckedOut`] = false;
-      });
+
+        loggingPromises.push(
+          logActivity('return', material, material.volunteerId || '')
+        );
+      }
+
       await update(ref(db, ''), updates);
-      toast({ title: 'Succes', description: 'Materialen succesvol geretourneerd' });
+      await Promise.all(loggingPromises);
+
+      toast({ 
+        title: 'Succes', 
+        description: 'Materialen succesvol geretourneerd',
+        duration: 3000,
+        variant: "success"
+      });
       setSelectedMaterials([]);
     } catch (error) {
-      toast({ variant: 'destructive', title: 'Fout', description: 'Kon materialen niet retourneren' });
+      toast({ 
+        variant: 'destructive', 
+        title: 'Fout', 
+        description: 'Kon materialen niet retourneren',
+        duration: 3000
+      });
     }
   };
 
@@ -363,7 +427,6 @@ export default function Materials() {
         </div>
       </div>
 
-      {/* Statistics Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         {checkedOutByType.map(stat => (
           <Card key={stat.name}>
@@ -387,7 +450,6 @@ export default function Materials() {
         ))}
       </div>
 
-      {/* Search and Action Controls */}
       <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
         <div className="relative flex-1 w-full sm:max-w-md">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -581,7 +643,6 @@ export default function Materials() {
         )}
       </div>
 
-      {/* Materials List */}
       <div className="rounded-lg border bg-card">
         <Table>
           <TableHeader>

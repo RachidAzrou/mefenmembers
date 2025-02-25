@@ -42,6 +42,7 @@ import {
   Trash2,
   Plus,
   Settings2,
+  Package2,
 } from "lucide-react";
 import { Form as FormComponent, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -57,6 +58,20 @@ import { Switch } from "@/components/ui/switch";
 import { MultiSelect } from "@/components/ui/multi-select";
 import { Label } from "@/components/ui/label";
 import React from 'react';
+
+interface ActivityLog {
+  id: string;
+  volunteerId: string;
+  materialTypeId: string;
+  materialNumber: string;
+  action: 'checkout' | 'checkin';
+  timestamp: string;
+}
+
+interface MaterialType {
+  id: string;
+  name: string;
+}
 
 const planningSchema = z.object({
   volunteerId: z.string().min(1, "Vrijwilliger is verplicht").optional(),
@@ -536,6 +551,8 @@ const Planning = () => {
   const [searchActive, setSearchActive] = useState("");
   const [searchUpcoming, setSearchUpcoming] = useState("");
   const [searchPast, setSearchPast] = useState("");
+  const [activityLogs, setActivityLogs] = useState<ActivityLog[]>([]);
+  const [materialTypes, setMaterialTypes] = useState<MaterialType[]>([]);
   const { isAdmin } = useRole();
   const { toast } = useToast();
 
@@ -577,6 +594,26 @@ const Planning = () => {
         ...planning
       })) : [];
       setPlannings(planningsList);
+    });
+
+    const activityLogsRef = ref(db, "activityLogs");
+    onValue(activityLogsRef, (snapshot) => {
+      const data = snapshot.val();
+      const logsList = data ? Object.entries(data).map(([id, log]: [string, any]) => ({
+        id,
+        ...log
+      })).sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()) : [];
+      setActivityLogs(logsList);
+    });
+
+    const materialTypesRef = ref(db, "materialTypes");
+    onValue(materialTypesRef, (snapshot) => {
+      const data = snapshot.val();
+      const typesList = data ? Object.entries(data).map(([id, type]: [string, any]) => ({
+        id,
+        ...type
+      })) : [];
+      setMaterialTypes(typesList);
     });
   }, []);
 
@@ -844,6 +881,48 @@ const Planning = () => {
           onSearchChange={setSearchPast}
         />
       </PlanningSection>
+
+      <CollapsibleSection
+        title="Materiaal Activiteit"
+        icon={<Package2 className="h-5 w-5 text-primary" />}
+        defaultOpen={false}
+      >
+        <div className="space-y-4">
+          {activityLogs.length === 0 ? (
+            <p className="text-center text-muted-foreground py-8">
+              Geen activiteit gevonden
+            </p>
+          ) : (
+            <div className="space-y-3">
+              {activityLogs.map((log) => {
+                const volunteer = volunteers.find(v => v.id === log.volunteerId);
+                const materialType = materialTypes.find(t => t.id === log.materialTypeId);
+
+                return (
+                  <div key={log.id} className="flex items-start space-x-4 p-3 rounded-lg border bg-card">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium">
+                          {volunteer ? `${volunteer.firstName} ${volunteer.lastName}` : 'Onbekende vrijwilliger'}
+                        </span>
+                        <span className="text-muted-foreground">
+                          heeft {log.action === 'checkout' ? 'uitgeleend' : 'geretourneerd'}:
+                        </span>
+                      </div>
+                      <div className="text-sm text-muted-foreground mt-1">
+                        {materialType?.name || 'Onbekend materiaal'} #{log.materialNumber}
+                      </div>
+                      <div className="text-xs text-muted-foreground mt-1">
+                        {format(new Date(log.timestamp), "d MMMM yyyy 'om' HH:mm", { locale: nl })}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      </CollapsibleSection>
 
       <AlertDialog
         open={!!deletePlanningId}
