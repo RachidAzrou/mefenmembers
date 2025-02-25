@@ -517,11 +517,11 @@ export default function Materials() {
       <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
         <div className="flex items-center gap-3">
           <Package2 className="h-8 w-8 text-primary" />
-          <h1 className="text-3xl font-bold text-primary">Materiaalbeheer</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold text-primary">Materiaalbeheer</h1>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {checkedOutByType.map(stat => (
           <Card key={stat.name}>
             <CardHeader className="pb-2">
@@ -545,21 +545,21 @@ export default function Materials() {
       </div>
 
       <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
-        <div className="relative flex-1 w-full sm:max-w-md">
+        <div className="relative flex-1 w-full">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <InputComponent
             placeholder="Zoeken..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-9"
+            className="pl-9 w-full"
           />
         </div>
 
         {isAdmin && (
-          <div className="flex items-center gap-2 self-end">
+          <div className="flex items-center gap-2 w-full sm:w-auto">
             <Dialog open={isTypesDialogOpen} onOpenChange={setIsTypesDialogOpen}>
               <DialogTrigger asChild>
-                <Button variant="outline">
+                <Button variant="outline" className="flex-1 sm:flex-none">
                   <Plus className="h-4 w-4 mr-2" />
                   Type Toevoegen
                 </Button>
@@ -614,7 +614,7 @@ export default function Materials() {
 
             <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
               <DialogTrigger asChild>
-                <Button className="bg-[#6BB85C] hover:bg-[#6BB85C]/90 text-white">
+                <Button className="bg-[#6BB85C] hover:bg-[#6BB85C]/90 text-white flex-1 sm:flex-none">
                   <Package2 className="h-4 w-4 mr-2" />
                   Toewijzen
                 </Button>
@@ -737,149 +737,151 @@ export default function Materials() {
         )}
       </div>
 
-      <div className="rounded-lg border bg-card">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              {isEditMode && (
-                <TableHead className="w-[50px]">
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
+      <div className="rounded-lg border bg-card overflow-x-auto">
+        <div className="min-w-[800px]">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                {isEditMode && (
+                  <TableHead className="w-[50px]">
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={toggleSelectAll}
+                            className="hover:bg-transparent"
+                          >
+                            {selectedMaterials.length === filteredMaterials.length ? (
+                              <CheckSquare className="h-4 w-4" />
+                            ) : (
+                              <Square className="h-4 w-4" />
+                            )}
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          {selectedMaterials.length === filteredMaterials.length ?
+                            "Deselecteer alles" : "Selecteer alles"}
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  </TableHead>
+                )}
+                <TableHead>Type</TableHead>
+                <TableHead>Nummer</TableHead>
+                <TableHead>Vrijwilliger</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead className="w-[100px]">Acties</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filteredMaterials.map((item) => {
+                const type = materialTypes.find((t) => t.id === item.typeId);
+                const volunteer = volunteers.find((v) => v.id === item.volunteerId);
+                return (
+                  <TableRow key={item.id} className="group">
+                    {isEditMode && (
+                      <TableCell>
                         <Button
                           variant="ghost"
                           size="icon"
-                          onClick={toggleSelectAll}
+                          onClick={() => toggleSelect(item.id)}
                           className="hover:bg-transparent"
                         >
-                          {selectedMaterials.length === filteredMaterials.length ? (
+                          {selectedMaterials.includes(item.id) ? (
                             <CheckSquare className="h-4 w-4" />
                           ) : (
                             <Square className="h-4 w-4" />
                           )}
                         </Button>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        {selectedMaterials.length === filteredMaterials.length ?
-                          "Deselecteer alles" : "Selecteer alles"}
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                </TableHead>
-              )}
-              <TableHead>Type</TableHead>
-              <TableHead>Nummer</TableHead>
-              <TableHead>Vrijwilliger</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead className="w-[100px]">Acties</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {filteredMaterials.map((item) => {
-              const type = materialTypes.find((t) => t.id === item.typeId);
-              const volunteer = volunteers.find((v) => v.id === item.volunteerId);
-              return (
-                <TableRow key={item.id} className="group">
-                  {isEditMode && (
+                      </TableCell>
+                    )}
+                    <TableCell>{type?.name || "-"}</TableCell>
+                    <TableCell>{item.number}</TableCell>
                     <TableCell>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => toggleSelect(item.id)}
-                        className="hover:bg-transparent"
-                      >
-                        {selectedMaterials.includes(item.id) ? (
-                          <CheckSquare className="h-4 w-4" />
-                        ) : (
-                          <Square className="h-4 w-4" />
-                        )}
-                      </Button>
+                      {volunteer
+                        ? `${volunteer.firstName} ${volunteer.lastName}`
+                        : "-"}
                     </TableCell>
-                  )}
-                  <TableCell>{type?.name || "-"}</TableCell>
-                  <TableCell>{item.number}</TableCell>
-                  <TableCell>
-                    {volunteer
-                      ? `${volunteer.firstName} ${volunteer.lastName}`
-                      : "-"}
-                  </TableCell>
-                  <TableCell>
-                    <Badge
-                      variant={item.isCheckedOut ? "default" : "secondary"}
-                      className="font-normal"
-                    >
-                      {item.isCheckedOut ? "Uitgeleend" : "Beschikbaar"}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex space-x-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                      {isEditMode && (
-                        <TooltipProvider>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={() => handleEdit(item)}
-                                className="text-primary hover:text-primary hover:bg-primary/10"
-                              >
-                                <Edit2 className="h-4 w-4" />
-                              </Button>
-                            </TooltipTrigger>
-                            <TooltipContent>Bewerken</TooltipContent>
-                          </Tooltip>
-                        </TooltipProvider>
-                      )}
-                      {item.isCheckedOut && (
-                        <TooltipProvider>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={() => handleReturn(item.id)}
-                                className="text-primary hover:text-primary hover:bg-primary/10"
-                              >
-                                <RotateCcw className="h-4 w-4" />
-                              </Button>
-                            </TooltipTrigger>
-                            <TooltipContent>Retourneren</TooltipContent>
-                          </Tooltip>
-                        </TooltipProvider>
-                      )}
-                    </div>
+                    <TableCell>
+                      <Badge
+                        variant={item.isCheckedOut ? "default" : "secondary"}
+                        className="font-normal"
+                      >
+                        {item.isCheckedOut ? "Uitgeleend" : "Beschikbaar"}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex space-x-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                        {isEditMode && (
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  onClick={() => handleEdit(item)}
+                                  className="text-primary hover:text-primary hover:bg-primary/10"
+                                >
+                                  <Edit2 className="h-4 w-4" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>Bewerken</TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        )}
+                        {item.isCheckedOut && (
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  onClick={() => handleReturn(item.id)}
+                                  className="text-primary hover:text-primary hover:bg-primary/10"
+                                >
+                                  <RotateCcw className="h-4 w-4" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>Retourneren</TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        )}
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
+              {filteredMaterials.length === 0 && (
+                <TableRow>
+                  <TableCell
+                    colSpan={isEditMode ? 6 : 5}
+                    className="h-32 text-center text-muted-foreground"
+                  >
+                    <Package2 className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                    Geen materialen gevonden
                   </TableCell>
                 </TableRow>
-              );
-            })}
-            {filteredMaterials.length === 0 && (
-              <TableRow>
-                <TableCell
-                  colSpan={isEditMode ? 6 : 5}
-                  className="h-32 text-center text-muted-foreground"
-                >
-                  <Package2 className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                  Geen materialen gevonden
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
+              )}
+            </TableBody>
+          </Table>
+        </div>
       </div>
 
       {isEditMode && selectedMaterials.length > 0 && (
-        <div className="fixed bottom-4 right-4 flex items-center gap-3 bg-white p-4 rounded-lg shadow-lg border animate-in slide-in-from-bottom-2">
-          <span className="text-sm text-muted-foreground">
+        <div className="fixed bottom-4 left-4 right-4 sm:left-auto sm:right-4 flex items-center gap-3 bg-white p-4 rounded-lg shadow-lg border animate-in slide-in-from-bottom-2">
+          <span className="text-sm text-muted-foreground hidden sm:inline">
             {selectedMaterials.length} geselecteerd
           </span>
-          <Separator orientation="vertical" className="h-6" />
+          <Separator orientation="vertical" className="h-6 hidden sm:block" />
           <Button
             variant="default"
             onClick={() => handleBulkReturn(selectedMaterials)}
-            className="bg-primary hover:bg-primary/90"
+            className="bg-primary hover:bg-primary/90 w-full sm:w-auto"
           >
             <RotateCcw className="h-4 w-4 mr-2" />
-            Retourneren
+            {selectedMaterials.length} Retourneren
           </Button>
         </div>
       )}
