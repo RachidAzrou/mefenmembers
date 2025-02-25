@@ -19,6 +19,17 @@ export function useNotifications() {
     }
 
     setPermission(Notification.permission);
+
+    // Registreer service worker als deze nog niet actief is
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/firebase-messaging-sw.js')
+        .then(registration => {
+          console.log('Service Worker geregistreerd:', registration);
+        })
+        .catch(err => {
+          console.error('Service Worker registratie mislukt:', err);
+        });
+    }
   }, []);
 
   const requestPermission = async () => {
@@ -28,18 +39,30 @@ export function useNotifications() {
 
       if (permission === 'granted') {
         const messaging = getMessaging();
+        const swRegistration = await navigator.serviceWorker.getRegistration();
+
+        // Vraag een nieuwe token aan voor deze browser/device
         const token = await getToken(messaging, {
-          vapidKey: 'YOUR_VAPID_KEY' // Vervang dit met je VAPID key
+          vapidKey: process.env.FIREBASE_VAPID_KEY,
+          serviceWorkerRegistration: swRegistration
         });
+
         console.log('FCM Token:', token);
 
         // Luister naar berichten wanneer de app in de voorgrond is
         onMessage(messaging, (payload) => {
+          console.log('Voorgrond bericht ontvangen:', payload);
+
+          // Toon een toast notificatie
           toast({
             title: payload.notification?.title || "Nieuwe Aanmelding",
             description: payload.notification?.body,
             duration: 5000,
           });
+
+          // Speel een geluid af voor extra aandacht
+          const audio = new Audio('/static/notification.mp3');
+          audio.play().catch(console.error);
         });
       }
     } catch (error) {
@@ -64,34 +87,18 @@ export function useNotifications() {
           shownNotifications.add(notificationId);
           setUnreadCount(prev => prev + 1);
 
-          // Toon in-app notificatie
+          // Toon toast notificatie als de app open is
           toast({
             title: "Nieuwe Vrijwilliger Aanmelding",
             description: `${latestVolunteer.firstName} ${latestVolunteer.lastName} heeft zich aangemeld als vrijwilliger.`,
             duration: 5000,
           });
-
-          // Toon push notificatie als permissie is gegeven
-          if (permission === 'granted') {
-            const notification = new Notification("Nieuwe Vrijwilliger Aanmelding", {
-              body: `${latestVolunteer.firstName} ${latestVolunteer.lastName} heeft zich aangemeld als vrijwilliger.`,
-              icon: '/static/Naamloos.png',
-              badge: '/static/icon-512x512.png',
-              tag: 'volunteer-registration',
-              data: { volunteerId: latestVolunteer.id }
-            });
-
-            notification.onclick = () => {
-              window.focus();
-              window.location.href = '/volunteers';
-            };
-          }
         }
       }
     });
 
     return () => unsubscribe();
-  }, [toast, permission]);
+  }, [toast]);
 
   const clearUnreadCount = () => {
     setUnreadCount(0);
