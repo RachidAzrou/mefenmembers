@@ -433,15 +433,59 @@ const PlanningForm = ({ form, onSubmit, editingPlanning, volunteers, rooms }: {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Ruimtes</FormLabel>
-                  <MultiSelect
-                    options={rooms.map(r => ({
-                      value: r.id,
-                      label: r.name
-                    }))}
-                    selected={field.value || []}
-                    onChange={field.onChange}
-                    placeholder="Selecteer ruimtes"
-                  />
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        role="combobox"
+                        className={cn(
+                          "w-full justify-between",
+                          !field.value?.length && "text-muted-foreground"
+                        )}
+                      >
+                        <span className="truncate">
+                          {(field.value || []).length === 0
+                            ? "Selecteer ruimtes..."
+                            : `${(field.value || []).length} ruimte(s) geselecteerd`}
+                        </span>
+                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-full p-0" align="start" style={{ maxHeight: '60vh' }}>
+                      <Command className="max-h-full">
+                        <CommandInput
+                          placeholder="Zoek ruimtes..."
+                          className="h-9 border-none focus:ring-0"
+                        />
+                        <CommandEmpty>Geen ruimtes gevonden.</CommandEmpty>
+                        <CommandGroup className="max-h-[40vh] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent">
+                          {rooms.map(room => (
+                            <CommandItem
+                              key={room.id}
+                              onSelect={() => {
+                                const currentSelected = field.value || [];
+                                const newSelected = currentSelected.includes(room.id)
+                                  ? currentSelected.filter(id => id !== room.id)
+                                  : [...currentSelected, room.id];
+                                field.onChange(newSelected);
+                              }}
+                              className="flex items-center justify-between py-2 px-2 cursor-pointer hover:bg-accent"
+                            >
+                              <div className="flex items-center">
+                                <Check
+                                  className={cn(
+                                    "mr-2 h-4 w-4",
+                                    (field.value || []).includes(room.id) ? "opacity-100" : "opacity-0"
+                                  )}
+                                />
+                                {room.name}
+                              </div>
+                            </CommandItem>
+                          ))}
+                        </CommandGroup>
+                      </Command>
+                    </PopoverContent>
+                  </Popover>
                   <div className="mt-1 text-sm text-muted-foreground">
                     {selectedRooms.length > 0 && (
                       `${selectedRooms.length} ${selectedRooms.length === 1 ? 'ruimte' : 'ruimtes'} geselecteerd`
@@ -877,7 +921,7 @@ const Planning = () => {
   };
 
   const filteredActivePlannings = filterPlannings(activePlannings, searchActive);
-  const filteredUpcomingPlannings = filterPlannings(upcomingPlannings, searchUpcoming);
+  const filteredUpcomingPlannings =filterPlannings(upcomingPlannings, searchUpcoming);
   const filteredPastPlannings = filterPlannings(pastPlannings, searchPast);
 
   return (
