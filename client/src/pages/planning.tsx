@@ -190,16 +190,21 @@ export default function Planning() {
     upcomingPlannings: Planning[];
     pastPlannings: Planning[];
   }>((acc, planning) => {
-    const now = new Date();
-    now.setHours(0, 0, 0, 0);
-    const start = new Date(planning.startDate);
-    const end = new Date(planning.endDate);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const startDate = new Date(planning.startDate);
+    startDate.setHours(0, 0, 0, 0);
+    const endDate = new Date(planning.endDate);
+    endDate.setHours(0, 0, 0, 0);
 
-    if (start <= now && now <= end) {
+    if (format(today, 'yyyy-MM-dd') === format(startDate, 'yyyy-MM-dd')) {
+      // Voor vandaag gepland
       acc.activePlannings.push(planning);
-    } else if (start > now) {
+    } else if (startDate > today) {
+      // Planning begint na vandaag
       acc.upcomingPlannings.push(planning);
     } else {
+      // Planning begon voor vandaag
       acc.pastPlannings.push(planning);
     }
     return acc;
