@@ -34,31 +34,25 @@ import { db } from "@/lib/firebase";
 import { ref, push, remove, update, onValue } from "firebase/database";
 import {
   Package2,
-  Edit2,
-  RotateCcw,
-  Search,
+  Settings2,
+  Users,
   Plus,
-  Trash2,
   CheckSquare,
   Square,
-  Settings2,
+  RotateCcw,
+  Search,
+  Flashlight,
 } from "lucide-react";
+import { 
+  GiMonclerJacket,
+  GiWalkieTalkie,
+} from 'react-icons/gi';
+import { 
+  TbJacket,
+} from 'react-icons/tb';
 import { useRole } from "@/hooks/use-role";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input as InputComponent } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -69,17 +63,6 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import {
-  GiPoliceBadge,
-  GiPoliceOfficerHead,
-  GiFlashlight,
-  GiWalkieTalkie,
-  GiMonclerJacket,
-} from 'react-icons/gi';
-import { MdSafetyDivider } from 'react-icons/md';
-import { PiCoatHangerThin } from 'react-icons/pi';
-import { BsLightbulbFill } from 'react-icons/bs';
-import { TbRadio } from 'react-icons/tb';
 
 const materialSchema = z.object({
   typeId: z.string().min(1, "Type materiaal is verplicht"),
@@ -114,10 +97,10 @@ type Volunteer = {
 
 const getMaterialIcon = (materialName: string) => {
   const name = materialName.toLowerCase();
-  if (name.includes('jas')) return <PiCoatHangerThin className="h-8 w-8 text-primary/80" />;
-  if (name.includes('hesje')) return <MdSafetyDivider className="h-8 w-8 text-primary/80" />;
-  if (name.includes('lamp')) return <BsLightbulbFill className="h-8 w-8 text-primary/80" />;
-  if (name.includes('walkie')) return <TbRadio className="h-8 w-8 text-primary/80" />;
+  if (name.includes('jas')) return <GiMonclerJacket className="h-8 w-8 text-primary/80" />;
+  if (name.includes('hesje')) return <TbJacket className="h-8 w-8 text-primary/80" />;
+  if (name.includes('lamp')) return <Flashlight className="h-8 w-8 text-primary/80" />;
+  if (name.includes('walkie')) return <GiWalkieTalkie className="h-8 w-8 text-primary/80" />;
   return <Package2 className="h-8 w-8 text-primary/80" />;
 };
 

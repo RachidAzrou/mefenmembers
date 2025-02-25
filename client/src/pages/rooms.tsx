@@ -38,17 +38,17 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { 
-  BsBuilding,
-  BsDoorOpen, 
   BsTrash,
   BsPencil,
   BsPlus,
   BsBook,
 } from 'react-icons/bs';
 import { 
+  FaWarehouse,
+} from 'react-icons/fa';
+import { 
   MdMeetingRoom,
   MdKitchen,
-  MdWarehouse,
   MdStore,
   MdRestaurant,
   MdMosque,
@@ -71,12 +71,12 @@ const getRoomIcon = (roomName: string) => {
   const name = roomName.toLowerCase();
   if (name.includes('gebed')) return <MdMosque className="h-8 w-8 text-primary/80" />;
   if (name.includes('keuken')) return <MdKitchen className="h-8 w-8 text-primary/80" />;
-  if (name.includes('opslag')) return <MdWarehouse className="h-8 w-8 text-primary/80" />;
+  if (name.includes('opslag')) return <FaWarehouse className="h-8 w-8 text-primary/80" />;
   if (name.includes('bibliotheek')) return <BsBook className="h-8 w-8 text-primary/80" />;
   if (name.includes('winkel')) return <MdStore className="h-8 w-8 text-primary/80" />;
   if (name.includes('kantine')) return <MdRestaurant className="h-8 w-8 text-primary/80" />;
   if (name.includes('zaal')) return <MdMeetingRoom className="h-8 w-8 text-primary/80" />;
-  return <BsDoorOpen className="h-8 w-8 text-primary/80" />;
+  return <FaWarehouse className="h-8 w-8 text-primary/80" />;
 };
 
 export default function Rooms() {
@@ -187,7 +187,7 @@ export default function Rooms() {
     <div className="container mx-auto px-4 py-6 max-w-7xl space-y-6">
       <div className="flex justify-between items-center">
         <div className="flex items-center gap-3">
-          <BsBuilding className="h-8 w-8 text-primary" />
+          <FaWarehouse className="h-8 w-8 text-primary" />
           <h1 className="text-3xl font-bold text-primary">Ruimtes</h1>
         </div>
         <div className="flex items-center gap-2">
