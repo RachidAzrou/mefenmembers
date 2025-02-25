@@ -1,12 +1,12 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, ChevronRight, Download, Share2, Share, Copy, Package2, Users2, UserCheck, House, Plus } from "lucide-react";
-import { format, addWeeks, startOfWeek, addDays, isWithinInterval, isBefore, isAfter } from "date-fns";
+import { ChevronLeft, ChevronRight, Download, Share2, Share, Copy, Package2, Users2, UserCheck, House } from "lucide-react";
+import { format, addWeeks, startOfWeek, addDays, isWithinInterval, isBefore, isAfter, startOfDay, endOfDay } from "date-fns";
 import { nl } from "date-fns/locale";
 import { useState, useEffect } from "react";
 import { db } from "@/lib/firebase";
 import { ref, onValue } from "firebase/database";
-import { Clock, Timer, History } from 'lucide-react';
+import { HiCalendar } from 'react-icons/hi';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { CalendarPDF } from "../pdf/calendar-pdf";
 import { PDFDownloadLink } from "@react-pdf/renderer";
+import { Badge } from "@/components/ui/badge";
 
 type Volunteer = {
   id: string;
@@ -33,6 +34,31 @@ type Planning = {
   roomId: string;
   startDate: string;
   endDate: string;
+};
+
+const getPlanningStatus = (planning: Planning) => {
+  const now = startOfDay(new Date());
+  const planningDate = startOfDay(new Date(planning.startDate));
+
+  if (format(now, 'yyyy-MM-dd') === format(planningDate, 'yyyy-MM-dd')) {
+    return {
+      label: "Actief",
+      variant: "default" as const,
+      className: "bg-green-500/10 text-green-500 border-green-500/20"
+    };
+  } else if (isBefore(now, planningDate)) {
+    return {
+      label: "Toekomstig",
+      variant: "outline" as const,
+      className: "bg-blue-500/10 text-blue-500 border-blue-500/20"
+    };
+  } else {
+    return {
+      label: "Afgelopen",
+      variant: "secondary" as const,
+      className: "bg-gray-500/10 text-gray-500 border-gray-500/20"
+    };
+  }
 };
 
 export function WeekView() {
@@ -150,20 +176,6 @@ export function WeekView() {
   const totalRooms = rooms.length;
   const activeVolunteers = plannings.filter(p => new Date(p.endDate) >= new Date()).length;
 
-  // Helper function to determine planning status icon
-  const getPlanningStatusIcon = (planning: Planning) => {
-    const now = new Date();
-    const startDate = new Date(planning.startDate);
-    const endDate = new Date(planning.endDate);
-
-    if (isWithinInterval(now, { start: startDate, end: endDate })) {
-      return <Clock className="h-4 w-4 text-green-500" title="Actief" />;
-    } else if (isBefore(now, startDate)) {
-      return <Timer className="h-4 w-4 text-blue-500" title="Toekomstig" />;
-    } else {
-      return <History className="h-4 w-4 text-gray-500" title="Verleden" />;
-    }
-  };
 
   return (
     <div className="space-y-6">
@@ -250,6 +262,8 @@ export function WeekView() {
                     dayPlannings.map(planning => {
                       const volunteer = volunteers.find(v => v.id === planning.volunteerId);
                       const room = rooms.find(r => r.id === planning.roomId);
+                      const status = getPlanningStatus(planning);
+
                       return (
                         <div
                           key={planning.id}
@@ -257,7 +271,9 @@ export function WeekView() {
                         >
                           <div className="flex items-center justify-between font-medium text-primary">
                             <span>{room?.name || 'Onbekende ruimte'}</span>
-                            {getPlanningStatusIcon(planning)}
+                            <Badge variant={status.variant} className={status.className}>
+                              {status.label}
+                            </Badge>
                           </div>
                           <div className="text-sm text-gray-600 mt-1">
                             {volunteer
@@ -276,13 +292,6 @@ export function WeekView() {
         })}
       </div>
 
-      {/* "Inplannen" button moved below the calendar grid */}
-      <div className="flex justify-end pt-4">
-        <Button className="bg-[#6BB85C] hover:bg-[#6BB85C]/90">
-          <Plus className="h-4 w-4 mr-2" />
-          Inplannen
-        </Button>
-      </div>
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-8">
