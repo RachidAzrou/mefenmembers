@@ -1,6 +1,6 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, ChevronRight, Download, Share2, Clock, MapPin, Users } from "lucide-react";
+import { ChevronLeft, ChevronRight, Download, Share2, Package2, Users2, UserCheck, House } from "lucide-react";
 import { format, addWeeks, startOfWeek, addDays, isWithinInterval } from "date-fns";
 import { nl } from "date-fns/locale";
 import { useState, useEffect } from "react";
@@ -136,6 +136,25 @@ export function WeekView({ checkedOutMaterials }: WeekViewProps) {
     return planningsForPDF;
   };
 
+  const totalVolunteers = volunteers.length;
+  const totalRooms = rooms.length;
+  const activeVolunteers = plannings.filter(p => new Date(p.endDate) >= new Date()).length;
+
+  // Group plannings by room for a specific day
+  const getPlanningsByRoom = (day: Date) => {
+    const dayPlannings = getPlanningsForDay(day);
+    const planningsByRoom = new Map<string, Planning[]>();
+
+    rooms.forEach(room => {
+      const roomPlannings = dayPlannings.filter(p => p.roomId === room.id);
+      if (roomPlannings.length > 0) {
+        planningsByRoom.set(room.id, roomPlannings);
+      }
+    });
+
+    return planningsByRoom;
+  };
+
   return (
     <div className="space-y-6">
       {/* Header sectie */}
@@ -209,19 +228,21 @@ export function WeekView({ checkedOutMaterials }: WeekViewProps) {
       {/* Week overzicht */}
       <div className="grid grid-cols-1 md:grid-cols-7 gap-4">
         {weekDays.map((day) => {
-          const dayPlannings = getPlanningsForDay(day);
           const isToday = format(day, 'yyyy-MM-dd') === format(new Date(), 'yyyy-MM-dd');
+          const planningsByRoom = getPlanningsByRoom(day);
+
           return (
             <Card
               key={day.toISOString()}
               className={cn(
-                "min-w-[280px] md:min-w-0 transition-all",
+                "min-w-[280px] md:min-w-0",
                 isToday && "ring-2 ring-[#D9A347] ring-offset-2"
               )}
             >
               <CardContent className="p-4">
+                {/* Dag header */}
                 <div className={cn(
-                  "text-base font-semibold mb-1",
+                  "text-base font-semibold mb-2",
                   isToday ? "text-[#D9A347]" : "text-primary"
                 )}>
                   {format(day, "EEEE", { locale: nl })}
@@ -229,48 +250,103 @@ export function WeekView({ checkedOutMaterials }: WeekViewProps) {
                 <div className="text-sm text-muted-foreground mb-4">
                   {format(day, "d MMMM", { locale: nl })}
                 </div>
-                <div className="space-y-3">
-                  {dayPlannings.length === 0 ? (
-                    <p className="text-sm text-muted-foreground italic text-center py-2">
+
+                {/* Ruimtes en vrijwilligers */}
+                <div className="space-y-4">
+                  {rooms.map(room => {
+                    const roomPlannings = planningsByRoom.get(room.id);
+                    if (!roomPlannings) return null;
+
+                    return (
+                      <div key={room.id} className="space-y-2">
+                        <div className="font-medium text-sm text-primary/80 border-b pb-1">
+                          {room.name}
+                        </div>
+                        <div className="space-y-2 pl-2">
+                          {roomPlannings.map(planning => {
+                            const volunteer = volunteers.find(v => v.id === planning.volunteerId);
+                            return (
+                              <div
+                                key={planning.id}
+                                className="text-sm p-2 rounded bg-primary/5 border border-primary/10"
+                              >
+                                <div className="font-medium">
+                                  {volunteer
+                                    ? `${volunteer.firstName} ${volunteer.lastName}`
+                                    : 'Niet toegewezen'
+                                  }
+                                </div>
+                                <div className="text-xs text-muted-foreground mt-1">
+                                  {format(new Date(planning.startDate), "HH:mm")} - {format(new Date(planning.endDate), "HH:mm")}
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    );
+                  })}
+                  {planningsByRoom.size === 0 && (
+                    <p className="text-sm text-muted-foreground italic text-center py-4">
                       Geen toewijzingen
                     </p>
-                  ) : (
-                    dayPlannings.map(planning => {
-                      const volunteer = volunteers.find(v => v.id === planning.volunteerId);
-                      const room = rooms.find(r => r.id === planning.roomId);
-                      return (
-                        <div
-                          key={planning.id}
-                          className="p-3 rounded-lg bg-primary/5 border border-primary/10 transition-all hover:bg-primary/10"
-                        >
-                          <div className="flex items-start gap-2">
-                            <MapPin className="h-4 w-4 text-primary/70 mt-0.5" />
-                            <div>
-                              <div className="font-medium text-primary text-sm">
-                                {room?.name || 'Onbekende ruimte'}
-                              </div>
-                              <div className="text-xs text-muted-foreground mt-1 flex items-center gap-2">
-                                <Users className="h-3.5 w-3.5" />
-                                {volunteer
-                                  ? `${volunteer.firstName} ${volunteer.lastName}`
-                                  : 'Niet toegewezen'
-                                }
-                              </div>
-                              <div className="text-xs text-muted-foreground mt-1 flex items-center gap-2">
-                                <Clock className="h-3.5 w-3.5" />
-                                {format(new Date(planning.startDate), "HH:mm")} - {format(new Date(planning.endDate), "HH:mm")}
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      );
-                    })
                   )}
                 </div>
               </CardContent>
             </Card>
           );
         })}
+      </div>
+
+      {/* Informatie cards */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex items-center space-x-3">
+              <Package2 className="h-6 w-6 md:h-8 md:w-8 text-primary/80" />
+              <div>
+                <p className="text-xs md:text-sm font-medium text-muted-foreground">Uitgeleende Materialen</p>
+                <p className="text-xl md:text-2xl font-bold text-primary">{checkedOutMaterials}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex items-center space-x-3">
+              <Users2 className="h-6 w-6 md:h-8 md:w-8 text-primary/80" />
+              <div>
+                <p className="text-xs md:text-sm font-medium text-muted-foreground">Totaal Vrijwilligers</p>
+                <p className="text-xl md:text-2xl font-bold text-primary">{totalVolunteers}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex items-center space-x-3">
+              <House className="h-6 w-6 md:h-8 md:w-8 text-primary/80" />
+              <div>
+                <p className="text-xs md:text-sm font-medium text-muted-foreground">Totaal Ruimtes</p>
+                <p className="text-xl md:text-2xl font-bold text-primary">{totalRooms}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex items-center space-x-3">
+              <UserCheck className="h-6 w-6 md:h-8 md:w-8 text-primary/80" />
+              <div>
+                <p className="text-xs md:text-sm font-medium text-muted-foreground">Actieve Vrijwilligers</p>
+                <p className="text-xl md:text-2xl font-bold text-primary">{activeVolunteers}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );
