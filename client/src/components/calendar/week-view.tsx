@@ -1,11 +1,12 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, ChevronRight, Download, Share2, Share, Copy, Package2, Users2, UserCheck, DoorOpen } from "lucide-react";
-import { format, addWeeks, startOfWeek, addDays, isWithinInterval } from "date-fns";
+import { ChevronLeft, ChevronRight, Download, Share2, Share, Copy, Package2, Users2, UserCheck, House, Plus } from "lucide-react";
+import { format, addWeeks, startOfWeek, addDays, isWithinInterval, isBefore, isAfter } from "date-fns";
 import { nl } from "date-fns/locale";
 import { useState, useEffect } from "react";
 import { db } from "@/lib/firebase";
 import { ref, onValue } from "firebase/database";
+import { Clock, Timer, History } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -149,6 +150,21 @@ export function WeekView() {
   const totalRooms = rooms.length;
   const activeVolunteers = plannings.filter(p => new Date(p.endDate) >= new Date()).length;
 
+  // Helper function to determine planning status icon
+  const getPlanningStatusIcon = (planning: Planning) => {
+    const now = new Date();
+    const startDate = new Date(planning.startDate);
+    const endDate = new Date(planning.endDate);
+
+    if (isWithinInterval(now, { start: startDate, end: endDate })) {
+      return <Clock className="h-4 w-4 text-green-500" title="Actief" />;
+    } else if (isBefore(now, startDate)) {
+      return <Timer className="h-4 w-4 text-blue-500" title="Toekomstig" />;
+    } else {
+      return <History className="h-4 w-4 text-gray-500" title="Verleden" />;
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Header section */}
@@ -239,8 +255,9 @@ export function WeekView() {
                           key={planning.id}
                           className="p-3 rounded-lg bg-primary/5 border border-primary/10"
                         >
-                          <div className="font-medium text-primary">
-                            {room?.name || 'Onbekende ruimte'}
+                          <div className="flex items-center justify-between font-medium text-primary">
+                            <span>{room?.name || 'Onbekende ruimte'}</span>
+                            {getPlanningStatusIcon(planning)}
                           </div>
                           <div className="text-sm text-gray-600 mt-1">
                             {volunteer
@@ -257,6 +274,14 @@ export function WeekView() {
             </Card>
           );
         })}
+      </div>
+
+      {/* "Inplannen" button moved below the calendar grid */}
+      <div className="flex justify-end pt-4">
+        <Button className="bg-[#6BB85C] hover:bg-[#6BB85C]/90">
+          <Plus className="h-4 w-4 mr-2" />
+          Inplannen
+        </Button>
       </div>
 
       {/* Stats Cards */}
@@ -288,7 +313,7 @@ export function WeekView() {
         <Card>
           <CardContent className="pt-6">
             <div className="flex items-center">
-              <DoorOpen className="h-8 w-8 text-primary/80" />
+              <House className="h-8 w-8 text-primary/80" />
               <div className="ml-4">
                 <h3 className="text-sm font-medium text-gray-500">Totaal Ruimtes</h3>
                 <p className="text-2xl font-bold text-primary">{totalRooms}</p>

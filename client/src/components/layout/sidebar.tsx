@@ -4,11 +4,11 @@ import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Link, useLocation } from "wouter";
 import {
-  LayoutDashboard, Users, Calendar, 
+  LayoutDashboard, Users, Calendar,
   Package2, LogOut, Menu, ChevronLeft, ChevronRight,
-  Settings, FileJson, User
+  Settings, FileJson, User, House
 } from "lucide-react";
-import { FaMosque, FaWarehouse } from 'react-icons/fa';
+import { PiMosqueLight } from "react-icons/pi";
 import { useState, useEffect } from "react";
 import { auth } from "@/lib/firebase";
 import { signOut } from "firebase/auth";
@@ -45,20 +45,19 @@ export function Sidebar() {
     }
   };
 
-  // Define menu items without settings (moved to bottom)
   const menuItems = [
     { icon: LayoutDashboard, label: "Dashboard", href: "/" },
     { icon: Calendar, label: "Planning", href: "/planning" },
     { icon: Users, label: "Vrijwilligers", href: "/volunteers" },
-    { icon: FaWarehouse, label: "Ruimtes", href: "/rooms", adminOnly: true },
+    { icon: House, label: "Ruimtes", href: "/rooms", adminOnly: true },
     { icon: Package2, label: "Materialen", href: "/materials" },
-    { 
-      icon: FileJson, 
-      label: "Import/Export", 
+    {
+      icon: FileJson,
+      label: "Import/Export",
       href: "/import-export",
       notificationCount: unreadCount
     },
-    { icon: FaMosque, label: "Mijn Moskee", href: "/mosque" }
+    { icon: PiMosqueLight, label: "Mijn Moskee", href: "/mosque" }
   ].filter(item => !item.adminOnly || isAdmin);
 
   return (
@@ -110,7 +109,6 @@ export function Sidebar() {
           )}
         </div>
 
-        {/* User Profile Section - Now under logo */}
         <Link href="/profile">
           <div className={cn(
             "border-b p-4 cursor-pointer hover:bg-gray-50 transition-colors",
@@ -137,8 +135,8 @@ export function Sidebar() {
         <ScrollArea className="flex-1">
           <div className="space-y-1 p-2">
             {menuItems.map((item) => (
-              <Link 
-                key={item.href} 
+              <Link
+                key={item.href}
                 href={item.href}
                 onClick={() => {
                   if (item.href === '/import-export') {

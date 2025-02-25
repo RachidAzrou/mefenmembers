@@ -1,5 +1,6 @@
 import { Edit } from "lucide-react";
-import { FaMosque, FaMale, FaFemale, FaPhone, FaEnvelope } from 'react-icons/fa';
+import { PiMosqueLight } from "react-icons/pi";
+import { FaMale, FaFemale, FaPhone, FaEnvelope } from 'react-icons/fa';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
@@ -30,10 +31,10 @@ export default function Mosque() {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
+    <div className="space-y-6 max-w-5xl mx-auto px-4 py-6">
+      <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mb-8">
         <div className="flex items-center gap-3">
-          <FaMosque className="h-8 w-8 text-[#963E56]" />
+          <PiMosqueLight className="h-10 w-10 text-[#963E56]" />
           <h1 className="text-3xl font-bold text-[#963E56]">Mijn Moskee</h1>
         </div>
 
@@ -47,12 +48,18 @@ export default function Mosque() {
             </DialogTrigger>
             <DialogContent className="sm:max-w-[500px]">
               <DialogHeader>
-                <DialogTitle className="text-lg font-semibold text-[#963E56]">Moskee Informatie Bewerken</DialogTitle>
+                <DialogTitle className="text-lg font-semibold text-[#963E56] flex items-center gap-2">
+                  <PiMosqueLight className="h-6 w-6" />
+                  Moskee Informatie Bewerken
+                </DialogTitle>
               </DialogHeader>
               <div className="space-y-6 pt-4">
                 <div className="space-y-4">
                   <div>
-                    <h3 className="font-semibold mb-2 text-gray-700">Ingang Heren</h3>
+                    <h3 className="font-semibold mb-2 text-gray-700 flex items-center gap-2">
+                      <FaMale className="h-4 w-4 text-[#963E56]" />
+                      Ingang Heren
+                    </h3>
                     <Input 
                       value={mosqueInfo.menAddress}
                       onChange={(e) => setMosqueInfo({...mosqueInfo, menAddress: e.target.value})}
@@ -66,7 +73,10 @@ export default function Mosque() {
                     />
                   </div>
                   <div>
-                    <h3 className="font-semibold mb-2 text-gray-700">Ingang Dames</h3>
+                    <h3 className="font-semibold mb-2 text-gray-700 flex items-center gap-2">
+                      <FaFemale className="h-4 w-4 text-[#963E56]" />
+                      Ingang Dames
+                    </h3>
                     <Input 
                       value={mosqueInfo.womenAddress}
                       onChange={(e) => setMosqueInfo({...mosqueInfo, womenAddress: e.target.value})}
@@ -80,7 +90,10 @@ export default function Mosque() {
                     />
                   </div>
                   <div>
-                    <h3 className="font-semibold mb-2 text-gray-700">Contact Informatie</h3>
+                    <h3 className="font-semibold mb-2 text-gray-700 flex items-center gap-2">
+                      <FaPhone className="h-4 w-4 text-[#963E56]" />
+                      Contact Informatie
+                    </h3>
                     <Input 
                       value={mosqueInfo.phone}
                       onChange={(e) => setMosqueInfo({...mosqueInfo, phone: e.target.value})}
@@ -108,57 +121,57 @@ export default function Mosque() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Address Details */}
-        <Card className="shadow-lg hover:shadow-xl transition-shadow duration-200">
-          <CardHeader>
+        <Card className="shadow-lg hover:shadow-xl transition-shadow duration-200 bg-white/50 backdrop-blur-sm border-[#963E56]/10">
+          <CardHeader className="border-b border-[#963E56]/10 bg-[#963E56]/5">
             <CardTitle className="flex items-center gap-2 text-[#963E56]">
-              <FaMosque className="h-5 w-5" />
+              <PiMosqueLight className="h-5 w-5" />
               Adressen
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-6">
+          <CardContent className="space-y-6 pt-6">
             <div>
               <h3 className="font-semibold text-lg text-gray-800 flex items-center gap-2">
                 <FaMale className="h-5 w-5 text-[#963E56]" />
                 Ingang Heren
               </h3>
-              <p className="text-gray-600 mt-2">{mosqueInfo.menAddress}</p>
-              <p className="text-gray-600">{mosqueInfo.menCity}</p>
+              <p className="text-gray-600 mt-2 pl-7">{mosqueInfo.menAddress}</p>
+              <p className="text-gray-600 pl-7">{mosqueInfo.menCity}</p>
             </div>
-            <Separator className="bg-gray-200" />
+            <Separator className="bg-[#963E56]/10" />
             <div>
               <h3 className="font-semibold text-lg text-gray-800 flex items-center gap-2">
                 <FaFemale className="h-5 w-5 text-[#963E56]" />
                 Ingang Dames
               </h3>
-              <p className="text-gray-600 mt-2">{mosqueInfo.womenAddress}</p>
-              <p className="text-gray-600">{mosqueInfo.womenCity}</p>
+              <p className="text-gray-600 mt-2 pl-7">{mosqueInfo.womenAddress}</p>
+              <p className="text-gray-600 pl-7">{mosqueInfo.womenCity}</p>
             </div>
           </CardContent>
         </Card>
 
         {/* Contact Details */}
-        <Card className="shadow-lg hover:shadow-xl transition-shadow duration-200">
-          <CardHeader>
+        <Card className="shadow-lg hover:shadow-xl transition-shadow duration-200 bg-white/50 backdrop-blur-sm border-[#963E56]/10">
+          <CardHeader className="border-b border-[#963E56]/10 bg-[#963E56]/5">
             <CardTitle className="flex items-center gap-2 text-[#963E56]">
               <FaPhone className="h-5 w-5" />
               Contact Informatie
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-6">
+          <CardContent className="space-y-6 pt-6">
             <div>
               <h3 className="font-semibold text-lg text-gray-800 flex items-center gap-2">
                 <FaPhone className="h-5 w-5 text-[#963E56]" />
                 Telefoonnummer
               </h3>
-              <p className="text-gray-600 mt-2">{mosqueInfo.phone}</p>
+              <p className="text-gray-600 mt-2 pl-7">{mosqueInfo.phone}</p>
             </div>
-            <Separator className="bg-gray-200" />
+            <Separator className="bg-[#963E56]/10" />
             <div>
               <h3 className="font-semibold text-lg text-gray-800 flex items-center gap-2">
                 <FaEnvelope className="h-5 w-5 text-[#963E56]" />
                 Email
               </h3>
-              <p className="text-gray-600 mt-2">{mosqueInfo.email}</p>
+              <p className="text-gray-600 mt-2 pl-7">{mosqueInfo.email}</p>
             </div>
           </CardContent>
         </Card>

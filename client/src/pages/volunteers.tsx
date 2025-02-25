@@ -303,20 +303,22 @@ export default function Volunteers() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="w-[50px]">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={toggleSelectAll}
-                  className="hover:bg-transparent"
-                >
-                  {selectedVolunteers.length === filteredVolunteers.length ? (
-                    <CheckSquare className="h-4 w-4" />
-                  ) : (
-                    <Square className="h-4 w-4" />
-                  )}
-                </Button>
-              </TableHead>
+              {isEditMode && (
+                <TableHead className="w-[50px]">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={toggleSelectAll}
+                    className="hover:bg-transparent"
+                  >
+                    {selectedVolunteers.length === filteredVolunteers.length ? (
+                      <CheckSquare className="h-4 w-4" />
+                    ) : (
+                      <Square className="h-4 w-4" />
+                    )}
+                  </Button>
+                </TableHead>
+              )}
               <TableHead>Voornaam</TableHead>
               <TableHead>Achternaam</TableHead>
               <TableHead>Telefoonnummer</TableHead>
@@ -326,20 +328,22 @@ export default function Volunteers() {
           <TableBody>
             {filteredVolunteers.map((volunteer) => (
               <TableRow key={volunteer.id}>
-                <TableCell>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => toggleSelect(volunteer.id)}
-                    className="hover:bg-transparent"
-                  >
-                    {selectedVolunteers.includes(volunteer.id) ? (
-                      <CheckSquare className="h-4 w-4" />
-                    ) : (
-                      <Square className="h-4 w-4" />
-                    )}
-                  </Button>
-                </TableCell>
+                {isEditMode && (
+                  <TableCell>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => toggleSelect(volunteer.id)}
+                      className="hover:bg-transparent"
+                    >
+                      {selectedVolunteers.includes(volunteer.id) ? (
+                        <CheckSquare className="h-4 w-4" />
+                      ) : (
+                        <Square className="h-4 w-4" />
+                      )}
+                    </Button>
+                  </TableCell>
+                )}
                 <TableCell>{volunteer.firstName}</TableCell>
                 <TableCell>{volunteer.lastName}</TableCell>
                 <TableCell>{volunteer.phoneNumber}</TableCell>
@@ -379,7 +383,7 @@ export default function Volunteers() {
       </div>
 
       {/* Bulk Actions */}
-      {selectedVolunteers.length > 0 && (
+      {isEditMode && selectedVolunteers.length > 0 && (
         <div className="fixed bottom-4 right-4 flex gap-2 bg-white p-4 rounded-lg shadow-lg border">
           <span className="text-sm text-gray-500 self-center mr-2">
             {selectedVolunteers.length} geselecteerd
