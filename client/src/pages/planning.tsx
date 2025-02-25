@@ -381,38 +381,42 @@ const PlanningForm = ({ form, onSubmit, editingPlanning, volunteers, rooms }: {
                         )}
                       >
                         <span className="truncate">
-                          {field.value?.length === 0
+                          {(field.value || []).length === 0
                             ? "Selecteer vrijwilligers..."
-                            : `${field.value.length} vrijwilliger(s) geselecteerd`}
+                            : `${(field.value || []).length} vrijwilliger(s) geselecteerd`}
                         </span>
                         <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                       </Button>
                     </PopoverTrigger>
-                    <PopoverContent className="w-full p-0" align="start" style={{ maxHeight: '300px' }}>
-                      <Command>
+                    <PopoverContent className="w-full p-0" align="start" style={{ maxHeight: '60vh' }}>
+                      <Command className="max-h-full">
                         <CommandInput
                           placeholder="Zoek vrijwilligers..."
-                          className="h-9"
+                          className="h-9 border-none focus:ring-0"
                         />
                         <CommandEmpty>Geen vrijwilligers gevonden.</CommandEmpty>
-                        <CommandGroup className="overflow-y-auto max-h-[250px] scrollbar">
+                        <CommandGroup className="max-h-[40vh] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent">
                           {volunteers.map(volunteer => (
                             <CommandItem
                               key={volunteer.id}
                               onSelect={() => {
-                                const newSelected = field.value?.includes(volunteer.id)
-                                  ? field.value.filter(id => id !== volunteer.id)
-                                  : [...(field.value || []), volunteer.id];
+                                const currentSelected = field.value || [];
+                                const newSelected = currentSelected.includes(volunteer.id)
+                                  ? currentSelected.filter(id => id !== volunteer.id)
+                                  : [...currentSelected, volunteer.id];
                                 field.onChange(newSelected);
                               }}
+                              className="flex items-center justify-between py-2 px-2 cursor-pointer hover:bg-accent"
                             >
-                              <Check
-                                className={cn(
-                                  "mr-2 h-4 w-4",
-                                  field.value?.includes(volunteer.id) ? "opacity-100" : "opacity-0"
-                                )}
-                              />
-                              {volunteer.firstName} {volunteer.lastName}
+                              <div className="flex items-center">
+                                <Check
+                                  className={cn(
+                                    "mr-2 h-4 w-4",
+                                    (field.value || []).includes(volunteer.id) ? "opacity-100" : "opacity-0"
+                                  )}
+                                />
+                                {volunteer.firstName} {volunteer.lastName}
+                              </div>
                             </CommandItem>
                           ))}
                         </CommandGroup>
@@ -922,7 +926,7 @@ const Planning = () => {
                   <Building className="h-8 w-8 text-primary/80" />
                   <div className="ml-4">
                     <h3 className="text-sm font-medium text-gray-500">Bezette Ruimtes</h3>
-                    <p className="text-2xlfont-bold text-primary">{uniqueRoomsScheduled}</p>
+                    <p className="text-2xl font-bold text-primary">{uniqueRoomsScheduled}</p>
                   </div>
                 </div>
               </CardContent>
