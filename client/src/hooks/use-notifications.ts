@@ -53,11 +53,12 @@ export function useNotifications() {
         onMessage(messaging, (payload) => {
           console.log('Voorgrond bericht ontvangen:', payload);
 
-          // Toon een toast notificatie
+          // Toon een toast notificatie met de nieuwe styling
           toast({
             title: payload.notification?.title || "Nieuwe Aanmelding",
             description: payload.notification?.body,
-            duration: 5000,
+            variant: "success",
+            duration: 3000, // 3 seconden
           });
 
           // Speel een geluid af voor extra aandacht
@@ -87,11 +88,12 @@ export function useNotifications() {
           shownNotifications.add(notificationId);
           setUnreadCount(prev => prev + 1);
 
-          // Toon toast notificatie als de app open is
+          // Toon toast notificatie met de nieuwe styling
           toast({
             title: "Nieuwe Vrijwilliger Aanmelding",
             description: `${latestVolunteer.firstName} ${latestVolunteer.lastName} heeft zich aangemeld als vrijwilliger.`,
-            duration: 5000,
+            variant: "success",
+            duration: 3000, // 3 seconden
           });
         }
       }

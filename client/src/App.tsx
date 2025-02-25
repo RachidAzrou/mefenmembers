@@ -2,6 +2,7 @@ import { Switch, Route } from "wouter";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { queryClient } from "./lib/queryClient";
 import { Toaster } from "@/components/ui/toaster";
+import { Walkthrough } from "@/components/walkthrough";
 import NotFound from "@/pages/not-found";
 import Dashboard from "@/pages/dashboard";
 import Login from "@/pages/login";
@@ -38,6 +39,7 @@ function AuthenticatedLayout({ children }: { children: React.ReactNode }) {
           {children}
         </div>
       </main>
+      <Walkthrough />
     </div>
   );
 }
