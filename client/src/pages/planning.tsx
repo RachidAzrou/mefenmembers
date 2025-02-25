@@ -345,11 +345,11 @@ const PlanningForm = ({ form, onSubmit, editingPlanning, volunteers, rooms }: {
                         </Button>
                       </FormControl>
                     </PopoverTrigger>
-                    <PopoverContent 
-                      className="p-0 w-[var(--radix-popover-trigger-width)]" 
+                    <PopoverContent
+                      className="w-[var(--radix-popover-trigger-width)] p-0"
                       align="start"
                     >
-                      <Command>
+                      <Command shouldFilter={false}>
                         <CommandInput
                           placeholder="Zoek vrijwilliger..."
                           value={volunteerSearch}
@@ -357,14 +357,14 @@ const PlanningForm = ({ form, onSubmit, editingPlanning, volunteers, rooms }: {
                           className="h-9"
                         />
                         <CommandEmpty>Geen vrijwilligers gevonden.</CommandEmpty>
-                        <div className="max-h-[200px] overflow-y-auto">
+                        <div className="max-h-[300px] overflow-y-auto">
                           <CommandGroup>
                             {filteredVolunteers.map((volunteer) => (
                               <CommandItem
                                 key={volunteer.id}
                                 value={`${volunteer.firstName} ${volunteer.lastName}`}
                                 onSelect={() => field.onChange(volunteer.id)}
-                                className="flex items-center gap-2 px-2 py-1.5"
+                                className="flex items-center gap-2 px-2 py-1.5 cursor-pointer"
                               >
                                 <Check
                                   className={cn(
@@ -397,11 +397,10 @@ const PlanningForm = ({ form, onSubmit, editingPlanning, volunteers, rooms }: {
                         <SelectValue placeholder="Selecteer ruimte" />
                       </SelectTrigger>
                     </FormControl>
-                    <SelectContent 
-                      className="overflow-y-auto"
-                      style={{ maxHeight: "200px" }}
+                    <SelectContent
                       position="popper"
                       sideOffset={4}
+                      className="h-[300px]"
                     >
                       {rooms.map((room) => (
                         <SelectItem key={room.id} value={room.id}>
@@ -441,11 +440,14 @@ const PlanningForm = ({ form, onSubmit, editingPlanning, volunteers, rooms }: {
                         <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                       </Button>
                     </PopoverTrigger>
-                    <PopoverContent 
-                      className="p-0 w-[var(--radix-popover-trigger-width)]" 
+                    <PopoverContent
+                      className="w-[var(--radix-popover-trigger-width)] p-0"
                       align="start"
+                      side="bottom"
+                      sideOffset={4}
+                      style={{ maxHeight: "var(--radix-popover-content-available-height)" }}
                     >
-                      <Command>
+                      <Command shouldFilter={false}>
                         <CommandInput
                           placeholder="Zoek vrijwilligers..."
                           value={volunteerSearch}
@@ -453,7 +455,7 @@ const PlanningForm = ({ form, onSubmit, editingPlanning, volunteers, rooms }: {
                           className="h-9"
                         />
                         <CommandEmpty>Geen vrijwilligers gevonden.</CommandEmpty>
-                        <div className="max-h-[200px] overflow-y-auto">
+                        <div className="max-h-[300px] overflow-y-auto">
                           <CommandGroup>
                             {filteredVolunteers.map(volunteer => (
                               <CommandItem
@@ -465,7 +467,7 @@ const PlanningForm = ({ form, onSubmit, editingPlanning, volunteers, rooms }: {
                                     : [...currentSelected, volunteer.id];
                                   field.onChange(newSelected);
                                 }}
-                                className="flex items-center gap-2 px-2 py-1.5"
+                                className="flex items-center gap-2 px-2 py-1.5 cursor-pointer"
                               >
                                 <Check
                                   className={cn(
@@ -506,11 +508,10 @@ const PlanningForm = ({ form, onSubmit, editingPlanning, volunteers, rooms }: {
                         </SelectValue>
                       </SelectTrigger>
                     </FormControl>
-                    <SelectContent 
-                      className="overflow-y-auto"
-                      style={{ maxHeight: "200px" }}
+                    <SelectContent
                       position="popper"
                       sideOffset={4}
+                      className="h-[300px]"
                     >
                       {rooms.map((room) => (
                         <SelectItem key={room.id} value={room.id}>
