@@ -128,99 +128,105 @@ export default function Rooms() {
           <h1 className="text-3xl font-bold text-primary">Ruimtes</h1>
         </div>
         {isAdmin && (
-          <div className="flex gap-2">
-            <Button
-              variant="outline"
-              onClick={() => setIsEditMode(!isEditMode)}
-              className={isEditMode ? "bg-gray-100" : ""}
-            >
-              <Edit2 className="h-4 w-4 mr-2" />
-              {isEditMode ? "Bewerken Afsluiten" : "Bewerken"}
-            </Button>
-            <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-              <DialogTrigger asChild>
-                <Button className="bg-[#6BB85C] hover:bg-[#6BB85C]/90">
-                  <Plus className="h-4 w-4 mr-2" />
-                  Ruimte Toevoegen
-                </Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>
-                    {editingRoom ? "Ruimte Bewerken" : "Nieuwe Ruimte Toevoegen"}
-                  </DialogTitle>
-                </DialogHeader>
-                <Form {...form}>
-                  <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                    <FormField
-                      control={form.control}
-                      name="name"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Ruimtenaam</FormLabel>
-                          <FormControl>
-                            <Input {...field} placeholder="Ruimtenaam" />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <Button type="submit" className="w-full">
-                      {editingRoom ? "Bijwerken" : "Toevoegen"}
-                    </Button>
-                  </form>
-                </Form>
-              </DialogContent>
-            </Dialog>
-          </div>
+          <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+            <DialogTrigger asChild>
+              <Button className="bg-[#6BB85C] hover:bg-[#6BB85C]/90">
+                <Plus className="h-4 w-4 mr-2" />
+                Ruimte Toevoegen
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>
+                  {editingRoom ? "Ruimte Bewerken" : "Nieuwe Ruimte Toevoegen"}
+                </DialogTitle>
+              </DialogHeader>
+              <Form {...form}>
+                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                  <FormField
+                    control={form.control}
+                    name="name"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Ruimtenaam</FormLabel>
+                        <FormControl>
+                          <Input {...field} placeholder="Ruimtenaam" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <Button type="submit" className="w-full">
+                    {editingRoom ? "Bijwerken" : "Toevoegen"}
+                  </Button>
+                </form>
+              </Form>
+            </DialogContent>
+          </Dialog>
         )}
       </div>
 
-      <div className="rounded-lg border bg-card">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Naam</TableHead>
-              <TableHead className="w-[100px]">Acties</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {rooms.map((room) => (
-              <TableRow key={room.id}>
-                <TableCell>{room.name}</TableCell>
-                <TableCell className="flex space-x-2">
-                  {isEditMode && isAdmin && (
-                    <>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => handleEdit(room)}
-                        className="text-[#6BB85C] hover:text-[#6BB85C] hover:bg-[#6BB85C]/10"
-                      >
-                        <Edit2 className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => setDeleteRoomId(room.id)}
-                        className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </>
-                  )}
-                </TableCell>
-              </TableRow>
-            ))}
-            {rooms.length === 0 && (
+      <div className="space-y-4">
+        {isAdmin && (
+          <div className="flex justify-end">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setIsEditMode(!isEditMode)}
+              className={`hover:bg-gray-100 ${isEditMode ? "bg-gray-100 text-primary" : ""}`}
+              title={isEditMode ? "Bewerken afsluiten" : "Bewerken"}
+            >
+              <Edit2 className="h-5 w-5" />
+            </Button>
+          </div>
+        )}
+
+        <div className="rounded-lg border bg-card">
+          <Table>
+            <TableHeader>
               <TableRow>
-                <TableCell colSpan={2} className="text-center py-6 text-gray-500">
-                  Geen ruimtes gevonden
-                </TableCell>
+                <TableHead>Naam</TableHead>
+                <TableHead className="w-[100px]">Acties</TableHead>
               </TableRow>
-            )}
-          </TableBody>
-        </Table>
+            </TableHeader>
+            <TableBody>
+              {rooms.map((room) => (
+                <TableRow key={room.id}>
+                  <TableCell>{room.name}</TableCell>
+                  <TableCell className="flex space-x-2">
+                    {isEditMode && isAdmin && (
+                      <>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleEdit(room)}
+                          className="text-[#6BB85C] hover:text-[#6BB85C] hover:bg-[#6BB85C]/10"
+                        >
+                          <Edit2 className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => setDeleteRoomId(room.id)}
+                          className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </>
+                    )}
+                  </TableCell>
+                </TableRow>
+              ))}
+              {rooms.length === 0 && (
+                <TableRow>
+                  <TableCell colSpan={2} className="text-center py-6 text-gray-500">
+                    Geen ruimtes gevonden
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </div>
       </div>
 
       <AlertDialog
