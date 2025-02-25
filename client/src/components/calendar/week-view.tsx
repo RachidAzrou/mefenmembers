@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { CalendarPDF } from "../pdf/calendar-pdf";
 import { PDFDownloadLink } from "@react-pdf/renderer";
+import { cn } from "@/lib/utils";
 
 type Volunteer = {
   id: string;
@@ -154,29 +155,34 @@ export function WeekView({ checkedOutMaterials }: WeekViewProps) {
   const activeVolunteers = plannings.filter(p => new Date(p.endDate) >= new Date()).length;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 px-4 md:px-0">
       {/* Header section */}
       <div className="text-center">
-        <h2 className="text-2xl font-semibold text-[#D9A347]">
+        <h2 className="text-xl md:text-2xl font-semibold text-[#D9A347]">
           Week van {format(weekStart, "d MMMM yyyy", { locale: nl })}
         </h2>
 
-        <div className="mt-6 flex flex-wrap justify-between items-center gap-4">
+        <div className="mt-4 md:mt-6 flex flex-col sm:flex-row justify-between items-center gap-4">
           {/* Left side - Navigation */}
           <div className="flex items-center gap-2">
-            <Button variant="outline" onClick={goToPreviousWeek}>
+            <Button
+              variant="outline"
+              onClick={goToPreviousWeek}
+              className="h-9 md:h-10 px-3 md:px-4"
+            >
               <Copy className="h-4 w-4 mr-2" />
-              Vorige Week Kopiëren
+              <span className="hidden md:inline">Vorige Week</span>
+              <span className="md:hidden">Vorige</span>
             </Button>
           </div>
 
           {/* Center - Navigation */}
-          <div className="flex items-center gap-2 mx-auto">
-            <Button variant="outline" size="icon" onClick={goToPreviousWeek}>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="icon" onClick={goToPreviousWeek} className="h-9 w-9 md:h-10 md:w-10">
               <ChevronLeft className="h-4 w-4" />
             </Button>
-            <Button variant="outline" onClick={goToToday}>Vandaag</Button>
-            <Button variant="outline" size="icon" onClick={goToNextWeek}>
+            <Button variant="outline" onClick={goToToday} className="h-9 md:h-10">Vandaag</Button>
+            <Button variant="outline" size="icon" onClick={goToNextWeek} className="h-9 w-9 md:h-10 md:w-10">
               <ChevronRight className="h-4 w-4" />
             </Button>
           </div>
@@ -185,9 +191,10 @@ export function WeekView({ checkedOutMaterials }: WeekViewProps) {
           <div className="flex items-center gap-2">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline">
+                <Button variant="outline" className="h-9 md:h-10">
                   <Share className="h-4 w-4 mr-2" />
-                  Delen
+                  <span className="hidden md:inline">Delen</span>
+                  <span className="md:hidden">...</span>
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
@@ -222,18 +229,25 @@ export function WeekView({ checkedOutMaterials }: WeekViewProps) {
       <div className="grid grid-cols-1 md:grid-cols-7 gap-4">
         {weekDays.map((day) => {
           const dayPlannings = getPlanningsForDay(day);
+          const isToday = format(day, 'yyyy-MM-dd') === format(new Date(), 'yyyy-MM-dd');
           return (
-            <Card key={day.toISOString()} className="min-w-[280px] md:min-w-0">
+            <Card 
+              key={day.toISOString()} 
+              className={cn(
+                "min-w-[280px] md:min-w-0",
+                isToday && "ring-2 ring-primary ring-offset-2"
+              )}
+            >
               <CardContent className="p-4">
-                <div className="text-lg font-semibold mb-1 text-primary">
+                <div className="text-base md:text-lg font-semibold mb-1 text-primary">
                   {format(day, "EEEE", { locale: nl })}
                 </div>
-                <div className="text-sm text-gray-500 mb-4">
+                <div className="text-sm text-muted-foreground mb-4">
                   {format(day, "d MMMM", { locale: nl })}
                 </div>
                 <div className="space-y-3">
                   {dayPlannings.length === 0 ? (
-                    <p className="text-sm text-gray-500 italic">Geen toewijzingen</p>
+                    <p className="text-sm text-muted-foreground italic">Geen toewijzingen</p>
                   ) : (
                     dayPlannings.map(planning => {
                       const volunteer = volunteers.find(v => v.id === planning.volunteerId);
@@ -241,12 +255,12 @@ export function WeekView({ checkedOutMaterials }: WeekViewProps) {
                       return (
                         <div
                           key={planning.id}
-                          className="p-3 rounded-lg bg-primary/5 border border-primary/10"
+                          className="p-3 rounded-lg bg-primary/5 border border-primary/10 transition-colors hover:bg-primary/10"
                         >
-                          <div className="font-medium text-primary">
+                          <div className="font-medium text-primary text-sm md:text-base">
                             {room?.name || 'Onbekende ruimte'}
                           </div>
-                          <div className="text-sm text-gray-600 mt-1">
+                          <div className="text-xs md:text-sm text-muted-foreground mt-1">
                             {volunteer
                               ? `${volunteer.firstName} ${volunteer.lastName}`
                               : 'Niet toegewezen'
@@ -264,14 +278,14 @@ export function WeekView({ checkedOutMaterials }: WeekViewProps) {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-8">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <Card>
           <CardContent className="pt-6">
-            <div className="flex items-center">
-              <Package2 className="h-8 w-8 text-primary/80" />
-              <div className="ml-4">
-                <h3 className="text-sm font-medium text-gray-500">Uitgeleende Materialen</h3>
-                <p className="text-2xl font-bold text-primary">{checkedOutMaterials}</p>
+            <div className="flex items-center space-x-3">
+              <Package2 className="h-6 w-6 md:h-8 md:w-8 text-primary/80" />
+              <div>
+                <p className="text-xs md:text-sm font-medium text-muted-foreground">Uitgeleende Materialen</p>
+                <p className="text-xl md:text-2xl font-bold text-primary">{checkedOutMaterials}</p>
               </div>
             </div>
           </CardContent>
@@ -279,11 +293,11 @@ export function WeekView({ checkedOutMaterials }: WeekViewProps) {
 
         <Card>
           <CardContent className="pt-6">
-            <div className="flex items-center">
-              <Users2 className="h-8 w-8 text-primary/80" />
-              <div className="ml-4">
-                <h3 className="text-sm font-medium text-gray-500">Totaal Vrijwilligers</h3>
-                <p className="text-2xl font-bold text-primary">{totalVolunteers}</p>
+            <div className="flex items-center space-x-3">
+              <Users2 className="h-6 w-6 md:h-8 md:w-8 text-primary/80" />
+              <div>
+                <p className="text-xs md:text-sm font-medium text-muted-foreground">Totaal Vrijwilligers</p>
+                <p className="text-xl md:text-2xl font-bold text-primary">{totalVolunteers}</p>
               </div>
             </div>
           </CardContent>
@@ -291,11 +305,11 @@ export function WeekView({ checkedOutMaterials }: WeekViewProps) {
 
         <Card>
           <CardContent className="pt-6">
-            <div className="flex items-center">
-              <House className="h-8 w-8 text-primary/80" />
-              <div className="ml-4">
-                <h3 className="text-sm font-medium text-gray-500">Totaal Ruimtes</h3>
-                <p className="text-2xl font-bold text-primary">{totalRooms}</p>
+            <div className="flex items-center space-x-3">
+              <House className="h-6 w-6 md:h-8 md:w-8 text-primary/80" />
+              <div>
+                <p className="text-xs md:text-sm font-medium text-muted-foreground">Totaal Ruimtes</p>
+                <p className="text-xl md:text-2xl font-bold text-primary">{totalRooms}</p>
               </div>
             </div>
           </CardContent>
@@ -303,11 +317,11 @@ export function WeekView({ checkedOutMaterials }: WeekViewProps) {
 
         <Card>
           <CardContent className="pt-6">
-            <div className="flex items-center">
-              <UserCheck className="h-8 w-8 text-primary/80" />
-              <div className="ml-4">
-                <h3 className="text-sm font-medium text-gray-500">Actieve Vrijwilligers</h3>
-                <p className="text-2xl font-bold text-primary">{activeVolunteers}</p>
+            <div className="flex items-center space-x-3">
+              <UserCheck className="h-6 w-6 md:h-8 md:w-8 text-primary/80" />
+              <div>
+                <p className="text-xs md:text-sm font-medium text-muted-foreground">Actieve Vrijwilligers</p>
+                <p className="text-xl md:text-2xl font-bold text-primary">{activeVolunteers}</p>
               </div>
             </div>
           </CardContent>
