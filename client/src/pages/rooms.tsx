@@ -24,10 +24,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { db } from "@/lib/firebase";
 import { ref, push, remove, update, onValue } from "firebase/database";
-import {
-  Settings2,
-  Users,
-} from "lucide-react";
+import { Settings2, Users } from "lucide-react";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useRole } from "@/hooks/use-role";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -295,7 +292,7 @@ export default function Rooms() {
         ))}
         {rooms.length === 0 && (
           <div className="col-span-full flex flex-col items-center justify-center h-32 text-muted-foreground">
-            <BsBuilding className="h-8 w-8 mb-2 opacity-50" />
+            <FaWarehouse className="h-8 w-8 mb-2 opacity-50" />
             <p>Geen ruimtes gevonden</p>
           </div>
         )}
