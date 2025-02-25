@@ -28,8 +28,8 @@ const toastVariants = cva(
     variants: {
       variant: {
         default: "border bg-background text-foreground",
-        success: "bg-[#6BB85C]/10 border-[#6BB85C]/20 text-[#2F7A1F]",
-        destructive: "destructive group border-destructive bg-destructive text-destructive-foreground",
+        success: "bg-[#E7F3E5] border-[#6BB85C]/20 text-[#2F7A1F]",
+        destructive: "bg-red-50/90 border-red-200 text-red-800",
         info: "border-blue-200 bg-blue-50/90 text-blue-800",
       },
     },
@@ -48,6 +48,7 @@ const Toast = React.forwardRef<
     <ToastPrimitives.Root
       ref={ref}
       className={cn(toastVariants({ variant }), className)}
+      duration={2000} // Set duration to 2 seconds
       {...props}
     />
   )
@@ -77,7 +78,7 @@ const ToastClose = React.forwardRef<
     ref={ref}
     className={cn(
       "absolute right-2 top-2 rounded-md p-1 opacity-0 transition-opacity hover:text-foreground focus:opacity-100 focus:outline-none focus:ring-1 group-hover:opacity-100",
-      "text-emerald-600 hover:text-emerald-900 group-[.destructive]:text-red-300 group-[.destructive]:hover:text-red-50 group-[.destructive]:focus:ring-red-400 group-[.destructive]:focus:ring-offset-red-600",
+      "text-[#6BB85C] hover:text-[#2F7A1F] group-[.destructive]:text-red-400 group-[.destructive]:hover:text-red-600",
       className
     )}
     toast-close=""
@@ -95,7 +96,7 @@ const ToastIcon = React.forwardRef<
   const icons = {
     default: null,
     success: <Check className="h-5 w-5 text-[#6BB85C]" />,
-    destructive: <AlertCircle className="h-5 w-5 text-red-600" />,
+    destructive: <AlertCircle className="h-5 w-5 text-red-500" />,
     info: <Info className="h-5 w-5 text-blue-600" />,
   }
 

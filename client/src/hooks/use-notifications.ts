@@ -38,12 +38,8 @@ export function useNotifications() {
             title: payload.notification?.title || "Nieuwe Aanmelding",
             description: payload.notification?.body,
             variant: "success",
-            duration: 3000, // 3 seconden
+            duration: 2000, // 2 seconden
           });
-
-          // Speel een geluid af voor extra aandacht
-          const audio = new Audio('/static/notification.mp3');
-          audio.play().catch(console.error);
         });
       }
     } catch (error) {
@@ -73,7 +69,7 @@ export function useNotifications() {
             title: "Nieuwe Vrijwilliger Aanmelding",
             description: `${latestVolunteer.firstName} ${latestVolunteer.lastName} heeft zich aangemeld als vrijwilliger.`,
             variant: "success",
-            duration: 3000, // 3 seconden
+            duration: 2000, // 2 seconden
           });
         }
       }
