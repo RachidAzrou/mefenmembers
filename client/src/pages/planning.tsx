@@ -345,52 +345,49 @@ const PlanningForm = ({ form, onSubmit, editingPlanning, volunteers, rooms }: {
                         </Button>
                       </FormControl>
                     </PopoverTrigger>
-                    <PopoverContent className="p-0 w-[var(--radix-popover-trigger-width)]" align="start">
-                      <div className="flex flex-col" style={{ height: '300px' }}>
-                        <div className="border-b p-2 bg-white">
-                          <input
-                            className="w-full border-0 bg-transparent text-sm placeholder:text-muted-foreground focus:outline-none"
-                            placeholder="Zoek vrijwilliger..."
-                            value={volunteerSearch}
-                            onChange={(e) => setVolunteerSearch(e.target.value)}
-                          />
-                        </div>
-                        <div
-                          className="flex-1 overflow-y-auto overscroll-contain"
-                          style={{
-                            scrollbarWidth: 'thin',
-                            scrollbarColor: 'rgb(203 213 225) transparent'
-                          }}
-                        >
-                          {filteredVolunteers.length === 0 ? (
-                            <div className="p-6 text-center text-sm text-muted-foreground">
-                              Geen vrijwilligers gevonden
+                    <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0" align="start">
+                      <div className="border-b p-2 bg-white">
+                        <input
+                          className="w-full border-0 bg-transparent text-sm placeholder:text-muted-foreground focus:outline-none"
+                          placeholder="Zoek vrijwilliger..."
+                          value={volunteerSearch}
+                          onChange={(e) => setVolunteerSearch(e.target.value)}
+                        />
+                      </div>
+                      <div
+                        className="overflow-y-auto"
+                        style={{
+                          height: '300px',
+                          overflowY: 'auto',
+                          overscrollBehavior: 'contain'
+                        }}
+                      >
+                        {filteredVolunteers.length === 0 ? (
+                          <div className="p-6 text-center text-sm text-muted-foreground">
+                            Geen vrijwilligers gevonden
+                          </div>
+                        ) : (
+                          filteredVolunteers.map((volunteer) => (
+                            <div
+                              key={volunteer.id}
+                              className={cn(
+                                "flex items-center px-3 py-2 cursor-pointer hover:bg-accent",
+                                field.value === volunteer.id && "bg-accent"
+                              )}
+                              onClick={() => field.onChange(volunteer.id)}
+                            >
+                              <Check
+                                className={cn(
+                                  "mr-2 h-4 w-4",
+                                  field.value === volunteer.id ? "opacity-100" : "opacity-0"
+                                )}
+                              />
+                              <span className="text-sm">
+                                {volunteer.firstName} {volunteer.lastName}
+                              </span>
                             </div>
-                          ) : (
-                            <div className="py-2">
-                              {filteredVolunteers.map((volunteer) => (
-                                <div
-                                  key={volunteer.id}
-                                  className={cn(
-                                    "flex items-center px-3 py-2 cursor-pointer hover:bg-accent",
-                                    field.value === volunteer.id && "bg-accent"
-                                  )}
-                                  onClick={() => field.onChange(volunteer.id)}
-                                >
-                                  <Check
-                                    className={cn(
-                                      "mr-2 h-4 w-4",
-                                      field.value === volunteer.id ? "opacity-100" : "opacity-0"
-                                    )}
-                                  />
-                                  <span className="text-sm">
-                                    {volunteer.firstName} {volunteer.lastName}
-                                  </span>
-                                </div>
-                              ))}
-                            </div>
-                          )}
-                        </div>
+                          ))
+                        )}
                       </div>
                     </PopoverContent>
                   </Popover>
@@ -411,13 +408,12 @@ const PlanningForm = ({ form, onSubmit, editingPlanning, volunteers, rooms }: {
                         <SelectValue placeholder="Selecteer ruimte" />
                       </SelectTrigger>
                     </FormControl>
-                    <SelectContent>
-                      <div
-                        className="overflow-y-auto overscroll-contain"
+                    <SelectContent position="popper" sideOffset={4}>
+                      <div 
                         style={{
-                          height: '200px',
-                          scrollbarWidth: 'thin',
-                          scrollbarColor: 'rgb(203 213 225) transparent'
+                          height: '300px',
+                          overflowY: 'auto',
+                          overscrollBehavior: 'contain'
                         }}
                       >
                         {rooms.map((room) => (
@@ -459,58 +455,57 @@ const PlanningForm = ({ form, onSubmit, editingPlanning, volunteers, rooms }: {
                         <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                       </Button>
                     </PopoverTrigger>
-                    <PopoverContent className="p-0 w-[var(--radix-popover-trigger-width)]" align="start">
-                      <div className="flex flex-col" style={{ height: '300px' }}>
-                        <div className="border-b p-2 bg-white">
-                          <input
-                            className="w-full border-0 bg-transparent text-sm placeholder:text-muted-foreground focus:outline-none"
-                            placeholder="Zoek vrijwilligers..."
-                            value={volunteerSearch}
-                            onChange={(e) => setVolunteerSearch(e.target.value)}
-                          />
-                        </div>
-                        <div
-                          className="flex-1 overflow-y-auto overscroll-contain"
-                          style={{
-                            scrollbarWidth: 'thin',
-                            scrollbarColor: 'rgb(203 213 225) transparent'
-                          }}
-                        >
-                          {filteredVolunteers.length === 0 ? (
-                            <div className="p-6 text-center text-sm text-muted-foreground">
-                              Geen vrijwilligers gevonden
-                            </div>
-                          ) : (
-                            <div className="py-2">
-                              {filteredVolunteers.map((volunteer) => (
-                                <div
-                                  key={volunteer.id}
+                    <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0" align="start">
+                      <div className="border-b p-2 bg-white">
+                        <input
+                          className="w-full border-0 bg-transparent text-sm placeholder:text-muted-foreground focus:outline-none"
+                          placeholder="Zoek vrijwilligers..."
+                          value={volunteerSearch}
+                          onChange={(e) => setVolunteerSearch(e.target.value)}
+                        />
+                      </div>
+                      <div
+                        className="overflow-y-auto"
+                        style={{
+                          height: '300px',
+                          overflowY: 'auto',
+                          overscrollBehavior: 'contain'
+                        }}
+                      >
+                        {filteredVolunteers.length === 0 ? (
+                          <div className="p-6 text-center text-sm text-muted-foreground">
+                            Geen vrijwilligers gevonden
+                          </div>
+                        ) : (
+                          <div className="py-2">
+                            {filteredVolunteers.map((volunteer) => (
+                              <div
+                                key={volunteer.id}
+                                className={cn(
+                                  "flex items-center px-3 py-2 cursor-pointer hover:bg-accent",
+                                  (field.value || []).includes(volunteer.id) && "bg-accent"
+                                )}
+                                onClick={() => {
+                                  const currentSelected = field.value || [];
+                                  const newSelected = currentSelected.includes(volunteer.id)
+                                    ? currentSelected.filter(id => id !== volunteer.id)
+                                    : [...currentSelected, volunteer.id];
+                                  field.onChange(newSelected);
+                                }}
+                              >
+                                <Check
                                   className={cn(
-                                    "flex items-center px-3 py-2 cursor-pointer hover:bg-accent",
-                                    (field.value || []).includes(volunteer.id) && "bg-accent"
+                                    "mr-2 h-4 w-4",
+                                    (field.value || []).includes(volunteer.id) ? "opacity-100" : "opacity-0"
                                   )}
-                                  onClick={() => {
-                                    const currentSelected = field.value || [];
-                                    const newSelected = currentSelected.includes(volunteer.id)
-                                      ? currentSelected.filter(id => id !== volunteer.id)
-                                      : [...currentSelected, volunteer.id];
-                                    field.onChange(newSelected);
-                                  }}
-                                >
-                                  <Check
-                                    className={cn(
-                                      "mr-2 h-4 w-4",
-                                      (field.value || []).includes(volunteer.id) ? "opacity-100" : "opacity-0"
-                                    )}
-                                  />
-                                  <span className="text-sm">
-                                    {volunteer.firstName} {volunteer.lastName}
-                                  </span>
-                                </div>
-                              ))}
-                            </div>
-                          )}
-                        </div>
+                                />
+                                <span className="text-sm">
+                                  {volunteer.firstName} {volunteer.lastName}
+                                </span>
+                              </div>
+                            ))}
+                          </div>
+                        )}
                       </div>
                     </PopoverContent>
                   </Popover>
@@ -951,7 +946,7 @@ const Planning = () => {
     const endDate = new Date(planning.endDate);
     endDate.setHours(0, 0, 0, 0);
 
-    if (format(today, 'yyyy-MM-dd') === format(startDate, 'yyyy-MM-dd')) {
+    if(format(today, 'yyyy-MM-dd') === format(startDate, 'yyyy-MM-dd')) {
       acc.activePlannings.push(planning);
     } else if (startDate > today) {
       acc.upcomingPlannings.push(planning);
