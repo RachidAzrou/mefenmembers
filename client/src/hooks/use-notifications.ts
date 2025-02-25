@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { getMessaging, getToken, onMessage } from 'firebase/messaging';
+import { getMessaging, onMessage } from 'firebase/messaging';
 import { ref, onValue } from 'firebase/database';
 import { db } from '@/lib/firebase';
 import { useToast } from '@/hooks/use-toast';
@@ -19,17 +19,6 @@ export function useNotifications() {
     }
 
     setPermission(Notification.permission);
-
-    // Registreer service worker als deze nog niet actief is
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/firebase-messaging-sw.js')
-        .then(registration => {
-          console.log('Service Worker geregistreerd:', registration);
-        })
-        .catch(err => {
-          console.error('Service Worker registratie mislukt:', err);
-        });
-    }
   }, []);
 
   const requestPermission = async () => {
@@ -39,17 +28,8 @@ export function useNotifications() {
 
       if (permission === 'granted') {
         const messaging = getMessaging();
-        const swRegistration = await navigator.serviceWorker.getRegistration();
 
-        // Vraag een nieuwe token aan voor deze browser/device
-        const token = await getToken(messaging, {
-          vapidKey: process.env.FIREBASE_VAPID_KEY,
-          serviceWorkerRegistration: swRegistration
-        });
-
-        console.log('FCM Token:', token);
-
-        // Luister naar berichten wanneer de app in de voorgrond is
+        // Luister alleen naar berichten wanneer de app in de voorgrond is
         onMessage(messaging, (payload) => {
           console.log('Voorgrond bericht ontvangen:', payload);
 
