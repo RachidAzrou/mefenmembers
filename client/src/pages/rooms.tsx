@@ -43,12 +43,12 @@ import {
   BsTrash,
   BsPencil,
   BsPlus,
+  BsBook,
 } from 'react-icons/bs';
 import { 
   MdMeetingRoom,
   MdKitchen,
   MdWarehouse,
-  MdLibrary,
   MdStore,
   MdRestaurant,
   MdMosque,
@@ -72,7 +72,7 @@ const getRoomIcon = (roomName: string) => {
   if (name.includes('gebed')) return <MdMosque className="h-8 w-8 text-primary/80" />;
   if (name.includes('keuken')) return <MdKitchen className="h-8 w-8 text-primary/80" />;
   if (name.includes('opslag')) return <MdWarehouse className="h-8 w-8 text-primary/80" />;
-  if (name.includes('bibliotheek')) return <MdLibrary className="h-8 w-8 text-primary/80" />;
+  if (name.includes('bibliotheek')) return <BsBook className="h-8 w-8 text-primary/80" />;
   if (name.includes('winkel')) return <MdStore className="h-8 w-8 text-primary/80" />;
   if (name.includes('kantine')) return <MdRestaurant className="h-8 w-8 text-primary/80" />;
   if (name.includes('zaal')) return <MdMeetingRoom className="h-8 w-8 text-primary/80" />;
