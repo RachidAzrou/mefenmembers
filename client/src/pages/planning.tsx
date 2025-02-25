@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -90,8 +90,8 @@ export default function Planning() {
   const [volunteers, setVolunteers] = useState<{ id: string; firstName: string; lastName: string; }[]>([]);
   const [rooms, setRooms] = useState<{ id: string; name: string; }[]>([]);
   const [editingPlanning, setEditingPlanning] = useState<Planning | null>(null);
-  const [deletePlanningId, setDeletePlanningId] = useState<string | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [deletePlanningId, setDeletePlanningId] = useState<string | null>(null);
   const [searchActive, setSearchActive] = useState("");
   const [searchUpcoming, setSearchUpcoming] = useState("");
   const { isAdmin } = useRole();
@@ -106,7 +106,7 @@ export default function Planning() {
     }
   });
 
-  useState(() => {
+  useEffect(() => {
     const volunteersRef = ref(db, "volunteers");
     onValue(volunteersRef, (snapshot) => {
       const data = snapshot.val();
@@ -136,7 +136,7 @@ export default function Planning() {
       })) : [];
       setPlannings(planningsList);
     });
-  });
+  }, []);
 
   const onSubmit = async (data: z.infer<typeof planningSchema>) => {
     try {
@@ -591,8 +591,8 @@ const PlanningForm = ({ form, onSubmit, editingPlanning, volunteers, rooms }: {
           )}
         />
 
-        <Button 
-          type="submit" 
+        <Button
+          type="submit"
           className="w-full bg-[#6BB85C] hover:bg-[#6BB85C]/90"
           disabled={isBulkPlanning && totalPlannings === 0}
         >
