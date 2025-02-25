@@ -75,6 +75,10 @@ import {
   GiWalkieTalkie,
   GiMonclerJacket,
 } from 'react-icons/gi';
+import { MdSafetyDivider } from 'react-icons/md';
+import { PiCoatHangerThin } from 'react-icons/pi';
+import { BsLightbulbFill } from 'react-icons/bs';
+import { TbRadio } from 'react-icons/tb';
 
 const materialSchema = z.object({
   typeId: z.string().min(1, "Type materiaal is verplicht"),
@@ -109,10 +113,10 @@ type Volunteer = {
 
 const getMaterialIcon = (materialName: string) => {
   const name = materialName.toLowerCase();
-  if (name.includes('jas')) return <GiMonclerJacket className="h-8 w-8 text-primary/80" />;
-  if (name.includes('hesje')) return <GiPoliceBadge className="h-8 w-8 text-primary/80" />;
-  if (name.includes('lamp')) return <GiFlashlight className="h-8 w-8 text-primary/80" />;
-  if (name.includes('walkie')) return <GiWalkieTalkie className="h-8 w-8 text-primary/80" />;
+  if (name.includes('jas')) return <PiCoatHangerThin className="h-8 w-8 text-primary/80" />;
+  if (name.includes('hesje')) return <MdSafetyDivider className="h-8 w-8 text-primary/80" />;
+  if (name.includes('lamp')) return <BsLightbulbFill className="h-8 w-8 text-primary/80" />;
+  if (name.includes('walkie')) return <TbRadio className="h-8 w-8 text-primary/80" />;
   return <Package2 className="h-8 w-8 text-primary/80" />;
 };
 
