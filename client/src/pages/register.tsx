@@ -6,7 +6,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { db } from "@/lib/firebase";
 import { ref, push, get } from "firebase/database";
-import { useToast } from "@/hooks/use-toast";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useState } from "react";
 
@@ -28,21 +27,21 @@ const registerSchema = z.object({
 type RegisterFormData = z.infer<typeof registerSchema>;
 
 export default function Register() {
-  const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [registrationSuccess, setRegistrationSuccess] = useState(false);
+  const [registrationStatus, setRegistrationStatus] = useState<{
+    type: 'success' | 'error';
+    message: string;
+  } | null>(null);
 
   const form = useForm<RegisterFormData>({
     resolver: zodResolver(registerSchema),
   });
 
   const normalizeString = (str: string) => {
-    // Remove multiple spaces and trim
     return str.replace(/\s+/g, ' ').toLowerCase().trim();
   };
 
   const normalizePhoneNumber = (phone: string) => {
-    // Remove all non-numeric characters and ensure it starts with proper format
     const cleaned = phone.replace(/[^\d]/g, '');
     if (cleaned.startsWith('31')) {
       return cleaned;
@@ -54,24 +53,20 @@ export default function Register() {
 
   const checkForDuplicates = async (data: RegisterFormData) => {
     try {
-      // Normalize input data
       const normalizedInput = {
         firstName: normalizeString(data.firstName),
         lastName: normalizeString(data.lastName),
         phoneNumber: normalizePhoneNumber(data.phoneNumber)
       };
 
-      // Check pending_volunteers
       const pendingRef = ref(db, "pending_volunteers");
       const pendingSnapshot = await get(pendingRef);
       const pendingVolunteers = pendingSnapshot.val() || {};
 
-      // Check active volunteers
       const volunteersRef = ref(db, "volunteers");
       const volunteersSnapshot = await get(volunteersRef);
       const volunteers = volunteersSnapshot.val() || {};
 
-      // Check for duplicates in both collections
       const isDuplicate = [...Object.values(pendingVolunteers), ...Object.values(volunteers)].some(
         (volunteer: any) => {
           if (!volunteer?.firstName || !volunteer?.lastName || !volunteer?.phoneNumber) {
@@ -84,14 +79,13 @@ export default function Register() {
             phoneNumber: normalizePhoneNumber(volunteer.phoneNumber)
           };
 
-          // Check if either name + phone matches
           const nameMatch = 
             normalizedVolunteer.firstName === normalizedInput.firstName &&
             normalizedVolunteer.lastName === normalizedInput.lastName;
 
           const phoneMatch = normalizedVolunteer.phoneNumber === normalizedInput.phoneNumber;
 
-          return nameMatch || phoneMatch; // If either matches, it's a duplicate
+          return nameMatch || phoneMatch;
         }
       );
 
@@ -107,20 +101,18 @@ export default function Register() {
 
     try {
       setIsSubmitting(true);
+      setRegistrationStatus(null);
 
-      // Check for duplicates before submitting
       const isDuplicate = await checkForDuplicates(data);
 
       if (isDuplicate) {
-        toast({
-          variant: "destructive",
-          title: "Registratie niet mogelijk",
-          description: "Er bestaat al een registratie met deze gegevens.",
+        setRegistrationStatus({
+          type: 'error',
+          message: 'Er bestaat al een registratie met deze gegevens.'
         });
         return;
       }
 
-      // Normalize data before saving
       const normalizedData = {
         firstName: data.firstName.trim(),
         lastName: data.lastName.trim(),
@@ -129,22 +121,17 @@ export default function Register() {
         status: 'pending'
       };
 
-      // Create the pending volunteer record
       await push(ref(db, "pending_volunteers"), normalizedData);
 
-      setRegistrationSuccess(true);
-      toast({
-        title: "Succesvol aangemeld",
-        description: "Je aanmelding is ontvangen en wordt bekeken door de beheerder.",
+      setRegistrationStatus({
+        type: 'success',
+        message: 'Je aanmelding is ontvangen en wordt bekeken door de beheerder.'
       });
-
-      // Reset form but stay on page
       form.reset();
     } catch (error) {
-      toast({
-        variant: "destructive",
-        title: "Fout",
-        description: "Er is iets misgegaan bij het aanmelden.",
+      setRegistrationStatus({
+        type: 'error',
+        message: 'Er is iets misgegaan bij het aanmelden.'
       });
     } finally {
       setIsSubmitting(false);
@@ -175,11 +162,13 @@ export default function Register() {
               </p>
             </div>
 
-            {registrationSuccess && (
-              <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
-                <p className="text-green-800 text-sm">
-                  Je aanmelding is succesvol ontvangen! De beheerder zal je aanmelding beoordelen.
-                </p>
+            {registrationStatus && (
+              <div className={`mb-6 p-4 rounded-lg text-sm ${
+                registrationStatus.type === 'success' 
+                  ? 'bg-white border' 
+                  : 'bg-red-50 border border-red-200 text-red-800'
+              }`}>
+                <p>{registrationStatus.message}</p>
               </div>
             )}
 

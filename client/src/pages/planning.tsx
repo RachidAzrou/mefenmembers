@@ -40,6 +40,7 @@ import {
   Users2,
   CalendarDays,
   Building,
+  Search,
 } from "lucide-react";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -89,6 +90,8 @@ export default function Planning() {
   const [deletePlanningId, setDeletePlanningId] = useState<string | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const { toast } = useToast();
+  const [searchActive, setSearchActive] = useState("");
+  const [searchUpcoming, setSearchUpcoming] = useState("");
 
   const form = useForm<z.infer<typeof planningSchema>>({
     resolver: zodResolver(planningSchema),
@@ -267,6 +270,26 @@ export default function Planning() {
     </div>
   );
 
+  const filterPlannings = (plannings: Planning[], searchTerm: string) => {
+    if (!searchTerm.trim()) return plannings;
+
+    const term = searchTerm.toLowerCase();
+    return plannings.filter(planning => {
+      const volunteer = volunteers.find(v => v.id === planning.volunteerId);
+      const room = rooms.find(r => r.id === planning.roomId);
+
+      const volunteerName = volunteer 
+        ? `${volunteer.firstName} ${volunteer.lastName}`.toLowerCase() 
+        : '';
+      const roomName = room?.name.toLowerCase() || '';
+
+      return volunteerName.includes(term) || roomName.includes(term);
+    });
+  };
+
+  const filteredActivePlannings = filterPlannings(activePlannings, searchActive);
+  const filteredUpcomingPlannings = filterPlannings(upcomingPlannings, searchUpcoming);
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
@@ -437,10 +460,21 @@ export default function Planning() {
         icon={<Users className="h-5 w-5 text-primary" />}
         defaultOpen={true}
       >
-        <PlanningTable 
-          plannings={activePlannings} 
-          emptyMessage="Geen actieve planningen gevonden"
-        />
+        <div className="space-y-4">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
+            <Input
+              placeholder="Zoek op vrijwilliger of ruimte..."
+              value={searchActive}
+              onChange={(e) => setSearchActive(e.target.value)}
+              className="pl-9"
+            />
+          </div>
+          <PlanningTable 
+            plannings={filteredActivePlannings} 
+            emptyMessage="Geen actieve planningen gevonden"
+          />
+        </div>
       </CollapsibleSection>
 
       <CollapsibleSection
@@ -448,10 +482,21 @@ export default function Planning() {
         icon={<Users className="h-5 w-5 text-primary" />}
         defaultOpen={true}
       >
-        <PlanningTable 
-          plannings={upcomingPlannings} 
-          emptyMessage="Geen toekomstige planningen gevonden"
-        />
+        <div className="space-y-4">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
+            <Input
+              placeholder="Zoek op vrijwilliger of ruimte..."
+              value={searchUpcoming}
+              onChange={(e) => setSearchUpcoming(e.target.value)}
+              className="pl-9"
+            />
+          </div>
+          <PlanningTable 
+            plannings={filteredUpcomingPlannings} 
+            emptyMessage="Geen toekomstige planningen gevonden"
+          />
+        </div>
       </CollapsibleSection>
 
       <CollapsibleSection
