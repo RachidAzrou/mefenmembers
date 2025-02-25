@@ -504,7 +504,7 @@ export default function Planning() {
 
       <CollapsibleSection
         title="Actieve Planningen"
-        icon={<Users className="h-5 w-5 text-primary" />}
+        icon={<Users2 className="h-5 w-5 text-primary" />}
         defaultOpen={true}
       >
         <div className="space-y-4">
@@ -526,7 +526,7 @@ export default function Planning() {
 
       <CollapsibleSection
         title="Toekomstige Planningen"
-        icon={<Users className="h-5 w-5 text-primary" />}
+        icon={<Users2 className="h-5 w-5 text-primary" />}
         defaultOpen={true}
       >
         <div className="space-y-4">
@@ -548,7 +548,7 @@ export default function Planning() {
 
       <CollapsibleSection
         title="Afgelopen Planningen"
-        icon={<Users className="h-5 w-5 text-primary" />}
+        icon={<Users2 className="h-5 w-5 text-primary" />}
         defaultOpen={false}
       >
         <PlanningTable
