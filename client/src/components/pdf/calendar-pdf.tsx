@@ -4,108 +4,108 @@ import { nl } from "date-fns/locale";
 
 const styles = StyleSheet.create({
   page: {
-    padding: 30,
+    padding: 20,
     backgroundColor: '#fff',
     fontFamily: 'Helvetica',
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 30,
+    marginBottom: 20,
     borderBottom: 1,
     borderBottomColor: '#E5E7EB',
-    paddingBottom: 15,
+    paddingBottom: 10,
   },
   logo: {
-    width: 80,
-    marginRight: 20,
+    width: 50,
+    marginRight: 15,
   },
   headerText: {
     flex: 1,
   },
   title: {
-    fontSize: 24,
-    color: '#963E56',
-    marginBottom: 5,
+    fontSize: 16,
+    color: '#D9A347',
+    marginBottom: 2,
+    textAlign: 'left',
   },
   weekInfo: {
-    fontSize: 14,
+    fontSize: 10,
     color: '#4B5563',
   },
   calendar: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    gap: 10,
+    gap: 8,
   },
   day: {
     flex: 1,
     backgroundColor: '#F9FAFB',
     borderRadius: 4,
-    padding: 10,
+    padding: 8,
   },
   dayHeader: {
     borderBottom: 1,
     borderBottomColor: '#E5E7EB',
-    paddingBottom: 8,
-    marginBottom: 10,
+    paddingBottom: 6,
+    marginBottom: 8,
   },
   dayName: {
-    fontSize: 14,
+    fontSize: 10,
     fontWeight: 'bold',
     color: '#1F2937',
   },
   dayDate: {
-    fontSize: 12,
+    fontSize: 8,
     color: '#6B7280',
     marginTop: 2,
   },
   roomSection: {
-    marginTop: 10,
-    paddingTop: 8,
+    marginTop: 6,
+    paddingTop: 6,
     borderTop: 1,
     borderTopColor: '#E5E7EB',
   },
   roomName: {
-    fontSize: 12,
+    fontSize: 9,
     fontWeight: 'bold',
-    color: '#963E56',
-    marginBottom: 5,
+    color: '#6BB85C',
+    marginBottom: 4,
   },
   planning: {
     backgroundColor: '#fff',
-    borderRadius: 3,
-    padding: 8,
-    marginBottom: 6,
-    borderLeft: 2,
-    borderLeftColor: '#963E56',
+    borderRadius: 2,
+    padding: 4,
+    marginBottom: 4,
+    borderLeft: 1,
+    borderLeftColor: '#6BB85C',
   },
   volunteerName: {
-    fontSize: 10,
+    fontSize: 8,
     color: '#4B5563',
   },
   timeSlot: {
-    fontSize: 9,
+    fontSize: 7,
     color: '#6B7280',
-    marginTop: 2,
+    marginTop: 1,
   },
   emptyMessage: {
-    fontSize: 10,
+    fontSize: 8,
     color: '#9CA3AF',
     fontStyle: 'italic',
     textAlign: 'center',
-    marginTop: 20,
+    marginTop: 10,
   },
   footer: {
     position: 'absolute',
-    bottom: 30,
-    left: 30,
-    right: 30,
+    bottom: 20,
+    left: 20,
+    right: 20,
     textAlign: 'center',
     color: '#6B7280',
-    fontSize: 8,
+    fontSize: 7,
     borderTop: 1,
     borderTopColor: '#E5E7EB',
-    paddingTop: 10,
+    paddingTop: 8,
   },
 });
 
@@ -151,7 +151,7 @@ export function CalendarPDF({ weekStart, plannings, logoUrl }: CalendarPDFProps)
         <View style={styles.header}>
           {logoUrl && <Image src={logoUrl} style={styles.logo} />}
           <View style={styles.headerText}>
-            <Text style={styles.title}>MEFEN Weekplanning</Text>
+            <Text style={styles.title}>MEFEN Planning</Text>
             <Text style={styles.weekInfo}>
               Week van {format(weekStart, 'd MMMM yyyy', { locale: nl })}
             </Text>

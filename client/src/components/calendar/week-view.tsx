@@ -158,12 +158,12 @@ export function WeekView({ checkedOutMaterials }: WeekViewProps) {
   return (
     <div className="space-y-6">
       {/* Header sectie */}
-      <div className="flex flex-col items-center bg-white p-4 rounded-xl shadow-sm border">
-        <h2 className="text-lg sm:text-xl font-semibold text-[#D9A347] mb-4">
+      <div className="flex justify-between items-center bg-white p-4 rounded-xl shadow-sm border">
+        <h2 className="text-lg sm:text-xl font-semibold text-[#D9A347]">
           Week van {format(weekStart, "d MMMM yyyy", { locale: nl })}
         </h2>
 
-        <div className="flex flex-col sm:flex-row items-center gap-4">
+        <div className="flex items-center gap-4">
           <div className="flex items-center justify-center gap-2">
             <Button
               variant="outline"
@@ -191,39 +191,37 @@ export function WeekView({ checkedOutMaterials }: WeekViewProps) {
             </Button>
           </div>
 
-          <div className="flex items-center gap-2">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="sm" className="h-9">
-                  <Share2 className="h-4 w-4 mr-2" />
-                  Delen
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <PDFDownloadLink
-                  document={
-                    <CalendarPDF
-                      weekStart={weekStart}
-                      plannings={getPlanningsForPDF()}
-                      logoUrl={`${window.location.origin}/static/Naamloos.png`}
-                    />
-                  }
-                  fileName={`weekplanning-${format(weekStart, 'yyyy-MM-dd')}.pdf`}
-                >
-                  {({ loading }) => (
-                    <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-                      <Download className="h-4 w-4 mr-2" />
-                      {loading ? "PDF wordt gemaakt..." : "Download PDF"}
-                    </DropdownMenuItem>
-                  )}
-                </PDFDownloadLink>
-                <DropdownMenuItem onClick={publishSchedule}>
-                  <Share2 className="h-4 w-4 mr-2" />
-                  Publiceren
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="sm" className="h-9">
+                <Share2 className="h-4 w-4 mr-2" />
+                Delen
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <PDFDownloadLink
+                document={
+                  <CalendarPDF
+                    weekStart={weekStart}
+                    plannings={getPlanningsForPDF()}
+                    logoUrl={`${window.location.origin}/static/Naamloos.png`}
+                  />
+                }
+                fileName={`weekplanning-${format(weekStart, 'yyyy-MM-dd')}.pdf`}
+              >
+                {({ loading }) => (
+                  <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                    <Download className="h-4 w-4 mr-2" />
+                    {loading ? "PDF wordt gemaakt..." : "Download PDF"}
+                  </DropdownMenuItem>
+                )}
+              </PDFDownloadLink>
+              <DropdownMenuItem onClick={publishSchedule}>
+                <Share2 className="h-4 w-4 mr-2" />
+                Publiceren
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
 
