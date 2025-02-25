@@ -35,12 +35,9 @@ import { ref, push, remove, update, onValue } from "firebase/database";
 import {
   CalendarIcon,
   Calendar as CalendarDaysIcon,
-  ChevronDown,
   Building,
   Search,
   Users2,
-  UserCheck,
-  House,
   Edit2,
   Trash2,
   Plus,
@@ -59,6 +56,7 @@ import { Switch } from "@/components/ui/switch";
 import { MultiSelect } from "@/components/ui/multi-select";
 import { Label } from "@/components/ui/label";
 
+// Schema and types remain unchanged
 const planningSchema = z.object({
   volunteerId: z.string().min(1, "Vrijwilliger is verplicht").optional(),
   roomId: z.string().min(1, "Ruimte is verplicht").optional(),
@@ -85,186 +83,9 @@ const planningSchema = z.object({
 
 type Planning = z.infer<typeof planningSchema> & { id: string };
 
-export default function Planning() {
-  const [plannings, setPlannings] = useState<Planning[]>([]);
-  const [volunteers, setVolunteers] = useState<{ id: string; firstName: string; lastName: string; }[]>([]);
-  const [rooms, setRooms] = useState<{ id: string; name: string; }[]>([]);
-  const [editingPlanning, setEditingPlanning] = useState<Planning | null>(null);
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const [deletePlanningId, setDeletePlanningId] = useState<string | null>(null);
-  const [searchActive, setSearchActive] = useState("");
-  const [searchUpcoming, setSearchUpcoming] = useState("");
-  const { isAdmin } = useRole();
-  const { toast } = useToast();
-
-  const form = useForm<z.infer<typeof planningSchema>>({
-    resolver: zodResolver(planningSchema),
-    defaultValues: {
-      isBulkPlanning: false,
-      selectedVolunteers: [],
-      selectedRooms: [],
-    }
-  });
-
-  useEffect(() => {
-    const volunteersRef = ref(db, "volunteers");
-    onValue(volunteersRef, (snapshot) => {
-      const data = snapshot.val();
-      const volunteersList = data ? Object.entries(data).map(([id, volunteer]) => ({
-        id,
-        ...(volunteer as Omit<{ firstName: string; lastName: string; }, "id">),
-      })) : [];
-      setVolunteers(volunteersList);
-    });
-
-    const roomsRef = ref(db, "rooms");
-    onValue(roomsRef, (snapshot) => {
-      const data = snapshot.val();
-      const roomsList = data ? Object.entries(data).map(([id, room]) => ({
-        id,
-        ...(room as Omit<{ name: string; }, "id">),
-      })) : [];
-      setRooms(roomsList);
-    });
-
-    const planningsRef = ref(db, "plannings");
-    onValue(planningsRef, (snapshot) => {
-      const data = snapshot.val();
-      const planningsList = data ? Object.entries(data).map(([id, planning]) => ({
-        id,
-        ...(planning as Omit<Planning, "id">),
-      })) : [];
-      setPlannings(planningsList);
-    });
-  }, []);
-
-  const onSubmit = async (data: z.infer<typeof planningSchema>) => {
-    try {
-      if (data.isBulkPlanning) {
-        const volunteers = data.selectedVolunteers || [];
-        const rooms = data.selectedRooms || [];
-
-        for (const volunteerId of volunteers) {
-          for (const roomId of rooms) {
-            await push(ref(db, "plannings"), {
-              volunteerId,
-              roomId,
-              startDate: data.startDate,
-              endDate: data.endDate,
-            });
-          }
-        }
-
-        toast({
-          title: "Succes",
-          description: `${volunteers.length * rooms.length} planningen succesvol toegevoegd`,
-        });
-      } else {
-        if (editingPlanning) {
-          await update(ref(db, `plannings/${editingPlanning.id}`), data);
-          toast({
-            title: "Succes",
-            description: "Planning succesvol bijgewerkt",
-          });
-        } else {
-          await push(ref(db, "plannings"), data);
-          toast({
-            title: "Succes",
-            description: "Planning succesvol toegevoegd",
-          });
-        }
-      }
-
-      form.reset();
-      setEditingPlanning(null);
-      setDialogOpen(false);
-    } catch (error) {
-      toast({
-        variant: "destructive",
-        title: "Fout",
-        description: "Kon planning niet opslaan",
-      });
-    }
-  };
-
-  const handleEdit = (planning: Planning) => {
-    setEditingPlanning(planning);
-    form.reset({
-      volunteerId: planning.volunteerId,
-      roomId: planning.roomId,
-      startDate: planning.startDate,
-      endDate: planning.endDate,
-      isBulkPlanning: false,
-      selectedVolunteers: [],
-      selectedRooms: [],
-    });
-    setDialogOpen(true);
-  };
-
-  const handleDelete = async (id: string) => {
-    try {
-      await remove(ref(db, `plannings/${id}`));
-      toast({
-        title: "Succes",
-        description: "Planning succesvol verwijderd",
-      });
-      setDeletePlanningId(null);
-    } catch (error) {
-      toast({
-        variant: "destructive",
-        title: "Fout",
-        description: "Kon planning niet verwijderen",
-      });
-    }
-  };
-
-  const totalScheduledVolunteers = plannings.length;
-  const uniqueVolunteersScheduled = new Set(plannings.map(p => p.volunteerId)).size;
-  const uniqueRoomsScheduled = new Set(plannings.map(p => p.roomId)).size;
-
-  const { activePlannings, upcomingPlannings, pastPlannings } = plannings.reduce<{
-    activePlannings: Planning[];
-    upcomingPlannings: Planning[];
-    pastPlannings: Planning[];
-  }>((acc, planning) => {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const startDate = new Date(planning.startDate);
-    startDate.setHours(0, 0, 0, 0);
-    const endDate = new Date(planning.endDate);
-    endDate.setHours(0, 0, 0, 0);
-
-    if (format(today, 'yyyy-MM-dd') === format(startDate, 'yyyy-MM-dd')) {
-      acc.activePlannings.push(planning);
-    } else if (startDate > today) {
-      acc.upcomingPlannings.push(planning);
-    } else {
-      acc.pastPlannings.push(planning);
-    }
-    return acc;
-  }, { activePlannings: [], upcomingPlannings: [], pastPlannings: [] });
-
-  const filterPlannings = (planningsList: Planning[], searchTerm: string): Planning[] => {
-    if (!searchTerm.trim()) return planningsList;
-
-    const term = searchTerm.toLowerCase();
-    return planningsList.filter(planning => {
-      const volunteer = volunteers.find(v => v.id === planning.volunteerId);
-      const room = rooms.find(r => r.id === planning.roomId);
-
-      const volunteerName = volunteer
-        ? `${volunteer.firstName} ${volunteer.lastName}`.toLowerCase()
-        : '';
-      const roomName = room?.name.toLowerCase() || '';
-
-      return volunteerName.includes(term) || roomName.includes(term);
-    });
-  };
-
-  const filteredActivePlannings = filterPlannings(activePlannings, searchActive);
-  const filteredUpcomingPlannings = filterPlannings(upcomingPlannings, searchUpcoming);
-
-  const PlanningTable = ({ plannings, emptyMessage }: { plannings: Planning[]; emptyMessage: string }) => (
+// PlanningTable component
+const PlanningTable = ({ plannings, emptyMessage }: { plannings: Planning[]; emptyMessage: string }) => {
+  return (
     <div className="rounded-lg border bg-card">
       <Table>
         <TableHeader>
@@ -334,6 +155,7 @@ export default function Planning() {
   );
 };
 
+// PlanningForm component
 const PlanningForm = ({ form, onSubmit, editingPlanning, volunteers, rooms }: {
   form: ReturnType<typeof useForm<z.infer<typeof planningSchema>>>;
   onSubmit: (data: z.infer<typeof planningSchema>) => Promise<void>;
@@ -605,6 +427,186 @@ const PlanningForm = ({ form, onSubmit, editingPlanning, volunteers, rooms }: {
     </FormComponent>
   );
 };
+
+// Main Planning component
+export default function Planning() {
+  const [plannings, setPlannings] = useState<Planning[]>([]);
+  const [volunteers, setVolunteers] = useState<{ id: string; firstName: string; lastName: string; }[]>([]);
+  const [rooms, setRooms] = useState<{ id: string; name: string; }[]>([]);
+  const [editingPlanning, setEditingPlanning] = useState<Planning | null>(null);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [deletePlanningId, setDeletePlanningId] = useState<string | null>(null);
+  const [searchActive, setSearchActive] = useState("");
+  const [searchUpcoming, setSearchUpcoming] = useState("");
+  const { isAdmin } = useRole();
+  const { toast } = useToast();
+
+  const form = useForm<z.infer<typeof planningSchema>>({
+    resolver: zodResolver(planningSchema),
+    defaultValues: {
+      isBulkPlanning: false,
+      selectedVolunteers: [],
+      selectedRooms: [],
+    }
+  });
+
+  useEffect(() => {
+    const volunteersRef = ref(db, "volunteers");
+    onValue(volunteersRef, (snapshot) => {
+      const data = snapshot.val();
+      const volunteersList = data ? Object.entries(data).map(([id, volunteer]: [string, any]) => ({
+        id,
+        ...volunteer
+      })) : [];
+      setVolunteers(volunteersList);
+    });
+
+    const roomsRef = ref(db, "rooms");
+    onValue(roomsRef, (snapshot) => {
+      const data = snapshot.val();
+      const roomsList = data ? Object.entries(data).map(([id, room]: [string, any]) => ({
+        id,
+        ...room
+      })) : [];
+      setRooms(roomsList);
+    });
+
+    const planningsRef = ref(db, "plannings");
+    onValue(planningsRef, (snapshot) => {
+      const data = snapshot.val();
+      const planningsList = data ? Object.entries(data).map(([id, planning]: [string, any]) => ({
+        id,
+        ...planning
+      })) : [];
+      setPlannings(planningsList);
+    });
+  }, []);
+
+  const onSubmit = async (data: z.infer<typeof planningSchema>) => {
+    try {
+      if (data.isBulkPlanning) {
+        const volunteers = data.selectedVolunteers || [];
+        const rooms = data.selectedRooms || [];
+
+        for (const volunteerId of volunteers) {
+          for (const roomId of rooms) {
+            await push(ref(db, "plannings"), {
+              volunteerId,
+              roomId,
+              startDate: data.startDate,
+              endDate: data.endDate,
+            });
+          }
+        }
+
+        toast({
+          title: "Succes",
+          description: `${volunteers.length * rooms.length} planningen succesvol toegevoegd`,
+        });
+      } else {
+        if (editingPlanning) {
+          await update(ref(db, `plannings/${editingPlanning.id}`), data);
+          toast({
+            title: "Succes",
+            description: "Planning succesvol bijgewerkt",
+          });
+        } else {
+          await push(ref(db, "plannings"), data);
+          toast({
+            title: "Succes",
+            description: "Planning succesvol toegevoegd",
+          });
+        }
+      }
+
+      form.reset();
+      setEditingPlanning(null);
+      setDialogOpen(false);
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Fout",
+        description: "Kon planning niet opslaan",
+      });
+    }
+  };
+
+  const handleEdit = (planning: Planning) => {
+    setEditingPlanning(planning);
+    form.reset({
+      volunteerId: planning.volunteerId,
+      roomId: planning.roomId,
+      startDate: planning.startDate,
+      endDate: planning.endDate,
+      isBulkPlanning: false,
+      selectedVolunteers: [],
+      selectedRooms: [],
+    });
+    setDialogOpen(true);
+  };
+
+  const handleDelete = async (id: string) => {
+    try {
+      await remove(ref(db, `plannings/${id}`));
+      toast({
+        title: "Succes",
+        description: "Planning succesvol verwijderd",
+      });
+      setDeletePlanningId(null);
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Fout",
+        description: "Kon planning niet verwijderen",
+      });
+    }
+  };
+
+  const totalScheduledVolunteers = plannings.length;
+  const uniqueVolunteersScheduled = new Set(plannings.map(p => p.volunteerId)).size;
+  const uniqueRoomsScheduled = new Set(plannings.map(p => p.roomId)).size;
+
+  const { activePlannings, upcomingPlannings, pastPlannings } = plannings.reduce<{
+    activePlannings: Planning[];
+    upcomingPlannings: Planning[];
+    pastPlannings: Planning[];
+  }>((acc, planning) => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const startDate = new Date(planning.startDate);
+    startDate.setHours(0, 0, 0, 0);
+    const endDate = new Date(planning.endDate);
+    endDate.setHours(0, 0, 0, 0);
+
+    if (format(today, 'yyyy-MM-dd') === format(startDate, 'yyyy-MM-dd')) {
+      acc.activePlannings.push(planning);
+    } else if (startDate > today) {
+      acc.upcomingPlannings.push(planning);
+    } else {
+      acc.pastPlannings.push(planning);
+    }
+    return acc;
+  }, { activePlannings: [], upcomingPlannings: [], pastPlannings: [] });
+
+  const filterPlannings = (planningsList: Planning[], searchTerm: string): Planning[] => {
+    if (!searchTerm.trim()) return planningsList;
+
+    const term = searchTerm.toLowerCase();
+    return planningsList.filter(planning => {
+      const volunteer = volunteers.find(v => v.id === planning.volunteerId);
+      const room = rooms.find(r => r.id === planning.roomId);
+
+      const volunteerName = volunteer
+        ? `${volunteer.firstName} ${volunteer.lastName}`.toLowerCase()
+        : '';
+      const roomName = room?.name.toLowerCase() || '';
+
+      return volunteerName.includes(term) || roomName.includes(term);
+    });
+  };
+
+  const filteredActivePlannings = filterPlannings(activePlannings, searchActive);
+  const filteredUpcomingPlannings = filterPlannings(upcomingPlannings, searchUpcoming);
 
   return (
     <div className="space-y-6">
