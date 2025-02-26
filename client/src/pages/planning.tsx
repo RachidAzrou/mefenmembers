@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -245,7 +245,7 @@ const PlanningSection = ({ title, icon, defaultOpen, children }: {
             isEditing && "bg-[#963E56]/10"
           )}
         >
-          <Trash2 className="h-4 w-4" /> {/* Changed to Trash2 */}
+          <Trash2 className="h-4 w-4" />
         </Button>
       }
     >
@@ -334,7 +334,7 @@ const Planning = () => {
   const onSubmit = async (data: z.infer<typeof planningSchema>) => {
     try {
       if (editingPlanning) {
-        await push(ref(db, `plannings/`), { // Changed to push for update
+        await push(ref(db, `plannings/`), { 
           volunteerId: data.volunteerId,
           roomId: data.roomId,
           startDate: data.startDate,
@@ -395,8 +395,8 @@ const Planning = () => {
   return (
     <div className="space-y-6 p-6">
       <div className="flex items-center gap-3">
-        <Calendar className="h-8 w-8 text-[#963E56]" /> {/* Changed color */}
-        <h1 className="text-3xl font-bold text-[#963E56]">Planning</h1> {/* Changed color */}
+        <Calendar className="h-8 w-8 text-[#963E56]" /> 
+        <h1 className="text-3xl font-bold text-[#963E56]">Planning</h1> 
       </div>
 
       <CollapsibleSection
