@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Calendar, Search, X, Clock } from "lucide-react";
+import { Calendar, Search, X, Clock, Plus, Trash2 } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { nl } from "date-fns/locale";
 import { Card, CardContent } from "@/components/ui/card";
@@ -19,6 +19,15 @@ import { cn } from "@/lib/utils";
 import React from 'react';
 import { db } from "@/lib/firebase";
 import { ref, remove, onValue } from "firebase/database";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { DeletePlanningDialog } from "@/components/planning/delete-planning-dialog";
 
 interface Planning {
   id: string;
@@ -152,6 +161,8 @@ const Planning = () => {
   const [searchActive, setSearchActive] = useState("");
   const [searchUpcoming, setSearchUpcoming] = useState("");
   const [searchPast, setSearchPast] = useState("");
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const { isAdmin } = useRole();
 
   useEffect(() => {
@@ -242,6 +253,76 @@ const Planning = () => {
           <Calendar className="h-8 w-8 text-primary" />
           <h1 className="text-3xl font-bold text-primary">Planning</h1>
         </div>
+        {isAdmin && (
+          <div className="flex gap-3">
+            <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+              <DialogTrigger asChild>
+                <Button
+                  variant="destructive"
+                  className="gap-2 bg-[#963E56] hover:bg-[#963E56]/90"
+                >
+                  <Trash2 className="h-4 w-4" />
+                  Planning verwijderen
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Planning verwijderen</DialogTitle>
+                </DialogHeader>
+                <DeletePlanningDialog
+                  volunteers={volunteers}
+                  rooms={rooms}
+                  onDelete={async (data) => {
+                    const { startDate, endDate, selectedVolunteers, selectedRooms } = data;
+                    const planningsToDelete = plannings.filter(planning => {
+                      const planningStart = new Date(planning.startDate);
+                      const planningEnd = new Date(planning.endDate);
+                      const start = new Date(startDate);
+                      const end = new Date(endDate);
+
+                      // Check if planning falls within the selected date range
+                      const inDateRange = planningStart >= start && planningEnd <= end;
+
+                      // Check if planning matches selected volunteers (if any)
+                      const matchesVolunteer = selectedVolunteers.length === 0 || 
+                        selectedVolunteers.includes(planning.volunteerId);
+
+                      // Check if planning matches selected rooms (if any)
+                      const matchesRoom = selectedRooms.length === 0 || 
+                        selectedRooms.includes(planning.roomId);
+
+                      return inDateRange && matchesVolunteer && matchesRoom;
+                    });
+
+                    // Delete all matching plannings
+                    await Promise.all(
+                      planningsToDelete.map(planning => 
+                        remove(ref(db, `plannings/${planning.id}`))
+                      )
+                    );
+                    setDeleteDialogOpen(false);
+                  }}
+                  onClose={() => setDeleteDialogOpen(false)}
+                />
+              </DialogContent>
+            </Dialog>
+
+            <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+              <DialogTrigger asChild>
+                <Button className="gap-2 bg-[#6BB85C] hover:bg-[#6BB85C]/90">
+                  <Plus className="h-4 w-4" />
+                  Inplannen
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Nieuwe Planning</DialogTitle>
+                </DialogHeader>
+                {/* Add planning dialog content here */}
+              </DialogContent>
+            </Dialog>
+          </div>
+        )}
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
