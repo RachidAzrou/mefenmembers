@@ -409,7 +409,7 @@ const PlanningForm = ({ form, onSubmit, editingPlanning, volunteers, rooms }: {
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent position="popper" sideOffset={4}>
-                      <div 
+                      <div
                         style={{
                           height: '300px',
                           overflowY: 'auto',
@@ -1033,19 +1033,21 @@ const Planning = () => {
 
       <div className="flex justify-end mt-6 mb-6">
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-          <DialogTrigger asChild>
-            <Button className="bg-[#6BB85C] hover:bg-[#6BB85C]/90">
-              <Plus className="h-4 w-4 mr-2" />
-              Nieuwe Planning
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>
+          <DialogContent className="sm:max-w-[600px] p-0">
+            <DialogHeader className="p-6 pb-4 bg-accent/5">
+              <DialogTitle className="text-2xl font-semibold text-primary">
                 {editingPlanning ? "Planning Bewerken" : "Nieuwe Planning"}
               </DialogTitle>
             </DialogHeader>
-            <PlanningForm form={form} onSubmit={onSubmit} editingPlanning={editingPlanning} volunteers={volunteers} rooms={rooms} />
+            <div className="p-6 pt-4">
+              <PlanningForm
+                form={form}
+                onSubmit={onSubmit}
+                editingPlanning={editingPlanning}
+                volunteers={volunteers}
+                rooms={rooms}
+              />
+            </div>
           </DialogContent>
         </Dialog>
       </div>
