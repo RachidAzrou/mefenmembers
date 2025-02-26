@@ -9,7 +9,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
-import { Calendar, Search, Pen, Trash2, Plus } from "lucide-react";
+import { Calendar, Search, Pen, Trash2, Plus, Settings2 } from "lucide-react";
 import { format, parseISO, isWithinInterval } from "date-fns";
 import { nl } from "date-fns/locale";
 import { Card, CardContent } from "@/components/ui/card";
@@ -85,7 +85,7 @@ const PlanningTable = ({
       const room = rooms.find(r => r.id === planning.roomId);
       const volunteerName = volunteer ? `${volunteer.firstName} ${volunteer.lastName}`.toLowerCase() : '';
       const roomName = room ? room.name.toLowerCase() : '';
-      return volunteerName.includes(searchValue.toLowerCase()) || 
+      return volunteerName.includes(searchValue.toLowerCase()) ||
              roomName.includes(searchValue.toLowerCase());
     })();
 
@@ -247,8 +247,8 @@ const PlanningSection = ({ title, icon, defaultOpen, children }: {
               setIsEditing(!isEditing);
             }}
             className={cn(
-              "h-8 w-8",
-              isEditing && "text-primary bg-primary/10"
+              "h-8 w-8 text-[#6BB85C]",
+              isEditing && "bg-[#6BB85C]/10"
             )}
           >
             <Settings2 className="h-4 w-4" />
@@ -463,9 +463,9 @@ const Planning = () => {
                   Inplannen
                 </Button>
               </DialogTrigger>
-              <DialogContent className="max-w-[500px] p-6">
-                <DialogHeader className="mb-6">
-                  <DialogTitle className="text-2xl font-bold">
+              <DialogContent className="max-w-[450px] p-6">
+                <DialogHeader className="mb-4">
+                  <DialogTitle className="text-xl font-semibold text-[#963E56]">
                     {editingPlanning ? "Planning Bewerken" : "Planning"}
                   </DialogTitle>
                 </DialogHeader>
