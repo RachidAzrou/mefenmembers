@@ -48,6 +48,7 @@ import {
   ChevronsUpDown,
   Check,
   Loader2,
+  X,
 } from "lucide-react";
 import { Form as FormComponent, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -60,7 +61,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
 import { Switch } from "@/components/ui/switch";
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "@/components/ui/command";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { Label } from "@/components/ui/label";
 import React from 'react';
 import { Separator } from "@/components/ui/separator";
@@ -692,7 +693,7 @@ const PlanningSection = ({ title, icon, defaultOpen, children }: {
   const [isEditing, setIsEditing] = useState(false);
 
   return (
-    <div className="relative">
+    <div className="relative isolate">
       <CollapsibleSection
         title={title}
         icon={icon}
@@ -769,6 +770,9 @@ const DeletePlanningDialog = ({
       .toLowerCase()
       .includes(volunteerSearch.toLowerCase())
   );
+
+  const selectedVolunteers = form.watch("selectedVolunteers");
+  const selectedRooms = form.watch("selectedRooms");
 
   const handleDelete = async () => {
     try {
@@ -886,6 +890,35 @@ const DeletePlanningDialog = ({
                         </div>
                       </PopoverContent>
                     </Popover>
+                    {selectedVolunteers.length > 0 && (
+                      <div className="mt-2 flex flex-wrap gap-2">
+                        {selectedVolunteers.map(id => {
+                          const volunteer = volunteers.find(v => v.id === id);
+                          return (
+                            <div
+                              key={id}
+                              className="bg-primary/10 text-primary text-sm rounded-full px-3 py-1 flex items-center gap-2"
+                            >
+                              <span>{volunteer?.firstName} {volunteer?.lastName}</span>
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="icon"
+                                className="h-4 w-4 p-0 hover:bg-transparent"
+                                onClick={() => {
+                                  form.setValue(
+                                    "selectedVolunteers",
+                                    selectedVolunteers.filter(v => v !== id)
+                                  );
+                                }}
+                              >
+                                <X className="h-3 w-3" />
+                              </Button>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
                     <FormMessage />
                   </FormItem>
                 )}
@@ -913,8 +946,7 @@ const DeletePlanningDialog = ({
                               <span>Kies een datum</span>
                             )}
                             <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                          </Button>
-                        </FormControl>
+                          </Button>                        </FormControl>
                       </PopoverTrigger>
                       <PopoverContent className="w-auto p-0" align="start">
                         <Calendar
@@ -922,8 +954,7 @@ const DeletePlanningDialog = ({
                           selected={field.value ? parseISO(field.value) : undefined}
                           onSelect={(date) => {
                             if (date) {
-                              const formattedDate = format(date, 'yyyy-MM-dd');
-                              field.onChange(formattedDate);
+                              field.onChange(format(date, 'yyyy-MM-dd'));
                             }
                           }}
                           initialFocus
@@ -948,12 +979,12 @@ const DeletePlanningDialog = ({
                           <Button
                             variant={"outline"}
                             className={cn(
-                              "w-full justify-start textleft font-normal",
+                              "w-full justify-start text-left font-normal",
                               !field.value && "text-muted-foreground"
                             )}
                           >
                             {field.value ? (
-                              format(parseISO(field.value), "EEEE dMMMM yyyy", { locale: nl })
+                              format(parseISO(field.value), "EEEE d MMMM yyyy", { locale: nl })
                             ) : (
                               <span>Kies een datum</span>
                             )}
@@ -1004,37 +1035,63 @@ const DeletePlanningDialog = ({
                         {field.value.length === 0 ? "Alle ruimtes geselecteerd" : "Selecteer alle ruimtes"}
                       </Button>
                     </div>
-                    <Select
-                      multiple
-                      value={field.value}
-                      onValueChange={field.onChange}
-                    >
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Selecteer ruimtes">
-                            {field.value.length === 0
-                              ? "Alle ruimtes"
-                              : `${field.value.length} ruimte(s) geselecteerd`}
-                          </SelectValue>
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <div
-                          className="overflow-y-auto overscroll-contain"
-                          style={{
-                            height: '200px',
-                            scrollbarWidth: 'thin',
-                            scrollbarColor: 'rgb(203 213 225) transparent'
-                          }}
-                        >
+                    <Command className="rounded-lg border shadow-md">
+                      <CommandInput placeholder="Zoek ruimtes..." />
+                      <CommandList>
+                        <CommandEmpty>Geen ruimtes gevonden.</CommandEmpty>
+                        <CommandGroup>
                           {rooms.map((room) => (
-                            <SelectItem key={room.id} value={room.id}>
+                            <CommandItem
+                              key={room.id}
+                              onSelect={() => {
+                                const currentSelected = field.value || [];
+                                const newSelected = currentSelected.includes(room.id)
+                                  ? currentSelected.filter(id => id !== room.id)
+                                  : [...currentSelected, room.id];
+                                field.onChange(newSelected);
+                              }}
+                            >
+                              <Check
+                                className={cn(
+                                  "mr-2 h-4 w-4",
+                                  (field.value || []).includes(room.id) ? "opacity-100" : "opacity-0"
+                                )}
+                              />
                               {room.name}
-                            </SelectItem>
+                            </CommandItem>
                           ))}
-                        </div>
-                      </SelectContent>
-                    </Select>
+                        </CommandGroup>
+                      </CommandList>
+                    </Command>
+                    {selectedRooms.length > 0 && (
+                      <div className="mt-2 flex flex-wrap gap-2">
+                        {selectedRooms.map(id => {
+                          const room = rooms.find(r => r.id === id);
+                          return (
+                            <div
+                              key={id}
+                              className="bg-primary/10 text-primary text-sm rounded-full px-3 py-1 flex items-center gap-2"
+                            >
+                              <span>{room?.name}</span>
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="icon"
+                                className="h-4 w-4 p-0 hover:bg-transparent"
+                                onClick={() => {
+                                  form.setValue(
+                                    "selectedRooms",
+                                    selectedRooms.filter(r => r !== id)
+                                  );
+                                }}
+                              >
+                                <X className="h-3 w-3" />
+                              </Button>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
                     <FormMessage />
                   </FormItem>
                 )}
