@@ -9,16 +9,15 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
-import { Calendar, Search, Trash2, Plus, Settings2 } from "lucide-react";
+import { Calendar, Search, Trash2, Plus } from "lucide-react";
 import { format, parseISO, isWithinInterval } from "date-fns";
 import { nl } from "date-fns/locale";
 import { Card, CardContent } from "@/components/ui/card";
 import { CollapsibleSection } from "@/components/ui/collapsible-section";
 import { useRole } from "@/hooks/use-role";
 import { cn } from "@/lib/utils";
-import React from 'react';
 import { db } from "@/lib/firebase";
-import { ref, onValue, remove, update, push } from "firebase/database";
+import { ref, onValue, remove, push } from "firebase/database";
 import {
   Dialog,
   DialogContent,
@@ -55,7 +54,6 @@ const PlanningTable = ({
   emptyMessage,
   volunteers,
   rooms,
-  onEdit,
   onDelete,
   searchValue,
   onSearchChange,
@@ -65,7 +63,6 @@ const PlanningTable = ({
   emptyMessage: string;
   volunteers: { id: string; firstName: string; lastName: string; }[];
   rooms: { id: string; name: string; }[];
-  onEdit: (planning: Planning) => void;
   onDelete: (id: string) => void;
   searchValue: string;
   onSearchChange: (value: string) => void;
@@ -94,6 +91,12 @@ const PlanningTable = ({
     return matchesSearch && matchesDate;
   });
 
+  const sortedPlannings = [...filteredPlannings].sort((a, b) => {
+    const dateA = parseISO(a.startDate);
+    const dateB = parseISO(b.startDate);
+    return dateA.getTime() - dateB.getTime();
+  });
+
   const stopPropagation = (e: React.MouseEvent) => {
     e.stopPropagation();
   };
@@ -101,7 +104,7 @@ const PlanningTable = ({
   return (
     <div className="space-y-4" onClick={stopPropagation}>
       {showActions && (
-        <div className="flex gap-4">
+        <div className="flex flex-col sm:flex-row gap-4">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
             <Input
@@ -113,7 +116,7 @@ const PlanningTable = ({
           </div>
           <Popover>
             <PopoverTrigger asChild>
-              <Button variant="outline" className="gap-2">
+              <Button variant="outline" className="gap-2 whitespace-nowrap">
                 <Calendar className="h-4 w-4" />
                 {dateFilter ? format(dateFilter, 'd MMM yyyy', { locale: nl }) : 'Filter op datum'}
               </Button>
@@ -141,7 +144,7 @@ const PlanningTable = ({
         </div>
       )}
 
-      <div className="rounded-lg border">
+      <div className="rounded-lg border overflow-x-auto">
         <Table>
           <TableHeader>
             <TableRow>
@@ -152,7 +155,7 @@ const PlanningTable = ({
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filteredPlannings.length === 0 ? (
+            {sortedPlannings.length === 0 ? (
               <TableRow>
                 <TableCell
                   colSpan={showActions ? 4 : 3}
@@ -162,7 +165,7 @@ const PlanningTable = ({
                 </TableCell>
               </TableRow>
             ) : (
-              filteredPlannings.map((planning) => {
+              sortedPlannings.map((planning) => {
                 const volunteer = volunteers.find(
                   (v) => v.id === planning.volunteerId
                 );
@@ -201,14 +204,6 @@ const PlanningTable = ({
                           >
                             <Trash2 className="h-4 w-4" />
                           </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => onEdit(planning)}
-                            className="text-[#6BB85C] hover:text-[#6BB85C]/90 hover:bg-[#6BB85C]/10"
-                          >
-                            <Settings2 className="h-4 w-4" />
-                          </Button>
                         </div>
                       </TableCell>
                     )}
@@ -246,11 +241,11 @@ const PlanningSection = ({ title, icon, defaultOpen, children }: {
             setIsEditing(!isEditing);
           }}
           className={cn(
-            "h-8 w-8 text-[#963E56] hover:text-[#963E56]/90",
+            "h-8 w-8 text-[#963E56]",
             isEditing && "bg-[#963E56]/10"
           )}
         >
-          <Settings2 className="h-4 w-4" />
+          <Trash2 className="h-4 w-4" /> {/* Changed to Trash2 */}
         </Button>
       }
     >
@@ -339,7 +334,7 @@ const Planning = () => {
   const onSubmit = async (data: z.infer<typeof planningSchema>) => {
     try {
       if (editingPlanning) {
-        await update(ref(db, `plannings/${editingPlanning.id}`), {
+        await push(ref(db, `plannings/`), { // Changed to push for update
           volunteerId: data.volunteerId,
           roomId: data.roomId,
           startDate: data.startDate,
@@ -400,8 +395,8 @@ const Planning = () => {
   return (
     <div className="space-y-6 p-6">
       <div className="flex items-center gap-3">
-        <Calendar className="h-8 w-8 text-primary" />
-        <h1 className="text-3xl font-bold text-primary">Planning</h1>
+        <Calendar className="h-8 w-8 text-[#963E56]" /> {/* Changed color */}
+        <h1 className="text-3xl font-bold text-[#963E56]">Planning</h1> {/* Changed color */}
       </div>
 
       <CollapsibleSection
@@ -496,7 +491,6 @@ const Planning = () => {
             emptyMessage="Er zijn geen actieve planningen voor vandaag"
             volunteers={volunteers}
             rooms={rooms}
-            onEdit={handleEdit}
             onDelete={handleDelete}
             searchValue={searchActive}
             onSearchChange={setSearchActive}
@@ -514,7 +508,6 @@ const Planning = () => {
             emptyMessage="Geen toekomstige planningen gevonden"
             volunteers={volunteers}
             rooms={rooms}
-            onEdit={handleEdit}
             onDelete={handleDelete}
             searchValue={searchUpcoming}
             onSearchChange={setSearchUpcoming}
@@ -532,7 +525,6 @@ const Planning = () => {
             emptyMessage="Geen afgelopen planningen gevonden"
             volunteers={volunteers}
             rooms={rooms}
-            onEdit={handleEdit}
             onDelete={handleDelete}
             searchValue={searchPast}
             onSearchChange={setSearchPast}

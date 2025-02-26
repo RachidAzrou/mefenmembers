@@ -44,6 +44,7 @@ export function PlanningForm({
   editingPlanning
 }: PlanningFormProps) {
   const [searchTerm, setSearchTerm] = useState("");
+  const [commandOpen, setCommandOpen] = useState({ volunteer: false, room: false });
 
   const filteredVolunteers = volunteers.filter(volunteer =>
     `${volunteer.firstName} ${volunteer.lastName}`
@@ -85,7 +86,11 @@ export function PlanningForm({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Vrijwilligers</FormLabel>
-                  <Command className="rounded-lg border shadow-md">
+                  <Command
+                    className="rounded-lg border shadow-md"
+                    open={commandOpen.volunteer}
+                    onOpenChange={(open) => setCommandOpen(prev => ({ ...prev, volunteer: open }))}
+                  >
                     <CommandInput
                       placeholder="Zoek vrijwilligers..."
                       value={searchTerm}
@@ -102,6 +107,7 @@ export function PlanningForm({
                               ? current.filter(id => id !== volunteer.id)
                               : [...current, volunteer.id];
                             field.onChange(updated);
+                            setCommandOpen(prev => ({ ...prev, volunteer: false }));
                           }}
                         >
                           <Check
@@ -155,7 +161,11 @@ export function PlanningForm({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Ruimtes</FormLabel>
-                  <Command className="rounded-lg border shadow-md">
+                  <Command 
+                    className="rounded-lg border shadow-md"
+                    open={commandOpen.room}
+                    onOpenChange={(open) => setCommandOpen(prev => ({ ...prev, room: open }))}
+                  >
                     <CommandInput placeholder="Zoek ruimtes..." />
                     <CommandEmpty>Geen ruimtes gevonden.</CommandEmpty>
                     <CommandGroup className="max-h-[150px] overflow-auto">
@@ -168,6 +178,7 @@ export function PlanningForm({
                               ? current.filter(id => id !== room.id)
                               : [...current, room.id];
                             field.onChange(updated);
+                            setCommandOpen(prev => ({ ...prev, room: false }));
                           }}
                         >
                           <Check
@@ -223,7 +234,11 @@ export function PlanningForm({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Vrijwilliger</FormLabel>
-                  <Command className="rounded-lg border shadow-md">
+                  <Command
+                    className="rounded-lg border shadow-md"
+                    open={commandOpen.volunteer}
+                    onOpenChange={(open) => setCommandOpen(prev => ({ ...prev, volunteer: open }))}
+                  >
                     <CommandInput
                       placeholder="Zoek vrijwilliger..."
                       value={searchTerm}
@@ -234,7 +249,10 @@ export function PlanningForm({
                       {filteredVolunteers.map((volunteer) => (
                         <CommandItem
                           key={volunteer.id}
-                          onSelect={() => field.onChange(volunteer.id)}
+                          onSelect={() => {
+                            field.onChange(volunteer.id);
+                            setCommandOpen(prev => ({ ...prev, volunteer: false }));
+                          }}
                         >
                           <Check
                             className={cn(
@@ -258,14 +276,21 @@ export function PlanningForm({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Ruimte</FormLabel>
-                  <Command className="rounded-lg border shadow-md">
+                  <Command
+                    className="rounded-lg border shadow-md"
+                    open={commandOpen.room}
+                    onOpenChange={(open) => setCommandOpen(prev => ({ ...prev, room: open }))}
+                  >
                     <CommandInput placeholder="Zoek ruimtes..." />
                     <CommandEmpty>Geen ruimtes gevonden.</CommandEmpty>
                     <CommandGroup className="max-h-[150px] overflow-auto">
                       {rooms.map((room) => (
                         <CommandItem
                           key={room.id}
-                          onSelect={() => field.onChange(room.id)}
+                          onSelect={() => {
+                            field.onChange(room.id);
+                            setCommandOpen(prev => ({ ...prev, room: false }));
+                          }}
                         >
                           <Check
                             className={cn(
@@ -285,7 +310,7 @@ export function PlanningForm({
           </>
         )}
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <FormField
             control={form.control}
             name="startDate"
