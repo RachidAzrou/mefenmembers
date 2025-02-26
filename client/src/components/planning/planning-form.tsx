@@ -71,7 +71,7 @@ export function PlanningForm({
                 form.setValue("volunteerId", undefined);
                 form.setValue("roomId", undefined);
               }}
-              className="data-[state=checked]:bg-[#6BB85C]"
+              className="data-[state=checked]:bg-[#963E56]"
             />
             <Label>Bulk Inplannen</Label>
           </div>
@@ -122,7 +122,7 @@ export function PlanningForm({
                         return (
                           <div
                             key={id}
-                            className="bg-[#6BB85C]/10 text-[#6BB85C] text-sm rounded-full px-3 py-1 flex items-center gap-2"
+                            className="bg-[#963E56]/10 text-[#963E56] text-sm rounded-full px-3 py-1 flex items-center gap-2"
                           >
                             <span>{volunteer?.firstName} {volunteer?.lastName}</span>
                             <Button
@@ -188,7 +188,7 @@ export function PlanningForm({
                         return (
                           <div
                             key={id}
-                            className="bg-[#6BB85C]/10 text-[#6BB85C] text-sm rounded-full px-3 py-1 flex items-center gap-2"
+                            className="bg-[#963E56]/10 text-[#963E56] text-sm rounded-full px-3 py-1 flex items-center gap-2"
                           >
                             <span>{room?.name}</span>
                             <Button
@@ -393,7 +393,7 @@ export function PlanningForm({
           </Button>
           <Button
             type="submit"
-            className="bg-[#6BB85C] hover:bg-[#6BB85C]/90"
+            className="bg-[#963E56] hover:bg-[#963E56]/90"
           >
             {editingPlanning ? "Planning Bijwerken" : "Planning Opslaan"}
           </Button>

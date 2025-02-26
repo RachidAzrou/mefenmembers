@@ -9,7 +9,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
-import { Calendar, Search, Trash2, Plus } from "lucide-react";
+import { Calendar, Search, Trash2, Plus, Settings2 } from "lucide-react";
 import { format, parseISO, isWithinInterval } from "date-fns";
 import { nl } from "date-fns/locale";
 import { Card, CardContent } from "@/components/ui/card";
@@ -73,10 +73,6 @@ const PlanningTable = ({
 }) => {
   const [dateFilter, setDateFilter] = useState<Date | undefined>();
 
-  const stopPropagation = (e: React.MouseEvent) => {
-    e.stopPropagation();
-  };
-
   const filteredPlannings = plannings.filter(planning => {
     if (!searchValue && !dateFilter) return true;
 
@@ -97,6 +93,10 @@ const PlanningTable = ({
 
     return matchesSearch && matchesDate;
   });
+
+  const stopPropagation = (e: React.MouseEvent) => {
+    e.stopPropagation();
+  };
 
   return (
     <div className="space-y-4" onClick={stopPropagation}>
@@ -201,6 +201,14 @@ const PlanningTable = ({
                           >
                             <Trash2 className="h-4 w-4" />
                           </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => onEdit(planning)}
+                            className="text-[#6BB85C] hover:text-[#6BB85C]/90 hover:bg-[#6BB85C]/10"
+                          >
+                            <Settings2 className="h-4 w-4" />
+                          </Button>
                         </div>
                       </TableCell>
                     )}
@@ -229,6 +237,22 @@ const PlanningSection = ({ title, icon, defaultOpen, children }: {
       icon={icon}
       defaultOpen={defaultOpen}
       titleClassName="text-[#963E56]"
+      action={
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={(e) => {
+            e.stopPropagation();
+            setIsEditing(!isEditing);
+          }}
+          className={cn(
+            "h-8 w-8 text-[#963E56] hover:text-[#963E56]/90",
+            isEditing && "bg-[#963E56]/10"
+          )}
+        >
+          <Settings2 className="h-4 w-4" />
+        </Button>
+      }
     >
       {React.Children.map(children, child => {
         if (React.isValidElement(child)) {
@@ -390,8 +414,8 @@ const Planning = () => {
           <Card>
             <CardContent className="pt-6">
               <div className="flex items-center">
-                <div className="bg-primary/10 rounded-full p-2 mr-3">
-                  <Calendar className="h-5 w-5 text-primary" />
+                <div className="bg-[#963E56]/10 rounded-full p-2 mr-3">
+                  <Calendar className="h-5 w-5 text-[#963E56]" />
                 </div>
                 <div>
                   <div className="text-sm font-medium">Actieve Planningen</div>
@@ -403,8 +427,8 @@ const Planning = () => {
           <Card>
             <CardContent className="pt-6">
               <div className="flex items-center">
-                <div className="bg-primary/10 rounded-full p-2 mr-3">
-                  <Calendar className="h-5 w-5 text-primary" />
+                <div className="bg-[#963E56]/10 rounded-full p-2 mr-3">
+                  <Calendar className="h-5 w-5 text-[#963E56]" />
                 </div>
                 <div>
                   <div className="text-sm font-medium">Toekomstige Planningen</div>
@@ -416,8 +440,8 @@ const Planning = () => {
           <Card>
             <CardContent className="pt-6">
               <div className="flex items-center">
-                <div className="bg-primary/10 rounded-full p-2 mr-3">
-                  <Calendar className="h-5 w-5 text-primary" />
+                <div className="bg-[#963E56]/10 rounded-full p-2 mr-3">
+                  <Calendar className="h-5 w-5 text-[#963E56]" />
                 </div>
                 <div>
                   <div className="text-sm font-medium">Afgelopen Planningen</div>
@@ -432,7 +456,7 @@ const Planning = () => {
           <div className="mt-6 flex justify-end">
             <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
               <DialogTrigger asChild>
-                <Button className="gap-2 bg-[#6BB85C] hover:bg-[#6BB85C]/90">
+                <Button className="gap-2 bg-[#963E56] hover:bg-[#963E56]/90">
                   <Plus className="h-4 w-4" />
                   Inplannen
                 </Button>

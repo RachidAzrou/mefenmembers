@@ -240,10 +240,9 @@ export function WeekView({ checkedOutMaterials }: WeekViewProps) {
               )}
             >
               <CardContent className="p-4">
-                {/* Dag header */}
                 <div className={cn(
                   "text-base font-semibold mb-2",
-                  isToday ? "text-[#D9A347]" : "text-primary"
+                  isToday ? "text-[#D9A347]" : "text-[#963E56]"
                 )}>
                   {format(day, "EEEE", { locale: nl })}
                 </div>
@@ -251,7 +250,6 @@ export function WeekView({ checkedOutMaterials }: WeekViewProps) {
                   {format(day, "d MMMM", { locale: nl })}
                 </div>
 
-                {/* Ruimtes en vrijwilligers */}
                 <div className="space-y-4">
                   {rooms.map(room => {
                     const roomPlannings = planningsByRoom.get(room.id);
@@ -259,7 +257,7 @@ export function WeekView({ checkedOutMaterials }: WeekViewProps) {
 
                     return (
                       <div key={room.id} className="space-y-2">
-                        <div className="font-medium text-sm text-primary/80 border-b pb-1">
+                        <div className="font-medium text-sm text-[#963E56]/80 border-b pb-1">
                           {room.name}
                         </div>
                         <div className="space-y-2 pl-2">
@@ -268,16 +266,13 @@ export function WeekView({ checkedOutMaterials }: WeekViewProps) {
                             return (
                               <div
                                 key={planning.id}
-                                className="text-sm p-2 rounded bg-primary/5 border border-primary/10"
+                                className="text-sm p-2 rounded bg-[#963E56]/5 border border-[#963E56]/10"
                               >
                                 <div className="font-medium">
                                   {volunteer
                                     ? `${volunteer.firstName} ${volunteer.lastName}`
                                     : 'Niet toegewezen'
                                   }
-                                </div>
-                                <div className="text-xs text-muted-foreground mt-1">
-                                  {format(new Date(planning.startDate), "HH:mm")} - {format(new Date(planning.endDate), "HH:mm")}
                                 </div>
                               </div>
                             );
@@ -303,10 +298,10 @@ export function WeekView({ checkedOutMaterials }: WeekViewProps) {
         <Card>
           <CardContent className="pt-6">
             <div className="flex items-center space-x-3">
-              <Package2 className="h-6 w-6 md:h-8 md:w-8 text-primary/80" />
+              <Package2 className="h-6 w-6 md:h-8 md:w-8 text-[#963E56]/80" />
               <div>
                 <p className="text-xs md:text-sm font-medium text-muted-foreground">Uitgeleende Materialen</p>
-                <p className="text-xl md:text-2xl font-bold text-primary">{checkedOutMaterials}</p>
+                <p className="text-xl md:text-2xl font-bold text-[#963E56]">{checkedOutMaterials}</p>
               </div>
             </div>
           </CardContent>
@@ -315,10 +310,10 @@ export function WeekView({ checkedOutMaterials }: WeekViewProps) {
         <Card>
           <CardContent className="pt-6">
             <div className="flex items-center space-x-3">
-              <Users2 className="h-6 w-6 md:h-8 md:w-8 text-primary/80" />
+              <Users2 className="h-6 w-6 md:h-8 md:w-8 text-[#963E56]/80" />
               <div>
                 <p className="text-xs md:text-sm font-medium text-muted-foreground">Totaal Vrijwilligers</p>
-                <p className="text-xl md:text-2xl font-bold text-primary">{totalVolunteers}</p>
+                <p className="text-xl md:text-2xl font-bold text-[#963E56]">{totalVolunteers}</p>
               </div>
             </div>
           </CardContent>
@@ -327,10 +322,10 @@ export function WeekView({ checkedOutMaterials }: WeekViewProps) {
         <Card>
           <CardContent className="pt-6">
             <div className="flex items-center space-x-3">
-              <House className="h-6 w-6 md:h-8 md:w-8 text-primary/80" />
+              <House className="h-6 w-6 md:h-8 md:w-8 text-[#963E56]/80" />
               <div>
                 <p className="text-xs md:text-sm font-medium text-muted-foreground">Totaal Ruimtes</p>
-                <p className="text-xl md:text-2xl font-bold text-primary">{totalRooms}</p>
+                <p className="text-xl md:text-2xl font-bold text-[#963E56]">{totalRooms}</p>
               </div>
             </div>
           </CardContent>
@@ -339,10 +334,10 @@ export function WeekView({ checkedOutMaterials }: WeekViewProps) {
         <Card>
           <CardContent className="pt-6">
             <div className="flex items-center space-x-3">
-              <UserCheck className="h-6 w-6 md:h-8 md:w-8 text-primary/80" />
+              <UserCheck className="h-6 w-6 md:h-8 md:w-8 text-[#963E56]/80" />
               <div>
                 <p className="text-xs md:text-sm font-medium text-muted-foreground">Actieve Vrijwilligers</p>
-                <p className="text-xl md:text-2xl font-bold text-primary">{activeVolunteers}</p>
+                <p className="text-xl md:text-2xl font-bold text-[#963E56]">{activeVolunteers}</p>
               </div>
             </div>
           </CardContent>
