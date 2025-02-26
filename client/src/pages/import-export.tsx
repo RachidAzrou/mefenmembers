@@ -199,7 +199,7 @@ export default function ImportExport() {
             toast({
               title: "Nieuwe Aanmelding",
               description: "Er is een nieuwe vrijwilliger aanmelding binnengekomen.",
-              duration: 3000, // Updated duration
+              duration: 3000,
             });
           }
         }
@@ -374,7 +374,7 @@ export default function ImportExport() {
                   onClick={handleReject}
                   disabled={selectedVolunteers.length === 0}
                   variant="destructive"
-                  className="w-full sm:w-auto sm:flex-1"
+                  className="w-full sm:w-auto sm:flex-1 bg-[#963E56] hover:bg-[#963E56]/90"
                 >
                   <X className="h-4 w-4 mr-2" />
                   Weiger ({selectedVolunteers.length})

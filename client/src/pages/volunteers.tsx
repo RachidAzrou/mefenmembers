@@ -66,7 +66,7 @@ export default function Volunteers() {
   const sortVolunteers = (volunteers: Volunteer[], order: SortOrder) => {
     const [field, direction] = order.split("-");
     return [...volunteers].sort((a, b) => {
-      const compareValue = field === "firstName" 
+      const compareValue = field === "firstName"
         ? a.firstName.localeCompare(b.firstName)
         : a.lastName.localeCompare(b.lastName);
       return direction === "asc" ? compareValue : -compareValue;
@@ -74,7 +74,7 @@ export default function Volunteers() {
   };
 
   const isDuplicateVolunteer = (data: z.infer<typeof volunteerSchema>, excludeId?: string) => {
-    return volunteers.some(v => 
+    return volunteers.some(v =>
       v.firstName.toLowerCase() === data.firstName.toLowerCase() &&
       v.lastName.toLowerCase() === data.lastName.toLowerCase() &&
       v.phoneNumber === data.phoneNumber &&
@@ -226,17 +226,17 @@ export default function Volunteers() {
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-3">
-        <Users className="h-8 w-8 text-primary" />
-        <h1 className="text-3xl font-bold text-primary">Vrijwilligers</h1>
+        <Users className="h-8 w-8 text-[#963E56]" />
+        <h1 className="text-3xl font-bold text-[#963E56]">Vrijwilligers</h1>
       </div>
 
       <Card>
         <CardContent className="pt-6">
           <div className="flex items-center">
-            <Users className="h-8 w-8 text-primary/80" />
+            <Users className="h-8 w-8 text-[#963E56]/80" />
             <div className="ml-4">
               <h3 className="text-sm font-medium text-gray-500">Totaal Aantal Vrijwilligers</h3>
-              <p className="text-2xl font-bold text-primary">{volunteers.length}</p>
+              <p className="text-2xl font-bold text-[#963E56]">{volunteers.length}</p>
             </div>
           </div>
         </CardContent>
@@ -274,7 +274,7 @@ export default function Volunteers() {
         <div className="flex items-center gap-2 w-full sm:w-auto">
           <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
             <DialogTrigger asChild>
-              <Button className="bg-[#6BB85C] hover:bg-[#6BB85C]/90 flex-1 sm:flex-none">
+              <Button className="bg-[#963E56] hover:bg-[#963E56]/90 flex-1 sm:flex-none">
                 <UserPlus className="h-4 w-4 mr-2" />
                 Vrijwilliger Toevoegen
               </Button>
@@ -326,7 +326,7 @@ export default function Volunteers() {
                       </FormItem>
                     )}
                   />
-                  <Button type="submit" className="w-full">
+                  <Button type="submit" className="w-full bg-[#963E56] hover:bg-[#963E56]/90">
                     {editingVolunteer ? "Bijwerken" : "Toevoegen"}
                   </Button>
                 </form>
@@ -340,7 +340,7 @@ export default function Volunteers() {
                   variant="outline"
                   size="icon"
                   onClick={() => setIsEditMode(!isEditMode)}
-                  className={`${isEditMode ? "bg-primary/10 text-primary" : ""}`}
+                  className={`${isEditMode ? "bg-[#963E56]/10 text-[#963E56]" : ""}`}
                 >
                   <Settings2 className="h-5 w-5" />
                 </Button>
@@ -409,7 +409,7 @@ export default function Volunteers() {
                           variant="ghost"
                           size="icon"
                           onClick={() => handleEdit(volunteer)}
-                          className="text-primary hover:text-primary hover:bg-primary/10"
+                          className="text-[#963E56] hover:text-[#963E56] hover:bg-[#963E56]/10"
                         >
                           <Edit2 className="h-4 w-4" />
                         </Button>
@@ -477,7 +477,7 @@ export default function Volunteers() {
           <Button
             variant="destructive"
             onClick={() => setDeleteVolunteerId("bulk")}
-            className="w-full sm:w-auto"
+            className="w-full sm:w-auto bg-[#963E56] hover:bg-[#963E56]/90"
           >
             <Trash2 className="h-4 w-4 mr-2" />
             Verwijderen
