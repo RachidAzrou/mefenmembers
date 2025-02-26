@@ -595,7 +595,6 @@ const PlanningForm = ({ form, onSubmit, editingPlanning, volunteers, rooms }: {
                         const formattedDate = format(date, 'yyyy-MM-dd');
                         field.onChange(formattedDate);
 
-                        // Als de einddatum voor de nieuwe startdatum ligt, reset deze
                         const endDate = form.getValues("endDate");
                         if (endDate && parseISO(endDate) < parseISO(formattedDate)) {
                           form.setValue("endDate", formattedDate);
@@ -715,7 +714,7 @@ const PlanningSection = ({ title, icon, defaultOpen, children }: {
           </Button>
         }
       >
-        <div className="relative">
+        <div className="relative z-10">
           <div className={cn(
             "space-y-4",
             isEditing && "invisible"
@@ -1483,14 +1482,274 @@ const Planning = () => {
 
       <div className="flex justify-end gap-3">
         {isAdmin && (
-          <Button
-            variant="destructive"
-            className="gap-2 bg-[#963E56] hover:bg-[#963E56]/90"
-            onClick={() => setDeleteDialogOpen(true)}
-          >
-            <Trash2 className="h-4 w-4" />
-            Verwijder Planning
-          </Button>
+          <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+            <DialogTrigger asChild>
+              <Button
+                variant="destructive"
+                className="gap-2 bg-[#963E56] hover:bg-[#963E56]/90"
+              >
+                <Trash2 className="h-4 w-4" />
+                Verwijder Planning
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[500px]">
+              <DialogHeader>
+                <DialogTitle className="text-destructive">Verwijder Planning</DialogTitle>
+              </DialogHeader>
+              <FormComponent {...form}>
+                <form className="space-y-4 py-4">
+                  <div className="space-y-4">
+                    <FormField
+                      control={form.control}
+                      name="selectedVolunteers"
+                      render={({ field }) => (
+                        <FormItem>
+                          <div className="flex items-center justify-between">
+                            <FormLabel>Vrijwilligers</FormLabel>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              className="h-auto p-0 text-xs text-muted-foreground hover:text-foreground"
+                              onClick={() => field.onChange(field.value.length > 0 ? [] : volunteers.map(v => v.id))}
+                            >
+                              {field.value.length === 0 ? "Alle vrijwilligers geselecteerd" : "Selecteer alle vrijwilligers"}
+                            </Button>
+                          </div>
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <Button
+                                variant="outline"
+                                role="combobox"
+                                className={cn(
+                                  "w-full justify-between",
+                                  !field.value?.length && "text-muted-foreground"
+                                )}
+                              >
+                                <span className="truncate">
+                                  {field.value?.length === 0
+                                    ? "Alle vrijwilligers"
+                                    : `${field.value?.length} vrijwilliger(s) geselecteerd`}
+                                </span>
+                                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                              </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0" align="start">
+                              <div className="border-b p-2 bg-white">
+                                <input
+                                  className="w-full border-0 bg-transparent text-sm placeholder:text-muted-foreground focus:outline-none"
+                                  placeholder="Zoek vrijwilligers..."
+                                  value={volunteerSearch}
+                                  onChange={(e) => setVolunteerSearch(e.target.value)}
+                                />
+                              </div>
+                              <div
+                                className="overflow-y-auto"
+                                style={{
+                                  height: '300px',
+                                  overflowY: 'auto',
+                                  overscrollBehavior: 'contain'
+                                }}
+                              >
+                                {filteredVolunteers.length === 0 ? (
+                                  <div className="p-6 text-center text-sm text-muted-foreground">
+                                    Geen vrijwilligers gevonden
+                                  </div>
+                                ) : (
+                                  <div className="py-2">
+                                    {filteredVolunteers.map((volunteer) => (
+                                      <div
+                                        key={volunteer.id}
+                                        className={cn(
+                                          "flex items-center px-3 py-2 cursor-pointer hover:bg-accent",
+                                          (field.value || []).includes(volunteer.id) && "bg-accent"
+                                        )}
+                                        onClick={() => {
+                                          const currentSelected = field.value || [];
+                                          const newSelected = currentSelected.includes(volunteer.id)
+                                            ? currentSelected.filter(id => id !== volunteer.id)
+                                            : [...currentSelected, volunteer.id];
+                                          field.onChange(newSelected);
+                                        }}
+                                      >
+                                        <Check
+                                          className={cn(
+                                            "mr-2 h-4 w-4",
+                                            (field.value || []).includes(volunteer.id) ? "opacity-100" : "opacity-0"
+                                          )}
+                                        />
+                                        <span className="text-sm">
+                                          {volunteer.firstName} {volunteer.lastName}
+                                        </span>
+                                      </div>
+                                    ))}
+                                  </div>
+                                )}
+                              </div>
+                            </PopoverContent>
+                          </Popover>
+                          {selectedVolunteers.length > 0 && (
+                            <div className="mt-2 flex flex-wrap gap-2">
+                              {selectedVolunteers.map(id => {
+                                const volunteer = volunteers.find(v => v.id === id);
+                                return (
+                                  <div
+                                    key={id}
+                                    className="bg-primary/10 text-primary text-sm rounded-full px-3 py-1 flex items-center gap-2"
+                                  >
+                                    <span>{volunteer?.firstName} {volunteer?.lastName}</span>
+                                    <Button
+                                      type="button"
+                                      variant="ghost"
+                                      size="icon"
+                                      className="h-4 w-4 p-0 hover:bg-transparent"
+                                      onClick={() => {
+                                        form.setValue(
+                                          "selectedVolunteers",
+                                          selectedVolunteers.filter(v => v !== id)
+                                        );
+                                      }}
+                                    >
+                                      <X className="h-3 w-3" />
+                                    </Button>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          )}
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="startDate"
+                      render={({ field }) => (
+                        <FormItem className="flex flex-col">
+                          <FormLabel>Startdatum</FormLabel>
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <FormControl>
+                                <Button
+                                  variant={"outline"}
+                                  className={cn(
+                                    "w-full justify-start text-left font-normal",
+                                    !field.value && "text-muted-foreground"
+                                  )}
+                                >
+                                  {field.value ? (
+                                    format(parseISO(field.value), "EEEE d MMMM yyyy", { locale: nl })
+                                  ) : (
+                                    <span>Kies een datum</span>
+                                  )}
+                                  <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                </Button>
+                              </FormControl>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0" align="start">
+                              <Calendar
+                                mode="single"
+                                selected={field.value ? parseISO(field.value) : undefined}
+                                onSelect={(date) => {
+                                  if (date) {
+                                    field.onChange(format(date, 'yyyy-MM-dd'));
+                                  }
+                                }}
+                                initialFocus
+                                locale={nl}
+                              />
+                            </PopoverContent>
+                          </Popover>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="endDate"
+                      render={({ field }) => (
+                        <FormItem className="flex flex-col">
+                          <FormLabel>Einddatum</FormLabel>
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <FormControl>
+                                <Button
+                                  variant={"outline"}
+                                  className={cn(
+                                    "w-full justify-start text-left font-normal",
+                                    !field.value && "text-muted-foreground"
+                                  )}
+                                >
+                                  {field.value ? (
+                                    format(parseISO(field.value), "EEEE d MMMM yyyy", { locale: nl })
+                                  ) : (
+                                    <span>Kies een datum</span>
+                                  )}
+                                  <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                </Button>
+                              </FormControl>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0" align="start">
+                              <Calendar
+                                mode="single"
+                                selected={field.value ? parseISO(field.value) : undefined}
+                                onSelect={(date) => {
+                                  if (date) {
+                                    field.onChange(format(date, 'yyyy-MM-dd'));
+                                  }
+                                }}
+                                disabled={(date) => {
+                                  const startDate = form.getValues("startDate");
+                                  if (!startDate) return true;
+                                  const minDate = parseISO(startDate);
+                                  minDate.setHours(0, 0, 0, 0);
+                                  date.setHours(0, 0, 0, 0);
+                                  return date < minDate;
+                                }}
+                                initialFocus
+                                locale={nl}
+                              />
+                            </PopoverContent>
+                          </Popover>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                  </div>
+                  <DialogFooter>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      onClick={() => {
+                        setDeleteDialogOpen(false);
+                        form.reset();
+                      }}
+                    >
+                      Annuleren
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="destructive"
+                      className="bg-[#963E56] hover:bg-[#963E56]/90"
+                      onClick={handleDelete}
+                      disabled={!form.getValues("startDate") || !form.getValues("endDate") || isDeleting}
+                    >
+                      {isDeleting ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Bezig met verwijderen...
+                        </>
+                      ) : (
+                        "Planning verwijderen"
+                      )}
+                    </Button>
+                  </DialogFooter>
+                </form>
+              </FormComponent>
+            </DialogContent>
+          </Dialog>
         )}
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogTrigger asChild>
@@ -1510,59 +1769,67 @@ const Planning = () => {
         </Dialog>
       </div>
 
-      <PlanningSection
-        title="Actieve Planningen"
-        icon={<Calendar className="h-5 w-5" />}
-        defaultOpen={true}
-      >
-        <PlanningTable
-          plannings={filteredActivePlannings}
-          emptyMessage="Er zijn geen actieve planningen voor vandaag"
-          volunteers={volunteers}
-          rooms={rooms}
-          onEdit={handleEdit}
-          onDelete={handleDelete}
-          searchValue={searchActive}
-          onSearchChange={setSearchActive}
-          showActions={isAdmin}
-        />
-      </PlanningSection>
+      <div className="space-y-6">
+        <PlanningSection
+          title="Actieve Planningen"
+          icon={<Calendar className="h-5 w-5" />}
+          defaultOpen={true}
+        >
+          <div className="relative z-20">
+            <PlanningTable
+              plannings={filteredActivePlannings}
+              emptyMessage="Er zijn geen actieve planningen voor vandaag"
+              volunteers={volunteers}
+              rooms={rooms}
+              onEdit={handleEdit}
+              onDelete={handleDelete}
+              searchValue={searchActive}
+              onSearchChange={setSearchActive}
+              showActions={isAdmin}
+            />
+          </div>
+        </PlanningSection>
 
-      <PlanningSection
-        title="Toekomstige Planningen"
-        icon={<Users2 className="h-5 w-5 text-primary" />}
-        defaultOpen={true}
-      >
-        <PlanningTable
-          plannings={filteredUpcomingPlannings}
-          emptyMessage="Geen toekomstige planningen gevonden"
-          volunteers={volunteers}
-          rooms={rooms}
-          onEdit={handleEdit}
-          onDelete={handleDelete}
-          searchValue={searchUpcoming}
-          onSearchChange={setSearchUpcoming}
-          showActions={isAdmin}
-        />
-      </PlanningSection>
+        <PlanningSection
+          title="Toekomstige Planningen"
+          icon={<CalendarDaysIcon className="h-5 w-5" />}
+          defaultOpen={true}
+        >
+          <div className="relative z-20">
+            <PlanningTable
+              plannings={filteredUpcomingPlannings}
+              emptyMessage="Geen toekomstige planningen gevonden"
+              volunteers={volunteers}
+              rooms={rooms}
+              onEdit={handleEdit}
+              onDelete={handleDelete}
+              searchValue={searchUpcoming}
+              onSearchChange={setSearchUpcoming}
+              showActions={isAdmin}
+            />
+          </div>
+        </PlanningSection>
 
-      <PlanningSection
-        title="Afgelopen Planningen"
-        icon={<Users2 className="h-5 w-5 text-primary" />}
-        defaultOpen={false}
-      >
-        <PlanningTable
-          plannings={filteredPastPlannings}
-          emptyMessage="Geen afgelopen planningen gevonden"
-          volunteers={volunteers}
-          rooms={rooms}
-          onEdit={handleEdit}
-          onDelete={handleDelete}
-          searchValue={searchPast}
-          onSearchChange={setSearchPast}
-          showActions={isAdmin}
-        />
-      </PlanningSection>
+        <PlanningSection
+          title="Afgeronde Planningen"
+          icon={<CheckSquare className="h-5 w-5" />}
+          defaultOpen={false}
+        >
+          <div className="relative z-20">
+            <PlanningTable
+              plannings={filteredPastPlannings}
+              emptyMessage="Geen afgeronde planningen gevonden"
+              volunteers={volunteers}
+              rooms={rooms}
+              onEdit={handleEdit}
+              onDelete={handleDelete}
+              searchValue={searchPast}
+              onSearchChange={setSearchPast}
+              showActions={isAdmin}
+            />
+          </div>
+        </PlanningSection>
+      </div>
 
       <AlertDialog
         open={!!deletePlanningId}
