@@ -181,12 +181,16 @@ export default function Login() {
           </CardContent>
         </Card>
 
-        <p className="text-center text-sm text-gray-300 mt-6">
-          MEFEN Vrijwilligers Management Systeem
-        </p>
+        <div className="text-center space-y-1 mt-6">
+          <p className="text-gray-300 text-sm">
+            MEFEN Vrijwilligers Management Systeem
+          </p>
+          <p className="text-gray-400 text-xs">
+            Versie 1.0.0
+          </p>
+        </div>
       </div>
 
-      {/* Password Reset Dialog */}
       <Dialog open={resetDialogOpen} onOpenChange={setResetDialogOpen}>
         <DialogContent>
           <DialogHeader>
