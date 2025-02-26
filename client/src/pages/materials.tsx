@@ -615,7 +615,7 @@ export default function Materials() {
 
           <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
             <DialogTrigger asChild>
-              <Button className="bg-[#6BB85C] hover:bg-[#6BB85C]/90 text-white w-full sm:w-auto">
+              <Button className="bg-[#963E56] hover:bg-[#963E56]/90 text-white w-full sm:w-auto">
                 <Package2 className="h-4 w-4 mr-2" />
                 Toewijzen
               </Button>
@@ -714,7 +714,7 @@ export default function Materials() {
                     </Button>
                   </form>
                 </Form>
-              </DialogContent>
+            </DialogContent>
           </Dialog>
 
           {isAdmin && (
@@ -831,7 +831,7 @@ export default function Materials() {
                                   variant="ghost"
                                   size="icon"
                                   onClick={() => handleEdit(item)}
-                                  className="text-primary hover:text-primary hover:bg-primary/10"
+                                  className="text-[#963E56] hover:text-[#963E56]/90 hover:bg-[#963E56]/10"
                                 >
                                   <Edit2 className="h-4 w-4" />
                                 </Button>

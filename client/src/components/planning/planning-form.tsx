@@ -44,7 +44,8 @@ export function PlanningForm({
   editingPlanning
 }: PlanningFormProps) {
   const [searchTerm, setSearchTerm] = useState("");
-  const [commandOpen, setCommandOpen] = useState({ volunteer: false, room: false });
+  const [openVolunteer, setOpenVolunteer] = useState(false);
+  const [openRoom, setOpenRoom] = useState(false);
 
   const filteredVolunteers = volunteers.filter(volunteer =>
     `${volunteer.firstName} ${volunteer.lastName}`
@@ -86,41 +87,49 @@ export function PlanningForm({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Vrijwilligers</FormLabel>
-                  <Command
-                    className="rounded-lg border shadow-md"
-                    open={commandOpen.volunteer}
-                    onOpenChange={(open) => setCommandOpen(prev => ({ ...prev, volunteer: open }))}
-                  >
-                    <CommandInput
-                      placeholder="Zoek vrijwilligers..."
-                      value={searchTerm}
-                      onValueChange={setSearchTerm}
-                    />
-                    <CommandEmpty>Geen vrijwilligers gevonden.</CommandEmpty>
-                    <CommandGroup className="max-h-[150px] overflow-auto">
-                      {filteredVolunteers.map((volunteer) => (
-                        <CommandItem
-                          key={volunteer.id}
-                          onSelect={() => {
-                            const current = field.value || [];
-                            const updated = current.includes(volunteer.id)
-                              ? current.filter(id => id !== volunteer.id)
-                              : [...current, volunteer.id];
-                            field.onChange(updated);
-                            setCommandOpen(prev => ({ ...prev, volunteer: false }));
-                          }}
-                        >
-                          <Check
-                            className={cn(
-                              "mr-2 h-4 w-4",
-                              field.value?.includes(volunteer.id) ? "opacity-100" : "opacity-0"
-                            )}
-                          />
-                          {volunteer.firstName} {volunteer.lastName}
-                        </CommandItem>
-                      ))}
-                    </CommandGroup>
-                  </Command>
+                  <Popover open={openVolunteer} onOpenChange={setOpenVolunteer}>
+                    <PopoverTrigger asChild>
+                      <Button variant="outline" className="w-full justify-start">
+                        {selectedVolunteers.length > 0 ? (
+                          <span>{selectedVolunteers.length} vrijwilliger(s) geselecteerd</span>
+                        ) : (
+                          <span>Selecteer vrijwilligers</span>
+                        )}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="p-0" align="start">
+                      <Command>
+                        <CommandInput
+                          placeholder="Zoek vrijwilligers..."
+                          value={searchTerm}
+                          onValueChange={setSearchTerm}
+                        />
+                        <CommandEmpty>Geen vrijwilligers gevonden.</CommandEmpty>
+                        <CommandGroup className="max-h-[200px] overflow-auto">
+                          {filteredVolunteers.map((volunteer) => (
+                            <CommandItem
+                              key={volunteer.id}
+                              onSelect={() => {
+                                const current = field.value || [];
+                                const updated = current.includes(volunteer.id)
+                                  ? current.filter(id => id !== volunteer.id)
+                                  : [...current, volunteer.id];
+                                field.onChange(updated);
+                              }}
+                            >
+                              <Check
+                                className={cn(
+                                  "mr-2 h-4 w-4",
+                                  field.value?.includes(volunteer.id) ? "opacity-100" : "opacity-0"
+                                )}
+                              />
+                              {volunteer.firstName} {volunteer.lastName}
+                            </CommandItem>
+                          ))}
+                        </CommandGroup>
+                      </Command>
+                    </PopoverContent>
+                  </Popover>
                   {selectedVolunteers.length > 0 && (
                     <div className="mt-2 flex flex-wrap gap-2">
                       {selectedVolunteers.map(id => {
@@ -161,37 +170,45 @@ export function PlanningForm({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Ruimtes</FormLabel>
-                  <Command 
-                    className="rounded-lg border shadow-md"
-                    open={commandOpen.room}
-                    onOpenChange={(open) => setCommandOpen(prev => ({ ...prev, room: open }))}
-                  >
-                    <CommandInput placeholder="Zoek ruimtes..." />
-                    <CommandEmpty>Geen ruimtes gevonden.</CommandEmpty>
-                    <CommandGroup className="max-h-[150px] overflow-auto">
-                      {rooms.map((room) => (
-                        <CommandItem
-                          key={room.id}
-                          onSelect={() => {
-                            const current = field.value || [];
-                            const updated = current.includes(room.id)
-                              ? current.filter(id => id !== room.id)
-                              : [...current, room.id];
-                            field.onChange(updated);
-                            setCommandOpen(prev => ({ ...prev, room: false }));
-                          }}
-                        >
-                          <Check
-                            className={cn(
-                              "mr-2 h-4 w-4",
-                              field.value?.includes(room.id) ? "opacity-100" : "opacity-0"
-                            )}
-                          />
-                          {room.name}
-                        </CommandItem>
-                      ))}
-                    </CommandGroup>
-                  </Command>
+                  <Popover open={openRoom} onOpenChange={setOpenRoom}>
+                    <PopoverTrigger asChild>
+                      <Button variant="outline" className="w-full justify-start">
+                        {selectedRooms.length > 0 ? (
+                          <span>{selectedRooms.length} ruimte(s) geselecteerd</span>
+                        ) : (
+                          <span>Selecteer ruimtes</span>
+                        )}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="p-0" align="start">
+                      <Command>
+                        <CommandInput placeholder="Zoek ruimtes..." />
+                        <CommandEmpty>Geen ruimtes gevonden.</CommandEmpty>
+                        <CommandGroup className="max-h-[200px] overflow-auto">
+                          {rooms.map((room) => (
+                            <CommandItem
+                              key={room.id}
+                              onSelect={() => {
+                                const current = field.value || [];
+                                const updated = current.includes(room.id)
+                                  ? current.filter(id => id !== room.id)
+                                  : [...current, room.id];
+                                field.onChange(updated);
+                              }}
+                            >
+                              <Check
+                                className={cn(
+                                  "mr-2 h-4 w-4",
+                                  field.value?.includes(room.id) ? "opacity-100" : "opacity-0"
+                                )}
+                              />
+                              {room.name}
+                            </CommandItem>
+                          ))}
+                        </CommandGroup>
+                      </Command>
+                    </PopoverContent>
+                  </Popover>
                   {selectedRooms.length > 0 && (
                     <div className="mt-2 flex flex-wrap gap-2">
                       {selectedRooms.map(id => {
@@ -234,37 +251,49 @@ export function PlanningForm({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Vrijwilliger</FormLabel>
-                  <Command
-                    className="rounded-lg border shadow-md"
-                    open={commandOpen.volunteer}
-                    onOpenChange={(open) => setCommandOpen(prev => ({ ...prev, volunteer: open }))}
-                  >
-                    <CommandInput
-                      placeholder="Zoek vrijwilliger..."
-                      value={searchTerm}
-                      onValueChange={setSearchTerm}
-                    />
-                    <CommandEmpty>Geen vrijwilligers gevonden.</CommandEmpty>
-                    <CommandGroup className="max-h-[150px] overflow-auto">
-                      {filteredVolunteers.map((volunteer) => (
-                        <CommandItem
-                          key={volunteer.id}
-                          onSelect={() => {
-                            field.onChange(volunteer.id);
-                            setCommandOpen(prev => ({ ...prev, volunteer: false }));
-                          }}
-                        >
-                          <Check
-                            className={cn(
-                              "mr-2 h-4 w-4",
-                              field.value === volunteer.id ? "opacity-100" : "opacity-0"
-                            )}
-                          />
-                          {volunteer.firstName} {volunteer.lastName}
-                        </CommandItem>
-                      ))}
-                    </CommandGroup>
-                  </Command>
+                  <Popover open={openVolunteer} onOpenChange={setOpenVolunteer}>
+                    <PopoverTrigger asChild>
+                      <Button variant="outline" className="w-full justify-start">
+                        {field.value ? (
+                          <span>
+                            {volunteers.find(v => v.id === field.value)?.firstName}{' '}
+                            {volunteers.find(v => v.id === field.value)?.lastName}
+                          </span>
+                        ) : (
+                          <span>Selecteer een vrijwilliger</span>
+                        )}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="p-0" align="start">
+                      <Command>
+                        <CommandInput
+                          placeholder="Zoek vrijwilliger..."
+                          value={searchTerm}
+                          onValueChange={setSearchTerm}
+                        />
+                        <CommandEmpty>Geen vrijwilligers gevonden.</CommandEmpty>
+                        <CommandGroup className="max-h-[200px] overflow-auto">
+                          {filteredVolunteers.map((volunteer) => (
+                            <CommandItem
+                              key={volunteer.id}
+                              onSelect={() => {
+                                field.onChange(volunteer.id);
+                                setOpenVolunteer(false);
+                              }}
+                            >
+                              <Check
+                                className={cn(
+                                  "mr-2 h-4 w-4",
+                                  field.value === volunteer.id ? "opacity-100" : "opacity-0"
+                                )}
+                              />
+                              {volunteer.firstName} {volunteer.lastName}
+                            </CommandItem>
+                          ))}
+                        </CommandGroup>
+                      </Command>
+                    </PopoverContent>
+                  </Popover>
                   <FormMessage />
                 </FormItem>
               )}
@@ -276,33 +305,42 @@ export function PlanningForm({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Ruimte</FormLabel>
-                  <Command
-                    className="rounded-lg border shadow-md"
-                    open={commandOpen.room}
-                    onOpenChange={(open) => setCommandOpen(prev => ({ ...prev, room: open }))}
-                  >
-                    <CommandInput placeholder="Zoek ruimtes..." />
-                    <CommandEmpty>Geen ruimtes gevonden.</CommandEmpty>
-                    <CommandGroup className="max-h-[150px] overflow-auto">
-                      {rooms.map((room) => (
-                        <CommandItem
-                          key={room.id}
-                          onSelect={() => {
-                            field.onChange(room.id);
-                            setCommandOpen(prev => ({ ...prev, room: false }));
-                          }}
-                        >
-                          <Check
-                            className={cn(
-                              "mr-2 h-4 w-4",
-                              field.value === room.id ? "opacity-100" : "opacity-0"
-                            )}
-                          />
-                          {room.name}
-                        </CommandItem>
-                      ))}
-                    </CommandGroup>
-                  </Command>
+                  <Popover open={openRoom} onOpenChange={setOpenRoom}>
+                    <PopoverTrigger asChild>
+                      <Button variant="outline" className="w-full justify-start">
+                        {field.value ? (
+                          <span>{rooms.find(r => r.id === field.value)?.name}</span>
+                        ) : (
+                          <span>Selecteer een ruimte</span>
+                        )}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="p-0" align="start">
+                      <Command>
+                        <CommandInput placeholder="Zoek ruimtes..." />
+                        <CommandEmpty>Geen ruimtes gevonden.</CommandEmpty>
+                        <CommandGroup className="max-h-[200px] overflow-auto">
+                          {rooms.map((room) => (
+                            <CommandItem
+                              key={room.id}
+                              onSelect={() => {
+                                field.onChange(room.id);
+                                setOpenRoom(false);
+                              }}
+                            >
+                              <Check
+                                className={cn(
+                                  "mr-2 h-4 w-4",
+                                  field.value === room.id ? "opacity-100" : "opacity-0"
+                                )}
+                              />
+                              {room.name}
+                            </CommandItem>
+                          ))}
+                        </CommandGroup>
+                      </Command>
+                    </PopoverContent>
+                  </Popover>
                   <FormMessage />
                 </FormItem>
               )}
