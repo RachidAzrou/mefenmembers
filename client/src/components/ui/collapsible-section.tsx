@@ -11,6 +11,7 @@ interface CollapsibleSectionProps extends React.HTMLAttributes<HTMLDivElement> {
   icon?: React.ReactNode
   children: React.ReactNode
   action?: React.ReactNode
+  titleClassName?: string
 }
 
 export function CollapsibleSection({
@@ -20,6 +21,7 @@ export function CollapsibleSection({
   children,
   action,
   className,
+  titleClassName,
   ...props
 }: CollapsibleSectionProps) {
   const [isOpen, setIsOpen] = React.useState(defaultOpen)
@@ -34,7 +36,7 @@ export function CollapsibleSection({
               size="lg"
               className="w-full justify-start p-4 font-medium hover:bg-transparent"
             >
-              <div className="flex items-center gap-2 text-lg">
+              <div className={cn("flex items-center gap-2 text-lg", titleClassName)}>
                 {icon}
                 {title}
               </div>

@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Calendar, Search, X, Clock, Plus, Trash2 } from "lucide-react";
+import { Calendar, Search, X, Clock, Plus, Settings2 } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { nl } from "date-fns/locale";
 import { Card, CardContent } from "@/components/ui/card";
@@ -25,9 +25,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-  DialogFooter,
 } from "@/components/ui/dialog";
-import { DeletePlanningDialog } from "@/components/planning/delete-planning-dialog";
 
 interface Planning {
   id: string;
@@ -64,15 +62,17 @@ const PlanningTable = ({
 
   return (
     <div className="space-y-4" onClick={stopPropagation}>
-      <div className="relative flex-1">
-        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
-        <Input
-          placeholder="Zoek op vrijwilliger of ruimte..."
-          value={searchValue}
-          onChange={(e) => onSearchChange(e.target.value)}
-          className="pl-9"
-        />
-      </div>
+      {showActions && (
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
+          <Input
+            placeholder="Zoek op vrijwilliger of ruimte..."
+            value={searchValue}
+            onChange={(e) => onSearchChange(e.target.value)}
+            className="pl-9"
+          />
+        </div>
+      )}
 
       <div className="rounded-lg border bg-background">
         <Table>
@@ -154,6 +154,60 @@ const PlanningTable = ({
   );
 };
 
+const PlanningSection = ({ title, icon, defaultOpen, children }: {
+  title: string;
+  icon: React.ReactNode;
+  defaultOpen: boolean;
+  children: React.ReactNode;
+}) => {
+  const [isEditing, setIsEditing] = useState(false);
+
+  return (
+    <div className="relative">
+      <CollapsibleSection
+        title={title}
+        icon={icon}
+        defaultOpen={defaultOpen}
+        titleClassName="text-[#963E56]"
+        action={
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={(e) => {
+              e.stopPropagation();
+              setIsEditing(!isEditing);
+            }}
+            className={cn(
+              "h-8 w-8",
+              isEditing && "text-primary bg-primary/10"
+            )}
+          >
+            <Settings2 className="h-4 w-4" />
+          </Button>
+        }
+      >
+        <div className="relative">
+          <div className={cn("space-y-4", isEditing && "hidden")}>
+            {children}
+          </div>
+          {isEditing && (
+            <div className="space-y-4">
+              {React.Children.map(children, child => {
+                if (React.isValidElement(child)) {
+                  return React.cloneElement(child as React.ReactElement, {
+                    showActions: true
+                  });
+                }
+                return child;
+              })}
+            </div>
+          )}
+        </div>
+      </CollapsibleSection>
+    </div>
+  );
+};
+
 const Planning = () => {
   const [plannings, setPlannings] = useState<Planning[]>([]);
   const [volunteers, setVolunteers] = useState<{ id: string; firstName: string; lastName: string; }[]>([]);
@@ -162,7 +216,6 @@ const Planning = () => {
   const [searchUpcoming, setSearchUpcoming] = useState("");
   const [searchPast, setSearchPast] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const { isAdmin } = useRole();
 
   useEffect(() => {
@@ -248,65 +301,61 @@ const Planning = () => {
 
   return (
     <div className="space-y-6 p-6">
-      <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
-        <div className="flex items-center gap-3">
-          <Calendar className="h-8 w-8 text-primary" />
-          <h1 className="text-3xl font-bold text-primary">Planning</h1>
+      <div className="flex items-center gap-3">
+        <Calendar className="h-8 w-8 text-primary" />
+        <h1 className="text-3xl font-bold text-primary">Planning</h1>
+      </div>
+
+      <CollapsibleSection
+        title="Planning Overzicht"
+        icon={<Calendar className="h-5 w-5" />}
+        defaultOpen={true}
+        titleClassName="text-[#963E56]"
+      >
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <Card>
+            <CardContent className="pt-6">
+              <div className="flex items-center">
+                <div className="bg-primary/10 rounded-full p-2 mr-3">
+                  <Calendar className="h-5 w-5 text-primary" />
+                </div>
+                <div>
+                  <div className="text-sm font-medium">Actieve Planningen</div>
+                  <div className="text-2xl font-bold">{activePlannings.length}</div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="pt-6">
+              <div className="flex items-center">
+                <div className="bg-primary/10 rounded-full p-2 mr-3">
+                  <Calendar className="h-5 w-5 text-primary" />
+                </div>
+                <div>
+                  <div className="text-sm font-medium">Toekomstige Planningen</div>
+                  <div className="text-2xl font-bold">{upcomingPlannings.length}</div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="pt-6">
+              <div className="flex items-center">
+                <div className="bg-primary/10 rounded-full p-2 mr-3">
+                  <Calendar className="h-5 w-5 text-primary" />
+                </div>
+                <div>
+                  <div className="text-sm font-medium">Afgelopen Planningen</div>
+                  <div className="text-2xl font-bold">{pastPlannings.length}</div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         </div>
+
         {isAdmin && (
-          <div className="flex gap-3">
-            <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-              <DialogTrigger asChild>
-                <Button
-                  variant="destructive"
-                  className="gap-2 bg-[#963E56] hover:bg-[#963E56]/90"
-                >
-                  <Trash2 className="h-4 w-4" />
-                  Planning verwijderen
-                </Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Planning verwijderen</DialogTitle>
-                </DialogHeader>
-                <DeletePlanningDialog
-                  volunteers={volunteers}
-                  rooms={rooms}
-                  onDelete={async (data) => {
-                    const { startDate, endDate, selectedVolunteers, selectedRooms } = data;
-                    const planningsToDelete = plannings.filter(planning => {
-                      const planningStart = new Date(planning.startDate);
-                      const planningEnd = new Date(planning.endDate);
-                      const start = new Date(startDate);
-                      const end = new Date(endDate);
-
-                      // Check if planning falls within the selected date range
-                      const inDateRange = planningStart >= start && planningEnd <= end;
-
-                      // Check if planning matches selected volunteers (if any)
-                      const matchesVolunteer = selectedVolunteers.length === 0 || 
-                        selectedVolunteers.includes(planning.volunteerId);
-
-                      // Check if planning matches selected rooms (if any)
-                      const matchesRoom = selectedRooms.length === 0 || 
-                        selectedRooms.includes(planning.roomId);
-
-                      return inDateRange && matchesVolunteer && matchesRoom;
-                    });
-
-                    // Delete all matching plannings
-                    await Promise.all(
-                      planningsToDelete.map(planning => 
-                        remove(ref(db, `plannings/${planning.id}`))
-                      )
-                    );
-                    setDeleteDialogOpen(false);
-                  }}
-                  onClose={() => setDeleteDialogOpen(false)}
-                />
-              </DialogContent>
-            </Dialog>
-
+          <div className="mt-6 flex justify-end">
             <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
               <DialogTrigger asChild>
                 <Button className="gap-2 bg-[#6BB85C] hover:bg-[#6BB85C]/90">
@@ -323,52 +372,10 @@ const Planning = () => {
             </Dialog>
           </div>
         )}
-      </div>
-
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center">
-              <div className="bg-primary/10 rounded-full p-2 mr-3">
-                <Calendar className="h-5 w-5 text-primary" />
-              </div>
-              <div>
-                <div className="text-sm font-medium">Actieve Planningen</div>
-                <div className="text-2xl font-bold">{activePlannings.length}</div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center">
-              <div className="bg-primary/10 rounded-full p-2 mr-3">
-                <Calendar className="h-5 w-5 text-primary" />
-              </div>
-              <div>
-                <div className="text-sm font-medium">Toekomstige Planningen</div>
-                <div className="text-2xl font-bold">{upcomingPlannings.length}</div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center">
-              <div className="bg-primary/10 rounded-full p-2 mr-3">
-                <Calendar className="h-5 w-5 text-primary" />
-              </div>
-              <div>
-                <div className="text-sm font-medium">Afgeronde Planningen</div>
-                <div className="text-2xl font-bold">{pastPlannings.length}</div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+      </CollapsibleSection>
 
       <div className="space-y-6 bg-background rounded-lg border p-6">
-        <CollapsibleSection
+        <PlanningSection
           title="Actieve Planningen"
           icon={<Calendar className="h-5 w-5" />}
           defaultOpen={true}
@@ -384,9 +391,9 @@ const Planning = () => {
             onSearchChange={setSearchActive}
             showActions={isAdmin}
           />
-        </CollapsibleSection>
+        </PlanningSection>
 
-        <CollapsibleSection
+        <PlanningSection
           title="Toekomstige Planningen"
           icon={<Calendar className="h-5 w-5" />}
           defaultOpen={true}
@@ -402,16 +409,16 @@ const Planning = () => {
             onSearchChange={setSearchUpcoming}
             showActions={isAdmin}
           />
-        </CollapsibleSection>
+        </PlanningSection>
 
-        <CollapsibleSection
-          title="Afgeronde Planningen"
+        <PlanningSection
+          title="Afgelopen Planningen"
           icon={<Calendar className="h-5 w-5" />}
           defaultOpen={false}
         >
           <PlanningTable
             plannings={filteredPastPlannings}
-            emptyMessage="Geen afgeronde planningen gevonden"
+            emptyMessage="Geen afgelopen planningen gevonden"
             volunteers={volunteers}
             rooms={rooms}
             onEdit={handleEdit}
@@ -420,7 +427,7 @@ const Planning = () => {
             onSearchChange={setSearchPast}
             showActions={isAdmin}
           />
-        </CollapsibleSection>
+        </PlanningSection>
       </div>
     </div>
   );
