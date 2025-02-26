@@ -14,6 +14,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
+  DialogFooter,
 } from "@/components/ui/dialog";
 import {
   AlertDialog,
@@ -950,7 +951,7 @@ const Planning = () => {
     }
   });
 
-  useEffect(() => {
+  useEffect(() =>{
     const volunteersRef = ref(db, "volunteers");
     onValue(volunteersRef, (snapshot) => {
       const data = snapshot.val();
