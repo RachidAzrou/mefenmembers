@@ -9,8 +9,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
-import { Calendar, Search, Trash2, Plus } from "lucide-react";
-import { format, parseISO, isWithinInterval } from "date-fns";
+import { Calendar, Search, Trash2, Plus, Settings2 } from "lucide-react";
+import { format, parseISO, isWithinInterval, startOfDay, endOfDay } from "date-fns";
 import { nl } from "date-fns/locale";
 import { Card, CardContent } from "@/components/ui/card";
 import { CollapsibleSection } from "@/components/ui/collapsible-section";
@@ -71,8 +71,6 @@ const PlanningTable = ({
   const [dateFilter, setDateFilter] = useState<Date | undefined>();
 
   const filteredPlannings = plannings.filter(planning => {
-    if (!searchValue && !dateFilter) return true;
-
     const matchesSearch = searchValue.toLowerCase() === '' || (() => {
       const volunteer = volunteers.find(v => v.id === planning.volunteerId);
       const room = rooms.find(r => r.id === planning.roomId);
@@ -85,7 +83,11 @@ const PlanningTable = ({
     const matchesDate = !dateFilter || (() => {
       const planningStart = parseISO(planning.startDate);
       const planningEnd = parseISO(planning.endDate);
-      return isWithinInterval(dateFilter, { start: planningStart, end: planningEnd });
+      const filterDate = startOfDay(dateFilter);
+      return isWithinInterval(filterDate, { 
+        start: startOfDay(planningStart), 
+        end: endOfDay(planningEnd) 
+      });
     })();
 
     return matchesSearch && matchesDate;

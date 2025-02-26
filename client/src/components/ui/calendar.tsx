@@ -22,10 +22,10 @@ function Calendar({
       locale={nl}
       weekStartsOn={1}
       formatters={{
-        formatWeekdayShort: (date) => format(date, 'eee', { locale: nl }), //More concise and accurate
-        formatDay: (date) => format(date, 'd', { locale: nl }), //Added for better date display
-        formatMonth: (date) => format(date, 'MMMM', { locale: nl }), //Added for better month display
-        formatYear: (date) => format(date, 'yyyy', { locale: nl }), //Added for better year display
+        formatWeekdayShort: (date) => format(date, 'eee', { locale: nl }),
+        formatDay: (date) => format(date, 'd', { locale: nl }), 
+        formatMonth: (date) => format(date, 'MMMM', { locale: nl }),
+        formatYear: (date) => format(date, 'yyyy', { locale: nl }), 
       }}
       classNames={{
         months: "flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0",
@@ -48,7 +48,7 @@ function Calendar({
           buttonVariants({ variant: "ghost" }),
           "h-10 w-10 p-0 font-normal aria-selected:opacity-100"
         ),
-        day_selected: "bg-[#6BB85C] text-white hover:bg-[#6BB85C]/90 focus:bg-[#6BB85C] rounded-md",
+        day_selected: "bg-[#963E56] text-white hover:bg-[#963E56]/90 focus:bg-[#963E56] rounded-md",
         day_today: "bg-accent text-accent-foreground",
         day_outside: "text-muted-foreground opacity-50",
         day_disabled: "text-muted-foreground opacity-50",
