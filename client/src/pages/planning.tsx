@@ -748,20 +748,27 @@ const DeletePlanningDialog = ({
   rooms: { id: string; name: string; }[];
   onDelete: (data: { startDate: string; endDate: string; roomIds: string[] }) => Promise<void>;
 }) => {
-  const [selectedRooms, setSelectedRooms] = useState<string[]>([]);
-  const [startDate, setStartDate] = useState<string>("");
-  const [endDate, setEndDate] = useState<string>("");
+  const form = useForm({
+    defaultValues: {
+      startDate: "",
+      endDate: "",
+      selectedRooms: [] as string[]
+    }
+  });
+
   const [isDeleting, setIsDeleting] = useState(false);
 
   const handleDelete = async () => {
     try {
       setIsDeleting(true);
+      const values = form.getValues();
       await onDelete({
-        startDate,
-        endDate,
-        roomIds: selectedRooms.length === 0 ? rooms.map(r => r.id) : selectedRooms
+        startDate: values.startDate,
+        endDate: values.endDate,
+        roomIds: values.selectedRooms
       });
       onOpenChange(false);
+      form.reset();
     } catch (error) {
       console.error("Delete error:", error);
     } finally {
@@ -775,154 +782,189 @@ const DeletePlanningDialog = ({
         <DialogHeader>
           <DialogTitle className="text-destructive">Verwijder Planning</DialogTitle>
         </DialogHeader>
-        <div className="space-y-4 py-4">
-          <div className="space-y-2">
-            <Label>Periode</Label>
-            <div className="grid gap-4">
-              <div className="space-y-2">
-                <Label>Startdatum</Label>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant={"outline"}
-                      className={cn(
-                        "w-full justify-start text-left font-normal",
-                        !startDate && "text-muted-foreground"
-                      )}
-                    >
-                      {startDate ? (
-                        format(parseISO(startDate), "EEEE d MMMM yyyy", { locale: nl })
-                      ) : (
-                        <span>Kies een datum</span>
-                      )}
-                      <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar
-                      mode="single"
-                      selected={startDate ? parseISO(startDate) : undefined}
-                      onSelect={(date) => {
-                        if (date) {
-                          const formattedDate = format(date, 'yyyy-MM-dd');
-                          setStartDate(formattedDate);
-                          if (endDate && parseISO(endDate) < date) {
-                            setEndDate(formattedDate);
-                          }
-                        }
-                      }}
-                      initialFocus
-                      locale={nl}
-                    />
-                  </PopoverContent>
-                </Popover>
-              </div>
-              <div className="space-y-2">
-                <Label>Einddatum</Label>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant={"outline"}
-                      className={cn(
-                        "w-full justify-start text-left font-normal",
-                        !endDate && "text-muted-foreground"
-                      )}
-                    >
-                      {endDate ? (
-                        format(parseISO(endDate), "EEEE d MMMM yyyy", { locale: nl })
-                      ) : (
-                        <span>Kies een datum</span>
-                      )}
-                      <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar
-                      mode="single"
-                      selected={endDate ? parseISO(endDate) : undefined}
-                      onSelect={(date) => date && setEndDate(format(date, 'yyyy-MM-dd'))}
-                      disabled={(date) => {
-                        if (!startDate) return true;
-                        const minDate = parseISO(startDate);
-                        minDate.setHours(0, 0, 0, 0);
-                        date.setHours(0, 0, 0, 0);
-                        return date < minDate;
-                      }}
-                      initialFocus
-                      locale={nl}
-                    />
-                  </PopoverContent>
-                </Popover>
-              </div>
-            </div>
-          </div>
+        <FormComponent {...form}>
+          <form className="space-y-4 py-4">
+            <div className="space-y-4">
+              <FormField
+                control={form.control}
+                name="startDate"
+                render={({ field }) => (
+                  <FormItem className="flex flex-col">
+                    <FormLabel>Startdatum</FormLabel>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <FormControl>
+                          <Button
+                            variant={"outline"}
+                            className={cn(
+                              "w-full justify-start text-left font-normal",
+                              !field.value && "text-muted-foreground"
+                            )}
+                          >
+                            {field.value ? (
+                              format(parseISO(field.value), "EEEE d MMMM yyyy", { locale: nl })
+                            ) : (
+                              <span>Kies een datum</span>
+                            )}
+                            <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                          </Button>
+                        </FormControl>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar
+                          mode="single"
+                          selected={field.value ? parseISO(field.value) : undefined}
+                          onSelect={(date) => {
+                            if (date) {
+                              const formattedDate = format(date, 'yyyy-MM-dd');
+                              field.onChange(formattedDate);
+                            }
+                          }}
+                          initialFocus
+                          locale={nl}
+                        />
+                      </PopoverContent>
+                    </Popover>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <Label>Ruimtes</Label>
-              <Button
-                variant="ghost"
-                className="h-auto p-0 text-xs text-muted-foreground hover:text-foreground"
-                onClick={() => setSelectedRooms(selectedRooms.length > 0 ? [] : rooms.map(r => r.id))}
-              >
-                {selectedRooms.length === 0 ? "Alle ruimtes geselecteerd" : "Selecteer alle ruimtes"}
-              </Button>
+              <FormField
+                control={form.control}
+                name="endDate"
+                render={({ field }) => (
+                  <FormItem className="flex flex-col">
+                    <FormLabel>Einddatum</FormLabel>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <FormControl>
+                          <Button
+                            variant={"outline"}
+                            className={cn(
+                              "w-full justify-start text-left font-normal",
+                              !field.value && "text-muted-foreground"
+                            )}
+                          >
+                            {field.value ? (
+                              format(parseISO(field.value), "EEEE d MMMM yyyy", { locale: nl })
+                            ) : (
+                              <span>Kies een datum</span>
+                            )}
+                            <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                          </Button>
+                        </FormControl>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar
+                          mode="single"
+                          selected={field.value ? parseISO(field.value) : undefined}
+                          onSelect={(date) => {
+                            if (date) {
+                              field.onChange(format(date, 'yyyy-MM-dd'));
+                            }
+                          }}
+                          disabled={(date) => {
+                            const startDate = form.getValues("startDate");
+                            if (!startDate) return true;
+                            const minDate = parseISO(startDate);
+                            minDate.setHours(0, 0, 0, 0);
+                            date.setHours(0, 0, 0, 0);
+                            return date < minDate;
+                          }}
+                          initialFocus
+                          locale={nl}
+                        />
+                      </PopoverContent>
+                    </Popover>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="selectedRooms"
+                render={({ field }) => (
+                  <FormItem>
+                    <div className="flex items-center justify-between">
+                      <FormLabel>Ruimtes</FormLabel>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        className="h-auto p-0 text-xs text-muted-foreground hover:text-foreground"
+                        onClick={() => field.onChange(field.value.length > 0 ? [] : rooms.map(r => r.id))}
+                      >
+                        {field.value.length === 0 ? "Alle ruimtes geselecteerd" : "Selecteer alle ruimtes"}
+                      </Button>
+                    </div>
+                    <Select
+                      multiple
+                      value={field.value}
+                      onValueChange={field.onChange}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecteer ruimtes">
+                            {field.value.length === 0
+                              ? "Alle ruimtes"
+                              : `${field.value.length} ruimte(s) geselecteerd`}
+                          </SelectValue>
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <div
+                          className="overflow-y-auto overscroll-contain"
+                          style={{
+                            height: '200px',
+                            scrollbarWidth: 'thin',
+                            scrollbarColor: 'rgb(203 213 225) transparent'
+                          }}
+                        >
+                          {rooms.map((room) => (
+                            <SelectItem key={room.id} value={room.id}>
+                              {room.name}
+                            </SelectItem>
+                          ))}
+                        </div>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
             </div>
-            <Select
-              multiple
-              value={selectedRooms}
-              onValueChange={setSelectedRooms}
-            >
-              <FormControl>
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecteer ruimtes">
-                    {selectedRooms.length === 0
-                      ? "Alle ruimtes"
-                      : `${selectedRooms.length} ruimte(s) geselecteerd`}
-                  </SelectValue>
-                </SelectTrigger>
-              </FormControl>
-              <SelectContent>
-                <div
-                  className="overflow-y-auto overscroll-contain"
-                  style={{
-                    height: '200px',
-                    scrollbarWidth: 'thin',
-                    scrollbarColor: 'rgb(203 213 225) transparent'
-                  }}
-                >
-                  {rooms.map((room) => (
-                    <SelectItem key={room.id} value={room.id}>
-                      {room.name}
-                    </SelectItem>
-                  ))}
-                </div>
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
-        <DialogFooter>
-          <Button
-            variant="ghost"
-            onClick={() => onOpenChange(false)}
-          >
-            Annuleren
-          </Button>
-          <Button
-            variant="destructive"
-            onClick={handleDelete}
-            disabled={!startDate || !endDate || isDeleting}
-          >
-            {isDeleting ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Bezig met verwijderen...
-              </>
-            ) : (
-              "Planning verwijderen"
-            )}
-          </Button>
-        </DialogFooter>
+
+            <DialogFooter>
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={() => {
+                  onOpenChange(false);
+                  form.reset();
+                }}
+              >
+                Annuleren
+              </Button>
+              <Button
+                type="button"
+                variant="destructive"
+                className="bg-[#963E56] hover:bg-[#963E56]/90"
+                onClick={handleDelete}
+                disabled={!form.getValues("startDate") || !form.getValues("endDate") || isDeleting}
+              >
+                {isDeleting ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Bezig met verwijderen...
+                  </>
+                ) : (
+                  "Planning verwijderen"
+                )}
+              </Button>
+            </DialogFooter>
+          </form>
+        </FormComponent>
       </DialogContent>
     </Dialog>
   );
@@ -1221,11 +1263,11 @@ const Planning = () => {
   };
 
   return (
-    <div className="space-y-6 p-6">
+    <div className="space-y-6 p-4 md:p-6">
       <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
         <div className="flex items-center gap-3">
           <CalendarIcon className="h-8 w-8 text-primary" />
-          <h1 className="text-3xl font-bold text-primary">Planning</h1>
+          <h1 className="text-2xl md:text-3xl font-bold text-primary">Planning</h1>
         </div>
       </div>
 
@@ -1235,7 +1277,7 @@ const Planning = () => {
         defaultOpen={true}
       >
         <div className="space-y-4">
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             <Card>
               <CardContent className="pt-6">
                 <div className="flex items-center">
@@ -1283,7 +1325,7 @@ const Planning = () => {
             onClick={() => setDeleteDialogOpen(true)}
           >
             <Trash2 className="h-4 w-4" />
-            Verwijder planning
+            Verwijder Planning
           </Button>
         )}
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
