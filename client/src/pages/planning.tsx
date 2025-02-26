@@ -409,7 +409,7 @@ const PlanningForm = ({ form, onSubmit, editingPlanning, volunteers, rooms }: {
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent position="popper" sideOffset={4}>
-                      <div
+                      <div 
                         style={{
                           height: '300px',
                           overflowY: 'auto',
@@ -922,8 +922,7 @@ const Planning = () => {
         "info"
       );
       setDeletePlanningId(null);
-    } catch (error) {
-      showToast(
+    } catch (error) {      showToast(
         "Fout",
         "Er is een fout opgetreden bij het verwijderen van de planning",
         "destructive"
@@ -947,15 +946,14 @@ const Planning = () => {
     const endDate = new Date(planning.endDate);
     endDate.setHours(0, 0, 0, 0);
 
-    if (format(today, 'yyyy-MM-dd') === format(startDate, 'yyyy-MM-dd')) {
+    if(format(today, 'yyyy-MM-dd') === format(startDate, 'yyyy-MM-dd')) {
       acc.activePlannings.push(planning);
     } else if (startDate > today) {
       acc.upcomingPlannings.push(planning);
     } else {
       acc.pastPlannings.push(planning);
     }
-    return acc;
-  }, { activePlannings: [], upcomingPlannings: [], pastPlannings: [] });
+    return acc;  }, { activePlannings: [], upcomingPlannings: [], pastPlannings: [] });
 
   const filterPlannings = (planningsList: Planning[], searchTerm: string): Planning[] => {
     if (!searchTerm.trim()) return planningsList;
@@ -975,7 +973,7 @@ const Planning = () => {
   };
 
   const filteredActivePlannings = filterPlannings(activePlannings, searchActive);
-  const filteredUpcomingPlannings = filterPlannings(upcomingPlannings, searchUpcoming);
+  const filteredUpcomingPlannings= filterPlannings(upcomingPlannings, searchUpcoming);
   const filteredPastPlannings = filterPlannings(pastPlannings, searchPast);
 
   return (
@@ -1041,100 +1039,90 @@ const Planning = () => {
               Nieuwe Planning
             </Button>
           </DialogTrigger>
-          <DialogContent className="sm:max-w-[600px] p-0">
-            <DialogHeader className="p-6 pb-4 bg-accent/5">
-              <DialogTitle className="text-2xl font-semibold text-primary">
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>
                 {editingPlanning ? "Planning Bewerken" : "Nieuwe Planning"}
               </DialogTitle>
             </DialogHeader>
-            <div className="px-6 pt-2 pb-6">
-              <PlanningForm
-                form={form}
-                onSubmit={onSubmit}
-                editingPlanning={editingPlanning}
-                volunteers={volunteers}
-                rooms={rooms}
-              />
-            </div>
+            <PlanningForm form={form} onSubmit={onSubmit} editingPlanning={editingPlanning} volunteers={volunteers} rooms={rooms} />
           </DialogContent>
         </Dialog>
       </div>
 
-      <div className="space-y-8">
-        <PlanningSection
-          title="Actieve Planningen"
-          icon={<CalendarIcon className="h-5 w-5" />}
-          defaultOpen={true}
-        >
-          <PlanningTable
-            plannings={filteredActivePlannings}
-            volunteers={volunteers}
-            rooms={rooms}
-            onEdit={handleEdit}
-            onDelete={handleDelete}
-            emptyMessage="Geen actieve planningen gevonden"
-            searchValue={searchActive}
-            onSearchChange={setSearchActive}
-          />
-        </PlanningSection>
+      <PlanningSection
+        title="Actieve Planningen"
+        icon={<Users2 className="h-5 w-5 text-primary" />}
+        defaultOpen={true}
+      >
+        <PlanningTable
+          plannings={filteredActivePlannings}
+          emptyMessage="Geen actieve planningen gevonden"
+          volunteers={volunteers}
+          rooms={rooms}
+          onEdit={handleEdit}
+          onDelete={handleDelete}
+          searchValue={searchActive}
+          onSearchChange={setSearchActive}
+        />
+      </PlanningSection>
 
-        <PlanningSection
-          title="Toekomstige Planningen"
-          icon={<Users2 className="h-5 w-5 text-primary" />}
-          defaultOpen={true}
-        >
-          <PlanningTable
-            plannings={filteredUpcomingPlannings}
-            emptyMessage="Geen toekomstige planningen gevonden"
-            volunteers={volunteers}
-            rooms={rooms}
-            onEdit={handleEdit}
-            onDelete={handleDelete}
-            searchValue={searchUpcoming}
-            onSearchChange={setSearchUpcoming}
-          />
-        </PlanningSection>
+      <PlanningSection
+        title="Toekomstige Planningen"
+        icon={<Users2 className="h-5 w-5 text-primary" />}
+        defaultOpen={true}
+      >
+        <PlanningTable
+          plannings={filteredUpcomingPlannings}
+          emptyMessage="Geen toekomstige planningen gevonden"
+          volunteers={volunteers}
+          rooms={rooms}
+          onEdit={handleEdit}
+          onDelete={handleDelete}
+          searchValue={searchUpcoming}
+          onSearchChange={setSearchUpcoming}
+        />
+      </PlanningSection>
 
-        <PlanningSection
-          title="Afgelopen Planningen"
-          icon={<Users2 className="h-5 w-5 text-primary" />}
-          defaultOpen={false}
-        >
-          <PlanningTable
-            plannings={filteredPastPlannings}
-            emptyMessage="Geen afgelopen planningen gevonden"
-            volunteers={volunteers}
-            rooms={rooms}
-            onEdit={handleEdit}
-            onDelete={handleDelete}
-            searchValue={searchPast}
-            onSearchChange={setSearchPast}
-          />
-        </PlanningSection>
+      <PlanningSection
+        title="Afgelopen Planningen"
+        icon={<Users2 className="h-5 w-5 text-primary" />}
+        defaultOpen={false}
+      >
+        <PlanningTable
+          plannings={filteredPastPlannings}
+          emptyMessage="Geen afgelopen planningen gevonden"
+          volunteers={volunteers}
+          rooms={rooms}
+          onEdit={handleEdit}
+          onDelete={handleDelete}
+          searchValue={searchPast}
+          onSearchChange={setSearchPast}
+        />
+      </PlanningSection>
 
-        <AlertDialog
-          open={!!deletePlanningId}
-          onOpenChange={() => setDeletePlanningId(null)}
-        >
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Weet je het zeker?</AlertDialogTitle>
-              <AlertDialogDescription>
-                Deze actie kan niet ongedaan worden gemaakt.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>Annuleren</AlertDialogCancel>
-              <AlertDialogAction
-                onClick={() => deletePlanningId && handleDelete(deletePlanningId)}
-                className="bg-red-600 hover:bgred-700"
-              >
-                Verwijderen
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
-      </div>
+      <AlertDialog
+        open={!!deletePlanningId}
+        onOpenChange={() => setDeletePlanningId(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Weet je het zeker?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Deze actie kan niet ongedaan worden gemaakt.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Annuleren</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => deletePlanningId && handleDelete(deletePlanningId)}
+              className="bg-red-600 hover:bgred-700"
+            >
+              Verwijderen
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
