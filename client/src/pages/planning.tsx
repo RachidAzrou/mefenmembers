@@ -714,7 +714,7 @@ const PlanningSection = ({ title, icon, defaultOpen, children }: {
           </Button>
         }
       >
-        <div className="relative z-10">
+        <div className="relative z-20 bg-background">
           <div className={cn(
             "space-y-4",
             isEditing && "invisible"
@@ -1524,71 +1524,65 @@ export default function Planning() {
       </div>
 
       <div className="space-y-6">
-        <div className="relative isolate">
-          <PlanningSection
-            title="Actieve Planningen"
-            icon={<Calendar className="h-5 w-5" />}
-            defaultOpen={true}
-          >
-            <div className="relative z-20">
-              <PlanningTable
-                plannings={filteredActivePlannings}
-                emptyMessage="Er zijn geen actieve planningen voor vandaag"
-                volunteers={volunteers}
-                rooms={rooms}
-                onEdit={handleEdit}
-                onDelete={handleDelete}
-                searchValue={searchActive}
-                onSearchChange={setSearchActive}
-                showActions={isAdmin}
-              />
-            </div>
-          </PlanningSection>
-        </div>
+        <PlanningSection
+          title="Actieve Planningen"
+          icon={<Calendar className="h-5 w-5" />}
+          defaultOpen={true}
+        >
+          <div className="relative" onClick={(e) => e.stopPropagation()}>
+            <PlanningTable
+              plannings={filteredActivePlannings}
+              emptyMessage="Er zijn geen actieve planningen voor vandaag"
+              volunteers={volunteers}
+              rooms={rooms}
+              onEdit={handleEdit}
+              onDelete={handleDelete}
+              searchValue={searchActive}
+              onSearchChange={setSearchActive}
+              showActions={isAdmin}
+            />
+          </div>
+        </PlanningSection>
 
-        <div className="relative isolate">
-          <PlanningSection
-            title="Toekomstige Planningen"
-            icon={<CalendarDaysIcon className="h-5 w-5" />}
-            defaultOpen={true}
-          >
-            <div className="relative z-20">
-              <PlanningTable
-                plannings={filteredUpcomingPlannings}
-                emptyMessage="Geen toekomstige planningen gevonden"
-                volunteers={volunteers}
-                rooms={rooms}
-                onEdit={handleEdit}
-                onDelete={handleDelete}
-                searchValue={searchUpcoming}
-                onSearchChange={setSearchUpcoming}
-                showActions={isAdmin}
-              />
-            </div>
-          </PlanningSection>
-        </div>
+        <PlanningSection
+          title="Toekomstige Planningen"
+          icon={<CalendarDaysIcon className="h-5 w-5" />}
+          defaultOpen={true}
+        >
+          <div className="relative" onClick={(e) => e.stopPropagation()}>
+            <PlanningTable
+              plannings={filteredUpcomingPlannings}
+              emptyMessage="Geen toekomstige planningen gevonden"
+              volunteers={volunteers}
+              rooms={rooms}
+              onEdit={handleEdit}
+              onDelete={handleDelete}
+              searchValue={searchUpcoming}
+              onSearchChange={setSearchUpcoming}
+              showActions={isAdmin}
+            />
+          </div>
+        </PlanningSection>
 
-        <div className="relative isolate">
-          <PlanningSection
-            title="Afgeronde Planningen"
-            icon={<CheckSquare className="h-5 w-5" />}
-            defaultOpen={false}
-          >
-            <div className="relative z-20">
-              <PlanningTable
-                plannings={filteredPastPlannings}
-                emptyMessage="Geen afgeronde planningen gevonden"
-                volunteers={volunteers}
-                rooms={rooms}
-                onEdit={handleEdit}
-                onDelete={handleDelete}
-                searchValue={searchPast}
-                onSearchChange={setSearchPast}
-                showActions={isAdmin}
-              />
-            </div>
-          </PlanningSection>
-        </div>
+        <PlanningSection
+          title="Afgeronde Planningen"
+          icon={<CheckSquare className="h-5 w-5" />}
+          defaultOpen={false}
+        >
+          <div className="relative" onClick={(e) => e.stopPropagation()}>
+            <PlanningTable
+              plannings={filteredPastPlannings}
+              emptyMessage="Geen afgeronde planningen gevonden"
+              volunteers={volunteers}
+              rooms={rooms}
+              onEdit={handleEdit}
+              onDelete={handleDelete}
+              searchValue={searchPast}
+              onSearchChange={setSearchPast}
+              showActions={isAdmin}
+            />
+          </div>
+        </PlanningSection>
       </div>
 
       <AlertDialog
