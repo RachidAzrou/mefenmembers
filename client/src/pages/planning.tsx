@@ -251,7 +251,7 @@ const PlanningSection = ({ title, icon, defaultOpen, children }: {
             isEditing && "bg-[#963E56]/10"
           )}
         >
-          <Edit2 className="h-4 w-4" /> {/* Changed from Trash2 to Edit2 */}
+          <Edit2 className="h-4 w-4" />
         </Button>
       }
     >

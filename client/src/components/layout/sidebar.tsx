@@ -96,7 +96,7 @@ export function Sidebar() {
       {/* Sidebar container */}
       <div
         className={cn(
-          "fixed md:relative flex flex-col border-r bg-white/95 backdrop-blur-sm transition-transform duration-300 ease-in-out h-screen z-[999]",
+          "fixed md:sticky top-0 flex flex-col border-r bg-white/95 backdrop-blur-sm transition-transform duration-300 ease-in-out h-[100dvh] z-[999]",
           collapsed ? (isMobile ? "-translate-x-full" : "w-16") : "w-[280px] sm:w-64",
           isMobile && "shadow-xl"
         )}
@@ -168,8 +168,8 @@ export function Sidebar() {
                   variant={location === item.href ? "secondary" : "ghost"}
                   className={cn(
                     "w-full justify-start h-14 md:h-12 relative transition-all duration-200",
-                    location === item.href 
-                      ? "bg-primary/10 text-primary hover:bg-primary/15" 
+                    location === item.href
+                      ? "bg-primary/10 text-primary hover:bg-primary/15"
                       : "hover:bg-primary/5 hover:text-primary",
                     collapsed && "justify-center",
                     isMobile && !collapsed && "text-base"
@@ -211,8 +211,8 @@ export function Sidebar() {
                 variant={location === "/settings" ? "secondary" : "ghost"}
                 className={cn(
                   "w-full justify-start h-14 md:h-12 transition-all duration-200",
-                  location === "/settings" 
-                    ? "bg-primary/10 text-primary hover:bg-primary/15" 
+                  location === "/settings"
+                    ? "bg-primary/10 text-primary hover:bg-primary/15"
                     : "hover:bg-primary/5 hover:text-primary",
                   collapsed && "justify-center"
                 )}
