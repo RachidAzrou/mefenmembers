@@ -764,14 +764,14 @@ const DeletePlanningDialog = ({
   const [isDeleting, setIsDeleting] = useState(false);
   const [volunteerSearch, setVolunteerSearch] = useState("");
 
+  const selectedVolunteers = form.watch("selectedVolunteers");
+  const selectedRooms = form.watch("selectedRooms");
+
   const filteredVolunteers = volunteers.filter(volunteer =>
     `${volunteer.firstName} ${volunteer.lastName}`
       .toLowerCase()
       .includes(volunteerSearch.toLowerCase())
   );
-
-  const selectedVolunteers = form.watch("selectedVolunteers");
-  const selectedRooms = form.watch("selectedRooms");
 
   const handleDelete = async () => {
     try {
@@ -819,21 +819,23 @@ const DeletePlanningDialog = ({
                     </div>
                     <Popover>
                       <PopoverTrigger asChild>
-                        <Button
-                          variant="outline"
-                          role="combobox"
-                          className={cn(
-                            "w-full justify-between",
-                            !field.value?.length && "text-muted-foreground"
-                          )}
-                        >
-                          <span className="truncate">
-                            {field.value?.length === 0
-                              ? "Alle vrijwilligers"
-                              : `${field.value?.length} vrijwilliger(s) geselecteerd`}
-                          </span>
-                          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                        </Button>
+                        <FormControl>
+                          <Button
+                            variant="outline"
+                            role="combobox"
+                            className={cn(
+                              "w-full justify-between",
+                              !field.value?.length && "text-muted-foreground"
+                            )}
+                          >
+                            <span className="truncate">
+                              {field.value?.length === 0
+                                ? "Alle vrijwilligers"
+                                : `${field.value?.length} vrijwilliger(s) geselecteerd`}
+                            </span>
+                            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                          </Button>
+                        </FormControl>
                       </PopoverTrigger>
                       <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0" align="start">
                         <div className="border-b p-2 bg-white">
@@ -945,12 +947,12 @@ const DeletePlanningDialog = ({
                               <span>Kies een datum</span>
                             )}
                             <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                          </Button>                        </FormControl>
+                          </Button>
+                        </FormControl>
                       </PopoverTrigger>
                       <PopoverContent className="w-auto p-0" align="start">
                         <Calendar
-                          mode="single"
-                          selected={field.value ? parseISO(field.value) : undefined}
+                          mode="single"                          selected={field.value ? parseISO(field.value) : undefined}
                           onSelect={(date) => {
                             if (date) {
                               field.onChange(format(date, 'yyyy-MM-dd'));
