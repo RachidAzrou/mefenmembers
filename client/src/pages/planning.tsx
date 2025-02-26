@@ -692,48 +692,50 @@ const PlanningSection = ({ title, icon, defaultOpen, children }: {
   const [isEditing, setIsEditing] = useState(false);
 
   return (
-    <CollapsibleSection
-      title={title}
-      icon={icon}
-      defaultOpen={defaultOpen}
-      action={
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={(e) => {
-            e.stopPropagation();
-            setIsEditing(!isEditing);
-          }}
-          className={cn(
-            "h-8 w-8",
-            isEditing && "text-primary bg-primary/10"
-          )}
-        >
-          <Settings2 className="h-4 w-4" />
-        </Button>
-      }
-    >
-      <div className="relative">
-        <div className={cn(
-          "space-y-4",
-          isEditing && "invisible"
-        )}>
-          {children}
-        </div>
-        {isEditing && (
-          <div className="absolute inset-0">
-            {React.Children.map(children, child => {
-              if (React.isValidElement(child)) {
-                return React.cloneElement(child as React.ReactElement, {
-                  showActions: true
-                });
-              }
-              return child;
-            })}
+    <div className="relative">
+      <CollapsibleSection
+        title={title}
+        icon={icon}
+        defaultOpen={defaultOpen}
+        action={
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={(e) => {
+              e.stopPropagation();
+              setIsEditing(!isEditing);
+            }}
+            className={cn(
+              "h-8 w-8",
+              isEditing && "text-primary bg-primary/10"
+            )}
+          >
+            <Settings2 className="h-4 w-4" />
+          </Button>
+        }
+      >
+        <div className="relative">
+          <div className={cn(
+            "space-y-4",
+            isEditing && "invisible"
+          )}>
+            {children}
           </div>
-        )}
-      </div>
-    </CollapsibleSection>
+          {isEditing && (
+            <div className="absolute inset-0">
+              {React.Children.map(children, child => {
+                if (React.isValidElement(child)) {
+                  return React.cloneElement(child as React.ReactElement, {
+                    showActions: true
+                  });
+                }
+                return child;
+              })}
+            </div>
+          )}
+        </div>
+      </CollapsibleSection>
+    </div>
   );
 };
 
@@ -741,22 +743,32 @@ const DeletePlanningDialog = ({
   open,
   onOpenChange,
   rooms,
+  volunteers,
   onDelete
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   rooms: { id: string; name: string; }[];
-  onDelete: (data: { startDate: string; endDate: string; roomIds: string[] }) => Promise<void>;
+  volunteers: { id: string; firstName: string; lastName: string; }[];
+  onDelete: (data: { startDate: string; endDate: string; roomIds: string[]; volunteerIds: string[] }) => Promise<void>;
 }) => {
   const form = useForm({
     defaultValues: {
       startDate: "",
       endDate: "",
-      selectedRooms: [] as string[]
+      selectedRooms: [] as string[],
+      selectedVolunteers: [] as string[]
     }
   });
 
   const [isDeleting, setIsDeleting] = useState(false);
+  const [volunteerSearch, setVolunteerSearch] = useState("");
+
+  const filteredVolunteers = volunteers.filter(volunteer =>
+    `${volunteer.firstName} ${volunteer.lastName}`
+      .toLowerCase()
+      .includes(volunteerSearch.toLowerCase())
+  );
 
   const handleDelete = async () => {
     try {
@@ -765,7 +777,8 @@ const DeletePlanningDialog = ({
       await onDelete({
         startDate: values.startDate,
         endDate: values.endDate,
-        roomIds: values.selectedRooms
+        roomIds: values.selectedRooms.length === 0 ? rooms.map(r => r.id) : values.selectedRooms,
+        volunteerIds: values.selectedVolunteers.length === 0 ? volunteers.map(v => v.id) : values.selectedVolunteers
       });
       onOpenChange(false);
       form.reset();
@@ -785,6 +798,99 @@ const DeletePlanningDialog = ({
         <FormComponent {...form}>
           <form className="space-y-4 py-4">
             <div className="space-y-4">
+              <FormField
+                control={form.control}
+                name="selectedVolunteers"
+                render={({ field }) => (
+                  <FormItem>
+                    <div className="flex items-center justify-between">
+                      <FormLabel>Vrijwilligers</FormLabel>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        className="h-auto p-0 text-xs text-muted-foreground hover:text-foreground"
+                        onClick={() => field.onChange(field.value.length > 0 ? [] : volunteers.map(v => v.id))}
+                      >
+                        {field.value.length === 0 ? "Alle vrijwilligers geselecteerd" : "Selecteer alle vrijwilligers"}
+                      </Button>
+                    </div>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          role="combobox"
+                          className={cn(
+                            "w-full justify-between",
+                            !field.value?.length && "text-muted-foreground"
+                          )}
+                        >
+                          <span className="truncate">
+                            {field.value?.length === 0
+                              ? "Alle vrijwilligers"
+                              : `${field.value?.length} vrijwilliger(s) geselecteerd`}
+                          </span>
+                          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0" align="start">
+                        <div className="border-b p-2 bg-white">
+                          <input
+                            className="w-full border-0 bg-transparent text-sm placeholder:text-muted-foreground focus:outline-none"
+                            placeholder="Zoek vrijwilligers..."
+                            value={volunteerSearch}
+                            onChange={(e) => setVolunteerSearch(e.target.value)}
+                          />
+                        </div>
+                        <div
+                          className="overflow-y-auto"
+                          style={{
+                            height: '300px',
+                            overflowY: 'auto',
+                            overscrollBehavior: 'contain'
+                          }}
+                        >
+                          {filteredVolunteers.length === 0 ? (
+                            <div className="p-6 text-center text-sm text-muted-foreground">
+                              Geen vrijwilligers gevonden
+                            </div>
+                          ) : (
+                            <div className="py-2">
+                              {filteredVolunteers.map((volunteer) => (
+                                <div
+                                  key={volunteer.id}
+                                  className={cn(
+                                    "flex items-center px-3 py-2 cursor-pointer hover:bg-accent",
+                                    (field.value || []).includes(volunteer.id) && "bg-accent"
+                                  )}
+                                  onClick={() => {
+                                    const currentSelected = field.value || [];
+                                    const newSelected = currentSelected.includes(volunteer.id)
+                                      ? currentSelected.filter(id => id !== volunteer.id)
+                                      : [...currentSelected, volunteer.id];
+                                    field.onChange(newSelected);
+                                  }}
+                                >
+                                  <Check
+                                    className={cn(
+                                      "mr-2 h-4 w-4",
+                                      (field.value || []).includes(volunteer.id) ? "opacity-100" : "opacity-0"
+                                    )}
+                                  />
+                                  <span className="text-sm">
+                                    {volunteer.firstName} {volunteer.lastName}
+                                  </span>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      </PopoverContent>
+                    </Popover>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
               <FormField
                 control={form.control}
                 name="startDate"
@@ -842,12 +948,12 @@ const DeletePlanningDialog = ({
                           <Button
                             variant={"outline"}
                             className={cn(
-                              "w-full justify-start text-left font-normal",
+                              "w-full justify-start textleft font-normal",
                               !field.value && "text-muted-foreground"
                             )}
                           >
                             {field.value ? (
-                              format(parseISO(field.value), "EEEE d MMMM yyyy", { locale: nl })
+                              format(parseISO(field.value), "EEEE dMMMM yyyy", { locale: nl })
                             ) : (
                               <span>Kies een datum</span>
                             )}
@@ -1214,8 +1320,8 @@ const Planning = () => {
   const filteredUpcomingPlannings = filterPlannings(upcomingPlannings, searchUpcoming);
   const filteredPastPlannings = filterPlannings(pastPlannings, searchPast);
 
-  const handleBulkDelete = async (data: { startDate: string; endDate: string; roomIds: string[] }) => {
-    const { startDate, endDate, roomIds } = data;
+  const handleBulkDelete = async (data: { startDate: string; endDate: string; roomIds: string[]; volunteerIds: string[] }) => {
+    const { startDate, endDate, roomIds, volunteerIds } = data;
     const start = parseISO(startDate);
     const end = parseISO(endDate);
 
@@ -1225,7 +1331,8 @@ const Planning = () => {
         const planningEnd = parseISO(planning.endDate);
         const inDateRange = planningStart >= start && planningEnd <= end;
         const inSelectedRooms = roomIds.length === 0 || roomIds.includes(planning.roomId);
-        return inDateRange && inSelectedRooms;
+        const inSelectedVolunteers = volunteerIds.length === 0 || volunteerIds.includes(planning.volunteerId);
+        return inDateRange && inSelectedRooms && inSelectedVolunteers;
       });
 
       await Promise.all(
@@ -1427,6 +1534,7 @@ const Planning = () => {
           open={deleteDialogOpen}
           onOpenChange={setDeleteDialogOpen}
           rooms={rooms}
+          volunteers={volunteers}
           onDelete={handleBulkDelete}
         />
       )}
