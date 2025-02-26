@@ -81,12 +81,12 @@ const PlanningTable = ({
     })();
 
     const matchesDate = !dateFilter || (() => {
-      const planningStart = parseISO(planning.startDate);
-      const planningEnd = parseISO(planning.endDate);
+      const planningStart = startOfDay(parseISO(planning.startDate));
+      const planningEnd = endOfDay(parseISO(planning.endDate));
       const filterDate = startOfDay(dateFilter);
       return isWithinInterval(filterDate, { 
-        start: startOfDay(planningStart), 
-        end: endOfDay(planningEnd) 
+        start: planningStart, 
+        end: planningEnd 
       });
     })();
 
@@ -94,9 +94,13 @@ const PlanningTable = ({
   });
 
   const sortedPlannings = [...filteredPlannings].sort((a, b) => {
-    const dateA = parseISO(a.startDate);
-    const dateB = parseISO(b.startDate);
-    return dateA.getTime() - dateB.getTime();
+    // First compare by start date
+    const startDateComparison = parseISO(a.startDate).getTime() - parseISO(b.startDate).getTime();
+    if (startDateComparison !== 0) {
+      return startDateComparison;
+    }
+    // If start dates are equal, compare by end date
+    return parseISO(a.endDate).getTime() - parseISO(b.endDate).getTime();
   });
 
   const stopPropagation = (e: React.MouseEvent) => {
