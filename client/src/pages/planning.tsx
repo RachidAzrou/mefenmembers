@@ -46,6 +46,7 @@ import {
   Square,
   ChevronsUpDown,
   Check,
+  Loader2,
 } from "lucide-react";
 import { Form as FormComponent, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -409,7 +410,7 @@ const PlanningForm = ({ form, onSubmit, editingPlanning, volunteers, rooms }: {
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent position="popper" sideOffset={4}>
-                      <div 
+                      <div
                         style={{
                           height: '300px',
                           overflowY: 'auto',
@@ -735,6 +736,197 @@ const PlanningSection = ({ title, icon, defaultOpen, children }: {
   );
 };
 
+const DeletePlanningDialog = ({
+  open,
+  onOpenChange,
+  rooms,
+  onDelete
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  rooms: { id: string; name: string; }[];
+  onDelete: (data: { startDate: string; endDate: string; roomIds: string[] }) => Promise<void>;
+}) => {
+  const [selectedRooms, setSelectedRooms] = useState<string[]>([]);
+  const [startDate, setStartDate] = useState<string>("");
+  const [endDate, setEndDate] = useState<string>("");
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const handleDelete = async () => {
+    try {
+      setIsDeleting(true);
+      await onDelete({
+        startDate,
+        endDate,
+        roomIds: selectedRooms.length === 0 ? rooms.map(r => r.id) : selectedRooms
+      });
+      onOpenChange(false);
+    } catch (error) {
+      console.error("Delete error:", error);
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-[500px]">
+        <DialogHeader>
+          <DialogTitle className="text-destructive">Verwijder Planning</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-4 py-4">
+          <div className="space-y-2">
+            <Label>Periode</Label>
+            <div className="grid gap-4">
+              <div className="space-y-2">
+                <Label>Startdatum</Label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant={"outline"}
+                      className={cn(
+                        "w-full justify-start text-left font-normal",
+                        !startDate && "text-muted-foreground"
+                      )}
+                    >
+                      {startDate ? (
+                        format(parseISO(startDate), "EEEE d MMMM yyyy", { locale: nl })
+                      ) : (
+                        <span>Kies een datum</span>
+                      )}
+                      <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={startDate ? parseISO(startDate) : undefined}
+                      onSelect={(date) => {
+                        if (date) {
+                          const formattedDate = format(date, 'yyyy-MM-dd');
+                          setStartDate(formattedDate);
+                          if (endDate && parseISO(endDate) < date) {
+                            setEndDate(formattedDate);
+                          }
+                        }
+                      }}
+                      initialFocus
+                      locale={nl}
+                    />
+                  </PopoverContent>
+                </Popover>
+              </div>
+              <div className="space-y-2">
+                <Label>Einddatum</Label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant={"outline"}
+                      className={cn(
+                        "w-full justify-start text-left font-normal",
+                        !endDate && "text-muted-foreground"
+                      )}
+                    >
+                      {endDate ? (
+                        format(parseISO(endDate), "EEEE d MMMM yyyy", { locale: nl })
+                      ) : (
+                        <span>Kies een datum</span>
+                      )}
+                      <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={endDate ? parseISO(endDate) : undefined}
+                      onSelect={(date) => date && setEndDate(format(date, 'yyyy-MM-dd'))}
+                      disabled={(date) => {
+                        if (!startDate) return true;
+                        const minDate = parseISO(startDate);
+                        minDate.setHours(0, 0, 0, 0);
+                        date.setHours(0, 0, 0, 0);
+                        return date < minDate;
+                      }}
+                      initialFocus
+                      locale={nl}
+                    />
+                  </PopoverContent>
+                </Popover>
+              </div>
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <Label>Ruimtes</Label>
+              <Button
+                variant="ghost"
+                className="h-auto p-0 text-xs text-muted-foreground hover:text-foreground"
+                onClick={() => setSelectedRooms(selectedRooms.length > 0 ? [] : rooms.map(r => r.id))}
+              >
+                {selectedRooms.length === 0 ? "Alle ruimtes geselecteerd" : "Selecteer alle ruimtes"}
+              </Button>
+            </div>
+            <Select
+              multiple
+              value={selectedRooms}
+              onValueChange={setSelectedRooms}
+            >
+              <FormControl>
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecteer ruimtes">
+                    {selectedRooms.length === 0
+                      ? "Alle ruimtes"
+                      : `${selectedRooms.length} ruimte(s) geselecteerd`}
+                  </SelectValue>
+                </SelectTrigger>
+              </FormControl>
+              <SelectContent>
+                <div
+                  className="overflow-y-auto overscroll-contain"
+                  style={{
+                    height: '200px',
+                    scrollbarWidth: 'thin',
+                    scrollbarColor: 'rgb(203 213 225) transparent'
+                  }}
+                >
+                  {rooms.map((room) => (
+                    <SelectItem key={room.id} value={room.id}>
+                      {room.name}
+                    </SelectItem>
+                  ))}
+                </div>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+        <DialogFooter>
+          <Button
+            variant="ghost"
+            onClick={() => onOpenChange(false)}
+          >
+            Annuleren
+          </Button>
+          <Button
+            variant="destructive"
+            onClick={handleDelete}
+            disabled={!startDate || !endDate || isDeleting}
+          >
+            {isDeleting ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Bezig met verwijderen...
+              </>
+            ) : (
+              "Planning verwijderen"
+            )}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+};
+
 const Planning = () => {
   const [plannings, setPlannings] = useState<Planning[]>([]);
   const [volunteers, setVolunteers] = useState<{ id: string; firstName: string; lastName: string; }[]>([]);
@@ -747,6 +939,7 @@ const Planning = () => {
   const [searchPast, setSearchPast] = useState("");
   const { isAdmin } = useRole();
   const { toast } = useToast();
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
   const form = useForm<z.infer<typeof planningSchema>>({
     resolver: zodResolver(planningSchema),
@@ -922,7 +1115,8 @@ const Planning = () => {
         "info"
       );
       setDeletePlanningId(null);
-    } catch (error) {      showToast(
+    } catch (error) {
+      showToast(
         "Fout",
         "Er is een fout opgetreden bij het verwijderen van de planning",
         "destructive"
@@ -946,14 +1140,15 @@ const Planning = () => {
     const endDate = new Date(planning.endDate);
     endDate.setHours(0, 0, 0, 0);
 
-    if(format(today, 'yyyy-MM-dd') === format(startDate, 'yyyy-MM-dd')) {
+    if (format(today, 'yyyy-MM-dd') === format(startDate, 'yyyy-MM-dd')) {
       acc.activePlannings.push(planning);
     } else if (startDate > today) {
       acc.upcomingPlannings.push(planning);
     } else {
       acc.pastPlannings.push(planning);
     }
-    return acc;  }, { activePlannings: [], upcomingPlannings: [], pastPlannings: [] });
+    return acc;
+  }, { activePlannings: [], upcomingPlannings: [], pastPlannings: [] });
 
   const filterPlannings = (planningsList: Planning[], searchTerm: string): Planning[] => {
     if (!searchTerm.trim()) return planningsList;
@@ -973,81 +1168,89 @@ const Planning = () => {
   };
 
   const filteredActivePlannings = filterPlannings(activePlannings, searchActive);
-  const filteredUpcomingPlannings= filterPlannings(upcomingPlannings, searchUpcoming);
+  const filteredUpcomingPlannings = filterPlannings(upcomingPlannings, searchUpcoming);
   const filteredPastPlannings = filterPlannings(pastPlannings, searchPast);
 
+  const handleBulkDelete = async (data: { startDate: string; endDate: string; roomIds: string[] }) => {
+    const { startDate, endDate, roomIds } = data;
+    const start = parseISO(startDate);
+    const end = parseISO(endDate);
+
+    try {
+      const planningsToDelete = plannings.filter(planning => {
+        const planningStart = parseISO(planning.startDate);
+        const planningEnd = parseISO(planning.endDate);
+        const inDateRange = planningStart >= start && planningEnd <= end;
+        const inSelectedRooms = roomIds.length === 0 || roomIds.includes(planning.roomId);
+        return inDateRange && inSelectedRooms;
+      });
+
+      await Promise.all(
+        planningsToDelete.map(async (planning) => {
+          await remove(ref(db, `plannings/${planning.id}`));
+          const volunteer = volunteers.find(v => v.id === planning.volunteerId);
+          const room = rooms.find(r => r.id === planning.roomId);
+          await logUserAction(
+            UserActionTypes.PLANNING_DELETE,
+            `Planning verwijderd voor ${volunteer?.firstName} ${volunteer?.lastName} in ${room?.name}`,
+            {
+              type: "planning",
+              id: planning.id,
+              name: `${volunteer?.firstName} ${volunteer?.lastName} - ${room?.name}`
+            }
+          );
+        })
+      );
+
+      toast({
+        title: "Planningen Verwijderd",
+        description: `${planningsToDelete.length} planning(en) zijn succesvol verwijderd`,
+        variant: "success",
+        duration: 3000,
+      });
+    } catch (error) {
+      console.error("Delete error:", error);
+      toast({
+        title: "Fout",
+        description: "Er is een fout opgetreden bij het verwijderen van de planningen",
+        variant: "destructive",
+        duration: 3000,
+      });
+    }
+  };
+
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
+    <div className="space-y-6 p-6">
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-semibold tracking-tight">Planning</h1>
         <div className="flex items-center gap-3">
-          <CalendarIcon className="h-8 w-8 text-primary" />
-          <h1 className="text-3xl font-bold text-primary">Planning</h1>
-        </div>
-      </div>
-
-      <CollapsibleSection
-        title="Planning Overzicht"
-        icon={<CalendarDaysIcon className="h-5 w-5 text-primary" />}
-        defaultOpen={true}
-      >
-        <div className="space-y-4">
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <Card>
-              <CardContent className="pt-6">
-                <div className="flex items-center">
-                  <CalendarDaysIcon className="h-8 w-8 text-primary/80" />
-                  <div className="ml-4">
-                    <h3 className="text-sm font-medium text-gray-500">Totaal Planningen</h3>
-                    <p className="text-2xl font-bold text-primary">{plannings.length}</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardContent className="pt-6">
-                <div className="flex items-center">
-                  <Users2 className="h-8 w-8 text-primary/80" />
-                  <div className="ml-4">
-                    <h3 className="text-sm font-medium text-gray-500">Unieke Vrijwilligers</h3>
-                    <p className="text-2xl font-bold text-primary">{uniqueVolunteersScheduled}</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardContent className="pt-6">
-                <div className="flex items-center">
-                  <Building className="h-8 w-8 text-primary/80" />
-                  <div className="ml-4">
-                    <h3 className="text-sm font-medium text-gray-500">Bezette Ruimtes</h3>
-                    <p className="text-2xl font-bold text-primary">{uniqueRoomsScheduled}</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-      </CollapsibleSection>
-
-      <div className="flex justify-end mt-6 mb-6">
-        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-          <DialogTrigger asChild>
-            <Button className="bg-[#6BB85C] hover:bg-[#6BB85C]/90">
-              <Plus className="h-4 w-4 mr-2" />
-              Nieuwe Planning
+          {isAdmin && (
+            <Button
+              variant="destructive"
+              className="gap-2"
+              onClick={() => setDeleteDialogOpen(true)}
+            >
+              <Trash2 className="h-4 w-4" />
+              Verwijder planning
             </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>
-                {editingPlanning ? "Planning Bewerken" : "Nieuwe Planning"}
-              </DialogTitle>
-            </DialogHeader>
-            <PlanningForm form={form} onSubmit={onSubmit} editingPlanning={editingPlanning} volunteers={volunteers} rooms={rooms} />
-          </DialogContent>
-        </Dialog>
+          )}
+          <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+            <DialogTrigger asChild>
+              <Button className="bg-[#6BB85C] hover:bg-[#6BB85C]/90">
+                <Plus className="h-4 w-4 mr-2" />
+                Nieuwe Planning
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>
+                  {editingPlanning ? "Planning Bewerken" : "Nieuwe Planning"}
+                </DialogTitle>
+              </DialogHeader>
+              <PlanningForm form={form} onSubmit={onSubmit} editingPlanning={editingPlanning} volunteers={volunteers} rooms={rooms} />
+            </DialogContent>
+          </Dialog>
+        </div>
       </div>
 
       <PlanningSection
@@ -1123,6 +1326,14 @@ const Planning = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+      {isAdmin && (
+        <DeletePlanningDialog
+          open={deleteDialogOpen}
+          onOpenChange={setDeleteDialogOpen}
+          rooms={rooms}
+          onDelete={handleBulkDelete}
+        />
+      )}
     </div>
   );
 };
