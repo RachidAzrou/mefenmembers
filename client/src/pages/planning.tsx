@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import { Button } from "@/components/ui/button";
 import {
   Table,
   TableBody,
@@ -8,6 +7,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Calendar, Search, X, Clock } from "lucide-react";
 import { format, parseISO } from "date-fns";
@@ -17,7 +17,8 @@ import { CollapsibleSection } from "@/components/ui/collapsible-section";
 import { useRole } from "@/hooks/use-role";
 import { cn } from "@/lib/utils";
 import React from 'react';
-import { db, ref, remove, onValue } from "firebase/database";
+import { db } from "@/lib/firebase";
+import { ref, remove, onValue } from "firebase/database";
 
 interface Planning {
   id: string;
