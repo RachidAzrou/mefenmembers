@@ -199,7 +199,7 @@ export default function ImportExport() {
             toast({
               title: "Nieuwe Aanmelding",
               description: "Er is een nieuwe vrijwilliger aanmelding binnengekomen.",
-              duration: 3000, // Updated duration
+              duration: 1000, 
             });
           }
         }
@@ -245,7 +245,7 @@ export default function ImportExport() {
       toast({
         title: "Succes",
         description: "Geselecteerde vrijwilligers zijn succesvol geïmporteerd.",
-        duration: 3000,
+        duration: 1000, 
       });
       setSelectedVolunteers([]);
     } catch (error) {
@@ -253,7 +253,7 @@ export default function ImportExport() {
         variant: "destructive",
         title: "Fout",
         description: "Er is iets misgegaan bij het importeren.",
-        duration: 3000,
+        duration: 1000, 
       });
     }
   };
@@ -283,7 +283,7 @@ export default function ImportExport() {
       toast({
         title: "Succes",
         description: "Geselecteerde aanmeldingen zijn succesvol geweigerd.",
-        duration: 3000,
+        duration: 1000, 
       });
       setSelectedVolunteers([]);
     } catch (error) {
@@ -291,7 +291,7 @@ export default function ImportExport() {
         variant: "destructive",
         title: "Fout",
         description: "Er is iets misgegaan bij het weigeren van de aanmeldingen.",
-        duration: 3000,
+        duration: 1000, 
       });
     }
   };

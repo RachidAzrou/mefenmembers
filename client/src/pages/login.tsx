@@ -58,7 +58,7 @@ export default function Login() {
         variant: "destructive",
         title: "Fout",
         description: "Ongeldig e-mailadres of wachtwoord",
-        duration: 3000,
+        duration: 1000,
       });
     }
   };
@@ -78,7 +78,7 @@ export default function Login() {
       toast({
         title: "Wachtwoord reset link verzonden",
         description: "Controleer je e-mail voor instructies om je wachtwoord te resetten.",
-        duration: 3000,
+        duration: 1000,
       });
       setResetDialogOpen(false);
       resetForm.reset();
@@ -87,7 +87,7 @@ export default function Login() {
         variant: "destructive",
         title: "Fout",
         description: "Kon geen wachtwoord reset link verzenden. Controleer je e-mailadres.",
-        duration: 3000,
+        duration: 1000,
       });
     }
   };
@@ -102,7 +102,7 @@ export default function Login() {
       <div className="absolute inset-0 bg-black/50 backdrop-blur-[2px]" />
 
       <div className="relative z-10 w-full max-w-[500px]">
-        <Card className="bg-white/95 backdrop-blur-sm border-0 shadow-2xl overflow-hidden">
+        <Card className="bg-white border-0 shadow-2xl overflow-hidden">
           <CardContent className="pt-8 px-4 sm:px-8">
             <div className="text-center mb-8">
               <div className="w-full flex justify-center items-center">
