@@ -9,7 +9,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
-import { Calendar, Search, Pen, Trash2, Plus, Settings2 } from "lucide-react";
+import { Calendar, Search, Trash2, Plus } from "lucide-react";
 import { format, parseISO, isWithinInterval } from "date-fns";
 import { nl } from "date-fns/locale";
 import { Card, CardContent } from "@/components/ui/card";
@@ -196,14 +196,6 @@ const PlanningTable = ({
                           <Button
                             variant="ghost"
                             size="icon"
-                            onClick={() => onEdit(planning)}
-                            className="text-[#6BB85C] hover:text-[#6BB85C]/90 hover:bg-[#6BB85C]/10"
-                          >
-                            <Pen className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
                             onClick={() => onDelete(planning.id)}
                             className="text-[#963E56] hover:text-[#963E56]/90 hover:bg-[#963E56]/10"
                           >
@@ -232,39 +224,21 @@ const PlanningSection = ({ title, icon, defaultOpen, children }: {
   const [isEditing, setIsEditing] = useState(false);
 
   return (
-    <div className="relative">
-      <CollapsibleSection
-        title={title}
-        icon={icon}
-        defaultOpen={defaultOpen}
-        titleClassName="text-[#963E56]"
-        action={
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={(e) => {
-              e.stopPropagation();
-              setIsEditing(!isEditing);
-            }}
-            className={cn(
-              "h-8 w-8 text-[#6BB85C]",
-              isEditing && "bg-[#6BB85C]/10"
-            )}
-          >
-            <Settings2 className="h-4 w-4" />
-          </Button>
+    <CollapsibleSection
+      title={title}
+      icon={icon}
+      defaultOpen={defaultOpen}
+      titleClassName="text-[#963E56]"
+    >
+      {React.Children.map(children, child => {
+        if (React.isValidElement(child)) {
+          return React.cloneElement(child as React.ReactElement, {
+            showActions: isEditing
+          });
         }
-      >
-        {React.Children.map(children, child => {
-          if (React.isValidElement(child)) {
-            return React.cloneElement(child as React.ReactElement, {
-              showActions: isEditing
-            });
-          }
-          return child;
-        })}
-      </CollapsibleSection>
-    </div>
+        return child;
+      })}
+    </CollapsibleSection>
   );
 };
 
@@ -463,8 +437,8 @@ const Planning = () => {
                   Inplannen
                 </Button>
               </DialogTrigger>
-              <DialogContent className="max-w-[450px] p-6">
-                <DialogHeader className="mb-4">
+              <DialogContent className="max-w-[450px] p-6 bg-white border-none shadow-lg">
+                <DialogHeader className="mb-4 space-y-2">
                   <DialogTitle className="text-xl font-semibold text-[#963E56]">
                     {editingPlanning ? "Planning Bewerken" : "Planning"}
                   </DialogTitle>

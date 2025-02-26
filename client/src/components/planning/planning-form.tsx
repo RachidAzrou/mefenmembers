@@ -86,8 +86,8 @@ export function PlanningForm({
                 <FormItem>
                   <FormLabel>Vrijwilligers</FormLabel>
                   <Command className="rounded-lg border shadow-md">
-                    <CommandInput 
-                      placeholder="Zoek vrijwilligers..." 
+                    <CommandInput
+                      placeholder="Zoek vrijwilligers..."
                       value={searchTerm}
                       onValueChange={setSearchTerm}
                     />
@@ -224,8 +224,8 @@ export function PlanningForm({
                 <FormItem>
                   <FormLabel>Vrijwilliger</FormLabel>
                   <Command className="rounded-lg border shadow-md">
-                    <CommandInput 
-                      placeholder="Zoek vrijwilliger..." 
+                    <CommandInput
+                      placeholder="Zoek vrijwilliger..."
                       value={searchTerm}
                       onValueChange={setSearchTerm}
                     />
