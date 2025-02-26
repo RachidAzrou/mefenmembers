@@ -24,7 +24,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { db } from "@/lib/firebase";
 import { ref, push, remove, update, onValue } from "firebase/database";
-import { House } from "lucide-react";
+import { House, Users } from "lucide-react"; // Added Users import
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useRole } from "@/hooks/use-role";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -83,6 +83,7 @@ export default function Rooms() {
         toast({
           title: "Succes",
           description: "Ruimte succesvol bijgewerkt",
+          duration: 3000,
         });
         setEditingRoom(null);
       } else {
@@ -90,6 +91,7 @@ export default function Rooms() {
         toast({
           title: "Succes",
           description: "Ruimte succesvol toegevoegd",
+          duration: 3000,
         });
       }
       form.reset();
@@ -99,6 +101,7 @@ export default function Rooms() {
         variant: "destructive",
         title: "Fout",
         description: "Kon ruimte niet opslaan",
+        duration: 3000,
       });
     }
   };
@@ -115,6 +118,7 @@ export default function Rooms() {
       toast({
         title: "Succes",
         description: "Ruimte succesvol verwijderd",
+        duration: 3000,
       });
       setDeleteRoomId(null);
     } catch (error) {
@@ -122,6 +126,7 @@ export default function Rooms() {
         variant: "destructive",
         title: "Fout",
         description: "Kon ruimte niet verwijderen",
+        duration: 3000,
       });
     }
   };
@@ -146,7 +151,7 @@ export default function Rooms() {
               <DialogContent>
                 <DialogHeader>
                   <DialogTitle>
-                    {editingRoom ? "Ruimte Bewerken" : "Nieuwe Ruimte Toevoegen"}
+                    {editingRoom ? "Ruimte Bewerken" : "Nieuwe Ruimte"}
                   </DialogTitle>
                 </DialogHeader>
                 <Form {...form}>
@@ -224,15 +229,6 @@ export default function Rooms() {
                 )}
               </CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className="flex items-center justify-between text-sm text-muted-foreground">
-                <div className="flex items-center gap-2">
-                  <Users className="h-4 w-4" />
-                  <span>Actieve toewijzingen</span>
-                </div>
-                <span className="font-medium">{activeAssignments[room.id] || 0}</span>
-              </div>
-            </CardContent>
           </Card>
         ))}
         {rooms.length === 0 && (
