@@ -73,7 +73,14 @@ const PlanningTable = ({
 }) => {
   const [dateFilter, setDateFilter] = useState<Date | undefined>();
 
+  const stopPropagation = (e: React.MouseEvent) => {
+    e.stopPropagation();
+  };
+
   const filteredPlannings = plannings.filter(planning => {
+    // Only filter if there's a search term or date filter
+    if (!searchValue && !dateFilter) return true;
+
     const matchesSearch = searchValue.toLowerCase() === '' || (() => {
       const volunteer = volunteers.find(v => v.id === planning.volunteerId);
       const room = rooms.find(r => r.id === planning.roomId);
@@ -91,10 +98,6 @@ const PlanningTable = ({
 
     return matchesSearch && matchesDate;
   });
-
-  const stopPropagation = (e: React.MouseEvent) => {
-    e.stopPropagation();
-  };
 
   return (
     <div className="space-y-4" onClick={stopPropagation}>
@@ -139,7 +142,7 @@ const PlanningTable = ({
         </div>
       )}
 
-      <div className="rounded-lg border bg-background">
+      <div className="rounded-lg border">
         <Table>
           <TableHeader>
             <TableRow>
@@ -177,12 +180,12 @@ const PlanningTable = ({
                     <TableCell>
                       <div className="flex flex-col gap-1 text-sm">
                         <div className="whitespace-nowrap">
-                          {format(new Date(planning.startDate), "EEEE d MMM yyyy", {
+                          {format(parseISO(planning.startDate), "EEEE d MMM yyyy", {
                             locale: nl,
                           })}
                         </div>
                         <div className="whitespace-nowrap text-muted-foreground">
-                          {format(new Date(planning.endDate), "EEEE d MMM yyyy", {
+                          {format(parseISO(planning.endDate), "EEEE d MMM yyyy", {
                             locale: nl,
                           })}
                         </div>
@@ -251,24 +254,14 @@ const PlanningSection = ({ title, icon, defaultOpen, children }: {
           </Button>
         }
       >
-        <div className="relative">
-          {isEditing ? (
-            <div className="space-y-4">
-              {React.Children.map(children, child => {
-                if (React.isValidElement(child)) {
-                  return React.cloneElement(child as React.ReactElement, {
-                    showActions: true
-                  });
-                }
-                return child;
-              })}
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {children}
-            </div>
-          )}
-        </div>
+        {React.Children.map(children, child => {
+          if (React.isValidElement(child)) {
+            return React.cloneElement(child as React.ReactElement, {
+              showActions: isEditing
+            });
+          }
+          return child;
+        })}
       </CollapsibleSection>
     </div>
   );
@@ -388,42 +381,24 @@ const Planning = () => {
     }
   };
 
-  const filterPlannings = (plannings: Planning[], search: string) => {
-    if (!search.trim()) return plannings;
-    const searchTerm = search.toLowerCase();
-    return plannings.filter((planning) => {
-      const volunteer = volunteers.find((v) => v.id === planning.volunteerId);
-      const room = rooms.find((r) => r.id === planning.roomId);
-      return (
-        volunteer && 
-        `${volunteer.firstName} ${volunteer.lastName}`.toLowerCase().includes(searchTerm) ||
-        (room && room.name.toLowerCase().includes(searchTerm))
-      );
-    });
-  };
-
   const now = new Date();
   now.setHours(0, 0, 0, 0);
 
   const activePlannings = plannings.filter((planning) => {
-    const start = new Date(planning.startDate);
-    const end = new Date(planning.endDate);
+    const start = parseISO(planning.startDate);
+    const end = parseISO(planning.endDate);
     return start <= now && end >= now;
   });
 
   const upcomingPlannings = plannings.filter((planning) => {
-    const start = new Date(planning.startDate);
+    const start = parseISO(planning.startDate);
     return start > now;
   });
 
   const pastPlannings = plannings.filter((planning) => {
-    const end = new Date(planning.endDate);
+    const end = parseISO(planning.endDate);
     return end < now;
   });
-
-  const filteredActivePlannings = filterPlannings(activePlannings, searchActive);
-  const filteredUpcomingPlannings = filterPlannings(upcomingPlannings, searchUpcoming);
-  const filteredPastPlannings = filterPlannings(pastPlannings, searchPast);
 
   return (
     <div className="space-y-6 p-6">
@@ -489,10 +464,10 @@ const Planning = () => {
                   Inplannen
                 </Button>
               </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>
-                    {editingPlanning ? "Planning Bewerken" : "Nieuwe Planning"}
+              <DialogContent className="max-w-[500px] p-6">
+                <DialogHeader className="mb-6">
+                  <DialogTitle className="text-2xl font-bold">
+                    {editingPlanning ? "Planning Bewerken" : "Planning"}
                   </DialogTitle>
                 </DialogHeader>
                 <PlanningForm
@@ -520,7 +495,7 @@ const Planning = () => {
           defaultOpen={true}
         >
           <PlanningTable
-            plannings={filteredActivePlannings}
+            plannings={activePlannings}
             emptyMessage="Er zijn geen actieve planningen voor vandaag"
             volunteers={volunteers}
             rooms={rooms}
@@ -528,7 +503,7 @@ const Planning = () => {
             onDelete={handleDelete}
             searchValue={searchActive}
             onSearchChange={setSearchActive}
-            showActions={isAdmin}
+            showActions={false}
           />
         </PlanningSection>
 
@@ -538,7 +513,7 @@ const Planning = () => {
           defaultOpen={true}
         >
           <PlanningTable
-            plannings={filteredUpcomingPlannings}
+            plannings={upcomingPlannings}
             emptyMessage="Geen toekomstige planningen gevonden"
             volunteers={volunteers}
             rooms={rooms}
@@ -546,7 +521,7 @@ const Planning = () => {
             onDelete={handleDelete}
             searchValue={searchUpcoming}
             onSearchChange={setSearchUpcoming}
-            showActions={isAdmin}
+            showActions={false}
           />
         </PlanningSection>
 
@@ -556,7 +531,7 @@ const Planning = () => {
           defaultOpen={false}
         >
           <PlanningTable
-            plannings={filteredPastPlannings}
+            plannings={pastPlannings}
             emptyMessage="Geen afgelopen planningen gevonden"
             volunteers={volunteers}
             rooms={rooms}
@@ -564,7 +539,7 @@ const Planning = () => {
             onDelete={handleDelete}
             searchValue={searchPast}
             onSearchChange={setSearchPast}
-            showActions={isAdmin}
+            showActions={false}
           />
         </PlanningSection>
       </div>

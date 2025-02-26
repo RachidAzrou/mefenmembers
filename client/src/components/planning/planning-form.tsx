@@ -6,7 +6,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "@/components/ui/command";
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { CalendarIcon, Check, ChevronsUpDown, X } from "lucide-react";
+import { CalendarIcon, Check, X } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { nl } from "date-fns/locale";
 import { cn } from "@/lib/utils";
@@ -59,7 +59,7 @@ export function PlanningForm({
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
         {!editingPlanning && (
-          <div className="flex items-center space-x-2 pb-4 border-b">
+          <div className="flex items-center space-x-2 pb-4 mb-4 border-b border-border">
             <Switch
               checked={isBulkPlanning}
               onCheckedChange={(checked) => {
@@ -222,55 +222,30 @@ export function PlanningForm({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Vrijwilliger</FormLabel>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <FormControl>
-                        <Button
-                          variant="outline"
-                          role="combobox"
-                          className={cn(
-                            "w-full justify-between",
-                            !field.value && "text-muted-foreground"
-                          )}
+                  <Command className="rounded-lg border shadow-md">
+                    <CommandInput 
+                      placeholder="Zoek vrijwilliger..." 
+                      value={searchTerm}
+                      onValueChange={setSearchTerm}
+                    />
+                    <CommandEmpty>Geen vrijwilligers gevonden.</CommandEmpty>
+                    <CommandGroup className="max-h-[200px] overflow-auto">
+                      {filteredVolunteers.map((volunteer) => (
+                        <CommandItem
+                          key={volunteer.id}
+                          onSelect={() => field.onChange(volunteer.id)}
                         >
-                          {field.value ? (
-                            <span>
-                              {volunteers.find(v => v.id === field.value)?.firstName} {volunteers.find(v => v.id === field.value)?.lastName}
-                            </span>
-                          ) : (
-                            <span>Selecteer vrijwilliger</span>
-                          )}
-                          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                        </Button>
-                      </FormControl>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0" align="start">
-                      <Command>
-                        <CommandInput 
-                          placeholder="Zoek vrijwilliger..." 
-                          value={searchTerm}
-                          onValueChange={setSearchTerm}
-                        />
-                        <CommandEmpty>Geen vrijwilligers gevonden.</CommandEmpty>
-                        <CommandGroup>
-                          {filteredVolunteers.map((volunteer) => (
-                            <CommandItem
-                              key={volunteer.id}
-                              onSelect={() => field.onChange(volunteer.id)}
-                            >
-                              <Check
-                                className={cn(
-                                  "mr-2 h-4 w-4",
-                                  field.value === volunteer.id ? "opacity-100" : "opacity-0"
-                                )}
-                              />
-                              {volunteer.firstName} {volunteer.lastName}
-                            </CommandItem>
-                          ))}
-                        </CommandGroup>
-                      </Command>
-                    </PopoverContent>
-                  </Popover>
+                          <Check
+                            className={cn(
+                              "mr-2 h-4 w-4",
+                              field.value === volunteer.id ? "opacity-100" : "opacity-0"
+                            )}
+                          />
+                          {volunteer.firstName} {volunteer.lastName}
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                  </Command>
                   <FormMessage />
                 </FormItem>
               )}
@@ -309,103 +284,105 @@ export function PlanningForm({
           </>
         )}
 
-        <FormField
-          control={form.control}
-          name="startDate"
-          render={({ field }) => (
-            <FormItem className="flex flex-col">
-              <FormLabel>Startdatum</FormLabel>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <FormControl>
-                    <Button
-                      variant={"outline"}
-                      className={cn(
-                        "w-full justify-start text-left font-normal",
-                        !field.value && "text-muted-foreground"
-                      )}
-                    >
-                      {field.value ? (
-                        format(parseISO(field.value), "EEEE d MMMM yyyy", { locale: nl })
-                      ) : (
-                        <span>Kies een datum</span>
-                      )}
-                      <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                    </Button>
-                  </FormControl>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={field.value ? parseISO(field.value) : undefined}
-                    onSelect={(date) => {
-                      if (date) {
-                        field.onChange(format(date, 'yyyy-MM-dd'));
-                      }
-                    }}
-                    initialFocus
-                    locale={nl}
-                  />
-                </PopoverContent>
-              </Popover>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+        <div className="grid grid-cols-2 gap-4">
+          <FormField
+            control={form.control}
+            name="startDate"
+            render={({ field }) => (
+              <FormItem className="flex flex-col">
+                <FormLabel>Startdatum</FormLabel>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <FormControl>
+                      <Button
+                        variant={"outline"}
+                        className={cn(
+                          "w-full pl-3 text-left font-normal",
+                          !field.value && "text-muted-foreground"
+                        )}
+                      >
+                        {field.value ? (
+                          format(parseISO(field.value), "EEEE d MMMM yyyy", { locale: nl })
+                        ) : (
+                          <span>Kies een datum</span>
+                        )}
+                        <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                      </Button>
+                    </FormControl>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={field.value ? parseISO(field.value) : undefined}
+                      onSelect={(date) => {
+                        if (date) {
+                          field.onChange(format(date, 'yyyy-MM-dd'));
+                        }
+                      }}
+                      initialFocus
+                      locale={nl}
+                    />
+                  </PopoverContent>
+                </Popover>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
-        <FormField
-          control={form.control}
-          name="endDate"
-          render={({ field }) => (
-            <FormItem className="flex flex-col">
-              <FormLabel>Einddatum</FormLabel>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <FormControl>
-                    <Button
-                      variant={"outline"}
-                      className={cn(
-                        "w-full justify-start text-left font-normal",
-                        !field.value && "text-muted-foreground"
-                      )}
-                    >
-                      {field.value ? (
-                        format(parseISO(field.value), "EEEE d MMMM yyyy", { locale: nl })
-                      ) : (
-                        <span>Kies een datum</span>
-                      )}
-                      <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                    </Button>
-                  </FormControl>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={field.value ? parseISO(field.value) : undefined}
-                    onSelect={(date) => {
-                      if (date) {
-                        field.onChange(format(date, 'yyyy-MM-dd'));
-                      }
-                    }}
-                    disabled={(date) => {
-                      const startDate = form.getValues("startDate");
-                      if (!startDate) return true;
-                      const minDate = parseISO(startDate);
-                      minDate.setHours(0, 0, 0, 0);
-                      date.setHours(0, 0, 0, 0);
-                      return date < minDate;
-                    }}
-                    initialFocus
-                    locale={nl}
-                  />
-                </PopoverContent>
-              </Popover>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+          <FormField
+            control={form.control}
+            name="endDate"
+            render={({ field }) => (
+              <FormItem className="flex flex-col">
+                <FormLabel>Einddatum</FormLabel>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <FormControl>
+                      <Button
+                        variant={"outline"}
+                        className={cn(
+                          "w-full pl-3 text-left font-normal",
+                          !field.value && "text-muted-foreground"
+                        )}
+                      >
+                        {field.value ? (
+                          format(parseISO(field.value), "EEEE d MMMM yyyy", { locale: nl })
+                        ) : (
+                          <span>Kies een datum</span>
+                        )}
+                        <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                      </Button>
+                    </FormControl>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={field.value ? parseISO(field.value) : undefined}
+                      onSelect={(date) => {
+                        if (date) {
+                          field.onChange(format(date, 'yyyy-MM-dd'));
+                        }
+                      }}
+                      disabled={(date) => {
+                        const startDate = form.getValues("startDate");
+                        if (!startDate) return true;
+                        const minDate = parseISO(startDate);
+                        minDate.setHours(0, 0, 0, 0);
+                        date.setHours(0, 0, 0, 0);
+                        return date < minDate;
+                      }}
+                      initialFocus
+                      locale={nl}
+                    />
+                  </PopoverContent>
+                </Popover>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
 
-        <div className="flex justify-end gap-3">
+        <div className="flex justify-end gap-3 pt-6">
           <Button
             type="button"
             variant="ghost"
