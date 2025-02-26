@@ -186,7 +186,7 @@ export default function Login() {
             MEFEN Vrijwilligers Management Systeem
           </p>
           <p className="text-gray-400 text-xs">
-            Versie 2.1.0
+            Versie 2.1.4
           </p>
         </div>
       </div>

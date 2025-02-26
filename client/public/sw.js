@@ -1,4 +1,4 @@
-const CACHE_NAME = 'mefen-volunteerapp-v8'; // Increment version to force cache refresh
+const CACHE_NAME = 'mefen-volunteerapp-v2.1.4'; // Updated version number
 const urlsToCache = [
   '/',
   '/index.html',
