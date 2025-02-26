@@ -706,7 +706,7 @@ const Planning = () => {
   const [searchActive, setSearchActive] = useState("");
   const [searchUpcoming, setSearchUpcoming] = useState("");
   const [searchPast, setSearchPast] = useState("");
-  const [currentWeek, setCurrentWeek] = useState(1); 
+  const [currentWeek, setCurrentWeek] = useState(1);
   const { isAdmin } = useRole();
   const { toast } = useToast();
   const form = useForm<z.infer<typeof planningSchema>>({
@@ -939,165 +939,168 @@ const Planning = () => {
   const filteredUpcomingPlannings = filterPlannings(upcomingPlannings, searchUpcoming);
   const filteredPastPlannings = filterPlannings(pastPlannings, searchPast);
 
-  const handleSubmit = onSubmit; 
+  const handleSubmit = onSubmit;
 
   const confirmDelete = () => {
     deletePlanningId && handleDelete(deletePlanningId);
   };
 
   return (
-    <div className="space-y-6 w-full max-w-7xl mx-auto px-4 py-6">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <div<div className="space-y-6 w-full max-w-7xl mx-auto px-4 py-6">
+      <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
         <div className="flex items-center gap-3">
-          <Calendar className="h-8 w-8 text-[#963E56]" />
-          <h1 className="text-2xl sm:text-3xl font-bold text-[#963E56]">Planning</h1>
+          <CalendarIcon className="h-8 w-8 text-primary" />
+          <h1 className="text-3xl font-bold text-primary">Planning</h1>
         </div>
-
-        <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
-          <div className="flex items-center gap-2 bg-white rounded-lg border p-1.5 shadow-sm w-full sm:w-auto">
-            <Button
-              variant="ghost"
-              size="sm"
-              className="text-sm font-medium hidden sm:inline-flex"
+        {isAdmin && (
+          <div className="flex gap-2">
+            <Dialog
+              open={dialogOpen}
+              onOpenChange={(open) => {
+                setDialogOpen(open);
+                if (!open) {
+                  setEditingPlanning(null);
+                  form.reset();
+                }
+              }}
             >
-              Vandaag
-            </Button>
-            <Separator orientation="vertical" className="h-6 hidden sm:block" />
-            <div className="flex items-center gap-1 justify-between w-full sm:w-auto">
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-8 w-8"
-                onClick={() => setCurrentWeek(Math.max(1, currentWeek - 1))}
-              >
-                <ChevronLeft className="h-4 w-4" />
-              </Button>
-              <span className="text-sm font-medium px-2">
-                Week {currentWeek}
-              </span>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-8 w-8"
-                onClick={() => setCurrentWeek(currentWeek + 1)}
-              >
-                <ChevronRight className="h-4 w-4" />
-              </Button>
-            </div>
+              <DialogTrigger asChild>
+                <Button className="bg-[#6BB85C] hover:bg-[#6BB85C]/90 text-white">
+                  <Plus className="h-4 w-4 mr-2" />
+                  Nieuwe Planning
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-[500px]">
+                <DialogHeader>
+                  <DialogTitle className="text-[#963E56]">
+                    {editingPlanning ? "Planning Bewerken" : "Nieuwe Planning"}
+                  </DialogTitle>
+                </DialogHeader>
+                <PlanningForm
+                  form={form}
+                  onSubmit={handleSubmit}
+                  editingPlanning={editingPlanning}
+                  volunteers={volunteers}
+                  rooms={rooms}
+                />
+              </DialogContent>
+            </Dialog>
           </div>
+        )}
+      </div>
 
-          {isAdmin && (
-            <div className="flex gap-2 w-full sm:w-auto">
-              <Dialog 
-                open={dialogOpen} 
-                onOpenChange={(open) => {
-                  setDialogOpen(open);
-                  if (!open) {
-                    setEditingPlanning(null);
-                    form.reset();
-                  }
-                }}
-              >
-                <DialogTrigger asChild>
-                  <Button className="bg-[#6BB85C] hover:bg-[#6BB85C]/90 text-white w-full sm:w-auto">
-                    <Plus className="h-4 w-4 mr-2" />
-                    Planning Toevoegen
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="sm:max-w-[500px] p-6">
-                  <DialogHeader>
-                    <DialogTitle className="text-[#963E56] text-xl">
-                      {editingPlanning ? "Planning Bijwerken" : "Nieuwe Planning"}
-                    </DialogTitle>
-                  </DialogHeader>
-                  <PlanningForm
-                    form={form}
-                    onSubmit={handleSubmit}
-                    editingPlanning={editingPlanning}
-                    volunteers={volunteers}
-                    rooms={rooms}
-                  />
-                </DialogContent>
-              </Dialog>
-            </div>
-          )}
+      <CollapsibleSection
+        title="Planning Overzicht"
+        icon={<CalendarDaysIcon className="h-5 w-5 text-primary" />}
+        defaultOpen={true}
+      >
+        <div className="space-y-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <Card>
+              <CardContent className="pt-6">
+                <div className="flex items-center">
+                  <CalendarDaysIcon className="h-8 w-8 text-primary/80" />
+                  <div className="ml-4">
+                    <h3 className="text-sm font-medium text-gray-500">Totaal Planningen</h3>
+                    <p className="text-2xl font-bold text-primary">{plannings.length}</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardContent className="pt-6">
+                <div className="flex items-center">
+                  <Users2 className="h-8 w-8 text-primary/80" />
+                  <div className="ml-4">
+                    <h3 className="text-sm font-medium text-gray-500">Unieke Vrijwilligers</h3>
+                    <p className="text-2xl font-bold text-primary">{uniqueVolunteersScheduled}</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardContent className="pt-6">
+                <div className="flex items-center">
+                  <Building className="h-8 w-8 text-primary/80" />
+                  <div className="ml-4">
+                    <h3 className="text-sm font-medium text-gray-500">Bezette Ruimtes</h3>
+                    <p className="text-2xl font-bold text-primary">{uniqueRoomsScheduled}</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
         </div>
-      </div>
+      </CollapsibleSection>
 
-      <div className="space-y-6">
-        <PlanningSection
-          title="Actieve Planningen"
-          icon={<Users2 className="h-5 w-5" />}
-          defaultOpen={true}
-        >
-          <PlanningTable
-            plannings={filteredActivePlannings}
-            emptyMessage="Geen actieve planningen voor vandaag"
-            volunteers={volunteers}
-            rooms={rooms}
-            onEdit={handleEdit}
-            onDelete={handleDelete}
-            searchValue={searchActive}
-            onSearchChange={setSearchActive}
-          />
-        </PlanningSection>
+      <PlanningSection
+        title="Actieve Planningen"
+        icon={<Users2 className="h-5 w-5 text-primary" />}
+        defaultOpen={true}
+      >
+        <PlanningTable
+          plannings={filteredActivePlannings}
+          emptyMessage="Geen actieve planningen gevonden"
+          volunteers={volunteers}
+          rooms={rooms}
+          onEdit={handleEdit}
+          onDelete={handleDelete}
+          searchValue={searchActive}
+          onSearchChange={setSearchActive}
+        />
+      </PlanningSection>
 
-        <PlanningSection
-          title="Aankomende Planningen"
-          icon={<CalendarDaysIcon className="h-5 w-5" />}
-          defaultOpen={true}
-        >
-          <PlanningTable
-            plannings={filteredUpcomingPlannings}
-            emptyMessage="Geen aankomende planningen gevonden"
-            volunteers={volunteers}
-            rooms={rooms}
-            onEdit={handleEdit}
-            onDelete={handleDelete}
-            searchValue={searchUpcoming}
-            onSearchChange={setSearchUpcoming}
-          />
-        </PlanningSection>
+      <PlanningSection
+        title="Toekomstige Planningen"
+        icon={<Users2 className="h-5 w-5 text-primary" />}
+        defaultOpen={true}
+      >
+        <PlanningTable
+          plannings={filteredUpcomingPlannings}
+          emptyMessage="Geen toekomstige planningen gevonden"
+          volunteers={volunteers}
+          rooms={rooms}
+          onEdit={handleEdit}
+          onDelete={handleDelete}
+          searchValue={searchUpcoming}
+          onSearchChange={setSearchUpcoming}
+        />
+      </PlanningSection>
 
-        <PlanningSection
-          title="Afgelopen Planningen"
-          icon={<Building className="h-5 w-5" />}
-          defaultOpen={false}
-        >
-          <PlanningTable
-            plannings={filteredPastPlannings}
-            emptyMessage="Geen afgelopen planningen gevonden"
-            volunteers={volunteers}
-            rooms={rooms}
-            onEdit={handleEdit}
-            onDelete={handleDelete}
-            searchValue={searchPast}
-            onSearchChange={setSearchPast}
-          />
-        </PlanningSection>
-      </div>
+      <PlanningSection
+        title="Afgelopen Planningen"
+        icon={<Users2 className="h-5 w-5 text-primary" />}
+        defaultOpen={false}
+      >
+        <PlanningTable
+          plannings={filteredPastPlannings}
+          emptyMessage="Geen afgelopen planningen gevonden"
+          volunteers={volunteers}
+          rooms={rooms}
+          onEdit={handleEdit}
+          onDelete={handleDelete}
+          searchValue={searchPast}
+          onSearchChange={setSearchPast}
+        />
+      </PlanningSection>
 
       <AlertDialog open={!!deletePlanningId} onOpenChange={() => setDeletePlanningId(null)}>
         <AlertDialogContent className="sm:max-w-[425px]">
           <AlertDialogHeader>
-            <AlertDialogTitle className="text-destructive">
-              Planning Verwijderen
-            </AlertDialogTitle>
+            <AlertDialogTitle>Weet je het zeker?</AlertDialogTitle>
             <AlertDialogDescription>
-              Weet je zeker dat je deze planning wilt verwijderen?
               Deze actie kan niet ongedaan worden gemaakt.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel
-              onClick={() => setDeletePlanningId(null)}
-              className="sm:mt-0"
-            >
+            <AlertDialogCancel onClick={() => setDeletePlanningId(null)}>
               Annuleren
             </AlertDialogCancel>
             <AlertDialogAction
-              onClick={confirmDelete}
-              className="bg-destructive hover:bg-destructive/90"
+              onClick={() => deletePlanningId && handleDelete(deletePlanningId)}
+              className="bg-red-600 hover:bg-red-700"
             >
               Verwijderen
             </AlertDialogAction>
