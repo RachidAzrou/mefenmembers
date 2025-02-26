@@ -46,8 +46,6 @@ import {
   Square,
   ChevronsUpDown,
   Check,
-  ChevronLeft,
-  ChevronRight,
 } from "lucide-react";
 import { Form as FormComponent, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -287,7 +285,6 @@ const PlanningForm = ({ form, onSubmit, editingPlanning, volunteers, rooms }: {
   rooms: { id: string; name: string; }[];
 }) => {
   const [volunteerSearch, setVolunteerSearch] = useState("");
-  const [isOpen, setIsOpen] = useState(false);
 
   const filteredVolunteers = volunteers.filter(volunteer =>
     `${volunteer.firstName} ${volunteer.lastName}`
@@ -299,16 +296,10 @@ const PlanningForm = ({ form, onSubmit, editingPlanning, volunteers, rooms }: {
   const selectedVolunteers = form.watch("selectedVolunteers") || [];
   const selectedRooms = form.watch("selectedRooms") || [];
 
-  // Handle dialog close
-  const handleClose = () => {
-    setIsOpen(false);
-    form.reset();
-  };
-
   return (
     <FormComponent {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        <div className="flex items-center space-x-3 pb-4 border-b">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+        <div className="flex items-center space-x-2 pb-4 border-b">
           <Switch
             checked={isBulkPlanning}
             onCheckedChange={(checked) => {
@@ -321,11 +312,11 @@ const PlanningForm = ({ form, onSubmit, editingPlanning, volunteers, rooms }: {
               form.setValue("roomId", undefined);
             }}
           />
-          <Label className="text-sm font-medium">Bulk Inplannen</Label>
+          <Label>Bulk Inplannen</Label>
         </div>
 
         {!isBulkPlanning ? (
-          <div className="space-y-4">
+          <>
             <FormField
               control={form.control}
               name="volunteerId"
@@ -354,39 +345,50 @@ const PlanningForm = ({ form, onSubmit, editingPlanning, volunteers, rooms }: {
                         </Button>
                       </FormControl>
                     </PopoverTrigger>
-                    <PopoverContent
-                      className="w-full p-0"
-                      align="start"
-                      onEscapeKeyDown={handleClose}
-                      onInteractOutside={handleClose}
-                    >
-                      <Command>
-                        <CommandInput
+                    <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0" align="start">
+                      <div className="border-b p-2 bg-white">
+                        <input
+                          className="w-full border-0 bg-transparent text-sm placeholder:text-muted-foreground focus:outline-none"
                           placeholder="Zoek vrijwilliger..."
                           value={volunteerSearch}
-                          onValueChange={setVolunteerSearch}
-                          className="h-9"
+                          onChange={(e) => setVolunteerSearch(e.target.value)}
                         />
-                        <CommandEmpty>Geen vrijwilligers gevonden</CommandEmpty>
-                        <CommandGroup className="max-h-[200px] overflow-y-auto">
-                          {filteredVolunteers.map((volunteer) => (
-                            <CommandItem
+                      </div>
+                      <div
+                        className="overflow-y-auto"
+                        style={{
+                          height: '300px',
+                          overflowY: 'auto',
+                          overscrollBehavior: 'contain'
+                        }}
+                      >
+                        {filteredVolunteers.length === 0 ? (
+                          <div className="p-6 text-center text-sm text-muted-foreground">
+                            Geen vrijwilligers gevonden
+                          </div>
+                        ) : (
+                          filteredVolunteers.map((volunteer) => (
+                            <div
                               key={volunteer.id}
-                              value={volunteer.id}
-                              onSelect={() => field.onChange(volunteer.id)}
-                              className="flex items-center gap-2 p-2"
+                              className={cn(
+                                "flex items-center px-3 py-2 cursor-pointer hover:bg-accent",
+                                field.value === volunteer.id && "bg-accent"
+                              )}
+                              onClick={() => field.onChange(volunteer.id)}
                             >
                               <Check
                                 className={cn(
-                                  "h-4 w-4",
+                                  "mr-2 h-4 w-4",
                                   field.value === volunteer.id ? "opacity-100" : "opacity-0"
                                 )}
                               />
-                              <span>{volunteer.firstName} {volunteer.lastName}</span>
-                            </CommandItem>
-                          ))}
-                        </CommandGroup>
-                      </Command>
+                              <span className="text-sm">
+                                {volunteer.firstName} {volunteer.lastName}
+                              </span>
+                            </div>
+                          ))
+                        )}
+                      </div>
                     </PopoverContent>
                   </Popover>
                   <FormMessage />
@@ -400,241 +402,278 @@ const PlanningForm = ({ form, onSubmit, editingPlanning, volunteers, rooms }: {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Ruimte</FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
-                    onOpenChange={(open) => {
-                      if (!open) handleClose();
-                    }}
-                  >
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Selecteer ruimte" />
                       </SelectTrigger>
                     </FormControl>
-                    <SelectContent
-                      position="popper"
-                      className="max-h-[200px] overflow-y-auto"
-                    >
-                      {rooms.map((room) => (
-                        <SelectItem key={room.id} value={room.id}>
-                          {room.name}
-                        </SelectItem>
-                      ))}
+                    <SelectContent position="popper" sideOffset={4}>
+                      <div 
+                        style={{
+                          height: '300px',
+                          overflowY: 'auto',
+                          overscrollBehavior: 'contain'
+                        }}
+                      >
+                        {rooms.map((room) => (
+                          <SelectItem key={room.id} value={room.id}>
+                            {room.name}
+                          </SelectItem>
+                        ))}
+                      </div>
                     </SelectContent>
                   </Select>
                   <FormMessage />
                 </FormItem>
               )}
             />
-          </div>
+          </>
         ) : (
-          <div className="space-y-4">
-            {/* Multi-select volunteers */}
+          <>
             <FormField
               control={form.control}
               name="selectedVolunteers"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Vrijwilligers</FormLabel>
-                  <Command className="border rounded-md">
-                    <CommandInput
-                      placeholder="Zoek vrijwilligers..."
-                      value={volunteerSearch}
-                      onValueChange={setVolunteerSearch}
-                    />
-                    <CommandEmpty>Geen vrijwilligers gevonden</CommandEmpty>
-                    <CommandGroup className="max-h-[200px] overflow-y-auto">
-                      {filteredVolunteers.map((volunteer) => (
-                        <CommandItem
-                          key={volunteer.id}
-                          onSelect={() => {
-                            const current = field.value || [];
-                            const updated = current.includes(volunteer.id)
-                              ? current.filter(id => id !== volunteer.id)
-                              : [...current, volunteer.id];
-                            field.onChange(updated);
-                          }}
-                          className="flex items-center gap-2 p-2"
-                        >
-                          <Check
-                            className={cn(
-                              "h-4 w-4",
-                              (field.value || []).includes(volunteer.id)
-                                ? "opacity-100"
-                                : "opacity-0"
-                            )}
-                          />
-                          <span>{volunteer.firstName} {volunteer.lastName}</span>
-                        </CommandItem>
-                      ))}
-                    </CommandGroup>
-                  </Command>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        role="combobox"
+                        className={cn(
+                          "w-full justify-between",
+                          !field.value?.length && "text-muted-foreground"
+                        )}
+                      >
+                        <span className="truncate">
+                          {(field.value || []).length === 0
+                            ? "Selecteer vrijwilligers..."
+                            : `${(field.value || []).length} vrijwilliger(s) geselecteerd`}
+                        </span>
+                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0" align="start">
+                      <div className="border-b p-2 bg-white">
+                        <input
+                          className="w-full border-0 bg-transparent text-sm placeholder:text-muted-foreground focus:outline-none"
+                          placeholder="Zoek vrijwilligers..."
+                          value={volunteerSearch}
+                          onChange={(e) => setVolunteerSearch(e.target.value)}
+                        />
+                      </div>
+                      <div
+                        className="overflow-y-auto"
+                        style={{
+                          height: '300px',
+                          overflowY: 'auto',
+                          overscrollBehavior: 'contain'
+                        }}
+                      >
+                        {filteredVolunteers.length === 0 ? (
+                          <div className="p-6 text-center text-sm text-muted-foreground">
+                            Geen vrijwilligers gevonden
+                          </div>
+                        ) : (
+                          <div className="py-2">
+                            {filteredVolunteers.map((volunteer) => (
+                              <div
+                                key={volunteer.id}
+                                className={cn(
+                                  "flex items-center px-3 py-2 cursor-pointer hover:bg-accent",
+                                  (field.value || []).includes(volunteer.id) && "bg-accent"
+                                )}
+                                onClick={() => {
+                                  const currentSelected = field.value || [];
+                                  const newSelected = currentSelected.includes(volunteer.id)
+                                    ? currentSelected.filter(id => id !== volunteer.id)
+                                    : [...currentSelected, volunteer.id];
+                                  field.onChange(newSelected);
+                                }}
+                              >
+                                <Check
+                                  className={cn(
+                                    "mr-2 h-4 w-4",
+                                    (field.value || []).includes(volunteer.id) ? "opacity-100" : "opacity-0"
+                                  )}
+                                />
+                                <span className="text-sm">
+                                  {volunteer.firstName} {volunteer.lastName}
+                                </span>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    </PopoverContent>
+                  </Popover>
                   <FormMessage />
                 </FormItem>
               )}
             />
 
-            {/* Multi-select rooms */}
             <FormField
               control={form.control}
               name="selectedRooms"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Ruimtes</FormLabel>
-                  <Command className="border rounded-md">
-                    <CommandInput placeholder="Zoek ruimtes..." />
-                    <CommandEmpty>Geen ruimtes gevonden</CommandEmpty>
-                    <CommandGroup className="max-h-[200px] overflow-y-auto">
-                      {rooms.map((room) => (
-                        <CommandItem
-                          key={room.id}
-                          onSelect={() => {
-                            const current = field.value || [];
-                            const updated = current.includes(room.id)
-                              ? current.filter(id => id !== room.id)
-                              : [...current, room.id];
-                            field.onChange(updated);
-                          }}
-                          className="flex items-center gap-2 p-2"
-                        >
-                          <Check
-                            className={cn(
-                              "h-4 w-4",
-                              (field.value || []).includes(room.id)
-                                ? "opacity-100"
-                                : "opacity-0"
-                            )}
-                          />
-                          <span>{room.name}</span>
-                        </CommandItem>
-                      ))}
-                    </CommandGroup>
-                  </Command>
+                  <Select
+                    multiple
+                    value={field.value}
+                    onValueChange={field.onChange}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecteer ruimtes">
+                          {field.value?.length
+                            ? `${field.value.length} ruimte(s) geselecteerd`
+                            : "Selecteer ruimtes"}
+                        </SelectValue>
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <div
+                        className="overflow-y-auto overscroll-contain"
+                        style={{
+                          height: '200px',
+                          scrollbarWidth: 'thin',
+                          scrollbarColor: 'rgb(203 213 225) transparent'
+                        }}
+                      >
+                        {rooms.map((room) => (
+                          <SelectItem key={room.id} value={room.id}>
+                            {room.name}
+                          </SelectItem>
+                        ))}
+                      </div>
+                    </SelectContent>
+                  </Select>
                   <FormMessage />
                 </FormItem>
               )}
             />
-          </div>
+          </>
         )}
 
-        {/* Date selection */}
-        <div className="space-y-4">
-          <FormField
-            control={form.control}
-            name="startDate"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Startdatum</FormLabel>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <FormControl>
-                      <Button
-                        variant="outline"
-                        className={cn(
-                          "w-full justify-start text-left font-normal",
-                          !field.value && "text-muted-foreground"
-                        )}
-                      >
-                        {field.value ? (
-                          format(parseISO(field.value), "EEEE d MMMM yyyy", { locale: nl })
-                        ) : (
-                          <span>Kies een datum</span>
-                        )}
-                        <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                      </Button>
-                    </FormControl>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar
-                      mode="single"
-                      selected={field.value ? parseISO(field.value) : undefined}
-                      onSelect={(date) => {
-                        if (date) {
-                          const formattedDate = format(date, 'yyyy-MM-dd');
-                          field.onChange(formattedDate);
-                        }
-                      }}
-                      disabled={(date) => {
-                        const today = new Date();
-                        today.setHours(0, 0, 0, 0);
-                        date.setHours(0, 0, 0, 0);
-                        return date < today;
-                      }}
-                      initialFocus
-                      locale={nl}
-                    />
-                  </PopoverContent>
-                </Popover>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+        <FormField
+          control={form.control}
+          name="startDate"
+          render={({ field }) => (
+            <FormItem className="flex flex-col">
+              <FormLabel>Startdatum</FormLabel>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <FormControl>
+                    <Button
+                      variant={"outline"}
+                      className={cn(
+                        "w-full pl-3 text-left font-normal",
+                        !field.value && "text-muted-foreground"
+                      )}
+                    >
+                      {field.value ? (
+                        format(parseISO(field.value), "EEEE d MMMM yyyy", { locale: nl })
+                      ) : (
+                        <span>Kies een datum</span>
+                      )}
+                      <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                    </Button>
+                  </FormControl>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={field.value ? parseISO(field.value) : undefined}
+                    onSelect={(date) => {
+                      if (date) {
+                        const formattedDate = format(date, 'yyyy-MM-dd');
+                        field.onChange(formattedDate);
 
-          <FormField
-            control={form.control}
-            name="endDate"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Einddatum</FormLabel>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <FormControl>
-                      <Button
-                        variant="outline"
-                        className={cn(
-                          "w-full justify-start text-left font-normal",
-                          !field.value && "text-muted-foreground"
-                        )}
-                      >
-                        {field.value ? (
-                          format(parseISO(field.value), "EEEE d MMMM yyyy", { locale: nl })
-                        ) : (
-                          <span>Kies een datum</span>
-                        )}
-                        <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                      </Button>
-                    </FormControl>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar
-                      mode="single"
-                      selected={field.value ? parseISO(field.value) : undefined}
-                      onSelect={(date) => {
-                        if (date) {
-                          field.onChange(format(date, 'yyyy-MM-dd'));
+                        // Als de einddatum voor de nieuwe startdatum ligt, reset deze
+                        const endDate = form.getValues("endDate");
+                        if (endDate && parseISO(endDate) < parseISO(formattedDate)) {
+                          form.setValue("endDate", formattedDate);
                         }
-                      }}
-                      disabled={(date) => {
-                        if (!form.getValues("startDate")) return true;
-                        const minDate = parseISO(form.getValues("startDate"));
-                        minDate.setHours(0, 0, 0, 0);
-                        date.setHours(0, 0, 0, 0);
-                        return date < minDate;
-                      }}
-                      initialFocus
-                      locale={nl}
-                    />
-                  </PopoverContent>
-                </Popover>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
+                      }
+                    }}
+                    disabled={(date) => {
+                      const today = new Date();
+                      today.setHours(0, 0, 0, 0);
+                      date.setHours(0, 0, 0, 0);
+                      return date < today;
+                    }}
+                    initialFocus
+                    locale={nl}
+                  />
+                </PopoverContent>
+              </Popover>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="endDate"
+          render={({ field }) => (
+            <FormItem className="flex flex-col">
+              <FormLabel>Einddatum</FormLabel>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <FormControl>
+                    <Button
+                      variant={"outline"}
+                      className={cn(
+                        "w-full pl-3 text-left font-normal",
+                        !field.value && "text-muted-foreground"
+                      )}
+                    >
+                      {field.value ? (
+                        format(parseISO(field.value), "EEEE d MMMM yyyy", { locale: nl })
+                      ) : (
+                        <span>Kies een datum</span>
+                      )}
+                      <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                    </Button>
+                  </FormControl>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={field.value ? parseISO(field.value) : undefined}
+                    onSelect={(date) => {
+                      if (date) {
+                        field.onChange(format(date, 'yyyy-MM-dd'));
+                      }
+                    }}
+                    disabled={(date) => {
+                      if (!form.getValues("startDate")) return true;
+                      const minDate = parseISO(form.getValues("startDate"));
+                      minDate.setHours(0, 0, 0, 0);
+                      date.setHours(0, 0, 0, 0);
+                      return date < minDate;
+                    }}
+                    initialFocus
+                    locale={nl}
+                  />
+                </PopoverContent>
+              </Popover>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
 
         <Button
           type="submit"
           className="w-full bg-[#6BB85C] hover:bg-[#6BB85C]/90"
-          disabled={
-            isBulkPlanning ?
-              (selectedVolunteers.length === 0 || selectedRooms.length === 0) :
-              (!form.getValues("volunteerId") || !form.getValues("roomId"))
-          }
+          disabled={isBulkPlanning && selectedRooms.length === 0 && selectedVolunteers.length === 0}
         >
           {isBulkPlanning
-            ? `${selectedVolunteers.length * selectedRooms.length} Planning${selectedVolunteers.length * selectedRooms.length === 1 ? '' : 'en'} Toevoegen`
-            : (editingPlanning ? "Planning Bijwerken" : "Planning Toevoegen")
+            ? `${selectedRooms.length === 0 && selectedVolunteers.length === 0 ? 'Selecteer vrijwilligers en ruimtes' : `${selectedVolunteers.length * selectedRooms.length} Planning${selectedVolunteers.length * selectedRooms.length === 1 ? '' : 'en'} Toevoegen`}`
+            : (editingPlanning ? "Planning Bijwerken" : "Inplannen")
           }
         </Button>
       </form>
@@ -706,9 +745,9 @@ const Planning = () => {
   const [searchActive, setSearchActive] = useState("");
   const [searchUpcoming, setSearchUpcoming] = useState("");
   const [searchPast, setSearchPast] = useState("");
-  const [currentWeek, setCurrentWeek] = useState(1);
   const { isAdmin } = useRole();
   const { toast } = useToast();
+
   const form = useForm<z.infer<typeof planningSchema>>({
     resolver: zodResolver(planningSchema),
     defaultValues: {
@@ -883,8 +922,7 @@ const Planning = () => {
         "info"
       );
       setDeletePlanningId(null);
-    } catch (error) {
-      showToast(
+    } catch (error) {      showToast(
         "Fout",
         "Er is een fout opgetreden bij het verwijderen van de planning",
         "destructive"
@@ -908,15 +946,14 @@ const Planning = () => {
     const endDate = new Date(planning.endDate);
     endDate.setHours(0, 0, 0, 0);
 
-    if (format(today, 'yyyy-MM-dd') === format(startDate, 'yyyy-MM-dd')) {
+    if(format(today, 'yyyy-MM-dd') === format(startDate, 'yyyy-MM-dd')) {
       acc.activePlannings.push(planning);
     } else if (startDate > today) {
       acc.upcomingPlannings.push(planning);
     } else {
       acc.pastPlannings.push(planning);
     }
-    return acc;
-  }, { activePlannings: [], upcomingPlannings: [], pastPlannings: [] });
+    return acc;  }, { activePlannings: [], upcomingPlannings: [], pastPlannings: [] });
 
   const filterPlannings = (planningsList: Planning[], searchTerm: string): Planning[] => {
     if (!searchTerm.trim()) return planningsList;
@@ -936,57 +973,16 @@ const Planning = () => {
   };
 
   const filteredActivePlannings = filterPlannings(activePlannings, searchActive);
-  const filteredUpcomingPlannings = filterPlannings(upcomingPlannings, searchUpcoming);
+  const filteredUpcomingPlannings= filterPlannings(upcomingPlannings, searchUpcoming);
   const filteredPastPlannings = filterPlannings(pastPlannings, searchPast);
 
-  const handleSubmit = onSubmit;
-
-  const confirmDelete = () => {
-    deletePlanningId && handleDelete(deletePlanningId);
-  };
-
   return (
-    <div<div className="space-y-6 w-full max-w-7xl mx-auto px-4 py-6">
+    <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
         <div className="flex items-center gap-3">
           <CalendarIcon className="h-8 w-8 text-primary" />
           <h1 className="text-3xl font-bold text-primary">Planning</h1>
         </div>
-        {isAdmin && (
-          <div className="flex gap-2">
-            <Dialog
-              open={dialogOpen}
-              onOpenChange={(open) => {
-                setDialogOpen(open);
-                if (!open) {
-                  setEditingPlanning(null);
-                  form.reset();
-                }
-              }}
-            >
-              <DialogTrigger asChild>
-                <Button className="bg-[#6BB85C] hover:bg-[#6BB85C]/90 text-white">
-                  <Plus className="h-4 w-4 mr-2" />
-                  Nieuwe Planning
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="sm:max-w-[500px]">
-                <DialogHeader>
-                  <DialogTitle className="text-[#963E56]">
-                    {editingPlanning ? "Planning Bewerken" : "Nieuwe Planning"}
-                  </DialogTitle>
-                </DialogHeader>
-                <PlanningForm
-                  form={form}
-                  onSubmit={handleSubmit}
-                  editingPlanning={editingPlanning}
-                  volunteers={volunteers}
-                  rooms={rooms}
-                />
-              </DialogContent>
-            </Dialog>
-          </div>
-        )}
       </div>
 
       <CollapsibleSection
@@ -1034,6 +1030,25 @@ const Planning = () => {
           </div>
         </div>
       </CollapsibleSection>
+
+      <div className="flex justify-end mt-6 mb-6">
+        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+          <DialogTrigger asChild>
+            <Button className="bg-[#6BB85C] hover:bg-[#6BB85C]/90">
+              <Plus className="h-4 w-4 mr-2" />
+              Nieuwe Planning
+            </Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>
+                {editingPlanning ? "Planning Bewerken" : "Nieuwe Planning"}
+              </DialogTitle>
+            </DialogHeader>
+            <PlanningForm form={form} onSubmit={onSubmit} editingPlanning={editingPlanning} volunteers={volunteers} rooms={rooms} />
+          </DialogContent>
+        </Dialog>
+      </div>
 
       <PlanningSection
         title="Actieve Planningen"
@@ -1086,8 +1101,11 @@ const Planning = () => {
         />
       </PlanningSection>
 
-      <AlertDialog open={!!deletePlanningId} onOpenChange={() => setDeletePlanningId(null)}>
-        <AlertDialogContent className="sm:max-w-[425px]">
+      <AlertDialog
+        open={!!deletePlanningId}
+        onOpenChange={() => setDeletePlanningId(null)}
+      >
+        <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Weet je het zeker?</AlertDialogTitle>
             <AlertDialogDescription>
@@ -1095,12 +1113,10 @@ const Planning = () => {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => setDeletePlanningId(null)}>
-              Annuleren
-            </AlertDialogCancel>
+            <AlertDialogCancel>Annuleren</AlertDialogCancel>
             <AlertDialogAction
               onClick={() => deletePlanningId && handleDelete(deletePlanningId)}
-              className="bg-red-600 hover:bg-red-700"
+              className="bg-red-600 hover:bgred-700"
             >
               Verwijderen
             </AlertDialogAction>
