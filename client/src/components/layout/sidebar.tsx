@@ -73,10 +73,10 @@ export function Sidebar() {
 
   return (
     <>
-      {/* Backdrop for mobile menu */}
+      {/* Mobile menu backdrop */}
       {!collapsed && isMobile && (
         <div
-          className="fixed inset-0 bg-black/20 backdrop-blur-sm z-40 transition-opacity duration-300"
+          className="fixed inset-0 bg-black/20 backdrop-blur-sm z-[998] transition-opacity duration-300"
           onClick={() => setCollapsed(true)}
         />
       )}
@@ -86,7 +86,7 @@ export function Sidebar() {
         <Button
           variant="ghost"
           size="icon"
-          className="fixed top-4 left-4 z-50 md:hidden w-12 h-12 rounded-full bg-white shadow-lg hover:bg-gray-50 active:scale-95 transition-all duration-200"
+          className="fixed top-4 left-4 z-[999] md:hidden w-12 h-12 rounded-full bg-white shadow-lg hover:bg-gray-50 active:scale-95 transition-all duration-200"
           onClick={() => setCollapsed(false)}
         >
           <Menu className="h-6 w-6" />
@@ -96,7 +96,7 @@ export function Sidebar() {
       {/* Sidebar container */}
       <div
         className={cn(
-          "fixed md:relative flex flex-col border-r bg-white/95 backdrop-blur-sm transition-all duration-300 ease-in-out h-screen z-50",
+          "fixed md:relative flex flex-col border-r bg-white/95 backdrop-blur-sm transition-transform duration-300 ease-in-out h-screen z-[999]",
           collapsed ? (isMobile ? "-translate-x-full" : "w-16") : "w-[280px] sm:w-64",
           isMobile && "shadow-xl"
         )}
@@ -191,7 +191,7 @@ export function Sidebar() {
                   )}
                   {item.notificationCount > 0 && (
                     <span className={cn(
-                      "absolute right-2 top-1/2 -translate-y-1/2 bg-red-500 text-white rounded-full px-2 py-0.5 min-w-[1.5rem] text-center text-sm transition-all duration-200",
+                      "absolute right-2 top-1/2 -translate-y-1/2 bg-primary/20 text-primary rounded-full px-2 py-0.5 min-w-[1.5rem] text-center text-sm transition-all duration-200",
                       collapsed && "right-1"
                     )}>
                       {item.notificationCount}

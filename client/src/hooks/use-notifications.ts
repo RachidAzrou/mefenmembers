@@ -29,16 +29,16 @@ export function useNotifications() {
       if (permission === 'granted') {
         const messaging = getMessaging();
 
-        // Luister alleen naar berichten wanneer de app in de voorgrond is
+        // Listen for foreground messages
         onMessage(messaging, (payload) => {
           console.log('Voorgrond bericht ontvangen:', payload);
 
-          // Toon een toast notificatie met de nieuwe styling
+          // Show a toast notification with new styling
           toast({
             title: payload.notification?.title || "Nieuwe Aanmelding",
             description: payload.notification?.body,
-            variant: "success",
-            duration: 2000, // 2 seconden
+            variant: "default",
+            duration: 3000,
           });
         });
       }
@@ -47,7 +47,7 @@ export function useNotifications() {
     }
   };
 
-  // Luister naar nieuwe vrijwilliger registraties
+  // Listen for new volunteer registrations
   useEffect(() => {
     const pendingRef = ref(db, 'pending_volunteers');
     const unsubscribe = onValue(pendingRef, (snapshot) => {
@@ -56,20 +56,20 @@ export function useNotifications() {
         const volunteers = Object.values(data);
         const latestVolunteer = volunteers[volunteers.length - 1] as any;
 
-        // Maak een unieke ID voor deze notificatie
+        // Create a unique ID for this notification
         const notificationId = `${latestVolunteer.firstName}_${latestVolunteer.lastName}_${latestVolunteer.submittedAt}`;
 
-        // Check of we deze notificatie al hebben laten zien
+        // Check if we've already shown this notification
         if (!shownNotifications.has(notificationId)) {
           shownNotifications.add(notificationId);
           setUnreadCount(prev => prev + 1);
 
-          // Toon toast notificatie met de nieuwe styling
+          // Show toast notification with softer styling
           toast({
             title: "Nieuwe Vrijwilliger Aanmelding",
             description: `${latestVolunteer.firstName} ${latestVolunteer.lastName} heeft zich aangemeld als vrijwilliger.`,
-            variant: "success",
-            duration: 2000, // 2 seconden
+            variant: "default",
+            duration: 3000,
           });
         }
       }
