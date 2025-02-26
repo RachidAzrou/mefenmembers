@@ -73,20 +73,20 @@ export function Sidebar() {
 
   return (
     <>
-      {/* Backdrop voor mobiel menu */}
+      {/* Backdrop for mobile menu */}
       {!collapsed && isMobile && (
         <div
-          className="fixed inset-0 bg-black/20 backdrop-blur-sm z-40"
+          className="fixed inset-0 bg-black/20 backdrop-blur-sm z-40 transition-opacity duration-300"
           onClick={() => setCollapsed(true)}
         />
       )}
 
-      {/* Menu knop voor mobiel */}
+      {/* Mobile menu button */}
       {isMobile && collapsed && (
         <Button
           variant="ghost"
           size="icon"
-          className="fixed top-4 left-4 z-50 md:hidden w-12 h-12 rounded-full bg-white shadow-lg hover:bg-gray-50"
+          className="fixed top-4 left-4 z-50 md:hidden w-12 h-12 rounded-full bg-white shadow-lg hover:bg-gray-50 active:scale-95 transition-all duration-200"
           onClick={() => setCollapsed(false)}
         >
           <Menu className="h-6 w-6" />
@@ -96,19 +96,19 @@ export function Sidebar() {
       {/* Sidebar container */}
       <div
         className={cn(
-          "fixed md:relative flex flex-col border-r bg-white/95 backdrop-blur-sm transition-all duration-300 h-screen z-50",
+          "fixed md:relative flex flex-col border-r bg-white/95 backdrop-blur-sm transition-all duration-300 ease-in-out h-screen z-50",
           collapsed ? (isMobile ? "-translate-x-full" : "w-16") : "w-[280px] sm:w-64",
           isMobile && "shadow-xl"
         )}
       >
-        {/* Logo sectie */}
+        {/* Logo section */}
         <div className="flex h-32 items-center justify-center bg-white border-b relative">
           {!collapsed && (
             <div className="w-full h-full flex items-center justify-center p-4">
               <img
                 src="/static/Naamloos.png"
                 alt="MEFEN"
-                className="w-full h-full object-contain"
+                className="w-full h-full object-contain transition-opacity duration-200"
               />
             </div>
           )}
@@ -116,7 +116,7 @@ export function Sidebar() {
             <Button
               variant="ghost"
               size="icon"
-              className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 hover:bg-gray-100"
+              className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 transition-colors duration-200"
               onClick={() => setCollapsed(!collapsed)}
             >
               {collapsed ? <ChevronRight /> : <ChevronLeft />}
@@ -124,10 +124,10 @@ export function Sidebar() {
           )}
         </div>
 
-        {/* Profiel sectie */}
+        {/* Profile section */}
         <Link href="/profile">
           <div className={cn(
-            "border-b p-4 cursor-pointer hover:bg-gray-50 transition-colors",
+            "border-b p-4 cursor-pointer hover:bg-gray-50/80 transition-all duration-200",
             collapsed ? "text-center" : ""
           )}>
             <div className="flex items-center gap-3">
@@ -167,21 +167,23 @@ export function Sidebar() {
                 <Button
                   variant={location === item.href ? "secondary" : "ghost"}
                   className={cn(
-                    "w-full justify-start h-14 md:h-12 relative",
-                    location === item.href ? "bg-primary/10 text-primary hover:bg-primary/15" : "hover:bg-primary/5 hover:text-primary",
+                    "w-full justify-start h-14 md:h-12 relative transition-all duration-200",
+                    location === item.href 
+                      ? "bg-primary/10 text-primary hover:bg-primary/15" 
+                      : "hover:bg-primary/5 hover:text-primary",
                     collapsed && "justify-center",
                     isMobile && !collapsed && "text-base"
                   )}
                 >
                   {React.createElement(item.icon, {
                     className: cn(
-                      "h-6 w-6 md:h-5 md:w-5",
+                      "h-6 w-6 md:h-5 md:w-5 transition-colors duration-200",
                       location === item.href ? "text-primary" : "text-gray-500"
                     )
                   })}
                   {!collapsed && (
                     <span className={cn(
-                      "ml-3",
+                      "ml-3 transition-opacity duration-200",
                       isMobile && "text-base font-medium"
                     )}>
                       {item.label}
@@ -189,7 +191,7 @@ export function Sidebar() {
                   )}
                   {item.notificationCount > 0 && (
                     <span className={cn(
-                      "absolute right-2 top-1/2 -translate-y-1/2 bg-red-500 text-white rounded-full px-2 py-0.5 min-w-[1.5rem] text-center text-sm",
+                      "absolute right-2 top-1/2 -translate-y-1/2 bg-red-500 text-white rounded-full px-2 py-0.5 min-w-[1.5rem] text-center text-sm transition-all duration-200",
                       collapsed && "right-1"
                     )}>
                       {item.notificationCount}
@@ -201,15 +203,17 @@ export function Sidebar() {
           </div>
         </ScrollArea>
 
-        {/* Footer sectie */}
+        {/* Footer section */}
         <div className="p-2 border-t space-y-2">
           {isAdmin && (
             <Link href="/settings">
               <Button
                 variant={location === "/settings" ? "secondary" : "ghost"}
                 className={cn(
-                  "w-full justify-start h-14 md:h-12",
-                  location === "/settings" ? "bg-primary/10 text-primary hover:bg-primary/15" : "hover:bg-primary/5 hover:text-primary",
+                  "w-full justify-start h-14 md:h-12 transition-all duration-200",
+                  location === "/settings" 
+                    ? "bg-primary/10 text-primary hover:bg-primary/15" 
+                    : "hover:bg-primary/5 hover:text-primary",
                   collapsed && "justify-center"
                 )}
                 onClick={() => isMobile && setCollapsed(true)}
@@ -225,7 +229,7 @@ export function Sidebar() {
           <Button
             variant="ghost"
             className={cn(
-              "w-full justify-start h-14 md:h-12 text-red-600 hover:text-red-700 hover:bg-red-50",
+              "w-full justify-start h-14 md:h-12 text-red-600 hover:text-red-700 hover:bg-red-50 transition-all duration-200",
               collapsed && "justify-center"
             )}
             onClick={handleLogout}

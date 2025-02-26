@@ -94,36 +94,36 @@ export default function Login() {
 
   return (
     <div
-      className="min-h-screen flex items-center justify-center bg-no-repeat bg-cover bg-center relative p-4"
+      className="min-h-screen flex items-center justify-center bg-no-repeat bg-cover bg-center relative px-4 py-8 md:p-4"
       style={{
         backgroundImage: `url('/static/123.jpg')`
       }}
     >
-      <div className="absolute inset-0 bg-black/50" />
+      <div className="absolute inset-0 bg-black/50 backdrop-blur-[2px]" />
 
-      <div className="relative z-10 w-full max-w-[500px] px-4">
-        <Card className="bg-white border-0 shadow-2xl overflow-hidden">
-          <CardContent className="pt-6 px-8">
+      <div className="relative z-10 w-full max-w-[500px]">
+        <Card className="bg-white/95 backdrop-blur-sm border-0 shadow-2xl overflow-hidden">
+          <CardContent className="pt-8 px-4 sm:px-8">
             <div className="text-center mb-8">
               <div className="w-full flex justify-center items-center">
                 <img
                   src="/static/Naamloos.png"
                   alt="MEFEN"
-                  className="h-24 mx-auto mb-4"
+                  className="h-20 sm:h-24 mx-auto mb-6"
                 />
               </div>
-              <h1 className="text-2xl font-bold text-[#963E56]">
+              <h1 className="text-2xl sm:text-3xl font-bold text-[#963E56] mb-3">
                 Vrijwilligersbeheer
               </h1>
-              <p className="text-gray-600 mt-2">
+              <p className="text-gray-600 text-sm sm:text-base">
                 Log in om de vrijwilligers te beheren
               </p>
             </div>
 
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
               <div className="space-y-2">
                 <div className="relative">
-                  <Mail className="absolute left-3 top-3.5 h-5 w-5 text-[#963E56]" />
+                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-[#963E56]" />
                   <Input
                     type="email"
                     placeholder="E-mailadres"
@@ -140,7 +140,7 @@ export default function Login() {
 
               <div className="space-y-2">
                 <div className="relative">
-                  <LockKeyhole className="absolute left-3 top-3.5 h-5 w-5 text-[#963E56]" />
+                  <LockKeyhole className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-[#963E56]" />
                   <Input
                     type="password"
                     placeholder="Wachtwoord"
@@ -182,19 +182,19 @@ export default function Login() {
         </Card>
 
         <div className="text-center space-y-1 mt-6">
-          <p className="text-gray-300 text-sm">
+          <p className="text-white/90 text-sm font-medium">
             MEFEN Vrijwilligers Management Systeem
           </p>
-          <p className="text-gray-400 text-xs">
+          <p className="text-white/70 text-xs">
             Versie 2.1.4
           </p>
         </div>
       </div>
 
       <Dialog open={resetDialogOpen} onOpenChange={setResetDialogOpen}>
-        <DialogContent>
+        <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
-            <DialogTitle>Wachtwoord Resetten</DialogTitle>
+            <DialogTitle className="text-[#963E56]">Wachtwoord Resetten</DialogTitle>
           </DialogHeader>
           <Form {...resetForm}>
             <form onSubmit={resetForm.handleSubmit(onResetSubmit)} className="space-y-4">
