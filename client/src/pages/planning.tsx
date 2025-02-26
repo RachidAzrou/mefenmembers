@@ -951,7 +951,7 @@ const Planning = () => {
     }
   });
 
-  useEffect(() =>{
+  useEffect(() => {
     const volunteersRef = ref(db, "volunteers");
     onValue(volunteersRef, (snapshot) => {
       const data = snapshot.val();
@@ -1222,52 +1222,103 @@ const Planning = () => {
 
   return (
     <div className="space-y-6 p-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold tracking-tight">Planning</h1>
+      <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
         <div className="flex items-center gap-3">
-          {isAdmin && (
-            <Button
-              variant="destructive"
-              className="gap-2"
-              onClick={() => setDeleteDialogOpen(true)}
-            >
-              <Trash2 className="h-4 w-4" />
-              Verwijder planning
-            </Button>
-          )}
-          <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-            <DialogTrigger asChild>
-              <Button className="bg-[#6BB85C] hover:bg-[#6BB85C]/90">
-                <Plus className="h-4 w-4 mr-2" />
-                Nieuwe Planning
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>
-                  {editingPlanning ? "Planning Bewerken" : "Nieuwe Planning"}
-                </DialogTitle>
-              </DialogHeader>
-              <PlanningForm form={form} onSubmit={onSubmit} editingPlanning={editingPlanning} volunteers={volunteers} rooms={rooms} />
-            </DialogContent>
-          </Dialog>
+          <CalendarIcon className="h-8 w-8 text-primary" />
+          <h1 className="text-3xl font-bold text-primary">Planning</h1>
         </div>
+      </div>
+
+      <CollapsibleSection
+        title="Planning Overzicht"
+        icon={<CalendarDaysIcon className="h-5 w-5 text-primary" />}
+        defaultOpen={true}
+      >
+        <div className="space-y-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <Card>
+              <CardContent className="pt-6">
+                <div className="flex items-center">
+                  <CalendarDaysIcon className="h-8 w-8 text-primary/80" />
+                  <div className="ml-4">
+                    <h3 className="text-sm font-medium text-gray-500">Totaal Planningen</h3>
+                    <p className="text-2xl font-bold text-primary">{plannings.length}</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardContent className="pt-6">
+                <div className="flex items-center">
+                  <Users2 className="h-8 w-8 text-primary/80" />
+                  <div className="ml-4">
+                    <h3 className="text-sm font-medium text-gray-500">Unieke Vrijwilligers</h3>
+                    <p className="text-2xl font-bold text-primary">{uniqueVolunteersScheduled}</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardContent className="pt-6">
+                <div className="flex items-center">
+                  <Building className="h-8 w-8 text-primary/80" />
+                  <div className="ml-4">
+                    <h3 className="text-sm font-medium text-gray-500">Bezette Ruimtes</h3>
+                    <p className="text-2xl font-bold text-primary">{uniqueRoomsScheduled}</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </CollapsibleSection>
+
+      <div className="flex justify-end gap-3">
+        {isAdmin && (
+          <Button
+            variant="destructive"
+            className="gap-2 bg-[#963E56] hover:bg-[#963E56]/90"
+            onClick={() => setDeleteDialogOpen(true)}
+          >
+            <Trash2 className="h-4 w-4" />
+            Verwijder planning
+          </Button>
+        )}
+        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+          <DialogTrigger asChild>
+            <Button className="bg-[#6BB85C] hover:bg-[#6BB85C]/90">
+              <Plus className="h-4 w-4 mr-2" />
+              Nieuwe Planning
+            </Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>
+                {editingPlanning ? "Planning Bewerken" : "Nieuwe Planning"}
+              </DialogTitle>
+            </DialogHeader>
+            <PlanningForm form={form} onSubmit={onSubmit} editingPlanning={editingPlanning} volunteers={volunteers} rooms={rooms} />
+          </DialogContent>
+        </Dialog>
       </div>
 
       <PlanningSection
         title="Actieve Planningen"
-        icon={<Users2 className="h-5 w-5 text-primary" />}
+        icon={<Calendar className="h-5 w-5" />}
         defaultOpen={true}
       >
         <PlanningTable
           plannings={filteredActivePlannings}
-          emptyMessage="Geen actieve planningen gevonden"
+          emptyMessage="Er zijn geen actieve planningen voor vandaag"
           volunteers={volunteers}
           rooms={rooms}
           onEdit={handleEdit}
           onDelete={handleDelete}
           searchValue={searchActive}
           onSearchChange={setSearchActive}
+          showActions={isAdmin}
         />
       </PlanningSection>
 
@@ -1285,6 +1336,7 @@ const Planning = () => {
           onDelete={handleDelete}
           searchValue={searchUpcoming}
           onSearchChange={setSearchUpcoming}
+          showActions={isAdmin}
         />
       </PlanningSection>
 
@@ -1302,6 +1354,7 @@ const Planning = () => {
           onDelete={handleDelete}
           searchValue={searchPast}
           onSearchChange={setSearchPast}
+          showActions={isAdmin}
         />
       </PlanningSection>
 
