@@ -952,7 +952,8 @@ const DeletePlanningDialog = ({
                       </PopoverTrigger>
                       <PopoverContent className="w-auto p-0" align="start">
                         <Calendar
-                          mode="single"                          selected={field.value ? parseISO(field.value) : undefined}
+                          mode="single"
+                          selected={field.value ? parseISO(field.value) : undefined}
                           onSelect={(date) => {
                             if (date) {
                               field.onChange(format(date, 'yyyy-MM-dd'));
