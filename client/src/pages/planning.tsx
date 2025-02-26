@@ -9,7 +9,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
-import { Calendar, Search, X, Clock, Plus, Settings2 } from "lucide-react";
+import { Calendar, Search, Pen, Trash2, Plus } from "lucide-react";
 import { format, parseISO, isWithinInterval } from "date-fns";
 import { nl } from "date-fns/locale";
 import { Card, CardContent } from "@/components/ui/card";
@@ -78,7 +78,6 @@ const PlanningTable = ({
   };
 
   const filteredPlannings = plannings.filter(planning => {
-    // Only filter if there's a search term or date filter
     if (!searchValue && !dateFilter) return true;
 
     const matchesSearch = searchValue.toLowerCase() === '' || (() => {
@@ -136,7 +135,7 @@ const PlanningTable = ({
               onClick={() => setDateFilter(undefined)}
               className="px-2"
             >
-              <X className="h-4 w-4" />
+              <Trash2 className="h-4 w-4" />
             </Button>
           )}
         </div>
@@ -195,18 +194,20 @@ const PlanningTable = ({
                       <TableCell>
                         <div className="flex items-center gap-2">
                           <Button
-                            variant="outline"
+                            variant="ghost"
                             size="icon"
                             onClick={() => onEdit(planning)}
+                            className="text-[#6BB85C] hover:text-[#6BB85C]/90 hover:bg-[#6BB85C]/10"
                           >
-                            <Clock className="h-4 w-4" />
+                            <Pen className="h-4 w-4" />
                           </Button>
                           <Button
-                            variant="outline"
+                            variant="ghost"
                             size="icon"
                             onClick={() => onDelete(planning.id)}
+                            className="text-[#963E56] hover:text-[#963E56]/90 hover:bg-[#963E56]/10"
                           >
-                            <X className="h-4 w-4" />
+                            <Trash2 className="h-4 w-4" />
                           </Button>
                         </div>
                       </TableCell>
@@ -340,7 +341,6 @@ const Planning = () => {
   const onSubmit = async (data: z.infer<typeof planningSchema>) => {
     try {
       if (editingPlanning) {
-        // Update existing planning
         await update(ref(db, `plannings/${editingPlanning.id}`), {
           volunteerId: data.volunteerId,
           roomId: data.roomId,
@@ -348,7 +348,6 @@ const Planning = () => {
           endDate: data.endDate,
         });
       } else {
-        // Create new plannings
         if (data.isBulkPlanning) {
           const volunteers = data.selectedVolunteers || [];
           const rooms = data.selectedRooms || [];

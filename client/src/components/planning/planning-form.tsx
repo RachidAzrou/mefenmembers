@@ -57,7 +57,7 @@ export function PlanningForm({
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
         {!editingPlanning && (
           <div className="flex items-center space-x-2 pb-4 mb-4 border-b border-border">
             <Switch
@@ -71,6 +71,7 @@ export function PlanningForm({
                 form.setValue("volunteerId", undefined);
                 form.setValue("roomId", undefined);
               }}
+              className="data-[state=checked]:bg-[#6BB85C]"
             />
             <Label>Bulk Inplannen</Label>
           </div>
@@ -91,7 +92,7 @@ export function PlanningForm({
                       onValueChange={setSearchTerm}
                     />
                     <CommandEmpty>Geen vrijwilligers gevonden.</CommandEmpty>
-                    <CommandGroup className="max-h-[200px] overflow-auto">
+                    <CommandGroup className="max-h-[150px] overflow-auto">
                       {filteredVolunteers.map((volunteer) => (
                         <CommandItem
                           key={volunteer.id}
@@ -121,7 +122,7 @@ export function PlanningForm({
                         return (
                           <div
                             key={id}
-                            className="bg-primary/10 text-primary text-sm rounded-full px-3 py-1 flex items-center gap-2"
+                            className="bg-[#6BB85C]/10 text-[#6BB85C] text-sm rounded-full px-3 py-1 flex items-center gap-2"
                           >
                             <span>{volunteer?.firstName} {volunteer?.lastName}</span>
                             <Button
@@ -157,7 +158,7 @@ export function PlanningForm({
                   <Command className="rounded-lg border shadow-md">
                     <CommandInput placeholder="Zoek ruimtes..." />
                     <CommandEmpty>Geen ruimtes gevonden.</CommandEmpty>
-                    <CommandGroup className="max-h-[200px] overflow-auto">
+                    <CommandGroup className="max-h-[150px] overflow-auto">
                       {rooms.map((room) => (
                         <CommandItem
                           key={room.id}
@@ -187,7 +188,7 @@ export function PlanningForm({
                         return (
                           <div
                             key={id}
-                            className="bg-primary/10 text-primary text-sm rounded-full px-3 py-1 flex items-center gap-2"
+                            className="bg-[#6BB85C]/10 text-[#6BB85C] text-sm rounded-full px-3 py-1 flex items-center gap-2"
                           >
                             <span>{room?.name}</span>
                             <Button
@@ -229,7 +230,7 @@ export function PlanningForm({
                       onValueChange={setSearchTerm}
                     />
                     <CommandEmpty>Geen vrijwilligers gevonden.</CommandEmpty>
-                    <CommandGroup className="max-h-[200px] overflow-auto">
+                    <CommandGroup className="max-h-[150px] overflow-auto">
                       {filteredVolunteers.map((volunteer) => (
                         <CommandItem
                           key={volunteer.id}
@@ -260,7 +261,7 @@ export function PlanningForm({
                   <Command className="rounded-lg border shadow-md">
                     <CommandInput placeholder="Zoek ruimtes..." />
                     <CommandEmpty>Geen ruimtes gevonden.</CommandEmpty>
-                    <CommandGroup>
+                    <CommandGroup className="max-h-[150px] overflow-auto">
                       {rooms.map((room) => (
                         <CommandItem
                           key={room.id}
@@ -302,7 +303,7 @@ export function PlanningForm({
                         )}
                       >
                         {field.value ? (
-                          format(parseISO(field.value), "EEEE d MMMM yyyy", { locale: nl })
+                          format(parseISO(field.value), "d MMM yyyy", { locale: nl })
                         ) : (
                           <span>Kies een datum</span>
                         )}
@@ -346,7 +347,7 @@ export function PlanningForm({
                         )}
                       >
                         {field.value ? (
-                          format(parseISO(field.value), "EEEE d MMMM yyyy", { locale: nl })
+                          format(parseISO(field.value), "d MMM yyyy", { locale: nl })
                         ) : (
                           <span>Kies een datum</span>
                         )}
