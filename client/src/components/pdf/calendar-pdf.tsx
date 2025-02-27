@@ -12,7 +12,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 15,
-    borderBottom: 1,
+    borderBottomWidth: 1,
     borderBottomColor: '#E5E7EB',
     paddingBottom: 10,
   },
@@ -45,7 +45,6 @@ const styles = StyleSheet.create({
   },
   dayName: {
     fontSize: 10,
-    fontWeight: 'bold',
     color: '#963E56',
   },
   dayDate: {
@@ -67,7 +66,6 @@ const styles = StyleSheet.create({
   },
   roomName: {
     fontSize: 8,
-    fontWeight: 'bold',
     color: '#963E56',
   },
   channelInfo: {
@@ -85,15 +83,10 @@ const styles = StyleSheet.create({
     borderRadius: 2,
     padding: 4,
     marginBottom: 3,
-    borderWidth: 1,
-    borderColor: 'rgba(150, 62, 86, 0.1)',
-    backgroundColor: 'rgba(150, 62, 86, 0.05)',
   },
   volunteerName: {
     fontSize: 7,
-    fontWeight: 'bold',
     color: 'black',
-    fontFamily: 'Helvetica-Bold',
   },
   noPlanning: {
     fontSize: 7,
@@ -110,7 +103,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     color: '#6B7280',
     fontSize: 6,
-    borderTop: 1,
+    borderTopWidth: 1,
     borderTopColor: '#E5E7EB',
     paddingTop: 8,
   },
