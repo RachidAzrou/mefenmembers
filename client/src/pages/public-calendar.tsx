@@ -68,13 +68,18 @@ export default function PublicCalendar() {
 
   const getPlanningsForDay = (day: Date) => {
     return plannings.filter(planning => {
-      // Convert both the planning dates and comparison day to date strings for direct comparison
-      const dayStr = format(day, 'yyyy-MM-dd');
-      const startStr = planning.startDate;
-      const endStr = planning.endDate;
+      // Convert all dates to midnight for comparison
+      const dayDate = new Date(day);
+      dayDate.setHours(0, 0, 0, 0);
 
-      // Simple string comparison to check if the day falls within the range (inclusive)
-      return dayStr >= startStr && dayStr <= endStr;
+      const startDate = parseISO(planning.startDate);
+      startDate.setHours(0, 0, 0, 0);
+
+      const endDate = parseISO(planning.endDate);
+      endDate.setHours(0, 0, 0, 0);
+
+      // Check if the day falls between start and end dates (inclusive)
+      return dayDate >= startDate && dayDate <= endDate;
     });
   };
 

@@ -439,16 +439,23 @@ const Planning = () => {
   const activePlannings = plannings.filter((planning) => {
     const start = parseISO(planning.startDate);
     const end = parseISO(planning.endDate);
+    start.setHours(0, 0, 0, 0);
+    end.setHours(0, 0, 0, 0);
+    now.setHours(0, 0, 0, 0);
     return start <= now && end >= now;
   });
 
   const upcomingPlannings = plannings.filter((planning) => {
     const start = parseISO(planning.startDate);
+    start.setHours(0, 0, 0, 0);
+    now.setHours(0, 0, 0, 0);
     return start > now;
   });
 
   const pastPlannings = plannings.filter((planning) => {
     const end = parseISO(planning.endDate);
+    end.setHours(0, 0, 0, 0);
+    now.setHours(0, 0, 0, 0);
     return end < now;
   });
 
