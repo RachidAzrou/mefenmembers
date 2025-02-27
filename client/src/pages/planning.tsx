@@ -9,7 +9,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
-import { Calendar, Search, Trash2, Plus, Settings2 } from "lucide-react";
+import { Calendar, Search, Trash2, Plus, Settings2, ChevronsUpDown } from "lucide-react";
 import { format, parseISO, startOfDay } from "date-fns";
 import { nl } from "date-fns/locale";
 import { Card, CardContent } from "@/components/ui/card";
@@ -27,10 +27,20 @@ import {
 } from "@/components/ui/dialog";
 import { PlanningForm } from "@/components/planning/planning-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
+import { useForm, UseFormReturn } from "react-hook-form";
 import { z } from "zod";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar as CustomCalendar } from "@/components/ui/calendar";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+} from "@/components/ui/command";
+import { Check } from "lucide-react";
+import { FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+
 
 const planningSchema = z.object({
   volunteerId: z.string().min(1, "Vrijwilliger is verplicht").optional(),
