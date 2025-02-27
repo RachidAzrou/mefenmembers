@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { format, startOfWeek, addDays, parseISO } from "date-fns";
+import { format, startOfWeek, addDays, parseISO, isSameDay, isWithinInterval } from "date-fns";
 import { nl } from "date-fns/locale";
 import { db } from "@/lib/firebase";
 import { ref, onValue } from "firebase/database";
@@ -68,37 +68,29 @@ export default function PublicCalendar() {
   }, []);
 
   const getPlanningsForDay = (day: Date) => {
-    const dayStr = format(day, 'yyyy-MM-dd');
+    return plannings.filter(planning => {
+      // Parse the dates using parseISO to ensure correct date objects
+      const planningStart = parseISO(planning.startDate);
+      const planningEnd = parseISO(planning.endDate);
 
-    console.log("\n=== Checking plannings for day:", dayStr, "===");
+      // Check if the day falls within the interval (inclusive)
+      const isInInterval = isWithinInterval(day, { 
+        start: planningStart,
+        end: planningEnd 
+      }) || isSameDay(day, planningStart) || isSameDay(day, planningEnd);
 
-    const matches = plannings.filter(planning => {
-      // Vergelijk de datums direct als strings in yyyy-MM-dd formaat
-      const startDate = planning.startDate;
-      const endDate = planning.endDate;
-
-      // Check of de dag binnen het bereik valt (inclusief start- en einddatum)
-      const isInRange = dayStr >= startDate && dayStr <= endDate;
-
-      // Debug logging voor elke planning check
+      // Debug logging
       const volunteer = volunteers.find(v => v.id === planning.volunteerId);
-      console.log(`Check planning voor ${volunteer?.firstName} ${volunteer?.lastName}:`, {
+      console.log(`Checking planning for ${volunteer?.firstName} ${volunteer?.lastName}:`, {
         planning_id: planning.id,
-        day: dayStr,
-        start: startDate,
-        end: endDate,
-        isInRange,
-        comparison: {
-          dayVsStart: `${dayStr} >= ${startDate} = ${dayStr >= startDate}`,
-          dayVsEnd: `${dayStr} <= ${endDate} = ${dayStr <= endDate}`
-        }
+        check_date: format(day, 'yyyy-MM-dd'),
+        start_date: planning.startDate,
+        end_date: planning.endDate,
+        is_in_interval: isInInterval
       });
 
-      return isInRange;
+      return isInInterval;
     });
-
-    console.log(`Found ${matches.length} plannings for ${dayStr}`);
-    return matches;
   };
 
   const getPlanningsByRoom = (day: Date) => {
