@@ -536,10 +536,10 @@ export default function Settings() {
                           setSelectedDate(new Date());
                           setSelectedUser("all");
                         }}
-                        className="w-full sm:w-[200px] gap-2"
+                        size="icon"
+                        className="h-8 w-8"
                       >
                         <RotateCcw className="h-4 w-4" />
-                        <span>Vernieuwen</span>
                       </Button>
                     </div>
 
