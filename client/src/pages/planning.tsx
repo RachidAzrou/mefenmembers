@@ -402,6 +402,14 @@ const Planning = () => {
 
   const onSubmit = async (data: z.infer<typeof planningSchema>) => {
     try {
+      // Log de data voor debugging
+      console.log("Planning submission data:", {
+        startDate: data.startDate,
+        endDate: data.endDate,
+        formattedStart: format(parseISO(data.startDate), 'yyyy-MM-dd'),
+        formattedEnd: format(parseISO(data.endDate), 'yyyy-MM-dd')
+      });
+
       if (data.isBulkPlanning) {
         const volunteers = data.selectedVolunteers || [];
         const rooms = data.selectedRooms || [];

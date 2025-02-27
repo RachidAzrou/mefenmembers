@@ -67,19 +67,31 @@ export default function PublicCalendar() {
   }, []);
 
   const getPlanningsForDay = (day: Date) => {
+    // Log voor debugging
+    console.log("Checking plannings for day:", format(day, 'yyyy-MM-dd'));
+
     return plannings.filter(planning => {
-      // Convert all dates to midnight for comparison
-      const dayDate = new Date(day);
-      dayDate.setHours(0, 0, 0, 0);
+      // Log elke planning die we checken
+      console.log("Checking planning:", {
+        planning: planning.id,
+        startDate: planning.startDate,
+        endDate: planning.endDate,
+        checkingDay: format(day, 'yyyy-MM-dd')
+      });
 
-      const startDate = parseISO(planning.startDate);
-      startDate.setHours(0, 0, 0, 0);
+      // Direct string comparison voor datums
+      const currentDayStr = format(day, 'yyyy-MM-dd');
 
-      const endDate = parseISO(planning.endDate);
-      endDate.setHours(0, 0, 0, 0);
+      // Log de vergelijking
+      console.log("Date comparison:", {
+        currentDay: currentDayStr,
+        start: planning.startDate,
+        end: planning.endDate,
+        startComparison: currentDayStr >= planning.startDate,
+        endComparison: currentDayStr <= planning.endDate
+      });
 
-      // Check if the day falls between start and end dates (inclusive)
-      return dayDate >= startDate && dayDate <= endDate;
+      return currentDayStr >= planning.startDate && currentDayStr <= planning.endDate;
     });
   };
 
