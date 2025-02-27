@@ -107,6 +107,17 @@ const styles = StyleSheet.create({
     borderTopColor: '#E5E7EB',
     paddingTop: 8,
   },
+  channelInfo: {
+    fontSize: 8,
+    color: '#6B7280',
+    display: 'flex',
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 2,
+  },
+  channelText: {
+    marginLeft: 4,
+  }
 });
 
 type Planning = {
@@ -177,7 +188,8 @@ export function CalendarPDF({ weekStart, plannings, logoUrl }: CalendarPDFProps)
                 {Array.from(planningsByRoom.entries()).map(([roomName, roomPlannings]) => (
                   <View key={roomName} style={styles.roomSection}>
                     <Text style={styles.roomName}>
-                      {roomName} {roomPlannings[0]?.room.channel ? `(Kanaal ${roomPlannings[0].room.channel})` : ''}
+                      {roomName}
+                      {roomPlannings[0]?.room.channel && ` (Kanaal ${roomPlannings[0].room.channel})`}
                     </Text>
                     {roomPlannings.map((planning, index) => (
                       <View key={index} style={styles.planning}>

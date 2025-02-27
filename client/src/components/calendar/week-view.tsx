@@ -130,7 +130,8 @@ export function WeekView({ checkedOutMaterials }: WeekViewProps) {
             lastName: volunteer?.lastName || 'Vrijwilliger'
           },
           room: {
-            name: room?.name || 'Onbekende ruimte'
+            name: room?.name || 'Onbekende ruimte',
+            channel: room?.channel  // Add the channel information
           },
           date: day
         });
