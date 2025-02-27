@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { format, startOfWeek, addDays } from "date-fns";
+import { format, startOfWeek, addDays, parseISO } from "date-fns";
 import { nl } from "date-fns/locale";
 import { db } from "@/lib/firebase";
 import { ref, onValue } from "firebase/database";
@@ -67,23 +67,34 @@ export default function PublicCalendar() {
   }, []);
 
   const getPlanningsForDay = (day: Date) => {
-    // Format de huidige dag als string
-    const dayStr = format(day, 'yyyy-MM-dd');
+    // Reset time to midnight for the day we're checking
+    const checkDate = new Date(day);
+    checkDate.setHours(0, 0, 0, 0);
+    const checkTime = checkDate.getTime();
 
     return plannings.filter(planning => {
-      // Direct string comparison voor datums
-      const isInRange = planning.startDate <= dayStr && planning.endDate >= dayStr;
+      // Convert string dates to Date objects and reset time to midnight
+      const startDate = parseISO(planning.startDate);
+      const endDate = parseISO(planning.endDate);
+      startDate.setHours(0, 0, 0, 0);
+      endDate.setHours(0, 0, 0, 0);
+
+      // Get timestamps for comparison
+      const startTime = startDate.getTime();
+      const endTime = endDate.getTime();
 
       // Log voor debugging
       console.log('Planning check:', {
         planning_id: planning.id,
-        day: dayStr,
-        start: planning.startDate,
-        end: planning.endDate,
-        isInRange
+        check_date: format(checkDate, 'yyyy-MM-dd'),
+        start_date: format(startDate, 'yyyy-MM-dd'),
+        end_date: format(endDate, 'yyyy-MM-dd'),
+        is_after_or_equal_start: checkTime >= startTime,
+        is_before_or_equal_end: checkTime <= endTime
       });
 
-      return isInRange;
+      // Check if the day falls within the range (inclusive)
+      return checkTime >= startTime && checkTime <= endTime;
     });
   };
 
