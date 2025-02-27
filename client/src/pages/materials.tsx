@@ -133,11 +133,11 @@ export default function Materials() {
   const [materialTypes, setMaterialTypes] = useState<MaterialType[]>([]);
   const [volunteers, setVolunteers] = useState<Volunteer[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
+  const [volunteerSearchTerm, setVolunteerSearchTerm] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedMaterials, setSelectedMaterials] = useState<string[]>([]);
   const [isEditMode, setIsEditMode] = useState(false);
   const [selectedMaterialTypes, setSelectedMaterialTypes] = useState<string[]>([]);
-  const [volunteerSearchTerm, setVolunteerSearchTerm] = useState(""); // Added state variable
   const { toast } = useToast();
   const { isAdmin } = useRole();
 
@@ -496,7 +496,6 @@ export default function Materials() {
   const [deleteMaterialTypeId, setDeleteMaterialTypeId] = useState<string | null>(null);
   const [editingMaterial, setEditingMaterial] = useState<Material | null>(null);
 
-
   return (
     <div className="container mx-auto px-4 py-6 max-w-7xl space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
@@ -679,115 +678,113 @@ export default function Materials() {
                     )}
                   />
 
-                  {form.watch("volunteerId") && (
+                  <div className="space-y-4">
+                    <FormLabel>Materialen</FormLabel>
                     <div className="space-y-4">
-                      <FormLabel>Materialen</FormLabel>
-                      <div className="space-y-4">
-                        <Select
-                          onValueChange={(value) => {
-                            if (!selectedMaterialTypes.includes(value)) {
-                              setSelectedMaterialTypes([...selectedMaterialTypes, value]);
-                              const currentMaterials = form.getValues("materials") || [];
-                              form.setValue("materials", [...currentMaterials, { typeId: value, numbers: [] }]);
-                            }
-                          }}
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder="Selecteer materiaal type" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {materialTypes.map((type) => (
-                              <SelectItem key={type.id} value={type.id}>
-                                {type.name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
+                      <Select
+                        onValueChange={(value) => {
+                          if (!selectedMaterialTypes.includes(value)) {
+                            setSelectedMaterialTypes([...selectedMaterialTypes, value]);
+                            const currentMaterials = form.getValues("materials") || [];
+                            form.setValue("materials", [...currentMaterials, { typeId: value, numbers: [] }]);
+                          }
+                        }}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecteer materiaal type" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {materialTypes.map((type) => (
+                            <SelectItem key={type.id} value={type.id}>
+                              {type.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
 
-                        {form.watch("materials")?.map((material, index) => {
-                          const materialType = materialTypes.find(t => t.id === material.typeId);
-                          return (
-                            <div key={material.typeId} className="space-y-2 p-4 border rounded-lg">
-                              <div className="flex justify-between items-center">
-                                <h4 className="font-medium">{materialType?.name}</h4>
-                                <Button
-                                  type="button"
-                                  variant="ghost"
-                                  size="icon"
-                                  onClick={() => {
-                                    const updatedMaterials = form.getValues("materials").filter((_, i) => i !== index);
-                                    form.setValue("materials", updatedMaterials);
-                                    setSelectedMaterialTypes(selectedMaterialTypes.filter(id => id !== material.typeId));
-                                  }}
-                                >
-                                  <X className="h-4 w-4" />
-                                </Button>
-                              </div>
-                              <Select
-                                onValueChange={(value) => {
-                                  const number = parseInt(value);
-                                  const currentNumbers = material.numbers || [];
-                                  if (!currentNumbers.includes(number)) {
-                                    const updatedMaterials = form.getValues("materials");
-                                    updatedMaterials[index].numbers = [...currentNumbers, number];
-                                    form.setValue("materials", updatedMaterials);
-                                  }
+                      {form.watch("materials")?.map((material, index) => {
+                        const materialType = materialTypes.find(t => t.id === material.typeId);
+                        return (
+                          <div key={material.typeId} className="space-y-2 p-4 border rounded-lg">
+                            <div className="flex justify-between items-center">
+                              <h4 className="font-medium">{materialType?.name}</h4>
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => {
+                                  const updatedMaterials = form.getValues("materials").filter((_, i) => i !== index);
+                                  form.setValue("materials", updatedMaterials);
+                                  setSelectedMaterialTypes(selectedMaterialTypes.filter(id => id !== material.typeId));
                                 }}
                               >
-                                <SelectTrigger>
-                                  <SelectValue placeholder="Selecteer nummer" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  {Array.from({ length: materialType?.maxCount || 0 }).map((_, i) => {
-                                    const number = i + 1;
-                                    const isCheckedOut = materials.some(
-                                      m => m.typeId === material.typeId && 
-                                          m.number === number && 
-                                          m.isCheckedOut
-                                    );
-                                    if (!isCheckedOut) {
-                                      return (
-                                        <SelectItem key={number} value={number.toString()}>
-                                          {number}
-                                        </SelectItem>
-                                      );
-                                    }
-                                    return null;
-                                  })}
-                                </SelectContent>
-                              </Select>
-
-                              {material.numbers && material.numbers.length > 0 && (
-                                <div className="flex flex-wrap gap-2 mt-2">
-                                  {material.numbers.map((number) => (
-                                    <div
-                                      key={number}
-                                      className="bg-primary/10 text-primary text-sm rounded-full px-3 py-1 flex items-center gap-2"
-                                    >
-                                      <span>#{number}</span>
-                                      <Button
-                                        type="button"
-                                        variant="ghost"
-                                        size="icon"
-                                        className="h-4 w-4 p-0 hover:bg-transparent"
-                                        onClick={() => {
-                                          const updatedMaterials = form.getValues("materials");
-                                          updatedMaterials[index].numbers = material.numbers.filter(n => n !== number);
-                                          form.setValue("materials", updatedMaterials);
-                                        }}
-                                      >
-                                        <X className="h-3 w-3" />
-                                      </Button>
-                                    </div>
-                                  ))}
-                                </div>
-                              )}
+                                <X className="h-4 w-4" />
+                              </Button>
                             </div>
-                          );
-                        })}
-                      </div>
+                            <Select
+                              onValueChange={(value) => {
+                                const number = parseInt(value);
+                                const currentNumbers = material.numbers || [];
+                                if (!currentNumbers.includes(number)) {
+                                  const updatedMaterials = form.getValues("materials");
+                                  updatedMaterials[index].numbers = [...currentNumbers, number];
+                                  form.setValue("materials", updatedMaterials);
+                                }
+                              }}
+                            >
+                              <SelectTrigger>
+                                <SelectValue placeholder="Selecteer nummer" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {Array.from({ length: materialType?.maxCount || 0 }).map((_, i) => {
+                                  const number = i + 1;
+                                  const isCheckedOut = materials.some(
+                                    m => m.typeId === material.typeId && 
+                                        m.number === number && 
+                                        m.isCheckedOut
+                                  );
+                                  if (!isCheckedOut) {
+                                    return (
+                                      <SelectItem key={number} value={number.toString()}>
+                                        {number}
+                                      </SelectItem>
+                                    );
+                                  }
+                                  return null;
+                                })}
+                              </SelectContent>
+                            </Select>
+
+                            {material.numbers && material.numbers.length > 0 && (
+                              <div className="flex flex-wrap gap-2 mt-2">
+                                {material.numbers.map((number) => (
+                                  <div
+                                    key={number}
+                                    className="bg-primary/10 text-primary text-sm rounded-full px-3 py-1 flex items-center gap-2"
+                                  >
+                                    <span>#{number}</span>
+                                    <Button
+                                      type="button"
+                                      variant="ghost"
+                                      size="icon"
+                                      className="h-4 w-4 p-0 hover:bg-transparent"
+                                      onClick={() => {
+                                        const updatedMaterials = form.getValues("materials");
+                                        updatedMaterials[index].numbers = material.numbers.filter(n => n !== number);
+                                        form.setValue("materials", updatedMaterials);
+                                      }}
+                                    >
+                                      <X className="h-3 w-3" />
+                                    </Button>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
                     </div>
-                  )}
+                  </div>
 
                   <Button type="submit" className="w-full">
                     Materiaal Toewijzen
@@ -923,7 +920,7 @@ export default function Materials() {
                         {item.isCheckedOut && (                          <TooltipProvider>
                             <Tooltip>
                               <TooltipTrigger asChild>
-                               <Button
+                                <Button
                                   variant="ghost"
                                   size="icon"
                                   onClick={() => handleReturn(item.id)}
