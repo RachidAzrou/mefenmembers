@@ -338,6 +338,9 @@ const Planning = () => {
   const [searchActive, setSearchActive] = useState("");
   const [searchUpcoming, setSearchUpcoming] = useState("");
   const [searchPast, setSearchPast] = useState("");
+  const [dateFilterActive, setDateFilterActive] = useState<Date | undefined>();
+  const [dateFilterUpcoming, setDateFilterUpcoming] = useState<Date | undefined>();
+  const [dateFilterPast, setDateFilterPast] = useState<Date | undefined>();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingPlanning, setEditingPlanning] = useState<Planning | null>(null);
   const { isAdmin } = useRole();
@@ -391,6 +394,7 @@ const Planning = () => {
       isBulkPlanning: false,
     });
     setDialogOpen(true);
+    logUserAction(UserActionTypes.PLANNING_EDIT, "Planning bewerken geopend", { type: 'planning', id: planning.id });
   };
 
   const handleDelete = async (id: string) => {
@@ -398,7 +402,7 @@ const Planning = () => {
       await remove(ref(db, `plannings/${id}`));
 
       // Log the delete action
-      await logUserAction(UserActionTypes.PLANNING_DELETE, 
+      await logUserAction(UserActionTypes.PLANNING_DELETE,
         "Planning verwijderd",
         { type: 'planning', id }
       );
@@ -474,6 +478,63 @@ const Planning = () => {
     } catch (error) {
       console.error("Submit error:", error);
     }
+  };
+
+  const handleSearchChange = async (value: string, type: 'active' | 'upcoming' | 'past') => {
+    // Log search action
+    await logUserAction(
+      UserActionTypes.PLANNING_SEARCH,
+      `Planning gezocht in ${type} planningen`,
+      { type: 'planning', details: `Zoekterm: ${value}` }
+    );
+
+    switch (type) {
+      case 'active':
+        setSearchActive(value);
+        break;
+      case 'upcoming':
+        setSearchUpcoming(value);
+        break;
+      case 'past':
+        setSearchPast(value);
+        break;
+    }
+  };
+
+  const handleDateFilter = async (date: Date | undefined, type: 'active' | 'upcoming' | 'past') => {
+    // Log filter action
+    if (date) {
+      await logUserAction(
+        UserActionTypes.PLANNING_FILTER,
+        `Planning gefilterd op datum`,
+        {
+          type: 'planning',
+          details: `Datum: ${format(date, 'dd-MM-yyyy')}, Type: ${type}`
+        }
+      );
+    }
+    switch (type) {
+      case 'active':
+        setDateFilterActive(date);
+        break;
+      case 'upcoming':
+        setDateFilterUpcoming(date);
+        break;
+      case 'past':
+        setDateFilterPast(date);
+        break;
+    }
+  };
+
+
+  const handleExportPDF = async () => {
+    await logUserAction(
+      UserActionTypes.GENERATE_PLANNING_PDF,
+      "Planning PDF gegenereerd",
+      { type: 'planning' }
+    );
+    // Add PDF generation logic here.  This is a placeholder.
+    console.log("Generating PDF...");
   };
 
   const now = new Date();
@@ -558,9 +619,15 @@ const Planning = () => {
         </div>
 
         <div className="mt-4 sm:mt-6 flex justify-end">
+          <Button onClick={handleExportPDF} className="w-full sm:w-auto gap-2 bg-[#963E56] hover:bg-[#963E56]/90">
+            <Check className="h-4 w-4"/>
+            <span>Exporteren naar PDF</span>
+          </Button>
           <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
             <DialogTrigger asChild>
-              <Button className="w-full sm:w-auto gap-2 bg-[#963E56] hover:bg-[#963E56]/90">
+              <Button onClick={() => {
+                logUserAction(UserActionTypes.MODAL_OPEN, "Planning modal geopend");
+              }} className="w-full sm:w-auto gap-2 bg-[#963E56] hover:bg-[#963E56]/90">
                 <Plus className="h-4 w-4" />
                 <span>Inplannen</span>
               </Button>
@@ -601,7 +668,7 @@ const Planning = () => {
             rooms={rooms}
             onDelete={handleDelete}
             searchValue={searchActive}
-            onSearchChange={setSearchActive}
+            onSearchChange={(value) => handleSearchChange(value, 'active')}
             showActions={false}
           />
         </PlanningSection>
@@ -617,7 +684,7 @@ const Planning = () => {
             rooms={rooms}
             onDelete={handleDelete}
             searchValue={searchUpcoming}
-            onSearchChange={setSearchUpcoming}
+            onSearchChange={(value) => handleSearchChange(value, 'upcoming')}
             showActions={false}
           />
         </PlanningSection>
@@ -633,7 +700,7 @@ const Planning = () => {
             rooms={rooms}
             onDelete={handleDelete}
             searchValue={searchPast}
-            onSearchChange={setSearchPast}
+            onSearchChange={(value) => handleSearchChange(value, 'past')}
             showActions={false}
           />
         </PlanningSection>
