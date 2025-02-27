@@ -3,10 +3,9 @@ import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Calendar } from "@/components/ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { CalendarIcon, Search, X } from "lucide-react";
+import { CalendarIcon, Check, X } from "lucide-react";
 import {
   Command,
   CommandEmpty,
@@ -82,11 +81,12 @@ export function PlanningForm({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Vrijwilliger</FormLabel>
-                  <Command className="rounded-lg border shadow-md">
+                  <Command className="rounded-lg border shadow-md bg-white">
                     <CommandInput 
                       placeholder="Zoek vrijwilligers..." 
                       value={searchTerm}
                       onValueChange={setSearchTerm}
+                      className="border-none focus-visible:ring-transparent"
                     />
                     <CommandEmpty>Geen vrijwilligers gevonden.</CommandEmpty>
                     <CommandGroup className="max-h-[200px] overflow-auto">
@@ -98,17 +98,18 @@ export function PlanningForm({
                         .map((volunteer) => (
                           <CommandItem
                             key={volunteer.id}
-                            onSelect={() => {
-                              const current = field.value;
-                              field.onChange(volunteer.id);
+                            value={volunteer.id}
+                            onSelect={(currentValue) => {
+                              field.onChange(currentValue);
                             }}
+                            className="cursor-pointer py-2 hover:bg-accent hover:text-accent-foreground"
                           >
-                            <div className={cn(
-                              "mr-2 h-4 w-4 flex items-center justify-center",
-                              field.value === volunteer.id ? "text-primary" : "opacity-0"
-                            )}>
-                              •
-                            </div>
+                            <Check
+                              className={cn(
+                                "mr-2 h-4 w-4",
+                                field.value === volunteer.id ? "opacity-100" : "opacity-0"
+                              )}
+                            />
                             {volunteer.firstName} {volunteer.lastName}
                           </CommandItem>
                         ))}
@@ -150,7 +151,7 @@ export function PlanningForm({
           </>
         )}
 
-        {/* Bulk selection */}
+        {/* Multiple volunteer/room selection */}
         {isBulkPlanning && (
           <>
             <FormField
@@ -159,11 +160,12 @@ export function PlanningForm({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Vrijwilligers</FormLabel>
-                  <Command className="rounded-lg border shadow-md">
+                  <Command className="rounded-lg border shadow-md bg-white">
                     <CommandInput 
                       placeholder="Zoek vrijwilligers..." 
                       value={searchTerm}
                       onValueChange={setSearchTerm}
+                      className="border-none focus-visible:ring-transparent"
                     />
                     <CommandEmpty>Geen vrijwilligers gevonden.</CommandEmpty>
                     <CommandGroup className="max-h-[200px] overflow-auto">
@@ -182,13 +184,14 @@ export function PlanningForm({
                                 : [...current, volunteer.id];
                               field.onChange(updated);
                             }}
+                            className="cursor-pointer py-2 hover:bg-accent hover:text-accent-foreground"
                           >
-                            <div className={cn(
-                              "mr-2 h-4 w-4 flex items-center justify-center",
-                              field.value?.includes(volunteer.id) ? "text-primary" : "opacity-0"
-                            )}>
-                              •
-                            </div>
+                            <Check
+                              className={cn(
+                                "mr-2 h-4 w-4",
+                                field.value?.includes(volunteer.id) ? "opacity-100" : "opacity-0"
+                              )}
+                            />
                             {volunteer.firstName} {volunteer.lastName}
                           </CommandItem>
                         ))}
