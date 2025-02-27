@@ -99,7 +99,7 @@ export default function Login() {
         backgroundImage: `url('/static/123.jpg')`
       }}
     >
-      <div className="absolute inset-0 bg-black/50 backdrop-blur-[2px]" />
+      <div className="absolute inset-0 bg-black/30" />
 
       <div className="relative z-10 w-full max-w-[500px]">
         <Card className="bg-white border-0 shadow-2xl overflow-hidden">
