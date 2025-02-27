@@ -73,7 +73,7 @@ export default function PublicCalendar() {
     console.log("\n=== Checking plannings for day:", dayStr, "===");
 
     return plannings.filter(planning => {
-      const matches = dayStr >= planning.startDate && dayStr <= planning.endDate;
+      const matches = planning.startDate <= dayStr && planning.endDate >= dayStr; //Simplified comparison
 
       console.log("Planning check:", {
         planning_id: planning.id,
