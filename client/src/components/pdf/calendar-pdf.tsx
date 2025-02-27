@@ -63,21 +63,22 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 4,
+    paddingBottom: 2,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E7EB',
   },
   roomName: {
     fontSize: 8,
     color: '#963E56',
   },
   channelInfo: {
-    fontSize: 7,
-    color: '#963E56',
-    opacity: 0.7,
     flexDirection: 'row',
     alignItems: 'center',
   },
-  channelIcon: {
-    marginRight: 2,
+  channelText: {
     fontSize: 7,
+    color: '#963E56',
+    opacity: 0.7,
   },
   planningCard: {
     borderRadius: 2,
@@ -182,8 +183,7 @@ export function CalendarPDF({ weekStart, plannings, logoUrl }: CalendarPDFProps)
                       <Text style={styles.roomName}>{roomName}</Text>
                       {roomPlannings[0]?.room.channel && (
                         <View style={styles.channelInfo}>
-                          <Text style={styles.channelIcon}>📻</Text>
-                          <Text> {roomPlannings[0].room.channel}</Text>
+                          <Text style={styles.channelText}>📻 {roomPlannings[0].room.channel}</Text>
                         </View>
                       )}
                     </View>
