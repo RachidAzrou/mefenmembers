@@ -78,6 +78,7 @@ import {
   Edit2,
   Flashlight,
   ChevronsUpDown,
+  Check,
 } from "lucide-react";
 import { useRole } from "@/hooks/use-role";
 import { logUserAction, UserActionTypes } from "@/lib/activity-logger";
@@ -626,7 +627,7 @@ export default function Materials() {
                               variant="outline"
                               role="combobox"
                               aria-expanded={open}
-                              className="w-full justify-between hover:bg-accent hover:text-accent-foreground"
+                              className="w-full justify-between"
                             >
                               {field.value ? (
                                 volunteers.find((volunteer) => volunteer.id === field.value)
@@ -638,12 +639,12 @@ export default function Materials() {
                               <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                             </Button>
                           </PopoverTrigger>
-                          <PopoverContent className="w-[300px] p-0" align="start">
+                          <PopoverContent className="w-[300px] p-0">
                             <Command>
                               <CommandInput placeholder="Zoek vrijwilliger..." />
                               <CommandEmpty>Geen vrijwilliger gevonden.</CommandEmpty>
-                              <CommandGroup>
-                                {volunteers
+                              <CommandGroup className="max-h-[300px] overflow-y-auto">
+                                {filteredVolunteers
                                   .sort((a, b) =>
                                     `${a.firstName} ${a.lastName}`.localeCompare(`${b.firstName} ${b.lastName}`)
                                   )
@@ -655,8 +656,14 @@ export default function Materials() {
                                         form.setValue("volunteerId", volunteer.id);
                                         setOpen(false);
                                       }}
-                                      className="cursor-pointer py-3 px-4 hover:bg-accent hover:text-accent-foreground"
+                                      className="cursor-pointer"
                                     >
+                                      <Check
+                                        className={cn(
+                                          "mr-2 h-4 w-4",
+                                          field.value === volunteer.id ? "opacity-100" : "opacity-0"
+                                        )}
+                                      />
                                       {volunteer.firstName} {volunteer.lastName}
                                     </CommandItem>
                                   ))}
@@ -930,7 +937,7 @@ export default function Materials() {
                   </TableRow>
                 );
               })}
-              {filteredMaterials.length=== 0 && (
+              {filteredMaterials.length === 0 && (
                 <TableRow>
                   <TableCell
                     colSpan={isEditMode ? 6 : 5}
