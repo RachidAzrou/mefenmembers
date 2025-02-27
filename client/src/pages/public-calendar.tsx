@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { format, startOfWeek, addDays } from "date-fns";
+import { format, startOfWeek, addDays, parseISO } from "date-fns";
 import { nl } from "date-fns/locale";
 import { db } from "@/lib/firebase";
 import { ref, onValue } from "firebase/database";
@@ -73,23 +73,31 @@ export default function PublicCalendar() {
     console.log("\n=== Checking plannings for day:", dayStr, "===");
 
     const matches = plannings.filter(planning => {
-      const isMatch = (
-        // Check of de dag binnen het bereik valt (inclusief start- en einddatum)
-        dayStr >= planning.startDate && 
-        dayStr <= planning.endDate
-      );
+      // Vergelijk de datums direct als strings in yyyy-MM-dd formaat
+      const startDate = planning.startDate;
+      const endDate = planning.endDate;
 
-      console.log("Planning check:", {
+      // Check of de dag binnen het bereik valt (inclusief start- en einddatum)
+      const isInRange = dayStr >= startDate && dayStr <= endDate;
+
+      // Debug logging voor elke planning check
+      const volunteer = volunteers.find(v => v.id === planning.volunteerId);
+      console.log(`Check planning voor ${volunteer?.firstName} ${volunteer?.lastName}:`, {
         planning_id: planning.id,
         day: dayStr,
-        start: planning.startDate,
-        end: planning.endDate,
-        matches: isMatch
+        start: startDate,
+        end: endDate,
+        isInRange,
+        comparison: {
+          dayVsStart: `${dayStr} >= ${startDate} = ${dayStr >= startDate}`,
+          dayVsEnd: `${dayStr} <= ${endDate} = ${dayStr <= endDate}`
+        }
       });
 
-      return isMatch;
+      return isInRange;
     });
 
+    console.log(`Found ${matches.length} plannings for ${dayStr}`);
     return matches;
   };
 

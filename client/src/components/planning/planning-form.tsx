@@ -425,7 +425,8 @@ export function PlanningForm({
                           console.log('Selected date:', {
                             original: date,
                             utc: utcDate,
-                            formatted: dateStr
+                            formatted: dateStr,
+                            type: typeof dateStr
                           });
                           field.onChange(dateStr);
                         }
@@ -477,7 +478,8 @@ export function PlanningForm({
                           console.log('Selected date:', {
                             original: date,
                             utc: utcDate,
-                            formatted: dateStr
+                            formatted: dateStr,
+                            type: typeof dateStr
                           });
                           field.onChange(dateStr);
                         }
