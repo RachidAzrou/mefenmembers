@@ -233,14 +233,14 @@ export function PlanningForm({
                               value={volunteer.id}
                               className="cursor-pointer py-2.5 px-3 hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
                             >
-                              <div className="flex items-center">
+                              <div className="flex items-center gap-2">
                                 <Check
                                   className={cn(
-                                    "mr-2 h-4 w-4",
+                                    "h-4 w-4 flex-shrink-0",
                                     field.value?.includes(volunteer.id) ? "opacity-100" : "opacity-0"
                                   )}
                                 />
-                                {volunteer.firstName} {volunteer.lastName}
+                                <span>{volunteer.firstName} {volunteer.lastName}</span>
                               </div>
                             </SelectItem>
                           ))}
