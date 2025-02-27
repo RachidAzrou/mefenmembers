@@ -63,9 +63,7 @@ export default function Settings() {
   const [userLogs, setUserLogs] = useState<(UserAction & { id: string })[]>([]);
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [selectedUser, setSelectedUser] = useState<string>("all");
-  const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [isLoadingLogs, setIsLoadingLogs] = useState(false);
-  const [changingPasswordFor, setChangingPasswordFor] = useState<string | null>(null);
   const [deletingUser, setDeletingUser] = useState<DatabaseUser | null>(null);
   const { toast } = useToast();
   const { isAdmin } = useRole();
@@ -101,8 +99,7 @@ export default function Settings() {
       try {
         const logs = await getUserLogs({
           startDate: selectedDate,
-          userId: selectedUser === "all" ? undefined : selectedUser,
-          category: selectedCategory === "all" ? undefined : selectedCategory
+          userId: selectedUser === "all" ? undefined : selectedUser
         });
         setUserLogs(logs as (UserAction & { id: string })[]);
       } catch (error) {
@@ -113,7 +110,7 @@ export default function Settings() {
     };
 
     fetchLogs();
-  }, [selectedDate, selectedUser, selectedCategory]);
+  }, [selectedDate, selectedUser]);
 
   const handleRoleChange = async (uid: string, email: string, newIsAdmin: boolean) => {
     try {
@@ -189,7 +186,6 @@ export default function Settings() {
         description: "Een wachtwoord reset link is verstuurd naar de gebruiker",
         duration: 3000,
       });
-      setChangingPasswordFor(null);
     } catch (error: any) {
       toast({
         variant: "destructive",
@@ -230,17 +226,6 @@ export default function Settings() {
       });
     }
   };
-
-  const categories = [
-    { id: "all", label: "Alle activiteiten" },
-    { id: "auth", label: "Authenticatie" },
-    { id: "planning", label: "Planning" },
-    { id: "volunteer", label: "Vrijwilligers" },
-    { id: "material", label: "Materialen" },
-    { id: "room", label: "Ruimtes" },
-    { id: "user", label: "Gebruikers" },
-    { id: "export", label: "Export/Import" },
-  ];
 
   const getActionIcon = (action: string) => {
     if (action.includes('materiaal')) return '📦';
@@ -292,16 +277,16 @@ export default function Settings() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-6 max-w-6xl space-y-6">
-      <div className="flex items-center gap-3 mb-6">
-        <SettingsIcon className="h-6 w-6 sm:h-8 sm:w-8 text-[#963E56]" />
+    <div className="container mx-auto px-4 py-6 max-w-7xl space-y-8">
+      <div className="flex items-center gap-3 mb-8">
+        <SettingsIcon className="h-8 w-8 sm:h-10 sm:w-10 text-[#963E56]" />
         <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-[#963E56]">Instellingen</h1>
       </div>
 
-      <Accordion type="single" collapsible className="space-y-4">
-        <AccordionItem value="add-user" className="border rounded-lg overflow-hidden">
-          <AccordionTrigger className="px-6 py-4 bg-gray-50/80 hover:bg-gray-50/90 [&[data-state=open]>svg]:rotate-180">
-            <div className="flex items-center gap-2 text-[#963E56]">
+      <Accordion type="single" collapsible className="space-y-6">
+        <AccordionItem value="add-user" className="border rounded-xl overflow-hidden bg-white shadow-sm">
+          <AccordionTrigger className="px-6 py-4 hover:bg-gray-50/80 data-[state=open]:bg-gray-50/80 transition-colors">
+            <div className="flex items-center gap-3 text-[#963E56]">
               <UserPlus className="h-5 w-5" />
               <span className="font-semibold">Medewerker Toevoegen</span>
             </div>
@@ -309,8 +294,8 @@ export default function Settings() {
           <AccordionContent>
             <div className="p-6">
               <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <FormField
                       control={form.control}
                       name="email"
@@ -321,6 +306,7 @@ export default function Settings() {
                             <Input
                               type="email"
                               placeholder="naam@voorbeeld.be"
+                              className="bg-white"
                               {...field}
                             />
                           </FormControl>
@@ -338,6 +324,7 @@ export default function Settings() {
                             <Input
                               type="password"
                               placeholder="Minimaal 6 tekens"
+                              className="bg-white"
                               {...field}
                             />
                           </FormControl>
@@ -380,16 +367,16 @@ export default function Settings() {
           </AccordionContent>
         </AccordionItem>
 
-        <AccordionItem value="manage-users" className="border rounded-lg overflow-hidden">
-          <AccordionTrigger className="px-6 py-4 bg-gray-50/80 hover:bg-gray-50/90 [&[data-state=open]>svg]:rotate-180">
-            <div className="flex items-center gap-2 text-[#963E56]">
+        <AccordionItem value="manage-users" className="border rounded-xl overflow-hidden bg-white shadow-sm">
+          <AccordionTrigger className="px-6 py-4 hover:bg-gray-50/80 data-[state=open]:bg-gray-50/80 transition-colors">
+            <div className="flex items-center gap-3 text-[#963E56]">
               <Users className="h-5 w-5" />
               <span className="font-semibold">Gebruikersbeheer</span>
             </div>
           </AccordionTrigger>
           <AccordionContent>
             <div className="p-6">
-              <div className="rounded-lg border">
+              <div className="rounded-lg border overflow-hidden">
                 <Table>
                   <TableHeader>
                     <TableRow className="bg-gray-50/50">
@@ -400,7 +387,7 @@ export default function Settings() {
                   </TableHeader>
                   <TableBody>
                     {users.map((user) => (
-                      <TableRow key={user.uid}>
+                      <TableRow key={user.uid} className="hover:bg-gray-50/30">
                         <TableCell>{user.email}</TableCell>
                         <TableCell>
                           <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
@@ -458,30 +445,31 @@ export default function Settings() {
             </div>
           </AccordionContent>
         </AccordionItem>
-        <AccordionItem value="activity-logs" className="border rounded-lg overflow-hidden">
-          <AccordionTrigger className="px-6 py-4 bg-gray-50/80 hover:bg-gray-50/90 [&[data-state=open]>svg]:rotate-180">
-            <div className="flex items-center gap-2 text-[#963E56]">
+
+        <AccordionItem value="activity-logs" className="border rounded-xl overflow-hidden bg-white shadow-sm">
+          <AccordionTrigger className="px-6 py-4 hover:bg-gray-50/80 data-[state=open]:bg-gray-50/80 transition-colors">
+            <div className="flex items-center gap-3 text-[#963E56]">
               <Activity className="h-5 w-5" />
               <span className="font-semibold">Gebruikersactiviteit</span>
             </div>
           </AccordionTrigger>
           <AccordionContent>
-            <div className="p-6">
-              <Card>
+            <div className="p-6 space-y-6">
+              <Card className="border-none shadow-none bg-gray-50/50">
                 <CardHeader className="pb-4">
-                  <CardTitle className="text-lg">Filters</CardTitle>
+                  <CardTitle className="text-lg text-[#963E56]">Filters</CardTitle>
                   <CardDescription>
-                    Filter de activiteiten op gebruiker, datum en type
+                    Filter de activiteiten op gebruiker en datum
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="flex flex-col sm:flex-row items-start sm:items-end gap-4">
-                    <div className="w-full sm:w-auto">
-                      <label className="text-sm font-medium mb-1.5 block">
+                    <div className="w-full sm:w-auto space-y-1.5">
+                      <label className="text-sm font-medium block">
                         Selecteer Gebruiker
                       </label>
                       <Select value={selectedUser} onValueChange={setSelectedUser}>
-                        <SelectTrigger className="w-full sm:w-[250px]">
+                        <SelectTrigger className="w-full sm:w-[250px] bg-white">
                           <SelectValue placeholder="Alle gebruikers" />
                         </SelectTrigger>
                         <SelectContent>
@@ -495,15 +483,15 @@ export default function Settings() {
                       </Select>
                     </div>
 
-                    <div className="w-full sm:w-auto">
-                      <label className="text-sm font-medium mb-1.5 block">
+                    <div className="w-full sm:w-auto space-y-1.5">
+                      <label className="text-sm font-medium block">
                         Selecteer Datum
                       </label>
                       <Popover>
                         <PopoverTrigger asChild>
                           <Button
                             variant={"outline"}
-                            className="w-full sm:w-[240px] justify-start text-left font-normal"
+                            className="w-full sm:w-[240px] justify-start text-left font-normal bg-white"
                           >
                             <CalendarIcon className="mr-2 h-4 w-4" />
                             {selectedDate ? (
@@ -525,8 +513,8 @@ export default function Settings() {
                       </Popover>
                     </div>
 
-                    <div className="w-full sm:w-auto">
-                      <label className="text-sm font-medium mb-1.5 block">
+                    <div className="w-full sm:w-auto space-y-1.5">
+                      <label className="text-sm font-medium block">
                         Vernieuwen
                       </label>
                       <Button
@@ -548,9 +536,8 @@ export default function Settings() {
                       onClick={() => {
                         setSelectedDate(new Date());
                         setSelectedUser("all");
-                        setSelectedCategory("all");
                       }}
-                      className="self-stretch sm:self-auto"
+                      className="self-stretch sm:self-auto bg-white"
                     >
                       Reset Filters
                     </Button>
@@ -558,7 +545,7 @@ export default function Settings() {
                 </CardContent>
               </Card>
 
-              <div className="mt-6 rounded-lg border shadow-sm overflow-hidden">
+              <div className="rounded-lg border overflow-hidden bg-white">
                 <div className="overflow-x-auto">
                   <Table>
                     <TableHeader>
@@ -587,7 +574,7 @@ export default function Settings() {
                         </TableRow>
                       ) : (
                         userLogs.map((log) => (
-                          <TableRow key={log.id}>
+                          <TableRow key={log.id} className="hover:bg-gray-50/30">
                             <TableCell className="whitespace-nowrap font-medium text-xs sm:text-sm">
                               {format(new Date(log.timestamp), "d MMM yyyy HH:mm:ss", { locale: nl })}
                             </TableCell>
@@ -611,7 +598,7 @@ export default function Settings() {
                 </div>
               </div>
 
-              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 text-sm text-gray-500 mt-4">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 text-sm text-gray-500">
                 <p>
                   Totaal aantal activiteiten: {userLogs.length}
                 </p>
