@@ -20,6 +20,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { RiBroadcastFill } from "react-icons/ri";
 
 type Room = {
   id: string;
@@ -76,7 +77,7 @@ export default function Communication() {
     <div className="space-y-4 sm:space-y-6 p-3 sm:p-6">
       {/* Header */}
       <div className="flex items-center gap-3">
-        <Radio className="h-6 w-6 sm:h-8 sm:w-8 text-[#963E56]" />
+        <RiBroadcastFill className="h-6 w-6 sm:h-8 sm:w-8 text-[#963E56]" />
         <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-[#963E56]">
           Communicatie
         </h1>
@@ -86,7 +87,7 @@ export default function Communication() {
       <Card>
         <CardContent className="pt-4 sm:pt-6">
           <div className="flex items-center space-x-2 sm:space-x-3">
-            <Radio className="h-5 w-5 sm:h-8 sm:w-8 text-[#963E56]/80" />
+            <RiBroadcastFill className="h-5 w-5 sm:h-8 sm:w-8 text-[#963E56]/80" />
             <div>
               <p className="text-xs sm:text-sm font-medium text-muted-foreground">
                 Walkietalkie Kanalen
@@ -107,7 +108,7 @@ export default function Communication() {
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-2">
                   <div className="bg-[#963E56]/10 rounded-full p-2">
-                    <Radio className="h-4 w-4 sm:h-5 sm:w-5 text-[#963E56]" />
+                    <RiBroadcastFill className="h-4 w-4 sm:h-5 sm:w-5 text-[#963E56]" />
                   </div>
                   <h3 className="text-sm font-medium text-[#963E56]">{room.name}</h3>
                 </div>
