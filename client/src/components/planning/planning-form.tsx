@@ -6,7 +6,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { CalendarIcon, ChevronsUpDown, Search, X, Check } from "lucide-react";
+import { CalendarIcon } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { nl } from "date-fns/locale";
 import { cn } from "@/lib/utils";
@@ -73,7 +73,7 @@ export function PlanningForm({
           </div>
         )}
 
-        {/* Single volunteer selection with Combobox */}
+        {/* Single volunteer selection */}
         {!isBulkPlanning && (
           <>
             <FormField
