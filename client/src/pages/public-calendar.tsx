@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { format, startOfWeek, addDays, parseISO } from "date-fns";
+import { format, startOfWeek, addDays } from "date-fns";
 import { nl } from "date-fns/locale";
 import { db } from "@/lib/firebase";
 import { ref, onValue } from "firebase/database";
@@ -42,8 +42,6 @@ export default function PublicCalendar() {
         id,
         ...(planning as Omit<Planning, "id">),
       })) : [];
-
-      console.log("Loaded plannings:", planningsList);
       setPlannings(planningsList);
     });
 
@@ -69,28 +67,24 @@ export default function PublicCalendar() {
   }, []);
 
   const getPlanningsForDay = (day: Date) => {
-    const dayFormatted = format(day, 'yyyy-MM-dd');
+    // Format de huidige dag als string
+    const dayStr = format(day, 'yyyy-MM-dd');
 
-    const filteredPlannings = plannings.filter(planning => {
-      // Vergelijk de datums als strings in yyyy-MM-dd formaat
-      const startDate = planning.startDate;
-      const endDate = planning.endDate;
+    return plannings.filter(planning => {
+      // Direct string comparison voor datums
+      const isInRange = planning.startDate <= dayStr && planning.endDate >= dayStr;
 
-      // Check of de dag binnen de range valt (inclusief start- en einddatum)
-      const isWithinRange = dayFormatted >= startDate && dayFormatted <= endDate;
-
-      console.log('Checking planning:', {
+      // Log voor debugging
+      console.log('Planning check:', {
         planning_id: planning.id,
-        day: dayFormatted,
-        start: startDate,
-        end: endDate,
-        isWithinRange
+        day: dayStr,
+        start: planning.startDate,
+        end: planning.endDate,
+        isInRange
       });
 
-      return isWithinRange;
+      return isInRange;
     });
-
-    return filteredPlannings;
   };
 
   const getPlanningsByRoom = (day: Date) => {
