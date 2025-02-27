@@ -619,10 +619,6 @@ const Planning = () => {
         </div>
 
         <div className="mt-4 sm:mt-6 flex justify-end">
-          <Button onClick={handleExportPDF} className="w-full sm:w-auto gap-2 bg-[#963E56] hover:bg-[#963E56]/90">
-            <Check className="h-4 w-4"/>
-            <span>Exporteren naar PDF</span>
-          </Button>
           <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
             <DialogTrigger asChild>
               <Button onClick={() => {
