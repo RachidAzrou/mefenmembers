@@ -6,13 +6,19 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { CalendarIcon } from "lucide-react";
+import { CalendarIcon, ChevronsUpDown, Search, X, Check } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { nl } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { z } from "zod";
 import { UseFormReturn } from "react-hook-form";
-import { X } from 'lucide-react'; //Import X icon
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+} from "@/components/ui/command";
 
 // Keep the same schema
 const planningSchema = z.object({
@@ -45,6 +51,8 @@ export function PlanningForm({
   editingPlanning
 }: PlanningFormProps) {
   const isBulkPlanning = form.watch("isBulkPlanning");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [open, setOpen] = useState(false);
 
   return (
     <Form {...form}>
@@ -68,33 +76,79 @@ export function PlanningForm({
           </div>
         )}
 
-        {/* Single volunteer/room selection */}
+        {/* Single volunteer selection with improved dropdown */}
         {!isBulkPlanning && (
           <>
             <FormField
               control={form.control}
               name="volunteerId"
               render={({ field }) => (
-                <FormItem>
+                <FormItem className="flex flex-col">
                   <FormLabel>Vrijwilliger</FormLabel>
-                  <Select
-                    value={field.value}
-                    onValueChange={field.onChange}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecteer een vrijwilliger" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {volunteers.map((volunteer) => (
-                        <SelectItem
-                          key={volunteer.id}
-                          value={volunteer.id}
-                        >
-                          {volunteer.firstName} {volunteer.lastName}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <Popover open={open} onOpenChange={setOpen}>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        role="combobox"
+                        aria-expanded={open}
+                        className="w-full justify-between"
+                      >
+                        {field.value
+                          ? volunteers.find((volunteer) => volunteer.id === field.value)
+                            ? `${volunteers.find((volunteer) => volunteer.id === field.value)?.firstName} ${volunteers.find((volunteer) => volunteer.id === field.value)?.lastName}`
+                            : "Selecteer vrijwilliger"
+                          : "Selecteer vrijwilliger"}
+                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-[300px] p-0">
+                      <Command>
+                        <div className="sticky top-0 px-2 py-2 bg-background border-b">
+                          <div className="relative">
+                            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+                            <input
+                              type="text"
+                              placeholder="Zoek vrijwilliger..."
+                              value={searchTerm}
+                              onChange={(e) => setSearchTerm(e.target.value)}
+                              onClick={(e) => e.stopPropagation()}
+                              className="w-full pl-9 h-9 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-offset-0 disabled:cursor-not-allowed disabled:opacity-50"
+                            />
+                          </div>
+                        </div>
+                        <CommandEmpty>Geen vrijwilliger gevonden.</CommandEmpty>
+                        <CommandGroup className="max-h-[300px] overflow-y-auto">
+                          {volunteers
+                            .filter(volunteer => {
+                              const fullName = `${volunteer.firstName} ${volunteer.lastName}`.toLowerCase();
+                              return fullName.includes(searchTerm.toLowerCase());
+                            })
+                            .sort((a, b) =>
+                              `${a.firstName} ${a.lastName}`.localeCompare(`${b.firstName} ${b.lastName}`)
+                            )
+                            .map((volunteer) => (
+                              <CommandItem
+                                key={volunteer.id}
+                                onSelect={() => {
+                                  form.setValue("volunteerId", volunteer.id);
+                                  setSearchTerm("");
+                                  setOpen(false);
+                                }}
+                                className="flex items-center px-4 py-2 cursor-pointer text-sm hover:bg-accent hover:text-accent-foreground aria-selected:bg-accent aria-selected:text-accent-foreground"
+                              >
+                                <Check
+                                  className={cn(
+                                    "mr-2 h-4 w-4",
+                                    field.value === volunteer.id ? "opacity-100" : "opacity-0"
+                                  )}
+                                />
+                                <span className="text-foreground">{volunteer.firstName} {volunteer.lastName}</span>
+                              </CommandItem>
+                            ))}
+                        </CommandGroup>
+                      </Command>
+                    </PopoverContent>
+                  </Popover>
                   <FormMessage />
                 </FormItem>
               )}
