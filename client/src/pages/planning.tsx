@@ -402,7 +402,7 @@ const Planning = () => {
 
   const onSubmit = async (data: z.infer<typeof planningSchema>) => {
     try {
-      // Debug logging
+      // Debug logging voor datum verwerking
       console.log("Planning submission - Raw form data:", {
         raw_start: data.startDate,
         raw_end: data.endDate
