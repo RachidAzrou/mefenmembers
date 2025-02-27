@@ -122,6 +122,29 @@ export function PlanningForm({
                       </div>
                     </SelectContent>
                   </Select>
+                  {field.value && (
+                    <div className="mt-2">
+                      {(() => {
+                        const volunteer = volunteers.find(v => v.id === field.value);
+                        if (volunteer) {
+                          return (
+                            <div className="bg-[#963E56]/10 text-[#963E56] text-sm rounded-full px-3 py-1 flex items-center gap-2 w-fit">
+                              <span>{volunteer.firstName} {volunteer.lastName}</span>
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="icon"
+                                className="h-4 w-4 p-0 hover:bg-transparent"
+                                onClick={() => field.onChange(undefined)}
+                              >
+                                <X className="h-3 w-3" />
+                              </Button>
+                            </div>
+                          );
+                        }
+                      })()}
+                    </div>
+                  )}
                   <FormMessage />
                 </FormItem>
               )}
