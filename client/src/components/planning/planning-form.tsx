@@ -5,12 +5,11 @@ import { Label } from "@/components/ui/label";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "@/components/ui/command";
-import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { CalendarIcon, Check, X } from "lucide-react";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Check, X, CalendarIcon } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { nl } from "date-fns/locale";
 import { cn } from "@/lib/utils";
-import { Form } from "@/components/ui/form";
 import { z } from "zod";
 import { UseFormReturn } from "react-hook-form";
 
@@ -89,15 +88,21 @@ export function PlanningForm({
                   <FormLabel>Vrijwilligers</FormLabel>
                   <Popover open={openVolunteer} onOpenChange={setOpenVolunteer}>
                     <PopoverTrigger asChild>
-                      <Button variant="outline" className="w-full justify-start">
-                        {selectedVolunteers.length > 0 ? (
-                          <span>{selectedVolunteers.length} vrijwilliger(s) geselecteerd</span>
-                        ) : (
-                          <span>Selecteer vrijwilligers</span>
-                        )}
-                      </Button>
+                      <FormControl>
+                        <Button
+                          variant="outline"
+                          role="combobox"
+                          className="w-full justify-start"
+                        >
+                          {selectedVolunteers.length > 0 ? (
+                            <span>{selectedVolunteers.length} vrijwilliger(s) geselecteerd</span>
+                          ) : (
+                            <span>Selecteer vrijwilligers</span>
+                          )}
+                        </Button>
+                      </FormControl>
                     </PopoverTrigger>
-                    <PopoverContent className="p-0" align="start">
+                    <PopoverContent className="w-full p-0" align="start">
                       <Command>
                         <CommandInput
                           placeholder="Zoek vrijwilligers..."
@@ -115,6 +120,9 @@ export function PlanningForm({
                                   ? current.filter(id => id !== volunteer.id)
                                   : [...current, volunteer.id];
                                 field.onChange(updated);
+                                if (!current.includes(volunteer.id)) {
+                                  setOpenVolunteer(false);
+                                }
                               }}
                             >
                               <Check
@@ -172,15 +180,21 @@ export function PlanningForm({
                   <FormLabel>Ruimtes</FormLabel>
                   <Popover open={openRoom} onOpenChange={setOpenRoom}>
                     <PopoverTrigger asChild>
-                      <Button variant="outline" className="w-full justify-start">
-                        {selectedRooms.length > 0 ? (
-                          <span>{selectedRooms.length} ruimte(s) geselecteerd</span>
-                        ) : (
-                          <span>Selecteer ruimtes</span>
-                        )}
-                      </Button>
+                      <FormControl>
+                        <Button
+                          variant="outline"
+                          role="combobox"
+                          className="w-full justify-start"
+                        >
+                          {selectedRooms.length > 0 ? (
+                            <span>{selectedRooms.length} ruimte(s) geselecteerd</span>
+                          ) : (
+                            <span>Selecteer ruimtes</span>
+                          )}
+                        </Button>
+                      </FormControl>
                     </PopoverTrigger>
-                    <PopoverContent className="p-0" align="start">
+                    <PopoverContent className="w-full p-0" align="start">
                       <Command>
                         <CommandInput placeholder="Zoek ruimtes..." />
                         <CommandEmpty>Geen ruimtes gevonden.</CommandEmpty>
@@ -194,6 +208,9 @@ export function PlanningForm({
                                   ? current.filter(id => id !== room.id)
                                   : [...current, room.id];
                                 field.onChange(updated);
+                                if (!current.includes(room.id)) {
+                                  setOpenRoom(false);
+                                }
                               }}
                             >
                               <Check
@@ -253,18 +270,24 @@ export function PlanningForm({
                   <FormLabel>Vrijwilliger</FormLabel>
                   <Popover open={openVolunteer} onOpenChange={setOpenVolunteer}>
                     <PopoverTrigger asChild>
-                      <Button variant="outline" className="w-full justify-start">
-                        {field.value ? (
-                          <span>
-                            {volunteers.find(v => v.id === field.value)?.firstName}{' '}
-                            {volunteers.find(v => v.id === field.value)?.lastName}
-                          </span>
-                        ) : (
-                          <span>Selecteer een vrijwilliger</span>
-                        )}
-                      </Button>
+                      <FormControl>
+                        <Button
+                          variant="outline"
+                          role="combobox"
+                          className="w-full justify-start"
+                        >
+                          {field.value ? (
+                            <span>
+                              {volunteers.find(v => v.id === field.value)?.firstName}{' '}
+                              {volunteers.find(v => v.id === field.value)?.lastName}
+                            </span>
+                          ) : (
+                            <span>Selecteer een vrijwilliger</span>
+                          )}
+                        </Button>
+                      </FormControl>
                     </PopoverTrigger>
-                    <PopoverContent className="p-0" align="start">
+                    <PopoverContent className="w-full p-0" align="start">
                       <Command>
                         <CommandInput
                           placeholder="Zoek vrijwilliger..."
@@ -307,15 +330,21 @@ export function PlanningForm({
                   <FormLabel>Ruimte</FormLabel>
                   <Popover open={openRoom} onOpenChange={setOpenRoom}>
                     <PopoverTrigger asChild>
-                      <Button variant="outline" className="w-full justify-start">
-                        {field.value ? (
-                          <span>{rooms.find(r => r.id === field.value)?.name}</span>
-                        ) : (
-                          <span>Selecteer een ruimte</span>
-                        )}
-                      </Button>
+                      <FormControl>
+                        <Button
+                          variant="outline"
+                          role="combobox"
+                          className="w-full justify-start"
+                        >
+                          {field.value ? (
+                            <span>{rooms.find(r => r.id === field.value)?.name}</span>
+                          ) : (
+                            <span>Selecteer een ruimte</span>
+                          )}
+                        </Button>
+                      </FormControl>
                     </PopoverTrigger>
-                    <PopoverContent className="p-0" align="start">
+                    <PopoverContent className="w-full p-0" align="start">
                       <Command>
                         <CommandInput placeholder="Zoek ruimtes..." />
                         <CommandEmpty>Geen ruimtes gevonden.</CommandEmpty>
