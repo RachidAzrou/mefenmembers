@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { format, startOfWeek, addDays, parseISO } from "date-fns";
+import { format, startOfWeek, addDays } from "date-fns";
 import { nl } from "date-fns/locale";
 import { db } from "@/lib/firebase";
 import { ref, onValue } from "firebase/database";
@@ -42,8 +42,6 @@ export default function PublicCalendar() {
         id,
         ...(planning as Omit<Planning, "id">),
       })) : [];
-
-      // Log de opgehaalde planningen
       console.log("Loaded plannings from Firebase:", planningsList);
       setPlannings(planningsList);
     });
@@ -70,42 +68,23 @@ export default function PublicCalendar() {
   }, []);
 
   const getPlanningsForDay = (day: Date) => {
-    // Zorg ervoor dat we altijd met UTC midnight werken voor consistentie
-    const checkDate = new Date(Date.UTC(day.getFullYear(), day.getMonth(), day.getDate()));
-    const checkDateStr = format(checkDate, 'yyyy-MM-dd');
+    const dayStr = format(day, 'yyyy-MM-dd');
 
-    console.log("\n=== Checking plannings ===");
-    console.log("Checking date:", checkDateStr);
-    console.log("All plannings:", plannings);
+    console.log("\n=== Checking plannings for day:", dayStr, "===");
 
-    const filteredPlannings = plannings.filter(planning => {
-      // Converteer planning datums naar UTC midnight
-      const startDate = new Date(Date.UTC(...planning.startDate.split('-').map(Number)));
-      const endDate = new Date(Date.UTC(...planning.endDate.split('-').map(Number)));
+    return plannings.filter(planning => {
+      const matches = dayStr >= planning.startDate && dayStr <= planning.endDate;
 
-      console.log("\nPlanning check:", {
+      console.log("Planning check:", {
         planning_id: planning.id,
-        check_date: checkDateStr,
-        start_date: planning.startDate,
-        end_date: planning.endDate,
-        start_timestamp: startDate.getTime(),
-        check_timestamp: checkDate.getTime(),
-        end_timestamp: endDate.getTime(),
-        is_in_range: checkDate >= startDate && checkDate <= endDate
+        day: dayStr,
+        start: planning.startDate,
+        end: planning.endDate,
+        matches
       });
 
-      return checkDate >= startDate && checkDate <= endDate;
+      return matches;
     });
-
-    console.log(`Found ${filteredPlannings.length} plannings for ${checkDateStr}:`,
-      filteredPlannings.map(p => ({
-        id: p.id,
-        start: p.startDate,
-        end: p.endDate
-      }))
-    );
-
-    return filteredPlannings;
   };
 
   const getPlanningsByRoom = (day: Date) => {
