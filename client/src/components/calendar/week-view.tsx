@@ -268,7 +268,7 @@ export function WeekView({ checkedOutMaterials }: WeekViewProps) {
                                 key={planning.id}
                                 className="text-sm p-2 rounded bg-[#963E56]/5 border border-[#963E56]/10"
                               >
-                                <div className="font-medium">
+                                <div className="font-medium whitespace-nowrap overflow-hidden text-ellipsis">
                                   {volunteer
                                     ? `${volunteer.firstName} ${volunteer.lastName}`
                                     : 'Niet toegewezen'
