@@ -1,7 +1,7 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight, Download, Share2, Package2, Users2, UserCheck, House } from "lucide-react";
-import { format, startOfWeek, addDays, isWithinInterval, isSameDay, parseISO } from "date-fns";
+import { format, startOfWeek, addDays, isWithinInterval, isSameDay, parseISO, addWeeks } from "date-fns";
 import { nl } from "date-fns/locale";
 import { useState, useEffect } from "react";
 import { db } from "@/lib/firebase";
