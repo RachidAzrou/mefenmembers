@@ -91,7 +91,7 @@ export function PlanningForm({
                         variant="outline"
                         role="combobox"
                         aria-expanded={open}
-                        className="w-full justify-between"
+                        className="w-full justify-between bg-white border border-input hover:bg-accent hover:text-accent-foreground"
                       >
                         {field.value
                           ? volunteers.find((volunteer) => volunteer.id === field.value)
@@ -103,7 +103,7 @@ export function PlanningForm({
                     </PopoverTrigger>
                     <PopoverContent className="w-[300px] p-0">
                       <Command>
-                        <div className="sticky top-0 px-2 py-2 bg-background border-b">
+                        <div className="sticky top-0 px-2 py-2 bg-white border-b">
                           <div className="relative">
                             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
                             <input
@@ -112,7 +112,7 @@ export function PlanningForm({
                               value={searchTerm}
                               onChange={(e) => setSearchTerm(e.target.value)}
                               onClick={(e) => e.stopPropagation()}
-                              className="w-full pl-9 h-9 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-offset-0 disabled:cursor-not-allowed disabled:opacity-50"
+                              className="w-full pl-9 h-9 rounded-md border border-input bg-white px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-offset-0 disabled:cursor-not-allowed disabled:opacity-50"
                             />
                           </div>
                         </div>
@@ -134,7 +134,7 @@ export function PlanningForm({
                                   setSearchTerm("");
                                   setOpen(false);
                                 }}
-                                className="flex items-center px-4 py-2 cursor-pointer text-sm hover:bg-accent hover:text-accent-foreground aria-selected:bg-accent aria-selected:text-accent-foreground"
+                                className="flex items-center px-4 py-2 cursor-pointer text-foreground hover:bg-accent hover:text-accent-foreground"
                               >
                                 <Check
                                   className={cn(
@@ -142,7 +142,7 @@ export function PlanningForm({
                                     field.value === volunteer.id ? "opacity-100" : "opacity-0"
                                   )}
                                 />
-                                <span className="text-foreground">{volunteer.firstName} {volunteer.lastName}</span>
+                                <span>{volunteer.firstName} {volunteer.lastName}</span>
                               </CommandItem>
                             ))}
                         </CommandGroup>
