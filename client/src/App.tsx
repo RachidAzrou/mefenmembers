@@ -16,12 +16,11 @@ import PublicCalendar from "@/pages/public-calendar";
 import ImportExport from "@/pages/import-export";
 import Mosque from "@/pages/mosque";
 import Settings from "@/pages/settings";
-import Communication from "@/pages/communication";
+import Communication from "@/pages/communication"; // Added import
 import { Sidebar } from "@/components/layout/sidebar";
 import { auth } from "./lib/firebase";
 import { useAuthState } from "react-firebase-hooks/auth";
 import { useNotifications } from "@/hooks/use-notifications";
-import { AuthProvider } from "@/hooks/use-auth";
 import React from 'react';
 
 function AuthenticatedLayout({ children }: { children: React.ReactNode }) {
@@ -86,7 +85,7 @@ function Router() {
       <Route path="/import-export" component={() => <PrivateRoute component={ImportExport} />} />
       <Route path="/mosque" component={() => <PrivateRoute component={Mosque} />} />
       <Route path="/settings" component={() => <PrivateRoute component={Settings} />} />
-      <Route path="/communication" component={() => <PrivateRoute component={Communication} />} />
+      <Route path="/communication" component={() => <PrivateRoute component={Communication} />} /> {/* Added route */}
       <Route path="/calendar/public" component={PublicCalendar} />
       <Route component={NotFound} />
     </Switch>
@@ -95,12 +94,10 @@ function Router() {
 
 function App() {
   return (
-    <AuthProvider>
-      <QueryClientProvider client={queryClient}>
-        <Router />
-        <Toaster />
-      </QueryClientProvider>
-    </AuthProvider>
+    <QueryClientProvider client={queryClient}>
+      <Router />
+      <Toaster />
+    </QueryClientProvider>
   );
 }
 
