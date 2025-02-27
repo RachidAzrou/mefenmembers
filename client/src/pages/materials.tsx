@@ -34,19 +34,26 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+} from "@/components/ui/command";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge"; 
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Tooltip,
   TooltipContent,
@@ -58,7 +65,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { db } from "@/lib/firebase";
-import { ref, push, remove, onValue, update } from "firebase/database";
+import { ref, push, remove, update, onValue } from "firebase/database";
 import {
   Package2,
   Search,
@@ -70,6 +77,7 @@ import {
   Square,
   Edit2,
   Flashlight,
+  ChevronsUpDown,
 } from "lucide-react";
 import { useRole } from "@/hooks/use-role";
 import { logUserAction, UserActionTypes } from "@/lib/activity-logger";
@@ -124,7 +132,6 @@ export default function Materials() {
   const [materialTypes, setMaterialTypes] = useState<MaterialType[]>([]);
   const [volunteers, setVolunteers] = useState<Volunteer[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
-  const [volunteerSearchTerm, setVolunteerSearchTerm] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedMaterials, setSelectedMaterials] = useState<string[]>([]);
   const [isEditMode, setIsEditMode] = useState(false);
@@ -133,6 +140,7 @@ export default function Materials() {
   const [editingMaterialType, setEditingMaterialType] = useState<MaterialType | null>(null);
   const [deleteMaterialTypeId, setDeleteMaterialTypeId] = useState<string | null>(null);
   const [editingMaterial, setEditingMaterial] = useState<Material | null>(null);
+  const [open, setOpen] = useState(false);
   const { toast } = useToast();
   const { isAdmin } = useRole();
 
@@ -467,17 +475,17 @@ export default function Materials() {
       await update(ref(db, ''), updates);
       await Promise.all(loggingPromises);
 
-      toast({ 
-        title: 'Succes', 
+      toast({
+        title: 'Succes',
         description: 'Materialen succesvol geretourneerd',
         duration: 3000,
         variant: "success"
       });
       setSelectedMaterials([]);
     } catch (error) {
-      toast({ 
-        variant: 'destructive', 
-        title: 'Fout', 
+      toast({
+        variant: 'destructive',
+        title: 'Fout',
         description: 'Kon materialen niet retourneren',
         duration: 3000
       });
@@ -487,7 +495,7 @@ export default function Materials() {
 
   const filteredVolunteers = volunteers.filter(volunteer => {
     const fullName = `${volunteer.firstName} ${volunteer.lastName}`.toLowerCase();
-    return fullName.includes(volunteerSearchTerm.toLowerCase());
+    return fullName.includes(searchTerm.toLowerCase());
   });
 
   return (
@@ -606,162 +614,172 @@ export default function Materials() {
               </DialogHeader>
               <Form {...form}>
                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                  <div className="space-y-4">
-                    <FormField
-                      control={form.control}
-                      name="volunteerId"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Vrijwilliger</FormLabel>
-                          <div className="space-y-2">
-                            <Input
-                              placeholder="Zoek vrijwilliger..."
-                              value={volunteerSearchTerm}
-                              onChange={(e) => setVolunteerSearchTerm(e.target.value)}
-                              className="mb-2"
-                            />
-                            <Select
-                              value={field.value}
-                              onValueChange={field.onChange}
-                              defaultValue=""
+                  <FormField
+                    control={form.control}
+                    name="volunteerId"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-col">
+                        <FormLabel>Vrijwilliger</FormLabel>
+                        <Popover open={open} onOpenChange={setOpen}>
+                          <PopoverTrigger asChild>
+                            <Button
+                              variant="outline"
+                              role="combobox"
+                              aria-expanded={open}
+                              className="w-full justify-between hover:bg-accent hover:text-accent-foreground"
                             >
-                              <SelectTrigger 
-                                className="w-full bg-white border border-input hover:bg-accent hover:text-accent-foreground"
-                              >
-                                <SelectValue placeholder="Selecteer vrijwilliger" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {filteredVolunteers
-                                  .sort((a, b) => `${a.firstName} ${a.lastName}`.localeCompare(`${b.firstName} ${b.lastName}`))
+                              {field.value ? (
+                                volunteers.find((volunteer) => volunteer.id === field.value)
+                                  ? `${volunteers.find((volunteer) => volunteer.id === field.value)?.firstName} ${volunteers.find((volunteer) => volunteer.id === field.value)?.lastName}`
+                                  : "Selecteer vrijwilliger"
+                              ) : (
+                                "Selecteer vrijwilliger"
+                              )}
+                              <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-[300px] p-0" align="start">
+                            <Command>
+                              <CommandInput placeholder="Zoek vrijwilliger..." />
+                              <CommandEmpty>Geen vrijwilliger gevonden.</CommandEmpty>
+                              <CommandGroup>
+                                {volunteers
+                                  .sort((a, b) =>
+                                    `${a.firstName} ${a.lastName}`.localeCompare(`${b.firstName} ${b.lastName}`)
+                                  )
                                   .map((volunteer) => (
-                                    <SelectItem
+                                    <CommandItem
                                       key={volunteer.id}
-                                      value={volunteer.id}
-                                      className="cursor-pointer py-2 px-3 hover:bg-accent hover:text-accent-foreground"
+                                      value={`${volunteer.firstName} ${volunteer.lastName}`}
+                                      onSelect={() => {
+                                        form.setValue("volunteerId", volunteer.id);
+                                        setOpen(false);
+                                      }}
+                                      className="cursor-pointer py-3 px-4 hover:bg-accent hover:text-accent-foreground"
                                     >
                                       {volunteer.firstName} {volunteer.lastName}
-                                    </SelectItem>
+                                    </CommandItem>
                                   ))}
-                              </SelectContent>
-                            </Select>
-                          </div>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                              </CommandGroup>
+                            </Command>
+                          </PopoverContent>
+                        </Popover>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
+                  <div className="space-y-4">
+                    <FormLabel>Materialen</FormLabel>
                     <div className="space-y-4">
-                      <FormLabel>Materialen</FormLabel>
-                      <div className="space-y-4">
-                        <Select
-                          onValueChange={(value) => {
-                            if (!selectedMaterialTypes.includes(value)) {
-                              setSelectedMaterialTypes([...selectedMaterialTypes, value]);
-                              const currentMaterials = form.getValues("materials") || [];
-                              form.setValue("materials", [...currentMaterials, { typeId: value, numbers: [] }]);
-                            }
-                          }}
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder="Selecteer materiaal type" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {materialTypes.map((type) => (
-                              <SelectItem key={type.id} value={type.id}>
-                                {type.name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
+                      <Select
+                        onValueChange={(value) => {
+                          if (!selectedMaterialTypes.includes(value)) {
+                            setSelectedMaterialTypes([...selectedMaterialTypes, value]);
+                            const currentMaterials = form.getValues("materials") || [];
+                            form.setValue("materials", [...currentMaterials, { typeId: value, numbers: [] }]);
+                          }
+                        }}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecteer materiaal type" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {materialTypes.map((type) => (
+                            <SelectItem key={type.id} value={type.id}>
+                              {type.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
 
-                        {form.watch("materials")?.map((material, index) => {
-                          const materialType = materialTypes.find(t => t.id === material.typeId);
-                          return (
-                            <div key={material.typeId} className="space-y-2 p-4 border rounded-lg">
-                              <div className="flex justify-between items-center">
-                                <h4 className="font-medium">{materialType?.name}</h4>
-                                <Button
-                                  type="button"
-                                  variant="ghost"
-                                  size="icon"
-                                  onClick={() => {
-                                    const updatedMaterials = form.getValues("materials").filter((_, i) => i !== index);
-                                    form.setValue("materials", updatedMaterials);
-                                    setSelectedMaterialTypes(selectedMaterialTypes.filter(id => id !== material.typeId));
-                                  }}
-                                >
-                                  <X className="h-4 w-4" />
-                                </Button>
-                              </div>
-                              <Select
-                                onValueChange={(value) => {
-                                  const number = parseInt(value);
-                                  const currentNumbers = material.numbers || [];
-                                  if (!currentNumbers.includes(number)) {
-                                    const updatedMaterials = form.getValues("materials");
-                                    updatedMaterials[index].numbers = [...currentNumbers, number];
-                                    form.setValue("materials", updatedMaterials);
-                                  }
+                      {form.watch("materials")?.map((material, index) => {
+                        const materialType = materialTypes.find(t => t.id === material.typeId);
+                        return (
+                          <div key={material.typeId} className="space-y-2 p-4 border rounded-lg">
+                            <div className="flex justify-between items-center">
+                              <h4 className="font-medium">{materialType?.name}</h4>
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => {
+                                  const updatedMaterials = form.getValues("materials").filter((_, i) => i !== index);
+                                  form.setValue("materials", updatedMaterials);
+                                  setSelectedMaterialTypes(selectedMaterialTypes.filter(id => id !== material.typeId));
                                 }}
                               >
-                                <SelectTrigger>
-                                  <SelectValue placeholder="Selecteer nummer" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  {Array.from({ length: materialType?.maxCount || 0 }).map((_, i) => {
-                                    const number = i + 1;
-                                    const isCheckedOut = materials.some(
-                                      m => m.typeId === material.typeId &&
-                                        m.number === number &&
-                                        m.isCheckedOut
-                                    );
-                                    if (!isCheckedOut) {
-                                      return (
-                                        <SelectItem key={number} value={number.toString()}>
-                                          {number}
-                                        </SelectItem>
-                                      );
-                                    }
-                                    return null;
-                                  })}
-                                </SelectContent>
-                              </Select>
-
-                              {material.numbers && material.numbers.length > 0 && (
-                                <div className="flex flex-wrap gap-2 mt-2">
-                                  {material.numbers.map((number) => (
-                                    <div
-                                      key={number}
-                                      className="bg-primary/10 text-primary text-sm rounded-full px-3 py-1 flex items-center gap-2"
-                                    >
-                                      <span>#{number}</span>
-                                      <Button
-                                        type="button"
-                                        variant="ghost"
-                                        size="icon"
-                                        className="h-4 w-4 p-0 hover:bg-transparent"
-                                        onClick={() => {
-                                          const updatedMaterials = form.getValues("materials");
-                                          updatedMaterials[index].numbers = material.numbers.filter(n => n !== number);
-                                          form.setValue("materials", updatedMaterials);
-                                        }}
-                                      >
-                                        <X className="h-3 w-3" />
-                                      </Button>
-                                    </div>
-                                  ))}
-                                </div>
-                              )}
+                                <X className="h-4 w-4" />
+                              </Button>
                             </div>
-                          );
-                        })}
-                      </div>
-                    </div>
+                            <Select
+                              onValueChange={(value) => {
+                                const number = parseInt(value);
+                                const currentNumbers = material.numbers || [];
+                                if (!currentNumbers.includes(number)) {
+                                  const updatedMaterials = form.getValues("materials");
+                                  updatedMaterials[index].numbers = [...currentNumbers, number];
+                                  form.setValue("materials", updatedMaterials);
+                                }
+                              }}
+                            >
+                              <SelectTrigger>
+                                <SelectValue placeholder="Selecteer nummer" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {Array.from({ length: materialType?.maxCount || 0 }).map((_, i) => {
+                                  const number = i + 1;
+                                  const isCheckedOut = materials.some(
+                                    m => m.typeId === material.typeId &&
+                                      m.number === number &&
+                                      m.isCheckedOut
+                                  );
+                                  if (!isCheckedOut) {
+                                    return (
+                                      <SelectItem key={number} value={number.toString()}>
+                                        {number}
+                                      </SelectItem>
+                                    );
+                                  }
+                                  return null;
+                                })}
+                              </SelectContent>
+                            </Select>
 
-                    <Button type="submit" className="w-full">
-                      Materiaal Toewijzen
-                    </Button>
+                            {material.numbers && material.numbers.length > 0 && (
+                              <div className="flex flex-wrap gap-2 mt-2">
+                                {material.numbers.map((number) => (
+                                  <div
+                                    key={number}
+                                    className="bg-primary/10 text-primary text-sm rounded-full px-3 py-1 flex items-center gap-2"
+                                  >
+                                    <span>#{number}</span>
+                                    <Button
+                                      type="button"
+                                      variant="ghost"
+                                      size="icon"
+                                      className="h-4 w-4 p-0 hover:bg-transparent"
+                                      onClick={() => {
+                                        const updatedMaterials = form.getValues("materials");
+                                        updatedMaterials[index].numbers = material.numbers.filter(n => n !== number);
+                                        form.setValue("materials", updatedMaterials);
+                                      }}
+                                    >
+                                      <X className="h-3 w-3" />
+                                    </Button>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
                   </div>
+
+                  <Button type="submit" className="w-full">
+                    Materiaal Toewijzen
+                  </Button>
                 </form>
               </Form>
             </DialogContent>
@@ -912,7 +930,7 @@ export default function Materials() {
                   </TableRow>
                 );
               })}
-              {filteredMaterials.length === 0 && (
+              {filteredMaterials.length=== 0 && (
                 <TableRow>
                   <TableCell
                     colSpan={isEditMode ? 6 : 5}
