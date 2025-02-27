@@ -627,10 +627,7 @@ const MaterialsPage = () => {
                               variant="outline"
                               role="combobox"
                               aria-expanded={open}
-                              className={cn(
-                                "w-full justify-between",
-                                !field.value && "text-muted-foreground"
-                              )}
+                              className="w-full justify-between bg-background"
                             >
                               {field.value
                                 ? volunteers.find((volunteer) => volunteer.id === field.value)
@@ -642,41 +639,33 @@ const MaterialsPage = () => {
                           </PopoverTrigger>
                           <PopoverContent className="w-[300px] p-0">
                             <Command>
-                              <CommandInput 
-                                placeholder="Zoek vrijwilliger..." 
-                                onValueChange={e => setSearchTerm(e.target.value)}
+                              <CommandInput
+                                placeholder="Zoek vrijwilliger..."
+                                onValueChange={setSearchTerm}
+                                className="border-none focus:ring-0"
                                 value={searchTerm}
                               />
                               <CommandEmpty>Geen vrijwilliger gevonden.</CommandEmpty>
                               <CommandGroup className="max-h-[300px] overflow-y-auto">
-                                {volunteers
-                                  .filter(volunteer => 
-                                    `${volunteer.firstName} ${volunteer.lastName}`
-                                      .toLowerCase()
-                                      .includes(searchTerm.toLowerCase())
-                                  )
-                                  .sort((a, b) =>
-                                    `${a.firstName} ${a.lastName}`.localeCompare(`${b.firstName} ${b.lastName}`)
-                                  )
-                                  .map((volunteer) => (
-                                    <CommandItem
-                                      key={volunteer.id}
-                                      onSelect={() => {
-                                        form.setValue("volunteerId", volunteer.id);
-                                        setSearchTerm("");
-                                        setOpen(false);
-                                      }}
-                                      className="py-3 px-4 cursor-pointer hover:bg-accent hover:text-accent-foreground"
-                                    >
-                                      <Check
-                                        className={cn(
-                                          "mr-2 h-4 w-4",
-                                          field.value === volunteer.id ? "opacity-100" : "opacity-0"
-                                        )}
-                                      />
-                                      {volunteer.firstName} {volunteer.lastName}
-                                    </CommandItem>
-                                  ))}
+                                {filteredVolunteers.map((volunteer) => (
+                                  <CommandItem
+                                    key={volunteer.id}
+                                    onSelect={() => {
+                                      form.setValue("volunteerId", volunteer.id);
+                                      setSearchTerm("");
+                                      setOpen(false);
+                                    }}
+                                    className="flex items-center px-4 py-2 cursor-pointer text-sm hover:bg-accent hover:text-accent-foreground aria-selected:bg-accent aria-selected:text-accent-foreground"
+                                  >
+                                    <Check
+                                      className={cn(
+                                        "mr-2 h-4 w-4",
+                                        field.value === volunteer.id ? "opacity-100" : "opacity-0"
+                                      )}
+                                    />
+                                    <span className="text-foreground">{volunteer.firstName} {volunteer.lastName}</span>
+                                  </CommandItem>
+                                ))}
                               </CommandGroup>
                             </Command>
                           </PopoverContent>
@@ -934,7 +923,7 @@ const MaterialsPage = () => {
                                   size="icon"
                                   onClick={() => handleReturn(item.id)}
                                   className="text-[#963E56] hover:text-[#963E56]/90 hover:bg-[#963E56]/10"
-                                >
+                               >
                                   <RotateCcw className="h-4 w-4" />
                                 </Button>
                               </TooltipTrigger>
