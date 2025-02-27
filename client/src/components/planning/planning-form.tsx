@@ -6,11 +6,12 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { CalendarIcon, ChevronsUpDown, Search, X, Check } from "lucide-react";
+import { CalendarIcon, Search, X } from "lucide-react";
 import {
   Command,
   CommandEmpty,
   CommandGroup,
+  CommandInput,
   CommandItem,
 } from "@/components/ui/command";
 import { format, parseISO } from "date-fns";
@@ -30,14 +31,12 @@ const planningSchema = z.object({
   selectedRooms: z.array(z.string()).default([])
 });
 
-type PlanningFormData = z.infer<typeof planningSchema>;
-
 interface PlanningFormProps {
   volunteers: { id: string; firstName: string; lastName: string }[];
   rooms: { id: string; name: string }[];
-  onSubmit: (data: PlanningFormData) => Promise<void>;
+  onSubmit: (data: z.infer<typeof planningSchema>) => Promise<void>;
   onClose: () => void;
-  form: UseFormReturn<PlanningFormData>;
+  form: UseFormReturn<z.infer<typeof planningSchema>>;
   editingPlanning: any | null;
 }
 
@@ -51,7 +50,6 @@ export function PlanningForm({
 }: PlanningFormProps) {
   const isBulkPlanning = form.watch("isBulkPlanning");
   const [searchTerm, setSearchTerm] = useState("");
-  const [open, setOpen] = useState(false);
 
   return (
     <Form {...form}>
@@ -82,74 +80,40 @@ export function PlanningForm({
               control={form.control}
               name="volunteerId"
               render={({ field }) => (
-                <FormItem className="flex flex-col">
+                <FormItem>
                   <FormLabel>Vrijwilliger</FormLabel>
-                  <Popover open={open} onOpenChange={setOpen}>
-                    <PopoverTrigger asChild>
-                      <FormControl>
-                        <Button
-                          variant="outline"
-                          role="combobox"
-                          aria-expanded={open}
-                          className="w-full justify-between bg-white border border-input"
-                        >
-                          {field.value
-                            ? volunteers.find((volunteer) => volunteer.id === field.value)
-                              ? `${volunteers.find((volunteer) => volunteer.id === field.value)?.firstName} ${volunteers.find((volunteer) => volunteer.id === field.value)?.lastName}`
-                              : "Selecteer vrijwilliger"
-                            : "Selecteer vrijwilliger"}
-                          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                        </Button>
-                      </FormControl>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-[300px] p-0">
-                      <Command>
-                        <div className="sticky top-0 px-2 py-2 bg-white border-b">
-                          <div className="relative">
-                            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
-                            <input
-                              type="text"
-                              placeholder="Zoek vrijwilliger..."
-                              value={searchTerm}
-                              onChange={(e) => setSearchTerm(e.target.value)}
-                              onClick={(e) => e.stopPropagation()}
-                              className="w-full pl-9 h-9 rounded-md border border-input bg-white px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-offset-0 disabled:cursor-not-allowed disabled:opacity-50"
-                            />
-                          </div>
-                        </div>
-                        <CommandEmpty>Geen vrijwilliger gevonden.</CommandEmpty>
-                        <CommandGroup className="max-h-[300px] overflow-y-auto">
-                          {volunteers
-                            .filter(volunteer => {
-                              const fullName = `${volunteer.firstName} ${volunteer.lastName}`.toLowerCase();
-                              return fullName.includes(searchTerm.toLowerCase());
-                            })
-                            .sort((a, b) =>
-                              `${a.firstName} ${a.lastName}`.localeCompare(`${b.firstName} ${b.lastName}`)
-                            )
-                            .map((volunteer) => (
-                              <CommandItem
-                                key={volunteer.id}
-                                onSelect={() => {
-                                  field.onChange(volunteer.id);
-                                  setSearchTerm("");
-                                  setOpen(false);
-                                }}
-                                className="flex items-center px-4 py-2 cursor-pointer text-foreground hover:bg-accent hover:text-accent-foreground"
-                              >
-                                <Check
-                                  className={cn(
-                                    "mr-2 h-4 w-4",
-                                    field.value === volunteer.id ? "opacity-100" : "opacity-0"
-                                  )}
-                                />
-                                <span>{volunteer.firstName} {volunteer.lastName}</span>
-                              </CommandItem>
-                            ))}
-                        </CommandGroup>
-                      </Command>
-                    </PopoverContent>
-                  </Popover>
+                  <Command className="rounded-lg border shadow-md">
+                    <CommandInput 
+                      placeholder="Zoek vrijwilligers..." 
+                      value={searchTerm}
+                      onValueChange={setSearchTerm}
+                    />
+                    <CommandEmpty>Geen vrijwilligers gevonden.</CommandEmpty>
+                    <CommandGroup className="max-h-[200px] overflow-auto">
+                      {volunteers
+                        .filter(volunteer => {
+                          const fullName = `${volunteer.firstName} ${volunteer.lastName}`.toLowerCase();
+                          return fullName.includes(searchTerm.toLowerCase());
+                        })
+                        .map((volunteer) => (
+                          <CommandItem
+                            key={volunteer.id}
+                            onSelect={() => {
+                              const current = field.value;
+                              field.onChange(volunteer.id);
+                            }}
+                          >
+                            <div className={cn(
+                              "mr-2 h-4 w-4 flex items-center justify-center",
+                              field.value === volunteer.id ? "text-primary" : "opacity-0"
+                            )}>
+                              •
+                            </div>
+                            {volunteer.firstName} {volunteer.lastName}
+                          </CommandItem>
+                        ))}
+                    </CommandGroup>
+                  </Command>
                   <FormMessage />
                 </FormItem>
               )}
@@ -195,36 +159,41 @@ export function PlanningForm({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Vrijwilligers</FormLabel>
-                  <Select
-                    value={field.value?.[0] || ""}
-                    onValueChange={(value) => {
-                      const current = field.value || [];
-                      const updated = current.includes(value)
-                        ? current.filter(id => id !== value)
-                        : [...current, value];
-                      field.onChange(updated);
-                    }}
-                  >
-                    <SelectTrigger>
-                      <SelectValue
-                        placeholder="Selecteer vrijwilligers"
-                      >
-                        {field.value?.length
-                          ? `${field.value.length} vrijwilliger(s) geselecteerd`
-                          : "Selecteer vrijwilligers"}
-                      </SelectValue>
-                    </SelectTrigger>
-                    <SelectContent>
-                      {volunteers.map((volunteer) => (
-                        <SelectItem
-                          key={volunteer.id}
-                          value={volunteer.id}
-                        >
-                          {volunteer.firstName} {volunteer.lastName}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <Command className="rounded-lg border shadow-md">
+                    <CommandInput 
+                      placeholder="Zoek vrijwilligers..." 
+                      value={searchTerm}
+                      onValueChange={setSearchTerm}
+                    />
+                    <CommandEmpty>Geen vrijwilligers gevonden.</CommandEmpty>
+                    <CommandGroup className="max-h-[200px] overflow-auto">
+                      {volunteers
+                        .filter(volunteer => {
+                          const fullName = `${volunteer.firstName} ${volunteer.lastName}`.toLowerCase();
+                          return fullName.includes(searchTerm.toLowerCase());
+                        })
+                        .map((volunteer) => (
+                          <CommandItem
+                            key={volunteer.id}
+                            onSelect={() => {
+                              const current = field.value || [];
+                              const updated = current.includes(volunteer.id)
+                                ? current.filter(id => id !== volunteer.id)
+                                : [...current, volunteer.id];
+                              field.onChange(updated);
+                            }}
+                          >
+                            <div className={cn(
+                              "mr-2 h-4 w-4 flex items-center justify-center",
+                              field.value?.includes(volunteer.id) ? "text-primary" : "opacity-0"
+                            )}>
+                              •
+                            </div>
+                            {volunteer.firstName} {volunteer.lastName}
+                          </CommandItem>
+                        ))}
+                    </CommandGroup>
+                  </Command>
                   {field.value?.length > 0 && (
                     <div className="mt-2 flex flex-wrap gap-2">
                       {field.value.map(id => {
