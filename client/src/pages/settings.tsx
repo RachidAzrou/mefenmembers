@@ -34,7 +34,7 @@ import { db, auth } from "@/lib/firebase";
 import { ref, onValue, remove } from "firebase/database";
 import { createUserWithEmailAndPassword, sendPasswordResetEmail } from "firebase/auth";
 import { useToast } from "@/hooks/use-toast";
-import { Settings as SettingsIcon, UserPlus, Users, Activity, CalendarIcon } from "lucide-react";
+import { Settings as SettingsIcon, UserPlus, Users, Activity, CalendarIcon, Shield, Key, Trash2, RotateCcw } from "lucide-react";
 import { useRole } from "@/hooks/use-role";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useForm } from "react-hook-form";
@@ -416,26 +416,29 @@ export default function Settings() {
                             <Button
                               onClick={() => handleRoleChange(user.uid, user.email, !user.admin)}
                               variant="outline"
-                              size="sm"
-                              className="min-w-[140px] bg-[#963E56] text-white hover:bg-[#963E56]/90"
+                              size="icon"
+                              className="h-8 w-8 bg-[#963E56] text-white hover:bg-[#963E56]/90"
+                              title={`Maak ${user.admin ? 'Medewerker' : 'Admin'}`}
                             >
-                              Maak {user.admin ? 'Medewerker' : 'Admin'}
+                              <Shield className="h-4 w-4" />
                             </Button>
                             <Button
                               onClick={() => handlePasswordReset(user.email)}
                               variant="outline"
-                              size="sm"
-                              className="min-w-[140px] bg-[#963E56] text-white hover:bg-[#963E56]/90"
+                              size="icon"
+                              className="h-8 w-8 bg-[#963E56] text-white hover:bg-[#963E56]/90"
+                              title="Reset Wachtwoord"
                             >
-                              Reset Wachtwoord
+                              <Key className="h-4 w-4" />
                             </Button>
                             <Button
                               onClick={() => setDeletingUser(user)}
                               variant="destructive"
-                              size="sm"
-                              className="min-w-[140px]"
+                              size="icon"
+                              className="h-8 w-8"
+                              title="Verwijderen"
                             >
-                              Verwijderen
+                              <Trash2 className="h-4 w-4" />
                             </Button>
                           </div>
                         </TableCell>
@@ -524,20 +527,20 @@ export default function Settings() {
 
                     <div className="w-full sm:w-auto">
                       <label className="text-sm font-medium mb-1.5 block">
-                        Type Activiteit
+                        Vernieuwen
                       </label>
-                      <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                        <SelectTrigger className="w-full sm:w-[200px]">
-                          <SelectValue placeholder="Alle activiteiten" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {categories.map(category => (
-                            <SelectItem key={category.id} value={category.id}>
-                              {category.label}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                      <Button
+                        variant="outline"
+                        onClick={() => {
+                          setIsLoadingLogs(true);
+                          setSelectedDate(new Date());
+                          setSelectedUser("all");
+                        }}
+                        className="w-full sm:w-[200px] gap-2"
+                      >
+                        <RotateCcw className="h-4 w-4" />
+                        <span>Vernieuwen</span>
+                      </Button>
                     </div>
 
                     <Button
