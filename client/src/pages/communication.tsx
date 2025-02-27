@@ -77,7 +77,7 @@ export default function Communication() {
     <div className="space-y-4 sm:space-y-6 p-3 sm:p-6">
       {/* Header */}
       <div className="flex items-center gap-3">
-        <RiBroadcastFill className="h-6 w-6 sm:h-8 sm:w-8 text-[#963E56]" />
+        <Radio className="h-6 w-6 sm:h-8 sm:w-8 text-[#963E56]" />
         <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-[#963E56]">
           Communicatie
         </h1>
