@@ -411,8 +411,8 @@ const Planning = () => {
             await push(ref(db, "plannings"), {
               volunteerId,
               roomId,
-              startDate: data.startDate,
-              endDate: data.endDate,
+              startDate: format(parseISO(data.startDate), 'yyyy-MM-dd'),
+              endDate: format(parseISO(data.endDate), 'yyyy-MM-dd'),
             });
           }
         }
@@ -420,8 +420,8 @@ const Planning = () => {
         await push(ref(db, "plannings"), {
           volunteerId: data.volunteerId,
           roomId: data.roomId,
-          startDate: data.startDate,
-          endDate: data.endDate,
+          startDate: format(parseISO(data.startDate), 'yyyy-MM-dd'),
+          endDate: format(parseISO(data.endDate), 'yyyy-MM-dd'),
         });
       }
 

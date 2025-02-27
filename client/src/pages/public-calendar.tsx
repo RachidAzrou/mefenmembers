@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { format, startOfWeek, addDays, isWithinInterval } from "date-fns";
+import { format, startOfWeek, addDays, isWithinInterval, parseISO, startOfDay } from "date-fns";
 import { nl } from "date-fns/locale";
 import { db } from "@/lib/firebase";
 import { ref, onValue } from "firebase/database";
@@ -68,17 +68,16 @@ export default function PublicCalendar() {
 
   const getPlanningsForDay = (day: Date) => {
     return plannings.filter(planning => {
-      const planningStart = new Date(planning.startDate);
-      const planningEnd = new Date(planning.endDate);
+      const planningStart = parseISO(planning.startDate);
+      const planningEnd = parseISO(planning.endDate);
+      const comparisonDay = startOfDay(day);
 
-      // Reset time parts to compare only dates
-      const comparisonDay = new Date(day);
-      comparisonDay.setHours(0, 0, 0, 0);
-      planningStart.setHours(0, 0, 0, 0);
-      planningEnd.setHours(0, 0, 0, 0);
-
-      // Check if the day falls between start and end dates (inclusive)
-      return comparisonDay >= planningStart && comparisonDay <= planningEnd;
+      return (
+        isWithinInterval(comparisonDay, {
+          start: startOfDay(planningStart),
+          end: startOfDay(planningEnd)
+        })
+      );
     });
   };
 
