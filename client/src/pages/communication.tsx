@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Radio, Edit2 } from "lucide-react";
+import { Radio, Edit2, Settings2 } from "lucide-react";
 import { useRole } from "@/hooks/use-role";
 import { db } from "@/lib/firebase";
 import { ref, onValue, update } from "firebase/database";
@@ -33,7 +33,7 @@ export default function Communication() {
   const [editingRoom, setEditingRoom] = useState<Room | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [newChannel, setNewChannel] = useState("");
-  const { isAdmin } = useRole();
+  const [isEditMode, setIsEditMode] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -76,11 +76,30 @@ export default function Communication() {
   return (
     <div className="space-y-4 sm:space-y-6 p-3 sm:p-6">
       {/* Header */}
-      <div className="flex items-center gap-3">
-        <Radio className="h-6 w-6 sm:h-8 sm:w-8 text-[#963E56]" />
-        <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-[#963E56]">
-          Communicatie
-        </h1>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <Radio className="h-6 w-6 sm:h-8 sm:w-8 text-[#963E56]" />
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-[#963E56]">
+            Communicatie
+          </h1>
+        </div>
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={() => setIsEditMode(!isEditMode)}
+                className={isEditMode ? "bg-[#963E56]/10 text-[#963E56]" : ""}
+              >
+                <Settings2 className="h-5 w-5" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              {isEditMode ? "Bewerken afsluiten" : "Kanalen bewerken"}
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
       </div>
 
       {/* Stats Card */}
@@ -112,7 +131,7 @@ export default function Communication() {
                   </div>
                   <h3 className="text-base sm:text-lg font-semibold text-[#963E56]">{room.name}</h3>
                 </div>
-                {isAdmin && (
+                {isEditMode && (
                   <TooltipProvider>
                     <Tooltip>
                       <TooltipTrigger asChild>

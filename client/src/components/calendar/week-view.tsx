@@ -15,6 +15,7 @@ import {
 import { CalendarPDF } from "../pdf/calendar-pdf";
 import { PDFDownloadLink } from "@react-pdf/renderer";
 import { cn } from "@/lib/utils";
+import { GiWalkieTalkie } from "react-icons/gi";
 
 type Volunteer = {
   id: string;
@@ -25,6 +26,7 @@ type Volunteer = {
 type Room = {
   id: string;
   name: string;
+  channel?: string;
 };
 
 type Planning = {
@@ -257,8 +259,14 @@ export function WeekView({ checkedOutMaterials }: WeekViewProps) {
 
                     return (
                       <div key={room.id} className="space-y-1">
-                        <div className="font-medium text-xs text-[#963E56]/80 border-b pb-0.5">
-                          {room.name}
+                        <div className="font-medium text-xs text-[#963E56]/80 border-b pb-0.5 flex items-center justify-between">
+                          <span>{room.name}</span>
+                          {room.channel && (
+                            <div className="flex items-center gap-1 text-[10px] text-[#963E56]/70">
+                              <GiWalkieTalkie className="h-3 w-3" />
+                              <span>{room.channel}</span>
+                            </div>
+                          )}
                         </div>
                         <div className="space-y-1 pl-1">
                           {roomPlannings.map(planning => {
