@@ -86,7 +86,6 @@ export function PlanningForm({
                     <PopoverTrigger asChild>
                       <FormControl>
                         <Button
-                          type="button"
                           variant="outline"
                           role="combobox"
                           className="w-full justify-between"
@@ -107,28 +106,31 @@ export function PlanningForm({
                           onValueChange={setSearchTerm}
                         />
                         <CommandEmpty>Geen vrijwilligers gevonden.</CommandEmpty>
-                        <CommandGroup className="max-h-[200px] overflow-auto">
-                          {filteredVolunteers.map((volunteer) => (
-                            <CommandItem
-                              key={volunteer.id}
-                              className="cursor-pointer"
-                              onSelect={() => {
-                                const current = field.value || [];
-                                const updated = current.includes(volunteer.id)
-                                  ? current.filter(id => id !== volunteer.id)
-                                  : [...current, volunteer.id];
-                                field.onChange(updated);
-                              }}
-                            >
-                              <Check
-                                className={cn(
-                                  "mr-2 h-4 w-4",
-                                  (field.value || []).includes(volunteer.id) ? "opacity-100" : "opacity-0"
-                                )}
-                              />
-                              {volunteer.firstName} {volunteer.lastName}
-                            </CommandItem>
-                          ))}
+                        <CommandGroup>
+                          {filteredVolunteers.map((volunteer) => {
+                            const isSelected = field.value?.includes(volunteer.id);
+                            return (
+                              <CommandItem
+                                key={volunteer.id}
+                                className="cursor-pointer aria-selected:bg-primary/10 aria-selected:text-primary"
+                                onSelect={() => {
+                                  const current = field.value || [];
+                                  const updated = current.includes(volunteer.id)
+                                    ? current.filter(id => id !== volunteer.id)
+                                    : [...current, volunteer.id];
+                                  field.onChange(updated);
+                                }}
+                              >
+                                <Check
+                                  className={cn(
+                                    "mr-2 h-4 w-4",
+                                    isSelected ? "opacity-100" : "opacity-0"
+                                  )}
+                                />
+                                {volunteer.firstName} {volunteer.lastName}
+                              </CommandItem>
+                            );
+                          })}
                         </CommandGroup>
                       </Command>
                     </PopoverContent>
@@ -148,7 +150,6 @@ export function PlanningForm({
                     <PopoverTrigger asChild>
                       <FormControl>
                         <Button
-                          type="button"
                           variant="outline"
                           role="combobox"
                           className="w-full justify-between"
@@ -165,28 +166,31 @@ export function PlanningForm({
                       <Command>
                         <CommandInput placeholder="Zoek ruimtes..." />
                         <CommandEmpty>Geen ruimtes gevonden.</CommandEmpty>
-                        <CommandGroup className="max-h-[200px] overflow-auto">
-                          {rooms.map((room) => (
-                            <CommandItem
-                              key={room.id}
-                              className="cursor-pointer"
-                              onSelect={() => {
-                                const current = field.value || [];
-                                const updated = current.includes(room.id)
-                                  ? current.filter(id => id !== room.id)
-                                  : [...current, room.id];
-                                field.onChange(updated);
-                              }}
-                            >
-                              <Check
-                                className={cn(
-                                  "mr-2 h-4 w-4",
-                                  (field.value || []).includes(room.id) ? "opacity-100" : "opacity-0"
-                                )}
-                              />
-                              {room.name}
-                            </CommandItem>
-                          ))}
+                        <CommandGroup>
+                          {rooms.map((room) => {
+                            const isSelected = field.value?.includes(room.id);
+                            return (
+                              <CommandItem
+                                key={room.id}
+                                className="cursor-pointer aria-selected:bg-primary/10 aria-selected:text-primary"
+                                onSelect={() => {
+                                  const current = field.value || [];
+                                  const updated = current.includes(room.id)
+                                    ? current.filter(id => id !== room.id)
+                                    : [...current, room.id];
+                                  field.onChange(updated);
+                                }}
+                              >
+                                <Check
+                                  className={cn(
+                                    "mr-2 h-4 w-4",
+                                    isSelected ? "opacity-100" : "opacity-0"
+                                  )}
+                                />
+                                {room.name}
+                              </CommandItem>
+                            );
+                          })}
                         </CommandGroup>
                       </Command>
                     </PopoverContent>
@@ -208,7 +212,6 @@ export function PlanningForm({
                     <PopoverTrigger asChild>
                       <FormControl>
                         <Button
-                          type="button"
                           variant="outline"
                           role="combobox"
                           className="w-full justify-between"
@@ -232,24 +235,25 @@ export function PlanningForm({
                           onValueChange={setSearchTerm}
                         />
                         <CommandEmpty>Geen vrijwilligers gevonden.</CommandEmpty>
-                        <CommandGroup className="max-h-[200px] overflow-auto">
-                          {filteredVolunteers.map((volunteer) => (
-                            <CommandItem
-                              key={volunteer.id}
-                              className="cursor-pointer"
-                              onSelect={() => {
-                                field.onChange(volunteer.id);
-                              }}
-                            >
-                              <Check
-                                className={cn(
-                                  "mr-2 h-4 w-4",
-                                  field.value === volunteer.id ? "opacity-100" : "opacity-0"
-                                )}
-                              />
-                              {volunteer.firstName} {volunteer.lastName}
-                            </CommandItem>
-                          ))}
+                        <CommandGroup>
+                          {filteredVolunteers.map((volunteer) => {
+                            const isSelected = field.value === volunteer.id;
+                            return (
+                              <CommandItem
+                                key={volunteer.id}
+                                className="cursor-pointer aria-selected:bg-primary/10 aria-selected:text-primary"
+                                onSelect={() => field.onChange(volunteer.id)}
+                              >
+                                <Check
+                                  className={cn(
+                                    "mr-2 h-4 w-4",
+                                    isSelected ? "opacity-100" : "opacity-0"
+                                  )}
+                                />
+                                {volunteer.firstName} {volunteer.lastName}
+                              </CommandItem>
+                            );
+                          })}
                         </CommandGroup>
                       </Command>
                     </PopoverContent>
@@ -269,7 +273,6 @@ export function PlanningForm({
                     <PopoverTrigger asChild>
                       <FormControl>
                         <Button
-                          type="button"
                           variant="outline"
                           role="combobox"
                           className="w-full justify-between"
@@ -286,24 +289,25 @@ export function PlanningForm({
                       <Command>
                         <CommandInput placeholder="Zoek ruimtes..." />
                         <CommandEmpty>Geen ruimtes gevonden.</CommandEmpty>
-                        <CommandGroup className="max-h-[200px] overflow-auto">
-                          {rooms.map((room) => (
-                            <CommandItem
-                              key={room.id}
-                              className="cursor-pointer"
-                              onSelect={() => {
-                                field.onChange(room.id);
-                              }}
-                            >
-                              <Check
-                                className={cn(
-                                  "mr-2 h-4 w-4",
-                                  field.value === room.id ? "opacity-100" : "opacity-0"
-                                )}
-                              />
-                              {room.name}
-                            </CommandItem>
-                          ))}
+                        <CommandGroup>
+                          {rooms.map((room) => {
+                            const isSelected = field.value === room.id;
+                            return (
+                              <CommandItem
+                                key={room.id}
+                                className="cursor-pointer aria-selected:bg-primary/10 aria-selected:text-primary"
+                                onSelect={() => field.onChange(room.id)}
+                              >
+                                <Check
+                                  className={cn(
+                                    "mr-2 h-4 w-4",
+                                    isSelected ? "opacity-100" : "opacity-0"
+                                  )}
+                                />
+                                {room.name}
+                              </CommandItem>
+                            );
+                          })}
                         </CommandGroup>
                       </Command>
                     </PopoverContent>
@@ -326,7 +330,6 @@ export function PlanningForm({
                   <PopoverTrigger asChild>
                     <FormControl>
                       <Button
-                        type="button"
                         variant={"outline"}
                         className={cn(
                           "w-full pl-3 text-left font-normal",
@@ -371,7 +374,6 @@ export function PlanningForm({
                   <PopoverTrigger asChild>
                     <FormControl>
                       <Button
-                        type="button"
                         variant={"outline"}
                         className={cn(
                           "w-full pl-3 text-left font-normal",
