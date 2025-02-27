@@ -1,4 +1,4 @@
-import { ref, push, onValue, query, orderByChild, startAt, endAt } from "firebase/database";
+import { ref, push, onValue, query, orderByChild, startAt, endAt, remove } from "firebase/database";
 import { db, auth } from "@/lib/firebase";
 
 export type UserAction = {
@@ -244,7 +244,6 @@ export async function deleteOldLogs(daysToKeep = 30) {
   }
 }
 
-// Helper function to test if logging is working
 export function testLogging() {
   const logsRef = ref(db, "user_logs");
   onValue(logsRef, (snapshot) => {
