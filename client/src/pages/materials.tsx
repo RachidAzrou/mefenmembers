@@ -66,15 +66,8 @@ import {
 } from "@/components/ui/tooltip";
 import { Edit2 } from 'lucide-react';
 import { logUserAction, UserActionTypes } from "@/lib/activity-logger";
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-} from "@/components/ui/command";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
+import { Combobox } from "@/components/ui/combobox";
 
 // Add type definition for activity log
 type ActivityLog = {
@@ -617,60 +610,17 @@ export default function Materials() {
                     control={form.control}
                     name="volunteerId"
                     render={({ field }) => (
-                      <FormItem className="flex flex-col">
+                      <FormItem>
                         <FormLabel>Vrijwilliger</FormLabel>
-                        <Popover>
-                          <PopoverTrigger asChild>
-                            <Button
-                              type="button"
-                              variant="outline"
-                              role="combobox"
-                              aria-expanded={open}
-                              className="w-full justify-between"
-                            >
-                              {field.value ? (
-                                volunteers.find((volunteer) => volunteer.id === field.value)
-                                  ? `${volunteers.find((volunteer) => volunteer.id === field.value)?.firstName} ${volunteers.find((volunteer) => volunteer.id === field.value)?.lastName}`
-                                  : "Selecteer vrijwilliger"
-                              ) : (
-                                "Selecteer vrijwilliger"
-                              )}
-                            </Button>
-                          </PopoverTrigger>
-                          <PopoverContent className="w-[300px] p-0" align="start">
-                            <Command>
-                              <CommandInput
-                                placeholder="Zoek vrijwilliger..."
-                                value={volunteerSearchTerm}
-                                onValueChange={setVolunteerSearchTerm}
-                              />
-                              <CommandEmpty>Geen vrijwilliger gevonden.</CommandEmpty>
-                              <CommandGroup className="max-h-[200px] overflow-y-auto">
-                                {volunteers
-                                  .filter((volunteer) => {
-                                    const searchTermLower = volunteerSearchTerm.toLowerCase();
-                                    return (
-                                      volunteer.firstName.toLowerCase().includes(searchTermLower) ||
-                                      volunteer.lastName.toLowerCase().includes(searchTermLower)
-                                    );
-                                  })
-                                  .map((volunteer) => (
-                                    <CommandItem
-                                      key={volunteer.id}
-                                      value={volunteer.id}
-                                      onSelect={() => {
-                                        form.setValue("volunteerId", volunteer.id);
-                                        setVolunteerSearchTerm("");
-                                      }}
-                                      className="cursor-pointer py-3 px-4 hover:bg-accent hover:text-accent-foreground"
-                                    >
-                                      {volunteer.firstName} {volunteer.lastName}
-                                    </CommandItem>
-                                  ))}
-                              </CommandGroup>
-                            </Command>
-                          </PopoverContent>
-                        </Popover>
+                        <Combobox
+                          items={volunteers.map(v => ({
+                            label: `${v.firstName} ${v.lastName}`,
+                            value: v.id
+                          }))}
+                          value={field.value}
+                          onChange={field.onChange}
+                          placeholder="Zoek en selecteer vrijwilliger..."
+                        />
                         <FormMessage />
                       </FormItem>
                     )}
@@ -971,8 +921,7 @@ export default function Materials() {
 
       <AlertDialog
         open={!!deleteMaterialTypeId}
-        onOpenChange={() => setDeleteMaterialTypeId(null)}
-      >
+        onOpenChange={() => setDeleteMaterialTypeId(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Weet je het zeker?</AlertDialogTitle>
