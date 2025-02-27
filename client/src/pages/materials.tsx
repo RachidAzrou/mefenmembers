@@ -132,18 +132,14 @@ export default function Materials() {
   const [materials, setMaterials] = useState<Material[]>([]);
   const [materialTypes, setMaterialTypes] = useState<MaterialType[]>([]);
   const [volunteers, setVolunteers] = useState<Volunteer[]>([]);
-  const [editingMaterial, setEditingMaterial] = useState<Material | null>(null);
-  const [editingMaterialType, setEditingMaterialType] = useState<MaterialType | null>(null);
-  const [isTypesDialogOpen, setIsTypesDialogOpen] = useState(false);
-  const [deleteMaterialTypeId, setDeleteMaterialTypeId] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
-  const { toast } = useToast();
-  const { isAdmin } = useRole();
   const [selectedMaterials, setSelectedMaterials] = useState<string[]>([]);
   const [isEditMode, setIsEditMode] = useState(false);
-  const [isBulkAssignment, setIsBulkAssignment] = useState(false);
   const [selectedMaterialTypes, setSelectedMaterialTypes] = useState<string[]>([]);
+  const [volunteerSearchTerm, setVolunteerSearchTerm] = useState(""); // Added state variable
+  const { toast } = useToast();
+  const { isAdmin } = useRole();
 
   const form = useForm<z.infer<typeof materialSchema>>({
     resolver: zodResolver(materialSchema),
@@ -495,6 +491,12 @@ export default function Materials() {
   };
 
 
+  const [isTypesDialogOpen, setIsTypesDialogOpen] = useState(false);
+  const [editingMaterialType, setEditingMaterialType] = useState<MaterialType | null>(null);
+  const [deleteMaterialTypeId, setDeleteMaterialTypeId] = useState<string | null>(null);
+  const [editingMaterial, setEditingMaterial] = useState<Material | null>(null);
+
+
   return (
     <div className="container mx-auto px-4 py-6 max-w-7xl space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
@@ -598,9 +600,9 @@ export default function Materials() {
 
           <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
             <DialogTrigger asChild>
-              <Button className="bg-[#963E56] hover:bg-[#963E56]/90 text-white">
-                <Package2 className="h-4 w-4 mr-2" />
-                Toewijzen
+              <Button className="gap-2 bg-[#963E56] hover:bg-[#963E56]/90 text-white">
+                <Package2 className="h-4 w-4" />
+                <span className="hidden sm:inline">Toewijzen</span>
               </Button>
             </DialogTrigger>
             <DialogContent className="max-w-[95vw] sm:max-w-[600px] p-4 sm:p-6 bg-white border-none shadow-lg mx-4">
@@ -643,20 +645,31 @@ export default function Materials() {
                               <CommandInput
                                 placeholder="Zoek vrijwilliger..."
                                 className="h-9"
+                                value={volunteerSearchTerm}
+                                onValueChange={setVolunteerSearchTerm}
                               />
                               <CommandEmpty>Geen vrijwilliger gevonden.</CommandEmpty>
                               <CommandGroup className="max-h-[200px] overflow-y-auto">
-                                {volunteers.map((volunteer) => (
-                                  <CommandItem
-                                    key={volunteer.id}
-                                    value={`${volunteer.firstName} ${volunteer.lastName}`}
-                                    onSelect={() => {
-                                      form.setValue("volunteerId", volunteer.id);
-                                    }}
-                                  >
-                                    {volunteer.firstName} {volunteer.lastName}
-                                  </CommandItem>
-                                ))}
+                                {volunteers
+                                  .filter((volunteer) => {
+                                    const searchTermLower = volunteerSearchTerm.toLowerCase();
+                                    return (
+                                      volunteer.firstName.toLowerCase().includes(searchTermLower) ||
+                                      volunteer.lastName.toLowerCase().includes(searchTermLower)
+                                    );
+                                  })
+                                  .map((volunteer) => (
+                                    <CommandItem
+                                      key={volunteer.id}
+                                      value={`${volunteer.firstName} ${volunteer.lastName}`}
+                                      onSelect={() => {
+                                        form.setValue("volunteerId", volunteer.id);
+                                        setVolunteerSearchTerm("");
+                                      }}
+                                    >
+                                      {volunteer.firstName} {volunteer.lastName}
+                                    </CommandItem>
+                                  ))}
                               </CommandGroup>
                             </Command>
                           </PopoverContent>
@@ -907,11 +920,10 @@ export default function Materials() {
                             </Tooltip>
                           </TooltipProvider>
                         )}
-                        {item.isCheckedOut && (
-                          <TooltipProvider>
+                        {item.isCheckedOut && (                          <TooltipProvider>
                             <Tooltip>
                               <TooltipTrigger asChild>
-                                <Button
+                               <Button
                                   variant="ghost"
                                   size="icon"
                                   onClick={() => handleReturn(item.id)}
@@ -938,8 +950,7 @@ export default function Materials() {
                     <Package2 className="h-8 w-8 mx-auto mb-2 opacity-50" />
                     Geen materialen gevonden
                   </TableCell>
-                </TableRow>
-              )}
+                </TableRow>              )}
             </TableBody>
           </Table>
         </div>
@@ -985,5 +996,3 @@ export default function Materials() {
     </div>
   );
 }
-
-export default Materials;
