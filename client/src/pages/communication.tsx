@@ -20,7 +20,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { RiBroadcastFill } from "react-icons/ri";
+import { GiWalkieTalkie } from "react-icons/gi";
 
 type Room = {
   id: string;
@@ -87,7 +87,7 @@ export default function Communication() {
       <Card>
         <CardContent className="pt-4 sm:pt-6">
           <div className="flex items-center space-x-2 sm:space-x-3">
-            <RiBroadcastFill className="h-5 w-5 sm:h-8 sm:w-8 text-[#963E56]/80" />
+            <GiWalkieTalkie className="h-5 w-5 sm:h-8 sm:w-8 text-[#963E56]/80" />
             <div>
               <p className="text-xs sm:text-sm font-medium text-muted-foreground">
                 Walkietalkie Kanalen
@@ -108,7 +108,7 @@ export default function Communication() {
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-2">
                   <div className="bg-[#963E56]/10 rounded-full p-2">
-                    <RiBroadcastFill className="h-4 w-4 sm:h-5 sm:w-5 text-[#963E56]" />
+                    <GiWalkieTalkie className="h-4 w-4 sm:h-5 sm:w-5 text-[#963E56]" />
                   </div>
                   <h3 className="text-sm font-medium text-[#963E56]">{room.name}</h3>
                 </div>
