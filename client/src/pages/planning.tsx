@@ -10,7 +10,7 @@ import { CollapsibleSection } from "@/components/ui/collapsible-section";
 import { useRole } from "@/hooks/use-role";
 import { cn } from "@/lib/utils";
 import { db } from "@/lib/firebase";
-import { ref, onValue, remove, push } from "firebase/database";
+import { ref, onValue, remove, push, update } from "firebase/database";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { PlanningForm } from "@/components/planning/planning-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -21,7 +21,7 @@ import { Calendar as CustomCalendar } from "@/components/ui/calendar";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "@/components/ui/command";
 import { Check } from "lucide-react";
 import { FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-
+import { logUserAction } from "@/lib/logging";
 
 const planningSchema = z.object({
   volunteerId: z.string().min(1, "Vrijwilliger is verplicht").optional(),
@@ -357,8 +357,12 @@ const Planning = () => {
 
     const unsubPlannings = onValue(planningsRef, (snapshot) => {
       const data = snapshot.val();
+      console.log("Received plannings data:", data); // Debug log
       const planningsList = data ? Object.entries(data).map(([id, planning]: [string, any]) => ({ id, ...planning })) : [];
+      console.log("Parsed plannings list:", planningsList); // Additional debug log
       setPlannings(planningsList);
+    }, (error) => {
+      console.error("Error fetching plannings:", error); // Error logging
     });
 
     const unsubVolunteers = onValue(volunteersRef, (snapshot) => {
@@ -395,6 +399,7 @@ const Planning = () => {
   const handleDelete = async (id: string) => {
     try {
       await remove(ref(db, `plannings/${id}`));
+      await logUserAction("planning_deleted", { planningId: id });
     } catch (error) {
       console.error("Error deleting planning:", error);
     }
@@ -403,11 +408,19 @@ const Planning = () => {
   const onSubmit = async (data: z.infer<typeof planningSchema>) => {
     try {
       if (editingPlanning) {
-        await push(ref(db, `plannings/`), {
+        // Update existing planning instead of creating new one
+        const updates = {
           volunteerId: data.volunteerId,
           roomId: data.roomId,
           startDate: data.startDate,
           endDate: data.endDate,
+        };
+
+        await update(ref(db, `plannings/${editingPlanning.id}`), updates);
+
+        await logUserAction("planning_updated", {
+          planningId: editingPlanning.id,
+          ...updates
         });
       } else {
         if (data.isBulkPlanning) {
@@ -416,16 +429,33 @@ const Planning = () => {
 
           for (const volunteerId of volunteers) {
             for (const roomId of rooms) {
-              await push(ref(db, "plannings"), {
+              const result = await push(ref(db, "plannings"), {
                 volunteerId,
                 roomId,
                 startDate: data.startDate,
                 endDate: data.endDate,
               });
+
+              await logUserAction("planning_created", {
+                planningId: result.key,
+                volunteerId,
+                roomId,
+                startDate: data.startDate,
+                endDate: data.endDate,
+                isBulk: true,
+              });
             }
           }
         } else {
-          await push(ref(db, "plannings"), {
+          const result = await push(ref(db, "plannings"), {
+            volunteerId: data.volunteerId,
+            roomId: data.roomId,
+            startDate: data.startDate,
+            endDate: data.endDate,
+          });
+
+          await logUserAction("planning_created", {
+            planningId: result.key,
             volunteerId: data.volunteerId,
             roomId: data.roomId,
             startDate: data.startDate,
