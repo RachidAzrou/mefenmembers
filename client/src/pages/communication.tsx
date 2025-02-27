@@ -14,7 +14,6 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
-import { Badge } from "@/components/ui/badge";
 import {
   Tooltip,
   TooltipContent,
@@ -103,26 +102,16 @@ export default function Communication() {
       {/* Room Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
         {rooms.map((room) => (
-          <Card key={room.id} className="overflow-hidden">
-            <CardHeader className="space-y-1 p-4">
-              <CardTitle className="text-base font-medium flex items-center justify-between">
-                {room.name}
-                {room.channel && (
-                  <Badge variant="secondary" className="text-xs font-normal">
-                    Kanaal {room.channel}
-                  </Badge>
-                )}
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="p-4 pt-0">
-              <div className="flex items-center gap-2">
-                <Radio className="h-4 w-4 text-[#963E56]" />
-                <span className="text-sm text-muted-foreground">
-                  {room.channel || "Geen kanaal toegewezen"}
-                </span>
-              </div>
-              {isAdmin && (
-                <div className="flex items-center justify-end mt-3">
+          <Card key={room.id}>
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  <div className="bg-[#963E56]/10 rounded-full p-2">
+                    <Radio className="h-4 w-4 sm:h-5 sm:w-5 text-[#963E56]" />
+                  </div>
+                  <h3 className="text-sm font-medium text-[#963E56]">{room.name}</h3>
+                </div>
+                {isAdmin && (
                   <TooltipProvider>
                     <Tooltip>
                       <TooltipTrigger asChild>
@@ -142,8 +131,16 @@ export default function Communication() {
                       <TooltipContent>Bewerken</TooltipContent>
                     </Tooltip>
                   </TooltipProvider>
+                )}
+              </div>
+              <div className="mt-4">
+                <div className="text-2xl sm:text-3xl font-bold">
+                  {room.channel || "-"}
                 </div>
-              )}
+                <div className="text-xs text-muted-foreground mt-1">
+                  Kanaal nummer
+                </div>
+              </div>
             </CardContent>
           </Card>
         ))}
