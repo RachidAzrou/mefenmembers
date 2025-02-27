@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -10,7 +10,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { db } from "@/lib/firebase";
 import { ref, push, remove, update, onValue } from "firebase/database";
-import { UserPlus, Edit2, Trash2, Search, Users, CheckSquare, Square, Settings2, ChevronLeft, ChevronRight, ArrowUpDown, Plus } from "lucide-react";
+import { UserPlus, Edit2, Trash2, Search, Users, CheckSquare, Square, Settings2, ChevronLeft, ChevronRight, ArrowUpDown } from "lucide-react";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -36,7 +36,6 @@ export default function Volunteers() {
   const [deleteVolunteerId, setDeleteVolunteerId] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [showBulkDialog, setShowBulkDialog] = useState(false);
   const [selectedVolunteers, setSelectedVolunteers] = useState<string[]>([]);
   const [isEditMode, setIsEditMode] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
@@ -52,9 +51,9 @@ export default function Volunteers() {
     },
   });
 
-  useState(() => {
+  useEffect(() => {
     const volunteersRef = ref(db, "volunteers");
-    onValue(volunteersRef, (snapshot) => {
+    const unsubscribe = onValue(volunteersRef, (snapshot) => {
       const data = snapshot.val();
       const volunteersList = data ? Object.entries(data).map(([id, volunteer]) => ({
         id,
@@ -62,25 +61,14 @@ export default function Volunteers() {
       })) : [];
       setVolunteers(volunteersList);
     });
-  });
 
-  const sortVolunteers = (volunteers: Volunteer[], order: SortOrder) => {
-    const [field, direction] = order.split("-");
-    return [...volunteers].sort((a, b) => {
-      const compareValue = field === "firstName"
-        ? a.firstName.localeCompare(b.firstName)
-        : a.lastName.localeCompare(b.lastName);
-      return direction === "asc" ? compareValue : -compareValue;
-    });
-  };
+    return () => unsubscribe();
+  }, []);
 
-  const isDuplicateVolunteer = (data: z.infer<typeof volunteerSchema>, excludeId?: string) => {
-    return volunteers.some(v =>
-      v.firstName.toLowerCase() === data.firstName.toLowerCase() &&
-      v.lastName.toLowerCase() === data.lastName.toLowerCase() &&
-      v.phoneNumber === data.phoneNumber &&
-      v.id !== excludeId
-    );
+  const resetFormAndState = () => {
+    setEditingVolunteer(null);
+    setDialogOpen(false);
+    form.reset();
   };
 
   const onSubmit = async (data: z.infer<typeof volunteerSchema>) => {
@@ -138,18 +126,24 @@ export default function Volunteers() {
           duration: 3000,
         });
       }
-      form.reset();
-      setEditingVolunteer(null);
-      setDialogOpen(false);
-      setShowBulkDialog(false);
+      resetFormAndState();
     } catch (error) {
       toast({
         variant: "destructive",
         title: "Fout",
-        description: "Kon vrijwilliger niet opslaan",
+        description: "Er is een fout opgetreden",
         duration: 3000,
       });
     }
+  };
+
+  const isDuplicateVolunteer = (data: z.infer<typeof volunteerSchema>, excludeId?: string) => {
+    return volunteers.some(v =>
+      v.firstName.toLowerCase() === data.firstName.toLowerCase() &&
+      v.lastName.toLowerCase() === data.lastName.toLowerCase() &&
+      v.phoneNumber === data.phoneNumber &&
+      v.id !== excludeId
+    );
   };
 
   const handleDelete = async (ids: string[]) => {
@@ -180,10 +174,23 @@ export default function Volunteers() {
       toast({
         variant: "destructive",
         title: "Fout",
-        description: "Kon vrijwilliger(s) niet verwijderen",
+        description: "Er is een fout opgetreden bij het verwijderen",
         duration: 3000,
       });
     }
+  };
+
+  const handleBulkAction = () => {
+    if (selectedVolunteers.length === 0) {
+      toast({
+        variant: "destructive",
+        title: "Selecteer vrijwilligers",
+        description: "Selecteer eerst vrijwilligers om een bulk actie uit te voeren",
+        duration: 3000,
+      });
+      return;
+    }
+    setDeleteVolunteerId("bulk");
   };
 
   const handleEdit = (volunteer: Volunteer) => {
@@ -196,12 +203,27 @@ export default function Volunteers() {
     setDialogOpen(true);
   };
 
+  const filteredVolunteers = volunteers.filter(volunteer => {
+    const searchString = `${volunteer.firstName} ${volunteer.lastName} ${volunteer.phoneNumber}`.toLowerCase();
+    return searchString.includes(searchTerm.toLowerCase());
+  });
+
+  const sortedVolunteers = [...filteredVolunteers].sort((a, b) => {
+    const [field, direction] = sortOrder.split("-");
+    const compareValue = field === "firstName"
+      ? a.firstName.localeCompare(b.firstName)
+      : a.lastName.localeCompare(b.lastName);
+    return direction === "asc" ? compareValue : -compareValue;
+  });
+
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const paginatedVolunteers = sortedVolunteers.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+  const totalPages = Math.ceil(sortedVolunteers.length / ITEMS_PER_PAGE);
+
   const toggleSelectAll = () => {
-    if (selectedVolunteers.length === filteredVolunteers.length) {
-      setSelectedVolunteers([]);
-    } else {
-      setSelectedVolunteers(filteredVolunteers.map(v => v.id));
-    }
+    setSelectedVolunteers(prev =>
+      prev.length === paginatedVolunteers.length ? [] : paginatedVolunteers.map(v => v.id)
+    );
   };
 
   const toggleSelect = (id: string) => {
@@ -211,19 +233,6 @@ export default function Volunteers() {
         : [...prev, id]
     );
   };
-
-  const filteredVolunteers = sortVolunteers(
-    volunteers.filter(volunteer => {
-      const searchString = `${volunteer.firstName} ${volunteer.lastName} ${volunteer.phoneNumber}`.toLowerCase();
-      return searchString.includes(searchTerm.toLowerCase());
-    }),
-    sortOrder
-  );
-
-  // Calculate pagination
-  const totalPages = Math.ceil(filteredVolunteers.length / ITEMS_PER_PAGE);
-  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-  const paginatedVolunteers = filteredVolunteers.slice(startIndex, startIndex + ITEMS_PER_PAGE);
 
   return (
     <div className="space-y-6">
@@ -273,24 +282,27 @@ export default function Volunteers() {
             </SelectContent>
           </Select>
         </div>
+
         <div className="flex items-center gap-2 w-full sm:w-auto">
-          <Dialog open={dialogOpen || showBulkDialog} onOpenChange={(open) => {
-            if (!open) {
-              setDialogOpen(false);
-              setShowBulkDialog(false);
-              form.reset();
-            }
-          }}>
+          <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
             <DialogTrigger asChild>
-              <Button className="bg-[#963E56] hover:bg-[#963E56]/90 flex-1 sm:flex-none">
+              <Button 
+                className="bg-[#963E56] hover:bg-[#963E56]/90 flex-1 sm:flex-none"
+                onClick={(e) => {
+                  if (selectedVolunteers.length > 0) {
+                    e.preventDefault();
+                    handleBulkAction();
+                  }
+                }}
+              >
                 <UserPlus className="h-4 w-4 mr-2" />
-                {selectedVolunteers.length > 0 ? "Bulk Planning" : "Vrijwilliger Toevoegen"}
+                {selectedVolunteers.length > 0 ? "Bulk Actie" : "Vrijwilliger Toevoegen"}
               </Button>
             </DialogTrigger>
             <DialogContent className="max-w-[95vw] sm:max-w-[450px] p-4 sm:p-6 bg-white border-none shadow-lg mx-4">
               <DialogHeader>
                 <DialogTitle className="text-xl font-semibold text-[#963E56]">
-                  {selectedVolunteers.length > 0 ? "Bulk Planning" : "Nieuwe Vrijwilliger"}
+                  {editingVolunteer ? "Vrijwilliger Bewerken" : "Nieuwe Vrijwilliger"}
                 </DialogTitle>
               </DialogHeader>
               <Form {...form}>
@@ -334,13 +346,26 @@ export default function Volunteers() {
                       </FormItem>
                     )}
                   />
-                  <Button type="submit" className="w-full bg-[#963E56] hover:bg-[#963E56]/90">
-                    {editingVolunteer ? "Bijwerken" : "Toevoegen"}
-                  </Button>
+                  <div className="flex justify-end gap-3 pt-4">
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      onClick={resetFormAndState}
+                    >
+                      Annuleren
+                    </Button>
+                    <Button
+                      type="submit"
+                      className="bg-[#963E56] hover:bg-[#963E56]/90"
+                    >
+                      {editingVolunteer ? "Bijwerken" : "Toevoegen"}
+                    </Button>
+                  </div>
                 </form>
               </Form>
             </DialogContent>
           </Dialog>
+
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
@@ -362,34 +387,44 @@ export default function Volunteers() {
       </div>
 
       <div className="rounded-lg border bg-card overflow-x-auto">
-        <div className="min-w-[800px]">
-          <Table>
-            <TableHeader>
+        <Table>
+          <TableHeader>
+            <TableRow>
+              {isEditMode && (
+                <TableHead className="w-[50px]">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={toggleSelectAll}
+                    className="hover:bg-transparent"
+                  >
+                    {selectedVolunteers.length === paginatedVolunteers.length ? (
+                      <CheckSquare className="h-4 w-4" />
+                    ) : (
+                      <Square className="h-4 w-4" />
+                    )}
+                  </Button>
+                </TableHead>
+              )}
+              <TableHead>Voornaam</TableHead>
+              <TableHead>Achternaam</TableHead>
+              <TableHead>Telefoonnummer</TableHead>
+              {isEditMode && <TableHead className="w-[100px]">Acties</TableHead>}
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {paginatedVolunteers.length === 0 ? (
               <TableRow>
-                {isEditMode && (
-                  <TableHead className="w-[50px]">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={toggleSelectAll}
-                      className="hover:bg-transparent"
-                    >
-                      {selectedVolunteers.length === paginatedVolunteers.length ? (
-                        <CheckSquare className="h-4 w-4" />
-                      ) : (
-                        <Square className="h-4 w-4" />
-                      )}
-                    </Button>
-                  </TableHead>
-                )}
-                <TableHead>Voornaam</TableHead>
-                <TableHead>Achternaam</TableHead>
-                <TableHead>Telefoonnummer</TableHead>
-                {isEditMode && <TableHead className="w-[100px]">Acties</TableHead>}
+                <TableCell
+                  colSpan={isEditMode ? 5 : 3}
+                  className="h-32 text-center text-muted-foreground"
+                >
+                  <Users className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                  Geen vrijwilligers gevonden
+                </TableCell>
               </TableRow>
-            </TableHeader>
-            <TableBody>
-              {paginatedVolunteers.map((volunteer) => (
+            ) : (
+              paginatedVolunteers.map((volunteer) => (
                 <TableRow key={volunteer.id}>
                   {isEditMode && (
                     <TableCell>
@@ -433,24 +468,12 @@ export default function Volunteers() {
                     </TableCell>
                   )}
                 </TableRow>
-              ))}
-              {filteredVolunteers.length === 0 && (
-                <TableRow>
-                  <TableCell
-                    colSpan={isEditMode ? 5 : 4}
-                    className="h-32 text-center text-muted-foreground"
-                  >
-                    <Users className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                    Geen vrijwilligers gevonden
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </div>
+              ))
+            )}
+          </TableBody>
+        </Table>
       </div>
 
-      {/* Pagination */}
       {totalPages > 1 && (
         <div className="flex justify-center items-center gap-4 mt-4">
           <Button
@@ -484,7 +507,7 @@ export default function Volunteers() {
           <Separator orientation="vertical" className="h-6 hidden sm:block" />
           <Button
             variant="destructive"
-            onClick={() => setShowBulkDialog(true)}
+            onClick={() => handleBulkAction()}
             className="w-full sm:w-auto bg-[#963E56] hover:bg-[#963E56]/90"
           >
             <Trash2 className="h-4 w-4 mr-2" />
@@ -497,7 +520,7 @@ export default function Volunteers() {
         open={!!deleteVolunteerId}
         onOpenChange={() => setDeleteVolunteerId(null)}
       >
-        <AlertDialogContent>
+        <AlertDialogContent className="max-w-[95vw] sm:max-w-[450px]">
           <AlertDialogHeader>
             <AlertDialogTitle>Weet je het zeker?</AlertDialogTitle>
             <AlertDialogDescription>
@@ -508,7 +531,9 @@ export default function Volunteers() {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Annuleren</AlertDialogCancel>
+            <AlertDialogCancel onClick={() => setDeleteVolunteerId(null)}>
+              Annuleren
+            </AlertDialogCancel>
             <AlertDialogAction
               onClick={() => deleteVolunteerId === "bulk"
                 ? handleDelete(selectedVolunteers)
