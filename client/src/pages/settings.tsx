@@ -29,19 +29,34 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { db } from "@/lib/firebase";
-import { ref, onValue } from "firebase/database";
-import { Settings as SettingsIcon, Activity, CalendarIcon } from "lucide-react";
+import { updateUserRole } from "@/lib/roles";
+import { db, auth } from "@/lib/firebase";
+import { ref, onValue, remove } from "firebase/database";
+import { createUserWithEmailAndPassword, sendPasswordResetEmail } from "firebase/auth";
+import { useToast } from "@/hooks/use-toast";
+import { Settings as SettingsIcon, UserPlus, Users, Activity, CalendarIcon } from "lucide-react";
 import { useRole } from "@/hooks/use-role";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { format } from "date-fns";
 import { nl } from "date-fns/locale";
-import { logUserAction, UserAction, getUserLogs } from "@/lib/activity-logger";
+import { logUserAction, UserActionTypes, UserAction, getUserLogs } from "@/lib/activity-logger";
 
 type DatabaseUser = {
   uid: string;
   email: string;
   admin: boolean;
 };
+
+const newUserSchema = z.object({
+  email: z.string().email("Ongeldig e-mailadres"),
+  password: z.string().min(6, "Wachtwoord moet minimaal 6 tekens bevatten"),
+  isAdmin: z.boolean().default(false),
+});
+
+type NewUserFormData = z.infer<typeof newUserSchema>;
 
 export default function Settings() {
   const [users, setUsers] = useState<DatabaseUser[]>([]);
@@ -50,9 +65,18 @@ export default function Settings() {
   const [selectedUser, setSelectedUser] = useState<string>("all");
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [isLoadingLogs, setIsLoadingLogs] = useState(false);
+  const [changingPasswordFor, setChangingPasswordFor] = useState<string | null>(null);
+  const [deletingUser, setDeletingUser] = useState<DatabaseUser | null>(null);
+  const { toast } = useToast();
   const { isAdmin } = useRole();
 
-  // Fetch users
+  const form = useForm<NewUserFormData>({
+    resolver: zodResolver(newUserSchema),
+    defaultValues: {
+      isAdmin: false,
+    },
+  });
+
   useEffect(() => {
     const usersRef = ref(db, "users");
     const unsubscribe = onValue(usersRef, (snapshot) => {
@@ -71,7 +95,6 @@ export default function Settings() {
     return () => unsubscribe();
   }, []);
 
-  // Fetch logs with filters
   useEffect(() => {
     const fetchLogs = async () => {
       setIsLoadingLogs(true);
@@ -92,7 +115,122 @@ export default function Settings() {
     fetchLogs();
   }, [selectedDate, selectedUser, selectedCategory]);
 
-  // Categories for filtering
+  const handleRoleChange = async (uid: string, email: string, newIsAdmin: boolean) => {
+    try {
+      await updateUserRole(uid, email, newIsAdmin);
+      await logUserAction(
+        UserActionTypes.USER_ROLE_UPDATE,
+        `${email} is nu ${newIsAdmin ? 'administrator' : 'medewerker'}`,
+        {
+          type: "user",
+          id: uid,
+          name: email
+        }
+      );
+      toast({
+        title: "Succes",
+        description: `Gebruiker ${email} is nu ${newIsAdmin ? 'admin' : 'medewerker'}`,
+        duration: 3000,
+      });
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Fout",
+        description: "Kon gebruikersrol niet wijzigen",
+        duration: 3000,
+      });
+    }
+  };
+
+  const onSubmit = async (data: NewUserFormData) => {
+    try {
+      const userCredential = await createUserWithEmailAndPassword(auth, data.email, data.password);
+      await updateUserRole(userCredential.user.uid, data.email, data.isAdmin);
+      await logUserAction(
+        UserActionTypes.USER_CREATE,
+        `Nieuwe gebruiker ${data.email} aangemaakt als ${data.isAdmin ? 'administrator' : 'medewerker'}`,
+        {
+          type: "user",
+          id: userCredential.user.uid,
+          name: data.email
+        }
+      );
+
+      toast({
+        title: "Succes",
+        description: "Nieuwe gebruiker is succesvol aangemaakt",
+        duration: 3000,
+      });
+      form.reset();
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Fout",
+        description: error.message || "Kon gebruiker niet aanmaken",
+        duration: 3000,
+      });
+    }
+  };
+
+  const handlePasswordReset = async (email: string) => {
+    try {
+      await sendPasswordResetEmail(auth, email);
+      await logUserAction(
+        UserActionTypes.USER_PASSWORD_RESET,
+        `Wachtwoord reset link verstuurd naar ${email}`,
+        {
+          type: "user",
+          name: email
+        }
+      );
+
+      toast({
+        title: "Succes",
+        description: "Een wachtwoord reset link is verstuurd naar de gebruiker",
+        duration: 3000,
+      });
+      setChangingPasswordFor(null);
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Fout",
+        description: error.message || "Kon wachtwoord reset link niet versturen",
+        duration: 3000,
+      });
+    }
+  };
+
+  const handleDeleteUser = async () => {
+    if (!deletingUser) return;
+
+    try {
+      await remove(ref(db, `users/${deletingUser.uid}`));
+      await logUserAction(
+        UserActionTypes.USER_DELETE,
+        `Gebruiker ${deletingUser.email} is verwijderd`,
+        {
+          type: "user",
+          id: deletingUser.uid,
+          name: deletingUser.email
+        }
+      );
+
+      toast({
+        title: "Succes",
+        description: `Gebruiker ${deletingUser.email} is verwijderd`,
+        duration: 3000,
+      });
+      setDeletingUser(null);
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Fout",
+        description: error.message || "Kon gebruiker niet verwijderen",
+        duration: 3000,
+      });
+    }
+  };
+
   const categories = [
     { id: "all", label: "Alle activiteiten" },
     { id: "auth", label: "Authenticatie" },
@@ -161,6 +299,162 @@ export default function Settings() {
       </div>
 
       <Accordion type="single" collapsible className="space-y-4">
+        <AccordionItem value="add-user" className="border rounded-lg overflow-hidden">
+          <AccordionTrigger className="px-6 py-4 bg-gray-50/80 hover:bg-gray-50/90 [&[data-state=open]>svg]:rotate-180">
+            <div className="flex items-center gap-2 text-[#963E56]">
+              <UserPlus className="h-5 w-5" />
+              <span className="font-semibold">Medewerker Toevoegen</span>
+            </div>
+          </AccordionTrigger>
+          <AccordionContent>
+            <div className="p-6">
+              <Form {...form}>
+                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <FormField
+                      control={form.control}
+                      name="email"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>E-mailadres</FormLabel>
+                          <FormControl>
+                            <Input
+                              type="email"
+                              placeholder="naam@voorbeeld.be"
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="password"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Wachtwoord</FormLabel>
+                          <FormControl>
+                            <Input
+                              type="password"
+                              placeholder="Minimaal 6 tekens"
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+
+                  <FormField
+                    control={form.control}
+                    name="isAdmin"
+                    render={({ field }) => (
+                      <FormItem className="flex items-center space-x-2">
+                        <FormControl>
+                          <input
+                            type="checkbox"
+                            checked={field.value}
+                            onChange={field.onChange}
+                            className="h-4 w-4 rounded border-gray-300 text-[#963E56] focus:ring-[#963E56]"
+                          />
+                        </FormControl>
+                        <FormLabel className="!mt-0">Administrator rechten</FormLabel>
+                      </FormItem>
+                    )}
+                  />
+
+                  <div className="flex justify-end">
+                    <Button
+                      type="submit"
+                      className="bg-[#963E56] hover:bg-[#963E56]/90"
+                    >
+                      <UserPlus className="h-4 w-4 mr-2" />
+                      Medewerker Toevoegen
+                    </Button>
+                  </div>
+                </form>
+              </Form>
+            </div>
+          </AccordionContent>
+        </AccordionItem>
+
+        <AccordionItem value="manage-users" className="border rounded-lg overflow-hidden">
+          <AccordionTrigger className="px-6 py-4 bg-gray-50/80 hover:bg-gray-50/90 [&[data-state=open]>svg]:rotate-180">
+            <div className="flex items-center gap-2 text-[#963E56]">
+              <Users className="h-5 w-5" />
+              <span className="font-semibold">Gebruikersbeheer</span>
+            </div>
+          </AccordionTrigger>
+          <AccordionContent>
+            <div className="p-6">
+              <div className="rounded-lg border">
+                <Table>
+                  <TableHeader>
+                    <TableRow className="bg-gray-50/50">
+                      <TableHead>E-mailadres</TableHead>
+                      <TableHead>Huidige Rol</TableHead>
+                      <TableHead className="text-right">Acties</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {users.map((user) => (
+                      <TableRow key={user.uid}>
+                        <TableCell>{user.email}</TableCell>
+                        <TableCell>
+                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                            user.admin
+                              ? 'bg-[#963E56]/10 text-[#963E56]'
+                              : 'bg-blue-100 text-blue-800'
+                          }`}>
+                            {user.admin ? 'Admin' : 'Medewerker'}
+                          </span>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex justify-end gap-2">
+                            <Button
+                              onClick={() => handleRoleChange(user.uid, user.email, !user.admin)}
+                              variant="outline"
+                              size="sm"
+                              className="min-w-[140px] text-[#963E56] hover:text-[#963E56] hover:bg-[#963E56]/10"
+                            >
+                              Maak {user.admin ? 'Medewerker' : 'Admin'}
+                            </Button>
+                            <Button
+                              onClick={() => handlePasswordReset(user.email)}
+                              variant="outline"
+                              size="sm"
+                              className="min-w-[140px] text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                            >
+                              Reset Wachtwoord
+                            </Button>
+                            <Button
+                              onClick={() => setDeletingUser(user)}
+                              variant="outline"
+                              size="sm"
+                              className="min-w-[140px] text-red-600 hover:text-red-700 hover:bg-red-50"
+                            >
+                              Verwijderen
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                    {users.length === 0 && (
+                      <TableRow>
+                        <TableCell colSpan={3} className="text-center py-8 text-gray-500">
+                          <Users className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                          <p>Geen gebruikers gevonden</p>
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
+            </div>
+          </AccordionContent>
+        </AccordionItem>
         <AccordionItem value="activity-logs" className="border rounded-lg overflow-hidden">
           <AccordionTrigger className="px-6 py-4 bg-gray-50/80 hover:bg-gray-50/90 [&[data-state=open]>svg]:rotate-180">
             <div className="flex items-center gap-2 text-[#963E56]">
@@ -326,6 +620,41 @@ export default function Settings() {
           </AccordionContent>
         </AccordionItem>
       </Accordion>
+
+      {deletingUser && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <Card className="w-full max-w-md mx-4">
+            <CardHeader className="border-b">
+              <CardTitle className="text-red-600">Gebruiker Verwijderen</CardTitle>
+            </CardHeader>
+            <CardContent className="pt-6">
+              <div className="space-y-4">
+                <div className="bg-red-50 text-red-800 p-4 rounded-lg text-sm">
+                  <p className="font-medium">Weet u zeker dat u deze gebruiker wilt verwijderen?</p>
+                  <p className="mt-2">{deletingUser.email}</p>
+                  <p className="mt-2 text-red-600">
+                    Let op: Deze actie kan niet ongedaan worden gemaakt.
+                  </p>
+                </div>
+                <div className="flex justify-end gap-2">
+                  <Button
+                    variant="outline"
+                    onClick={() => setDeletingUser(null)}
+                  >
+                    Annuleren
+                  </Button>
+                  <Button
+                    onClick={handleDeleteUser}
+                    variant="destructive"
+                  >
+                    Verwijderen
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
     </div>
   );
 }
