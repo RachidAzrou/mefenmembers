@@ -43,7 +43,6 @@ export default function PublicCalendar() {
         ...(planning as Omit<Planning, "id">),
       })) : [];
 
-      // Log alle planningen bij het laden
       console.log("Loaded plannings:", planningsList);
       setPlannings(planningsList);
     });
@@ -71,24 +70,25 @@ export default function PublicCalendar() {
 
   const getPlanningsForDay = (day: Date) => {
     const dayFormatted = format(day, 'yyyy-MM-dd');
-    console.log(`\nChecking plannings for: ${dayFormatted}`);
 
     const filteredPlannings = plannings.filter(planning => {
-      console.log(`\nChecking planning ${planning.id}:`, {
-        planning_start: planning.startDate,
-        planning_end: planning.endDate,
-        checking_day: dayFormatted,
-        is_start_match: planning.startDate === dayFormatted,
-        is_end_match: planning.endDate === dayFormatted,
-        is_within_range: dayFormatted >= planning.startDate && dayFormatted <= planning.endDate
+      // Vergelijk de datums als strings in yyyy-MM-dd formaat
+      const startDate = planning.startDate;
+      const endDate = planning.endDate;
+
+      // Check of de dag binnen de range valt (inclusief start- en einddatum)
+      const isWithinRange = dayFormatted >= startDate && dayFormatted <= endDate;
+
+      console.log('Checking planning:', {
+        planning_id: planning.id,
+        day: dayFormatted,
+        start: startDate,
+        end: endDate,
+        isWithinRange
       });
 
-      return dayFormatted >= planning.startDate && dayFormatted <= planning.endDate;
+      return isWithinRange;
     });
-
-    console.log(`Found ${filteredPlannings.length} plannings for ${dayFormatted}:`, 
-      filteredPlannings.map(p => ({ id: p.id, start: p.startDate, end: p.endDate }))
-    );
 
     return filteredPlannings;
   };
