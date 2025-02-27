@@ -88,7 +88,7 @@ const styles = StyleSheet.create({
   volunteerName: {
     fontSize: 7,
     fontWeight: 'medium',
-    color: '#374151',
+    color: '#000000', 
   },
   noPlanning: {
     fontSize: 7,
