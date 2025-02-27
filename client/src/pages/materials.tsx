@@ -625,29 +625,34 @@ const MaterialsPage = () => {
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            <div className="px-3 py-2">
-                              <Input
-                                placeholder="Zoek vrijwilliger..."
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                                className="mb-2"
-                              />
+                            <div className="sticky top-0 px-2 py-2 bg-background border-b">
+                              <div className="relative">
+                                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+                                <Input
+                                  placeholder="Zoek vrijwilliger..."
+                                  value={searchTerm}
+                                  onChange={(e) => setSearchTerm(e.target.value)}
+                                  className="pl-9 h-9 focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-muted-foreground"
+                                />
+                              </div>
                             </div>
-                            {volunteers
-                              .filter(volunteer => {
-                                const fullName = `${volunteer.firstName} ${volunteer.lastName}`.toLowerCase();
-                                return fullName.includes(searchTerm.toLowerCase());
-                              })
-                              .sort((a, b) => `${a.firstName} ${a.lastName}`.localeCompare(`${b.firstName} ${b.lastName}`))
-                              .map((volunteer) => (
-                                <SelectItem
-                                  key={volunteer.id}
-                                  value={volunteer.id}
-                                  className="cursor-pointer py-2 px-3 hover:bg-accent hover:text-accent-foreground"
-                                >
-                                  {volunteer.firstName} {volunteer.lastName}
-                                </SelectItem>
-                              ))}
+                            <div className="pt-1 max-h-[300px] overflow-y-auto">
+                              {volunteers
+                                .filter(volunteer => {
+                                  const fullName = `${volunteer.firstName} ${volunteer.lastName}`.toLowerCase();
+                                  return fullName.includes(searchTerm.toLowerCase());
+                                })
+                                .sort((a, b) => `${a.firstName} ${a.lastName}`.localeCompare(`${b.firstName} ${b.lastName}`))
+                                .map((volunteer) => (
+                                  <SelectItem
+                                    key={volunteer.id}
+                                    value={volunteer.id}
+                                    className="cursor-pointer py-2.5 px-3 hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
+                                  >
+                                    {volunteer.firstName} {volunteer.lastName}
+                                  </SelectItem>
+                                ))}
+                            </div>
                           </SelectContent>
                         </Select>
                         <FormMessage />
@@ -836,7 +841,7 @@ const MaterialsPage = () => {
                 const type = materialTypes.find((t) => t.id === item.typeId);
                 const volunteer = volunteers.find((v) => v.id === item.volunteerId);
                 return (
-                  <TableRow key={item.id} className="group">
+                  <TableRow key={item.id}>
                     {isEditMode && (
                       <TableCell>
                         <Button
@@ -853,47 +858,16 @@ const MaterialsPage = () => {
                         </Button>
                       </TableCell>
                     )}
-                    <TableCell>
-                      <div className="flex flex-col">
-                        <span>{type?.name || "-"}</span>
-                        <span className="text-sm text-muted-foreground sm:hidden">
-                          #{item.number}
-                        </span>
-                      </div>
-                    </TableCell>
-                    <TableCell className="hidden sm:table-cell">{item.number}</TableCell>
-                    <TableCell>
-                      {volunteer
-                        ? `${volunteer.firstName} ${volunteer.lastName}`
-                        : "-"}
-                    </TableCell>
+                    <TableCell>{type?.name || "-"}</TableCell>
+                    <TableCell className="hidden sm:table-cell">#{item.number}</TableCell>
+                    <TableCell>{volunteer ? `${volunteer.firstName} ${volunteer.lastName}` : "-"}</TableCell>
                     <TableCell className="hidden sm:table-cell">
-                      <Badge
-                        variant={item.isCheckedOut ? "default" : "secondary"}
-                        className="font-normal"
-                      >
+                      <Badge variant={item.isCheckedOut ? "default" : "secondary"}>
                         {item.isCheckedOut ? "Uitgeleend" : "Beschikbaar"}
                       </Badge>
                     </TableCell>
                     <TableCell>
-                      <div className="flex space-x-2">
-                        {isAdmin && isEditMode && (
-                          <TooltipProvider>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  onClick={() => handleEdit(item)}
-                                  className="text-[#963E56] hover:text-[#963E56]/90 hover:bg-[#963E56]/10"
-                                >
-                                  <Edit2 className="h-4 w-4" />
-                                </Button>
-                              </TooltipTrigger>
-                              <TooltipContent>Bewerken</TooltipContent>
-                            </Tooltip>
-                          </TooltipProvider>
-                        )}
+                      <div className="flex items-center gap-2">
                         {item.isCheckedOut && (
                           <TooltipProvider>
                             <Tooltip>
@@ -911,6 +885,23 @@ const MaterialsPage = () => {
                             </Tooltip>
                           </TooltipProvider>
                         )}
+                        {isAdmin && isEditMode && (
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  onClick={() => handleEdit(item)}
+                                  className="text-[#963E56] hover:text-[#963E56]/90 hover:bg-[#963E56]/10"
+                                >
+                                  <Edit2 className="h-4 w-4" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>Bewerken</TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        )}
                       </div>
                     </TableCell>
                   </TableRow>
@@ -920,16 +911,15 @@ const MaterialsPage = () => {
                 <TableRow>
                   <TableCell
                     colSpan={isEditMode ? 6 : 5}
-                    className="h-32 text-center text-muted-foreground"
+                    className="h-24 text-center"
                   >
-                    <Package2 className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                    Geen materialen gevonden
+                    Geen materialen gevonden.
                   </TableCell>
                 </TableRow>
               )}
             </TableBody>
           </Table>
-        </div>
+                </div>
       </div>
 
       {isEditMode && selectedMaterials.length > 0 && (
