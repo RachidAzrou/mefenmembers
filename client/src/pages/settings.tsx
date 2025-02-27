@@ -417,7 +417,7 @@ export default function Settings() {
                               onClick={() => handleRoleChange(user.uid, user.email, !user.admin)}
                               variant="outline"
                               size="sm"
-                              className="min-w-[140px] text-[#963E56] hover:text-[#963E56] hover:bg-[#963E56]/10"
+                              className="min-w-[140px] bg-[#963E56] text-white hover:bg-[#963E56]/90"
                             >
                               Maak {user.admin ? 'Medewerker' : 'Admin'}
                             </Button>
@@ -425,15 +425,15 @@ export default function Settings() {
                               onClick={() => handlePasswordReset(user.email)}
                               variant="outline"
                               size="sm"
-                              className="min-w-[140px] text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                              className="min-w-[140px] bg-[#963E56] text-white hover:bg-[#963E56]/90"
                             >
                               Reset Wachtwoord
                             </Button>
                             <Button
                               onClick={() => setDeletingUser(user)}
-                              variant="outline"
+                              variant="destructive"
                               size="sm"
-                              className="min-w-[140px] text-red-600 hover:text-red-700 hover:bg-red-50"
+                              className="min-w-[140px]"
                             >
                               Verwijderen
                             </Button>

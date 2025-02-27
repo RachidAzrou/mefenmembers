@@ -2,15 +2,15 @@ import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
-import { Calendar, Search, Trash2, Plus, Settings2 } from "lucide-react";
-import { format, parseISO, startOfDay } from "date-fns";
+import { Calendar, Search, Plus } from "lucide-react";
+import { format, parseISO } from "date-fns";
 import { nl } from "date-fns/locale";
 import { Card, CardContent } from "@/components/ui/card";
 import { CollapsibleSection } from "@/components/ui/collapsible-section";
 import { useRole } from "@/hooks/use-role";
 import { cn } from "@/lib/utils";
 import { db } from "@/lib/firebase";
-import { ref, onValue, remove, push } from "firebase/database";
+import { ref, onValue, remove, push, get } from "firebase/database";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { PlanningForm } from "@/components/planning/planning-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -399,12 +399,26 @@ const Planning = () => {
 
   const handleDelete = async (id: string) => {
     try {
-      await remove(ref(db, `plannings/${id}`));
+      // Get planning details before deletion for logging
+      const planningRef = ref(db, `plannings/${id}`);
+      const snapshot = await get(planningRef);
+      const planningData = snapshot.val();
 
-      // Log the delete action
-      await logUserAction(UserActionTypes.PLANNING_DELETE,
-        "Planning verwijderd",
-        { type: 'planning', id }
+      const volunteer = volunteers.find(v => v.id === planningData.volunteerId);
+      const room = rooms.find(r => r.id === planningData.roomId);
+
+      // Delete the planning
+      await remove(planningRef);
+
+      // Log the delete action with details
+      await logUserAction(
+        UserActionTypes.PLANNING_DELETE,
+        `Planning verwijderd voor ${volunteer?.firstName} ${volunteer?.lastName}`,
+        {
+          type: 'planning',
+          id,
+          details: `Verwijderd uit ${room?.name} (${planningData.startDate} - ${planningData.endDate})`
+        }
       );
     } catch (error) {
       console.error("Error deleting planning:", error);
@@ -413,7 +427,6 @@ const Planning = () => {
 
   const onSubmit = async (data: z.infer<typeof planningSchema>) => {
     try {
-      // Debug logging voor datum verwerking
       console.log("Planning submission - Raw data:", {
         startDate: data.startDate,
         endDate: data.endDate
@@ -423,8 +436,6 @@ const Planning = () => {
         startDate: format(new Date(data.startDate), 'yyyy-MM-dd'),
         endDate: format(new Date(data.endDate), 'yyyy-MM-dd')
       };
-
-      console.log("Formatted dates for storage:", planningData);
 
       if (data.isBulkPlanning) {
         const volunteers = data.selectedVolunteers || [];
