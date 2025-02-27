@@ -620,24 +620,23 @@ export default function Materials() {
                         <FormLabel>Vrijwilliger</FormLabel>
                         <Popover>
                           <PopoverTrigger asChild>
-                            <FormControl>
-                              <Button
-                                variant="outline"
-                                role="combobox"
-                                className={cn(
-                                  "w-full justify-between",
-                                  !field.value && "text-muted-foreground"
-                                )}
-                              >
-                                {field.value ? (
-                                  volunteers.find((volunteer) => volunteer.id === field.value)
-                                    ? `${volunteers.find((volunteer) => volunteer.id === field.value)?.firstName} ${volunteers.find((volunteer) => volunteer.id === field.value)?.lastName}`
-                                    : "Selecteer vrijwilliger"
-                                ) : (
-                                  "Selecteer vrijwilliger"
-                                )}
-                              </Button>
-                            </FormControl>
+                            <Button
+                              type="button"
+                              variant="outline"
+                              role="combobox"
+                              className={cn(
+                                "w-full justify-between hover:bg-accent hover:text-accent-foreground",
+                                !field.value && "text-muted-foreground"
+                              )}
+                            >
+                              {field.value ? (
+                                volunteers.find((volunteer) => volunteer.id === field.value)
+                                  ? `${volunteers.find((volunteer) => volunteer.id === field.value)?.firstName} ${volunteers.find((volunteer) => volunteer.id === field.value)?.lastName}`
+                                  : "Selecteer vrijwilliger"
+                              ) : (
+                                "Selecteer vrijwilliger"
+                              )}
+                            </Button>
                           </PopoverTrigger>
                           <PopoverContent className="w-[300px] p-0">
                             <Command>
@@ -665,6 +664,7 @@ export default function Materials() {
                                         form.setValue("volunteerId", volunteer.id);
                                         setVolunteerSearchTerm("");
                                       }}
+                                      className="cursor-pointer hover:bg-accent"
                                     >
                                       {volunteer.firstName} {volunteer.lastName}
                                     </CommandItem>
@@ -917,14 +917,15 @@ export default function Materials() {
                             </Tooltip>
                           </TooltipProvider>
                         )}
-                        {item.isCheckedOut && (                          <TooltipProvider>
+                        {item.isCheckedOut && (
+                          <TooltipProvider>
                             <Tooltip>
                               <TooltipTrigger asChild>
                                 <Button
                                   variant="ghost"
                                   size="icon"
                                   onClick={() => handleReturn(item.id)}
-                                  className="text-primary hover:text-primary hover:bg-primary/10"
+                                  className="text-[#963E56] hover:text-[#963E56]/90 hover:bg-[#963E56]/10"
                                 >
                                   <RotateCcw className="h-4 w-4" />
                                 </Button>
@@ -947,7 +948,8 @@ export default function Materials() {
                     <Package2 className="h-8 w-8 mx-auto mb-2 opacity-50" />
                     Geen materialen gevonden
                   </TableCell>
-                </TableRow>              )}
+                </TableRow>
+              )}
             </TableBody>
           </Table>
         </div>
@@ -958,7 +960,8 @@ export default function Materials() {
           <span className="text-sm text-muted-foreground">
             {selectedMaterials.length} geselecteerd
           </span>
-          <Button            variant="default"
+          <Button
+            variant="default"
             onClick={() => handleBulkReturn(selectedMaterials)}
             className="bg-primary hover:bg-primary/90"
           >
