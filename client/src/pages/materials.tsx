@@ -42,6 +42,7 @@ import {
   RotateCcw,
   Search,
   Flashlight,
+  X,
 } from "lucide-react";
 import {
   GiMonclerJacket,
@@ -65,7 +66,15 @@ import {
 } from "@/components/ui/tooltip";
 import { Edit2 } from 'lucide-react';
 import { logUserAction, UserActionTypes } from "@/lib/activity-logger";
-
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+} from "@/components/ui/command";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
 
 // Add type definition for activity log
 type ActivityLog = {
@@ -77,11 +86,11 @@ type ActivityLog = {
   timestamp: string;
 };
 
-
 const materialSchema = z.object({
   typeId: z.string().min(1, "Type materiaal is verplicht"),
   volunteerId: z.string().min(1, "Vrijwilliger is verplicht"),
-  number: z.coerce.number().min(1).max(100),
+  numbers: z.array(z.coerce.number().min(1).max(100)),
+  isBulkAssignment: z.boolean().default(false)
 });
 
 const materialTypeSchema = z.object({
@@ -132,19 +141,13 @@ export default function Materials() {
   const { isAdmin } = useRole();
   const [selectedMaterials, setSelectedMaterials] = useState<string[]>([]);
   const [isEditMode, setIsEditMode] = useState(false);
+  const [isBulkAssignment, setIsBulkAssignment] = useState(false);
 
   const form = useForm<z.infer<typeof materialSchema>>({
     resolver: zodResolver(materialSchema),
     defaultValues: {
-      number: 1,
-    },
-  });
-
-  const typeForm = useForm<z.infer<typeof materialTypeSchema>>({
-    resolver: zodResolver(materialTypeSchema),
-    defaultValues: {
-      name: "",
-      maxCount: 1,
+      numbers: [],
+      isBulkAssignment: false
     },
   });
 
@@ -200,17 +203,18 @@ export default function Materials() {
 
   const onSubmit = async (data: z.infer<typeof materialSchema>) => {
     try {
-      const existingMaterial = materials.find(
+      // Check if any selected numbers are already checked out
+      const conflictingMaterials = materials.filter(
         m => m.typeId === data.typeId &&
-            m.number === data.number &&
+            data.numbers.includes(m.number) &&
             m.isCheckedOut
       );
 
-      if (existingMaterial && !editingMaterial) {
+      if (conflictingMaterials.length > 0 && !editingMaterial) {
         toast({
           variant: "destructive",
           title: "Fout",
-          description: "Dit materiaal is al uitgeleend",
+          description: "Een of meer geselecteerde materialen zijn al uitgeleend",
           duration: 3000,
         });
         return;
@@ -219,55 +223,35 @@ export default function Materials() {
       const materialType = materialTypes.find(t => t.id === data.typeId);
       const volunteer = volunteers.find(v => v.id === data.volunteerId);
 
-      if (editingMaterial) {
-        await update(ref(db, `materials/${editingMaterial.id}`), {
-          ...data,
+      // Create an array of promises for each material number
+      const createPromises = data.numbers.map(async (number) => {
+        await push(ref(db, "materials"), {
+          typeId: data.typeId,
+          volunteerId: data.volunteerId,
+          number,
           isCheckedOut: true,
         });
 
         await logUserAction(
           UserActionTypes.MATERIAL_CHECKOUT,
-          `${materialType?.name || 'Materiaal'} #${data.number} uitgeleend aan ${volunteer ? `${volunteer.firstName} ${volunteer.lastName}` : 'onbekende vrijwilliger'}`,
+          `${materialType?.name || 'Materiaal'} #${number} uitgeleend aan ${volunteer ? `${volunteer.firstName} ${volunteer.lastName}` : 'onbekende vrijwilliger'}`,
           {
             type: "material",
-            id: editingMaterial.id,
             name: materialType?.name || 'Onbekend materiaal',
-            materialNumber: data.number.toString(),
+            materialNumber: number.toString(),
             volunteerName: volunteer ? `${volunteer.firstName} ${volunteer.lastName}` : undefined
           }
         );
+      });
 
-        toast({
-          title: "Materiaal Uitgeleend",
-          description: "Het materiaal is succesvol uitgeleend",
-          duration: 3000,
-          variant: "success",
-        });
-        setEditingMaterial(null);
-      } else {
-        const newMaterialRef = await push(ref(db, "materials"), {
-          ...data,
-          isCheckedOut: true,
-        });
+      await Promise.all(createPromises);
 
-        await logUserAction(
-          UserActionTypes.MATERIAL_CHECKOUT,
-          `${materialType?.name || 'Materiaal'} #${data.number} uitgeleend aan ${volunteer ? `${volunteer.firstName} ${volunteer.lastName}` : 'onbekende vrijwilliger'}`,
-          {
-            type: "material",
-            id: newMaterialRef.key!,
-            name: materialType?.name || 'Onbekend materiaal',
-            materialNumber: data.number.toString(),
-            volunteerName: volunteer ? `${volunteer.firstName} ${volunteer.lastName}` : undefined
-          }
-        );
+      toast({
+        title: "Succes",
+        description: `${data.numbers.length} materialen succesvol toegewezen`,
+        duration: 3000,
+      });
 
-        toast({
-          title: "Succes",
-          description: "Materiaal succesvol toegewezen",
-          duration: 3000,
-        });
-      }
       form.reset();
       setDialogOpen(false);
     } catch (error) {
@@ -405,7 +389,7 @@ export default function Materials() {
     form.reset({
       typeId: material.typeId,
       volunteerId: material.volunteerId || "",
-      number: material.number,
+      numbers: [material.number], //Added for multiple selection
     });
     setDialogOpen(true);
   };
@@ -659,52 +643,133 @@ export default function Materials() {
                       control={form.control}
                       name="volunteerId"
                       render={({ field }) => (
-                        <FormItem>
+                        <FormItem className="flex flex-col">
                           <FormLabel>Vrijwilliger</FormLabel>
-                          <Select
-                            onValueChange={field.onChange}
-                            defaultValue={field.value}
-                          >
-                            <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Selecteer vrijwilliger" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              {volunteers.map((volunteer) => (
-                                <SelectItem key={volunteer.id} value={volunteer.id}>
-                                  {volunteer.firstName} {volunteer.lastName}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <FormControl>
+                                <Button
+                                  variant="outline"
+                                  role="combobox"
+                                  className={cn(
+                                    "w-full justify-between",
+                                    !field.value && "text-muted-foreground"
+                                  )}
+                                >
+                                  {field.value ? (
+                                    volunteers.find((volunteer) => volunteer.id === field.value)
+                                      ? `${volunteers.find((volunteer) => volunteer.id === field.value)?.firstName} ${volunteers.find((volunteer) => volunteer.id === field.value)?.lastName}`
+                                      : "Selecteer vrijwilliger"
+                                  ) : (
+                                    "Selecteer vrijwilliger"
+                                  )}
+                                </Button>
+                              </FormControl>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-[300px] p-0">
+                              <Command>
+                                <CommandInput
+                                  placeholder="Zoek vrijwilliger..."
+                                  className="h-9"
+                                  onChange={(e) => {
+                                    setSearchTerm(e.target.value);
+                                  }}
+                                />
+                                <CommandEmpty>Geen vrijwilliger gevonden.</CommandEmpty>
+                                <CommandGroup className="max-h-[200px] overflow-y-auto">
+                                  {volunteers
+                                    .filter((volunteer) => {
+                                      const searchTermLower = searchTerm.toLowerCase();
+                                      return (
+                                        volunteer.firstName.toLowerCase().includes(searchTermLower) ||
+                                        volunteer.lastName.toLowerCase().includes(searchTermLower)
+                                      );
+                                    })
+                                    .map((volunteer) => (
+                                      <CommandItem
+                                        value={`${volunteer.firstName} ${volunteer.lastName}`}
+                                        key={volunteer.id}
+                                        onSelect={() => {
+                                          form.setValue("volunteerId", volunteer.id);
+                                          setSearchTerm("");
+                                        }}
+                                      >
+                                        {volunteer.firstName} {volunteer.lastName}
+                                      </CommandItem>
+                                    ))}
+                                </CommandGroup>
+                              </Command>
+                            </PopoverContent>
+                          </Popover>
                           <FormMessage />
                         </FormItem>
                       )}
                     />
                     <FormField
                       control={form.control}
-                      name="number"
+                      name="numbers"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Nummer</FormLabel>
-                          <Select
-                            onValueChange={(value) => field.onChange(parseInt(value))}
-                            defaultValue={field.value?.toString()}
-                          >
-                            <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Selecteer nummer" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              {Array.from({ length: maxNumber }).map((_, i) => (
-                                <SelectItem key={i + 1} value={(i + 1).toString()}>
-                                  {i + 1}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
+                          <FormLabel>Nummers</FormLabel>
+                          <div className="space-y-2">
+                            <Select
+                              onValueChange={(value) => {
+                                const number = parseInt(value);
+                                const currentNumbers = field.value || [];
+                                if (!currentNumbers.includes(number)) {
+                                  field.onChange([...currentNumbers, number]);
+                                }
+                              }}
+                            >
+                              <FormControl>
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Selecteer nummer" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                {Array.from({ length: selectedType?.maxCount || 0 }).map((_, i) => {
+                                  const number = i + 1;
+                                  const isCheckedOut = materials.some(
+                                    m => m.typeId === form.getValues("typeId") && 
+                                        m.number === number && 
+                                        m.isCheckedOut
+                                  );
+                                  if (!isCheckedOut) {
+                                    return (
+                                      <SelectItem key={number} value={number.toString()}>
+                                        {number}
+                                      </SelectItem>
+                                    );
+                                  }
+                                  return null;
+                                })}
+                              </SelectContent>
+                            </Select>
+
+                            {field.value && field.value.length > 0 && (
+                              <div className="flex flex-wrap gap-2 mt-2">
+                                {field.value.map((number) => (
+                                  <div
+                                    key={number}
+                                    className="bg-primary/10 text-primary text-sm rounded-full px-3 py-1 flex items-center gap-2"
+                                  >
+                                    <span>#{number}</span>
+                                    <Button
+                                      type="button"
+                                      variant="ghost"
+                                      size="icon"
+                                      className="h-4 w-4 p-0 hover:bg-transparent"
+                                      onClick={() => {
+                                        field.onChange(field.value?.filter(n => n !== number));
+                                      }}
+                                    >
+                                      <X className="h-3 w-3" />
+                                    </Button>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                          </div>
                           <FormMessage />
                         </FormItem>
                       )}
@@ -883,14 +948,13 @@ export default function Materials() {
           <span className="text-sm text-muted-foreground">
             {selectedMaterials.length} geselecteerd
           </span>
-          <Button
-            variant="default"
-            onClick={() => handleBulkReturn(selectedMaterials)}
-            className="bg-primary hover:bg-primary/90"
-          >
-            <RotateCcw className="h-4 w-4 mr-2" />
-            Retourneren
-          </Button>
+          <Button            variant="default"
+                    onClick={() => handleBulkReturn(selectedMaterials)}
+                    className="bg-primary hover:bg-primary/90"
+                  >
+                    <RotateCcw className="h-4 w-4 mr-2" />
+                    Retourneren
+                  </Button>
         </div>
       )}
 
