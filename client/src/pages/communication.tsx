@@ -105,12 +105,12 @@ export default function Communication() {
         {rooms.map((room) => (
           <Card key={room.id}>
             <CardContent className="p-4">
-              <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2">
                   <div className="bg-[#963E56]/10 rounded-full p-2">
-                    <GiWalkieTalkie className="h-4 w-4 sm:h-5 sm:w-5 text-[#963E56]" />
+                    <GiWalkieTalkie className="h-5 w-5 sm:h-6 sm:w-6 text-[#963E56]" />
                   </div>
-                  <h3 className="text-sm font-medium text-[#963E56]">{room.name}</h3>
+                  <h3 className="text-base sm:text-lg font-semibold text-[#963E56]">{room.name}</h3>
                 </div>
                 {isAdmin && (
                   <TooltipProvider>
@@ -134,11 +134,11 @@ export default function Communication() {
                   </TooltipProvider>
                 )}
               </div>
-              <div className="mt-4">
-                <div className="text-2xl sm:text-3xl font-bold">
+              <div className="mt-6">
+                <div className="text-3xl sm:text-4xl font-bold">
                   {room.channel || "-"}
                 </div>
-                <div className="text-xs text-muted-foreground mt-1">
+                <div className="text-xs sm:text-sm text-muted-foreground mt-2">
                   Kanaal nummer
                 </div>
               </div>

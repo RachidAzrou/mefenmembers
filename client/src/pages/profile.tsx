@@ -89,7 +89,7 @@ export default function Profile() {
 
             <Button
               onClick={handleUpdateProfile}
-              className="w-full md:w-auto bg-[#6BB85C] hover:bg-[#6BB85C]/90 text-white"
+              className="w-full md:w-auto bg-[#963E56] hover:bg-[#963E56]/90 text-white"
             >
               <Save className="h-4 w-4 mr-2" />
               Profiel Bijwerken

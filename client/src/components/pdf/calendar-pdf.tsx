@@ -25,7 +25,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 18,
-    color: '#963E56', // burgundy color
+    color: '#963E56', 
     marginBottom: 2,
     textAlign: 'left',
   },
@@ -52,7 +52,7 @@ const styles = StyleSheet.create({
   dayName: {
     fontSize: 11,
     fontWeight: 'bold',
-    color: '#963E56', // burgundy color
+    color: '#963E56', 
   },
   dayDate: {
     fontSize: 9,
@@ -68,7 +68,7 @@ const styles = StyleSheet.create({
   roomName: {
     fontSize: 10,
     fontWeight: 'bold',
-    color: '#963E56', // burgundy color
+    color: '#963E56', 
     marginBottom: 4,
   },
   planning: {
@@ -77,7 +77,7 @@ const styles = StyleSheet.create({
     padding: 4,
     marginBottom: 4,
     borderLeft: 1,
-    borderLeftColor: '#963E56', // burgundy color
+    borderLeftColor: '#963E56', 
   },
   volunteerName: {
     fontSize: 9,
@@ -110,7 +110,10 @@ const styles = StyleSheet.create({
 });
 
 type Planning = {
-  room: { name: string };
+  room: { 
+    name: string;
+    channel?: string; 
+  };
   volunteer: { firstName: string; lastName: string };
   date: Date;
   startTime?: string;
@@ -131,7 +134,6 @@ export function CalendarPDF({ weekStart, plannings, logoUrl }: CalendarPDFProps)
       format(planning.date, 'yyyy-MM-dd') === format(day, 'yyyy-MM-dd')
     );
 
-    // Group by room
     const roomPlannings = new Map<string, Planning[]>();
     dayPlannings.forEach(planning => {
       const roomName = planning.room.name;
@@ -174,7 +176,9 @@ export function CalendarPDF({ weekStart, plannings, logoUrl }: CalendarPDFProps)
 
                 {Array.from(planningsByRoom.entries()).map(([roomName, roomPlannings]) => (
                   <View key={roomName} style={styles.roomSection}>
-                    <Text style={styles.roomName}>{roomName}</Text>
+                    <Text style={styles.roomName}>
+                      {roomName} {roomPlannings[0]?.room.channel ? `(Kanaal ${roomPlannings[0].room.channel})` : ''}
+                    </Text>
                     {roomPlannings.map((planning, index) => (
                       <View key={index} style={styles.planning}>
                         <Text style={styles.volunteerName}>
