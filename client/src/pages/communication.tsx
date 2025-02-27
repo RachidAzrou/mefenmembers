@@ -76,30 +76,11 @@ export default function Communication() {
   return (
     <div className="space-y-4 sm:space-y-6 p-3 sm:p-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <Radio className="h-6 w-6 sm:h-8 sm:w-8 text-[#963E56]" />
-          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-[#963E56]">
-            Communicatie
-          </h1>
-        </div>
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={() => setIsEditMode(!isEditMode)}
-                className={isEditMode ? "bg-[#963E56]/10 text-[#963E56]" : ""}
-              >
-                <Settings2 className="h-5 w-5" />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>
-              {isEditMode ? "Bewerken afsluiten" : "Kanalen bewerken"}
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
+      <div className="flex items-center gap-3">
+        <Radio className="h-6 w-6 sm:h-8 sm:w-8 text-[#963E56]" />
+        <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-[#963E56]">
+          Communicatie
+        </h1>
       </div>
 
       {/* Stats Card */}
@@ -118,6 +99,27 @@ export default function Communication() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Edit Mode Toggle */}
+      <div className="flex justify-end">
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={() => setIsEditMode(!isEditMode)}
+                className={isEditMode ? "bg-[#963E56]/10 text-[#963E56]" : ""}
+              >
+                <Settings2 className="h-5 w-5" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              {isEditMode ? "Bewerken afsluiten" : "Kanalen bewerken"}
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      </div>
 
       {/* Room Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
