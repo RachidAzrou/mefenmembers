@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Radio } from "lucide-react";
+import { Radio, Edit2 } from "lucide-react";
 import { useRole } from "@/hooks/use-role";
 import { db } from "@/lib/firebase";
 import { ref, onValue, update } from "firebase/database";
@@ -15,6 +15,12 @@ import {
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface Room {
   id: string;
@@ -116,18 +122,27 @@ export default function Communication() {
                 </span>
               </div>
               {isAdmin && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => {
-                    setEditingRoom(room);
-                    setNewChannel(room.channel || "");
-                    setDialogOpen(true);
-                  }}
-                  className="w-full mt-3 text-[#963E56] hover:text-[#963E56]/90 hover:bg-[#963E56]/10"
-                >
-                  Bewerken
-                </Button>
+                <div className="flex items-center justify-end mt-3">
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => {
+                            setEditingRoom(room);
+                            setNewChannel(room.channel || "");
+                            setDialogOpen(true);
+                          }}
+                          className="text-[#963E56] hover:text-[#963E56]/90 hover:bg-[#963E56]/10"
+                        >
+                          <Edit2 className="h-4 w-4" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>Bewerken</TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </div>
               )}
             </CardContent>
           </Card>
@@ -142,7 +157,7 @@ export default function Communication() {
         }
         setDialogOpen(open);
       }}>
-        <DialogContent className="max-w-[95vw] sm:max-w-[450px] p-4 sm:p-6 bg-white border-none shadow-lg mx-4">
+        <DialogContent className="max-w-[95vw] sm:max-w-[450px] p-4 bg-white">
           <DialogHeader>
             <DialogTitle className="text-xl font-semibold text-[#963E56]">
               Kanaal Bewerken
