@@ -545,7 +545,7 @@ export default function Materials() {
       </div>
 
       <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
-        <div className="relative flex-1 w-full">
+        <div className="relative flex-none w-64 sm:w-80">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <InputComponent
             placeholder="Zoeken..."
@@ -555,11 +555,11 @@ export default function Materials() {
           />
         </div>
 
-        <div className="flex flex-col sm:flex-row items-center gap-2 w-full sm:w-auto">
+        <div className="flex flex-col sm:flex-row items-center gap-2">
           {isAdmin && (
             <Dialog open={isTypesDialogOpen} onOpenChange={setIsTypesDialogOpen}>
               <DialogTrigger asChild>
-                <Button variant="outline" className="w-full sm:w-auto">
+                <Button variant="outline" >
                   <Settings2 className="h-4 w-4 mr-2" />
                   Types Beheren
                 </Button>
@@ -604,7 +604,7 @@ export default function Materials() {
                         </FormItem>
                       )}
                     />
-                    <Button type="submit" className="w-full">
+                    <Button type="submit">
                       {editingMaterialType ? "Bijwerken" : "Toevoegen"}
                     </Button>
                   </form>
@@ -615,7 +615,7 @@ export default function Materials() {
 
           <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
             <DialogTrigger asChild>
-              <Button className="bg-[#963E56] hover:bg-[#963E56]/90 text-white w-full sm:w-auto">
+              <Button className="bg-[#963E56] hover:bg-[#963E56]/90 text-white">
                 <Package2 className="h-4 w-4 mr-2" />
                 Toewijzen
               </Button>
@@ -709,7 +709,7 @@ export default function Materials() {
                         </FormItem>
                       )}
                     />
-                    <Button type="submit" className="w-full">
+                    <Button type="submit">
                       {editingMaterial ? "Materiaal Bijwerken" : "Materiaal Toewijzen"}
                     </Button>
                   </form>
@@ -725,7 +725,7 @@ export default function Materials() {
                     variant="outline"
                     size="icon"
                     onClick={() => setIsEditMode(!isEditMode)}
-                    className={`${isEditMode ? "bg-primary/10 text-primary" : ""} w-full sm:w-auto`}
+                    className={`${isEditMode ? "bg-primary/10 text-primary" : ""}`}
                   >
                     <Settings2 className="h-5 w-5" />
                   </Button>

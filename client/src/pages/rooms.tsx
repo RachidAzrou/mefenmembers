@@ -24,7 +24,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { db } from "@/lib/firebase";
 import { ref, push, remove, update, onValue } from "firebase/database";
-import { House, Users } from "lucide-react"; // Added Users import
+import { House, Settings2 } from "lucide-react"; 
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useRole } from "@/hooks/use-role";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -140,7 +140,25 @@ export default function Rooms() {
         </div>
 
         {isAdmin && (
-          <div className="flex items-center gap-2">
+          <div className="flex items-center justify-end gap-2">
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => setIsEditMode(!isEditMode)}
+                    className={isEditMode ? "bg-[#963E56]/10 text-[#963E56]" : ""}
+                  >
+                    <Settings2 className="h-5 w-5" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  {isEditMode ? "Bewerken afsluiten" : "Lijst bewerken"}
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+
             <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
               <DialogTrigger asChild>
                 <Button className="bg-[#963E56] hover:bg-[#963E56]/90">
@@ -176,24 +194,6 @@ export default function Rooms() {
                 </Form>
               </DialogContent>
             </Dialog>
-
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    onClick={() => setIsEditMode(!isEditMode)}
-                    className={isEditMode ? "bg-[#963E56]/10 text-[#963E56]" : ""}
-                  >
-                    <BsPencil className="h-4 w-4" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  {isEditMode ? "Bewerken afsluiten" : "Lijst bewerken"}
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
           </div>
         )}
       </div>

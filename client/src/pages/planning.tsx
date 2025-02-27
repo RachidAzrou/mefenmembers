@@ -9,7 +9,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
-import { Calendar, Search, Trash2, Plus, Settings2, Edit2 } from "lucide-react"; // Edit2 import added
+import { Calendar, Search, Trash2, Plus, Settings2 } from "lucide-react"; 
 import { format, parseISO, isWithinInterval, startOfDay, endOfDay } from "date-fns";
 import { nl } from "date-fns/locale";
 import { Card, CardContent } from "@/components/ui/card";
@@ -251,7 +251,7 @@ const PlanningSection = ({ title, icon, defaultOpen, children }: {
             isEditing && "bg-[#963E56]/10"
           )}
         >
-          <Edit2 className="h-4 w-4" />
+          <Settings2 className="h-5 w-5" />
         </Button>
       }
     >
