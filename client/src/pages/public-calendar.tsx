@@ -68,9 +68,17 @@ export default function PublicCalendar() {
 
   const getPlanningsForDay = (day: Date) => {
     return plannings.filter(planning => {
-      const startDate = new Date(planning.startDate);
-      const endDate = new Date(planning.endDate);
-      return isWithinInterval(day, { start: startDate, end: endDate });
+      const planningStart = new Date(planning.startDate);
+      const planningEnd = new Date(planning.endDate);
+
+      // Reset time parts to compare only dates
+      const comparisonDay = new Date(day);
+      comparisonDay.setHours(0, 0, 0, 0);
+      planningStart.setHours(0, 0, 0, 0);
+      planningEnd.setHours(0, 0, 0, 0);
+
+      // Check if the day falls between start and end dates (inclusive)
+      return comparisonDay >= planningStart && comparisonDay <= planningEnd;
     });
   };
 
