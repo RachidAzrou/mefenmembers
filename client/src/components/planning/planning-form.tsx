@@ -6,7 +6,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "@/components/ui/command";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Check, X, CalendarIcon } from "lucide-react";
+import { Check, CalendarIcon } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { nl } from "date-fns/locale";
 import { cn } from "@/lib/utils";
@@ -43,8 +43,6 @@ export function PlanningForm({
   editingPlanning
 }: PlanningFormProps) {
   const [searchTerm, setSearchTerm] = useState("");
-  const [openVolunteer, setOpenVolunteer] = useState(false);
-  const [openRoom, setOpenRoom] = useState(false);
 
   const filteredVolunteers = volunteers.filter(volunteer =>
     `${volunteer.firstName} ${volunteer.lastName}`
@@ -53,8 +51,6 @@ export function PlanningForm({
   );
 
   const isBulkPlanning = form.watch("isBulkPlanning");
-  const selectedVolunteers = form.watch("selectedVolunteers") || [];
-  const selectedRooms = form.watch("selectedRooms") || [];
 
   return (
     <Form {...form}>
@@ -86,14 +82,14 @@ export function PlanningForm({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Vrijwilligers</FormLabel>
-                  <Popover open={openVolunteer} onOpenChange={setOpenVolunteer}>
+                  <Popover>
                     <PopoverTrigger asChild>
                       <FormControl>
                         <Button
+                          type="button"
                           variant="outline"
                           role="combobox"
-                          type="button"
-                          className="w-full justify-start"
+                          className="w-full justify-between"
                         >
                           {field.value?.length > 0 ? (
                             <span>{field.value.length} vrijwilliger(s) geselecteerd</span>
@@ -103,7 +99,7 @@ export function PlanningForm({
                         </Button>
                       </FormControl>
                     </PopoverTrigger>
-                    <PopoverContent className="w-[300px] p-0" align="start">
+                    <PopoverContent className="p-0" align="start">
                       <Command>
                         <CommandInput
                           placeholder="Zoek vrijwilligers..."
@@ -115,6 +111,7 @@ export function PlanningForm({
                           {filteredVolunteers.map((volunteer) => (
                             <CommandItem
                               key={volunteer.id}
+                              value={volunteer.id}
                               onSelect={() => {
                                 const current = field.value || [];
                                 const updated = current.includes(volunteer.id)
@@ -147,14 +144,14 @@ export function PlanningForm({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Ruimtes</FormLabel>
-                  <Popover open={openRoom} onOpenChange={setOpenRoom}>
+                  <Popover>
                     <PopoverTrigger asChild>
                       <FormControl>
                         <Button
+                          type="button"
                           variant="outline"
                           role="combobox"
-                          type="button"
-                          className="w-full justify-start"
+                          className="w-full justify-between"
                         >
                           {field.value?.length > 0 ? (
                             <span>{field.value.length} ruimte(s) geselecteerd</span>
@@ -164,7 +161,7 @@ export function PlanningForm({
                         </Button>
                       </FormControl>
                     </PopoverTrigger>
-                    <PopoverContent className="w-[300px] p-0" align="start">
+                    <PopoverContent className="p-0" align="start">
                       <Command>
                         <CommandInput placeholder="Zoek ruimtes..." />
                         <CommandEmpty>Geen ruimtes gevonden.</CommandEmpty>
@@ -172,6 +169,7 @@ export function PlanningForm({
                           {rooms.map((room) => (
                             <CommandItem
                               key={room.id}
+                              value={room.id}
                               onSelect={() => {
                                 const current = field.value || [];
                                 const updated = current.includes(room.id)
@@ -206,14 +204,14 @@ export function PlanningForm({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Vrijwilliger</FormLabel>
-                  <Popover open={openVolunteer} onOpenChange={setOpenVolunteer}>
+                  <Popover>
                     <PopoverTrigger asChild>
                       <FormControl>
                         <Button
+                          type="button"
                           variant="outline"
                           role="combobox"
-                          type="button"
-                          className="w-full justify-start"
+                          className="w-full justify-between"
                         >
                           {field.value ? (
                             <span>
@@ -226,7 +224,7 @@ export function PlanningForm({
                         </Button>
                       </FormControl>
                     </PopoverTrigger>
-                    <PopoverContent className="w-[300px] p-0" align="start">
+                    <PopoverContent className="p-0" align="start">
                       <Command>
                         <CommandInput
                           placeholder="Zoek vrijwilliger..."
@@ -238,9 +236,9 @@ export function PlanningForm({
                           {filteredVolunteers.map((volunteer) => (
                             <CommandItem
                               key={volunteer.id}
+                              value={volunteer.id}
                               onSelect={() => {
                                 field.onChange(volunteer.id);
-                                setOpenVolunteer(false);
                               }}
                             >
                               <Check
@@ -267,14 +265,14 @@ export function PlanningForm({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Ruimte</FormLabel>
-                  <Popover open={openRoom} onOpenChange={setOpenRoom}>
+                  <Popover>
                     <PopoverTrigger asChild>
                       <FormControl>
                         <Button
+                          type="button"
                           variant="outline"
                           role="combobox"
-                          type="button"
-                          className="w-full justify-start"
+                          className="w-full justify-between"
                         >
                           {field.value ? (
                             <span>{rooms.find(r => r.id === field.value)?.name}</span>
@@ -284,7 +282,7 @@ export function PlanningForm({
                         </Button>
                       </FormControl>
                     </PopoverTrigger>
-                    <PopoverContent className="w-[300px] p-0" align="start">
+                    <PopoverContent className="p-0" align="start">
                       <Command>
                         <CommandInput placeholder="Zoek ruimtes..." />
                         <CommandEmpty>Geen ruimtes gevonden.</CommandEmpty>
@@ -292,9 +290,9 @@ export function PlanningForm({
                           {rooms.map((room) => (
                             <CommandItem
                               key={room.id}
+                              value={room.id}
                               onSelect={() => {
                                 field.onChange(room.id);
-                                setOpenRoom(false);
                               }}
                             >
                               <Check
@@ -328,6 +326,7 @@ export function PlanningForm({
                   <PopoverTrigger asChild>
                     <FormControl>
                       <Button
+                        type="button"
                         variant={"outline"}
                         className={cn(
                           "w-full pl-3 text-left font-normal",
@@ -372,6 +371,7 @@ export function PlanningForm({
                   <PopoverTrigger asChild>
                     <FormControl>
                       <Button
+                        type="button"
                         variant={"outline"}
                         className={cn(
                           "w-full pl-3 text-left font-normal",
