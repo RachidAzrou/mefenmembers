@@ -87,7 +87,7 @@ export function PlanningForm({
                       placeholder="Zoek vrijwilligers..." 
                       value={searchTerm}
                       onValueChange={setSearchTerm}
-                      className="border-none focus-visible:ring-transparent"
+                      className="border-none focus-visible:ring-0 focus-visible:ring-offset-0"
                     />
                     <CommandEmpty>Geen vrijwilligers gevonden.</CommandEmpty>
                     <CommandGroup className="max-h-[200px] overflow-auto">
@@ -103,7 +103,7 @@ export function PlanningForm({
                             onSelect={(currentValue) => {
                               field.onChange(currentValue);
                             }}
-                            className="cursor-pointer py-2 hover:bg-accent hover:text-accent-foreground"
+                            className="cursor-pointer py-2 hover:bg-accent hover:text-accent-foreground text-foreground"
                           >
                             <Check
                               className={cn(
@@ -166,7 +166,7 @@ export function PlanningForm({
                       placeholder="Zoek vrijwilligers..." 
                       value={searchTerm}
                       onValueChange={setSearchTerm}
-                      className="border-none focus-visible:ring-transparent"
+                      className="border-none focus-visible:ring-0 focus-visible:ring-offset-0"
                     />
                     <CommandEmpty>Geen vrijwilligers gevonden.</CommandEmpty>
                     <CommandGroup className="max-h-[200px] overflow-auto">
@@ -185,7 +185,7 @@ export function PlanningForm({
                                 : [...current, volunteer.id];
                               field.onChange(updated);
                             }}
-                            className="cursor-pointer py-2 hover:bg-accent hover:text-accent-foreground"
+                            className="cursor-pointer py-2 hover:bg-accent hover:text-accent-foreground text-foreground"
                           >
                             <Check
                               className={cn(
