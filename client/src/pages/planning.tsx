@@ -402,36 +402,27 @@ const Planning = () => {
 
   const onSubmit = async (data: z.infer<typeof planningSchema>) => {
     try {
-      if (editingPlanning) {
-        await push(ref(db, `plannings/`), {
+      if (data.isBulkPlanning) {
+        const volunteers = data.selectedVolunteers || [];
+        const rooms = data.selectedRooms || [];
+
+        for (const volunteerId of volunteers) {
+          for (const roomId of rooms) {
+            await push(ref(db, "plannings"), {
+              volunteerId,
+              roomId,
+              startDate: data.startDate,
+              endDate: data.endDate,
+            });
+          }
+        }
+      } else {
+        await push(ref(db, "plannings"), {
           volunteerId: data.volunteerId,
           roomId: data.roomId,
           startDate: data.startDate,
           endDate: data.endDate,
         });
-      } else {
-        if (data.isBulkPlanning) {
-          const volunteers = data.selectedVolunteers || [];
-          const rooms = data.selectedRooms || [];
-
-          for (const volunteerId of volunteers) {
-            for (const roomId of rooms) {
-              await push(ref(db, "plannings"), {
-                volunteerId,
-                roomId,
-                startDate: data.startDate,
-                endDate: data.endDate,
-              });
-            }
-          }
-        } else {
-          await push(ref(db, "plannings"), {
-            volunteerId: data.volunteerId,
-            roomId: data.roomId,
-            startDate: data.startDate,
-            endDate: data.endDate,
-          });
-        }
       }
 
       setDialogOpen(false);
