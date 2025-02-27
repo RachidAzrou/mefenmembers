@@ -9,7 +9,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
-import { Calendar, Search, Trash2, Plus, Settings2 } from "lucide-react"; 
+import { Calendar, Search, Trash2, Plus, Settings2 } from "lucide-react";
 import { format, parseISO, isWithinInterval, startOfDay, endOfDay } from "date-fns";
 import { nl } from "date-fns/locale";
 import { Card, CardContent } from "@/components/ui/card";
@@ -30,6 +30,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar as CustomCalendar } from "@/components/ui/calendar"; // Import custom Calendar component
+
 
 const planningSchema = z.object({
   volunteerId: z.string().min(1, "Vrijwilliger is verplicht").optional(),
@@ -99,12 +101,10 @@ const PlanningTable = ({
   const sortedPlannings = React.useMemo(() => {
     const sorted = [...filteredPlannings].sort((a, b) => {
       if (sortByDate) {
-        // First compare by start date
         const startDateComparison = parseISO(a.startDate).getTime() - parseISO(b.startDate).getTime();
         if (startDateComparison !== 0) {
           return sortDirection === 'asc' ? startDateComparison : -startDateComparison;
         }
-        // If start dates are equal, compare by end date
         const endDateComparison = parseISO(a.endDate).getTime() - parseISO(b.endDate).getTime();
         return sortDirection === 'asc' ? endDateComparison : -endDateComparison;
       }
@@ -130,8 +130,8 @@ const PlanningTable = ({
               className="pl-9"
             />
           </div>
-          <Button 
-            variant="outline" 
+          <Button
+            variant="outline"
             onClick={() => {
               setSortByDate(!sortByDate);
               if (sortByDate) {
@@ -151,7 +151,7 @@ const PlanningTable = ({
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0" align="end">
-              <Calendar
+              <CustomCalendar // Use the custom Calendar component here
                 mode="single"
                 selected={dateFilter}
                 onSelect={setDateFilter}
@@ -363,7 +363,7 @@ const Planning = () => {
   const onSubmit = async (data: z.infer<typeof planningSchema>) => {
     try {
       if (editingPlanning) {
-        await push(ref(db, `plannings/`), { 
+        await push(ref(db, `plannings/`), {
           volunteerId: data.volunteerId,
           roomId: data.roomId,
           startDate: data.startDate,
@@ -424,8 +424,8 @@ const Planning = () => {
   return (
     <div className="space-y-6 p-6">
       <div className="flex items-center gap-3">
-        <Calendar className="h-8 w-8 text-[#963E56]" /> 
-        <h1 className="text-3xl font-bold text-[#963E56]">Planning</h1> 
+        <Calendar className="h-8 w-8 text-[#963E56]" />
+        <h1 className="text-3xl font-bold text-[#963E56]">Planning</h1>
       </div>
 
       <CollapsibleSection
