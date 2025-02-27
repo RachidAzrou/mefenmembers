@@ -151,6 +151,14 @@ export default function Materials() {
     },
   });
 
+  const typeForm = useForm<z.infer<typeof materialTypeSchema>>({
+    resolver: zodResolver(materialTypeSchema),
+    defaultValues: {
+      name: "",
+      maxCount: 1,
+    },
+  });
+
   useState(() => {
     const materialTypesRef = ref(db, "materialTypes");
     onValue(materialTypesRef, (snapshot) => {
@@ -949,12 +957,12 @@ export default function Materials() {
             {selectedMaterials.length} geselecteerd
           </span>
           <Button            variant="default"
-                    onClick={() => handleBulkReturn(selectedMaterials)}
-                    className="bg-primary hover:bg-primary/90"
-                  >
-                    <RotateCcw className="h-4 w-4 mr-2" />
-                    Retourneren
-                  </Button>
+            onClick={() => handleBulkReturn(selectedMaterials)}
+            className="bg-primary hover:bg-primary/90"
+          >
+            <RotateCcw className="h-4 w-4 mr-2" />
+            Retourneren
+          </Button>
         </div>
       )}
 
