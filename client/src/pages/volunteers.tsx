@@ -65,10 +65,9 @@ export default function Volunteers() {
     return () => unsubscribe();
   }, []);
 
-  const resetFormAndState = () => {
-    setEditingVolunteer(null);
-    setDialogOpen(false);
+  const resetForm = () => {
     form.reset();
+    setEditingVolunteer(null);
   };
 
   const onSubmit = async (data: z.infer<typeof volunteerSchema>) => {
@@ -126,7 +125,8 @@ export default function Volunteers() {
           duration: 3000,
         });
       }
-      resetFormAndState();
+      setDialogOpen(false);
+      resetForm();
     } catch (error) {
       toast({
         variant: "destructive",
@@ -284,87 +284,96 @@ export default function Volunteers() {
         </div>
 
         <div className="flex items-center gap-2 w-full sm:w-auto">
-          <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-            <DialogTrigger asChild>
-              <Button 
-                className="bg-[#963E56] hover:bg-[#963E56]/90 flex-1 sm:flex-none"
-                onClick={(e) => {
-                  if (selectedVolunteers.length > 0) {
-                    e.preventDefault();
-                    handleBulkAction();
-                  }
-                }}
-              >
-                <UserPlus className="h-4 w-4 mr-2" />
-                {selectedVolunteers.length > 0 ? "Bulk Actie" : "Vrijwilliger Toevoegen"}
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-[95vw] sm:max-w-[450px] p-4 sm:p-6 bg-white border-none shadow-lg mx-4">
-              <DialogHeader>
-                <DialogTitle className="text-xl font-semibold text-[#963E56]">
-                  {editingVolunteer ? "Vrijwilliger Bewerken" : "Nieuwe Vrijwilliger"}
-                </DialogTitle>
-              </DialogHeader>
-              <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                  <FormField
-                    control={form.control}
-                    name="firstName"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Voornaam</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Voornaam" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="lastName"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Achternaam</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Achternaam" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="phoneNumber"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Telefoonnummer</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Telefoonnummer" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <div className="flex justify-end gap-3 pt-4">
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      onClick={resetFormAndState}
-                    >
-                      Annuleren
-                    </Button>
-                    <Button
-                      type="submit"
-                      className="bg-[#963E56] hover:bg-[#963E56]/90"
-                    >
-                      {editingVolunteer ? "Bijwerken" : "Toevoegen"}
-                    </Button>
-                  </div>
-                </form>
-              </Form>
-            </DialogContent>
-          </Dialog>
+          {/* Main action button - Add Volunteer or Bulk Action */}
+          {selectedVolunteers.length > 0 ? (
+            <Button
+              className="bg-[#963E56] hover:bg-[#963E56]/90 flex-1 sm:flex-none"
+              onClick={handleBulkAction}
+            >
+              <UserPlus className="h-4 w-4 mr-2" />
+              Bulk Actie
+            </Button>
+          ) : (
+            <Dialog open={dialogOpen} onOpenChange={(open) => {
+              setDialogOpen(open);
+              if (!open) resetForm();
+            }}>
+              <DialogTrigger asChild>
+                <Button className="bg-[#963E56] hover:bg-[#963E56]/90 flex-1 sm:flex-none">
+                  <UserPlus className="h-4 w-4 mr-2" />
+                  Vrijwilliger Toevoegen
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-[95vw] sm:max-w-[450px] p-4 sm:p-6 bg-white border-none shadow-lg mx-4">
+                <DialogHeader>
+                  <DialogTitle className="text-xl font-semibold text-[#963E56]">
+                    {editingVolunteer ? "Vrijwilliger Bewerken" : "Nieuwe Vrijwilliger"}
+                  </DialogTitle>
+                </DialogHeader>
+                <Form {...form}>
+                  <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                    <FormField
+                      control={form.control}
+                      name="firstName"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Voornaam</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Voornaam" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="lastName"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Achternaam</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Achternaam" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="phoneNumber"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Telefoonnummer</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Telefoonnummer" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <div className="flex justify-end gap-3 pt-4">
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        onClick={() => {
+                          setDialogOpen(false);
+                          resetForm();
+                        }}
+                      >
+                        Annuleren
+                      </Button>
+                      <Button
+                        type="submit"
+                        className="bg-[#963E56] hover:bg-[#963E56]/90"
+                      >
+                        {editingVolunteer ? "Bijwerken" : "Toevoegen"}
+                      </Button>
+                    </div>
+                  </form>
+                </Form>
+              </DialogContent>
+            </Dialog>
+          )}
 
           <TooltipProvider>
             <Tooltip>
@@ -516,6 +525,7 @@ export default function Volunteers() {
         </div>
       )}
 
+      {/* Delete Confirmation Dialog */}
       <AlertDialog
         open={!!deleteVolunteerId}
         onOpenChange={() => setDeleteVolunteerId(null)}
