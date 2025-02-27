@@ -3,13 +3,13 @@ import { getAuth } from "firebase/auth";
 import { getDatabase } from "firebase/database";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyBcMISrNicWXlTHIfZv7V4ygIwWX_mSJmA",
-  authDomain: "mefen-6da3c.firebaseapp.com",
-  databaseURL: "https://mefen-6da3c-default-rtdb.europe-west1.firebasedatabase.app",
-  projectId: "mefen-6da3c",
-  storageBucket: "mefen-6da3c.firebasestorage.app",
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: `${import.meta.env.VITE_FIREBASE_PROJECT_ID}.firebaseapp.com`,
+  databaseURL: `https://${import.meta.env.VITE_FIREBASE_PROJECT_ID}-default-rtdb.europe-west1.firebasedatabase.app`,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: `${import.meta.env.VITE_FIREBASE_PROJECT_ID}.appspot.com`,
   messagingSenderId: "92917846687",
-  appId: "1:92917846687:web:55bb36fd0734f3833a48aa",
+  appId: import.meta.env.VITE_FIREBASE_APP_ID,
   measurementId: "G-RQDM8X2GZE"
 };
 

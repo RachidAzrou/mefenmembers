@@ -17,10 +17,10 @@ const AuthContext = createContext<AuthContextType>({
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, isLoading, error] = useAuthState(auth);
 
-  const value = {
+  const value: AuthContextType = {
     user: user ?? null,
     isLoading,
-    error
+    error: error ?? null
   };
 
   return (
