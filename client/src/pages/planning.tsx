@@ -69,6 +69,8 @@ const PlanningTable = ({
   showActions?: boolean;
 }) => {
   const [dateFilter, setDateFilter] = useState<Date | undefined>();
+  const [sortByDate, setSortByDate] = useState(false);
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
 
   const filteredPlannings = plannings.filter(planning => {
     const matchesSearch = searchValue.toLowerCase() === '' || (() => {
@@ -93,15 +95,22 @@ const PlanningTable = ({
     return matchesSearch && matchesDate;
   });
 
-  const sortedPlannings = [...filteredPlannings].sort((a, b) => {
-    // First compare by start date
-    const startDateComparison = parseISO(a.startDate).getTime() - parseISO(b.startDate).getTime();
-    if (startDateComparison !== 0) {
-      return startDateComparison;
-    }
-    // If start dates are equal, compare by end date
-    return parseISO(a.endDate).getTime() - parseISO(b.endDate).getTime();
-  });
+  const sortedPlannings = React.useMemo(() => {
+    const sorted = [...filteredPlannings].sort((a, b) => {
+      if (sortByDate) {
+        // First compare by start date
+        const startDateComparison = parseISO(a.startDate).getTime() - parseISO(b.startDate).getTime();
+        if (startDateComparison !== 0) {
+          return sortDirection === 'asc' ? startDateComparison : -startDateComparison;
+        }
+        // If start dates are equal, compare by end date
+        const endDateComparison = parseISO(a.endDate).getTime() - parseISO(b.endDate).getTime();
+        return sortDirection === 'asc' ? endDateComparison : -endDateComparison;
+      }
+      return 0;
+    });
+    return sorted;
+  }, [filteredPlannings, sortByDate, sortDirection]);
 
   const stopPropagation = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -120,6 +129,19 @@ const PlanningTable = ({
               className="pl-9"
             />
           </div>
+          <Button 
+            variant="outline" 
+            onClick={() => {
+              setSortByDate(!sortByDate);
+              if (sortByDate) {
+                setSortDirection(prev => prev === 'asc' ? 'desc' : 'asc');
+              }
+            }}
+            className={cn("gap-2", sortByDate && "bg-primary/10 text-primary")}
+          >
+            <Calendar className="h-4 w-4" />
+            Sorteren op datum {sortByDate && (sortDirection === 'asc' ? '↑' : '↓')}
+          </Button>
           <Popover>
             <PopoverTrigger asChild>
               <Button variant="outline" className="gap-2 whitespace-nowrap">
