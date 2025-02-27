@@ -35,14 +35,7 @@ function AuthenticatedLayout({ children }: { children: React.ReactNode }) {
     <div className="flex min-h-screen bg-gray-50/80 relative">
       <Sidebar />
       <main className="flex-1 p-3 sm:p-4 md:p-6 w-full max-w-screen overflow-x-hidden pt-16 md:pt-6">
-        <div 
-          className="absolute inset-0 pointer-events-none opacity-[0.03] bg-repeat"
-          style={{
-            backgroundImage: 'url("/attached_assets/123.jpg")',
-            backgroundSize: 'cover',
-          }}
-        />
-        <div className="container mx-auto max-w-7xl relative">
+        <div className="container mx-auto max-w-7xl">
           {children}
         </div>
       </main>
