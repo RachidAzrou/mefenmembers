@@ -249,10 +249,19 @@ export default function Settings() {
     if (action.includes('vrijwilliger')) return '👤';
     if (action.includes('planning')) return '📅';
     if (action.includes('gebruiker')) return '👥';
-    if (action.includes('ingelogd') || action.includes('uitgelogd')) return '🔑';
+    if (action.includes('ingelogd') || action.includes('uitgelogd') || action.includes('wachtwoord')) return '🔑';
     if (action.includes('export')) return '📤';
     if (action.includes('import')) return '📥';
     if (action.includes('pdf') || action.includes('PDF')) return '📄';
+    if (action.includes('ruimte')) return '🏢';
+    if (action.includes('filter')) return '🔍';
+    if (action.includes('zoek')) return '🔎';
+    if (action.includes('bulk')) return '📚';
+    if (action.includes('pagina') || action.includes('zijbalk')) return '📱';
+    if (action.includes('modal')) return '💭';
+    if (action.includes('bewerkingsmodus')) return '✏️';
+    if (action.includes('sortering')) return '↕️';
+    if (action.includes('vernieuwd')) return '🔄';
     return '📝';
   };
 
