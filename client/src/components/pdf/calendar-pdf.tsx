@@ -1,5 +1,5 @@
 import { Document, Page, View, Text, StyleSheet, Image } from "@react-pdf/renderer";
-import { format, addDays } from "date-fns";
+import { format, addDays, isWithinInterval, isSameDay, parseISO } from "date-fns";
 import { nl } from "date-fns/locale";
 
 const styles = StyleSheet.create({
@@ -132,20 +132,17 @@ export function CalendarPDF({ weekStart, plannings, logoUrl }: CalendarPDFProps)
   const weekDays = Array.from({ length: 7 }).map((_, i) => addDays(weekStart, i));
 
   const getPlanningsForDay = (day: Date) => {
-    const dayPlannings = plannings.filter(planning => 
-      format(planning.date, 'yyyy-MM-dd') === format(day, 'yyyy-MM-dd')
-    );
+    return plannings.filter(planning => {
+      // Parse the dates using parseISO to ensure correct date objects
+      const planningStart = parseISO(planning.date.toISOString());
+      const planningEnd = parseISO(planning.date.toISOString());
 
-    const roomPlannings = new Map<string, Planning[]>();
-    dayPlannings.forEach(planning => {
-      const roomName = planning.room.name;
-      if (!roomPlannings.has(roomName)) {
-        roomPlannings.set(roomName, []);
-      }
-      roomPlannings.get(roomName)?.push(planning);
+      // Check if the day falls within the interval (inclusive) or is the same as start/end date
+      return isWithinInterval(day, { 
+        start: planningStart,
+        end: planningEnd 
+      }) || isSameDay(day, planningStart) || isSameDay(day, planningEnd);
     });
-
-    return roomPlannings;
   };
 
   return (
@@ -161,7 +158,10 @@ export function CalendarPDF({ weekStart, plannings, logoUrl }: CalendarPDFProps)
         <View style={styles.weekGrid}>
           {weekDays.map((day) => {
             const isToday = format(day, 'yyyy-MM-dd') === format(new Date(), 'yyyy-MM-dd');
-            const planningsByRoom = getPlanningsForDay(day);
+            const planningsByRoom = getPlanningsForDay(day).reduce((acc, curr) => {
+              const roomName = curr.room.name;
+              return acc.set(roomName, [...(acc.get(roomName) || []), curr])
+            }, new Map<string, Planning[]>())
 
             return (
               <View key={day.toISOString()} style={[
