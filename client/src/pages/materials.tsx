@@ -628,11 +628,13 @@ const MaterialsPage = () => {
                             <div className="sticky top-0 px-2 py-2 bg-background border-b">
                               <div className="relative">
                                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
-                                <Input
+                                <input
+                                  type="text"
                                   placeholder="Zoek vrijwilliger..."
                                   value={searchTerm}
                                   onChange={(e) => setSearchTerm(e.target.value)}
-                                  className="pl-9 h-9 focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-muted-foreground"
+                                  onClick={(e) => e.stopPropagation()}
+                                  className="w-full pl-9 h-9 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-offset-0 disabled:cursor-not-allowed disabled:opacity-50"
                                 />
                               </div>
                             </div>
@@ -919,7 +921,7 @@ const MaterialsPage = () => {
               )}
             </TableBody>
           </Table>
-                </div>
+        </div>
       </div>
 
       {isEditMode && selectedMaterials.length > 0 && (
