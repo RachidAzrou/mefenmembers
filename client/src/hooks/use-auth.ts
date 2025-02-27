@@ -8,19 +8,23 @@ type AuthContextType = {
   error: Error | null;
 };
 
-const AuthContext = createContext<AuthContextType | null>(null);
+const AuthContext = createContext<AuthContextType>({
+  user: null,
+  isLoading: false,
+  error: null
+});
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, isLoading, error] = useAuthState(auth);
 
+  const value = {
+    user: user ?? null,
+    isLoading,
+    error
+  };
+
   return (
-    <AuthContext.Provider 
-      value={{ 
-        user: user ?? null, 
-        isLoading, 
-        error 
-      }}
-    >
+    <AuthContext.Provider value={value}>
       {children}
     </AuthContext.Provider>
   );
