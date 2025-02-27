@@ -4,15 +4,16 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "@/components/ui/command";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Check, CalendarIcon } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { CalendarIcon } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { nl } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { z } from "zod";
 import { UseFormReturn } from "react-hook-form";
 
+// Keep the same schema
 const planningSchema = z.object({
   volunteerId: z.string().min(1, "Vrijwilliger is verplicht").optional(),
   roomId: z.string().min(1, "Ruimte is verplicht").optional(),
@@ -42,14 +43,6 @@ export function PlanningForm({
   form,
   editingPlanning
 }: PlanningFormProps) {
-  const [searchTerm, setSearchTerm] = useState("");
-
-  const filteredVolunteers = volunteers.filter(volunteer =>
-    `${volunteer.firstName} ${volunteer.lastName}`
-      .toLowerCase()
-      .includes(searchTerm.toLowerCase())
-  );
-
   const isBulkPlanning = form.watch("isBulkPlanning");
 
   return (
@@ -74,133 +67,8 @@ export function PlanningForm({
           </div>
         )}
 
-        {isBulkPlanning ? (
-          <>
-            <FormField
-              control={form.control}
-              name="selectedVolunteers"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Vrijwilligers</FormLabel>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <FormControl>
-                        <Button
-                          variant="outline"
-                          role="combobox"
-                          className="w-full justify-between"
-                        >
-                          {field.value?.length > 0 ? (
-                            <span>{field.value.length} vrijwilliger(s) geselecteerd</span>
-                          ) : (
-                            <span>Selecteer vrijwilligers</span>
-                          )}
-                        </Button>
-                      </FormControl>
-                    </PopoverTrigger>
-                    <PopoverContent className="p-0" align="start">
-                      <Command>
-                        <CommandInput
-                          placeholder="Zoek vrijwilligers..."
-                          value={searchTerm}
-                          onValueChange={setSearchTerm}
-                        />
-                        <CommandEmpty>Geen vrijwilligers gevonden.</CommandEmpty>
-                        <CommandGroup>
-                          {filteredVolunteers.map((volunteer) => {
-                            const isSelected = field.value?.includes(volunteer.id);
-                            return (
-                              <CommandItem
-                                key={volunteer.id}
-                                className="cursor-pointer aria-selected:bg-primary/10 aria-selected:text-primary"
-                                onSelect={() => {
-                                  const current = field.value || [];
-                                  const updated = current.includes(volunteer.id)
-                                    ? current.filter(id => id !== volunteer.id)
-                                    : [...current, volunteer.id];
-                                  field.onChange(updated);
-                                }}
-                              >
-                                <Check
-                                  className={cn(
-                                    "mr-2 h-4 w-4",
-                                    isSelected ? "opacity-100" : "opacity-0"
-                                  )}
-                                />
-                                {volunteer.firstName} {volunteer.lastName}
-                              </CommandItem>
-                            );
-                          })}
-                        </CommandGroup>
-                      </Command>
-                    </PopoverContent>
-                  </Popover>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="selectedRooms"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Ruimtes</FormLabel>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <FormControl>
-                        <Button
-                          variant="outline"
-                          role="combobox"
-                          className="w-full justify-between"
-                        >
-                          {field.value?.length > 0 ? (
-                            <span>{field.value.length} ruimte(s) geselecteerd</span>
-                          ) : (
-                            <span>Selecteer ruimtes</span>
-                          )}
-                        </Button>
-                      </FormControl>
-                    </PopoverTrigger>
-                    <PopoverContent className="p-0" align="start">
-                      <Command>
-                        <CommandInput placeholder="Zoek ruimtes..." />
-                        <CommandEmpty>Geen ruimtes gevonden.</CommandEmpty>
-                        <CommandGroup>
-                          {rooms.map((room) => {
-                            const isSelected = field.value?.includes(room.id);
-                            return (
-                              <CommandItem
-                                key={room.id}
-                                className="cursor-pointer aria-selected:bg-primary/10 aria-selected:text-primary"
-                                onSelect={() => {
-                                  const current = field.value || [];
-                                  const updated = current.includes(room.id)
-                                    ? current.filter(id => id !== room.id)
-                                    : [...current, room.id];
-                                  field.onChange(updated);
-                                }}
-                              >
-                                <Check
-                                  className={cn(
-                                    "mr-2 h-4 w-4",
-                                    isSelected ? "opacity-100" : "opacity-0"
-                                  )}
-                                />
-                                {room.name}
-                              </CommandItem>
-                            );
-                          })}
-                        </CommandGroup>
-                      </Command>
-                    </PopoverContent>
-                  </Popover>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </>
-        ) : (
+        {/* Single volunteer/room selection */}
+        {!isBulkPlanning && (
           <>
             <FormField
               control={form.control}
@@ -208,56 +76,24 @@ export function PlanningForm({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Vrijwilliger</FormLabel>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <FormControl>
-                        <Button
-                          variant="outline"
-                          role="combobox"
-                          className="w-full justify-between"
+                  <Select
+                    value={field.value}
+                    onValueChange={field.onChange}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecteer een vrijwilliger" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {volunteers.map((volunteer) => (
+                        <SelectItem
+                          key={volunteer.id}
+                          value={volunteer.id}
                         >
-                          {field.value ? (
-                            <span>
-                              {volunteers.find(v => v.id === field.value)?.firstName}{' '}
-                              {volunteers.find(v => v.id === field.value)?.lastName}
-                            </span>
-                          ) : (
-                            <span>Selecteer een vrijwilliger</span>
-                          )}
-                        </Button>
-                      </FormControl>
-                    </PopoverTrigger>
-                    <PopoverContent className="p-0" align="start">
-                      <Command>
-                        <CommandInput
-                          placeholder="Zoek vrijwilliger..."
-                          value={searchTerm}
-                          onValueChange={setSearchTerm}
-                        />
-                        <CommandEmpty>Geen vrijwilligers gevonden.</CommandEmpty>
-                        <CommandGroup>
-                          {filteredVolunteers.map((volunteer) => {
-                            const isSelected = field.value === volunteer.id;
-                            return (
-                              <CommandItem
-                                key={volunteer.id}
-                                className="cursor-pointer aria-selected:bg-primary/10 aria-selected:text-primary"
-                                onSelect={() => field.onChange(volunteer.id)}
-                              >
-                                <Check
-                                  className={cn(
-                                    "mr-2 h-4 w-4",
-                                    isSelected ? "opacity-100" : "opacity-0"
-                                  )}
-                                />
-                                {volunteer.firstName} {volunteer.lastName}
-                              </CommandItem>
-                            );
-                          })}
-                        </CommandGroup>
-                      </Command>
-                    </PopoverContent>
-                  </Popover>
+                          {volunteer.firstName} {volunteer.lastName}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                   <FormMessage />
                 </FormItem>
               )}
@@ -269,49 +105,24 @@ export function PlanningForm({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Ruimte</FormLabel>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <FormControl>
-                        <Button
-                          variant="outline"
-                          role="combobox"
-                          className="w-full justify-between"
+                  <Select
+                    value={field.value}
+                    onValueChange={field.onChange}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecteer een ruimte" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {rooms.map((room) => (
+                        <SelectItem
+                          key={room.id}
+                          value={room.id}
                         >
-                          {field.value ? (
-                            <span>{rooms.find(r => r.id === field.value)?.name}</span>
-                          ) : (
-                            <span>Selecteer een ruimte</span>
-                          )}
-                        </Button>
-                      </FormControl>
-                    </PopoverTrigger>
-                    <PopoverContent className="p-0" align="start">
-                      <Command>
-                        <CommandInput placeholder="Zoek ruimtes..." />
-                        <CommandEmpty>Geen ruimtes gevonden.</CommandEmpty>
-                        <CommandGroup>
-                          {rooms.map((room) => {
-                            const isSelected = field.value === room.id;
-                            return (
-                              <CommandItem
-                                key={room.id}
-                                className="cursor-pointer aria-selected:bg-primary/10 aria-selected:text-primary"
-                                onSelect={() => field.onChange(room.id)}
-                              >
-                                <Check
-                                  className={cn(
-                                    "mr-2 h-4 w-4",
-                                    isSelected ? "opacity-100" : "opacity-0"
-                                  )}
-                                />
-                                {room.name}
-                              </CommandItem>
-                            );
-                          })}
-                        </CommandGroup>
-                      </Command>
-                    </PopoverContent>
-                  </Popover>
+                          {room.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                   <FormMessage />
                 </FormItem>
               )}
@@ -319,6 +130,94 @@ export function PlanningForm({
           </>
         )}
 
+        {/* Bulk selection */}
+        {isBulkPlanning && (
+          <>
+            <FormField
+              control={form.control}
+              name="selectedVolunteers"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Vrijwilligers</FormLabel>
+                  <Select
+                    value={field.value?.[0] || ""}
+                    onValueChange={(value) => {
+                      const current = field.value || [];
+                      const updated = current.includes(value)
+                        ? current.filter(id => id !== value)
+                        : [...current, value];
+                      field.onChange(updated);
+                    }}
+                  >
+                    <SelectTrigger>
+                      <SelectValue 
+                        placeholder="Selecteer vrijwilligers"
+                      >
+                        {field.value?.length 
+                          ? `${field.value.length} vrijwilliger(s) geselecteerd` 
+                          : "Selecteer vrijwilligers"}
+                      </SelectValue>
+                    </SelectTrigger>
+                    <SelectContent>
+                      {volunteers.map((volunteer) => (
+                        <SelectItem
+                          key={volunteer.id}
+                          value={volunteer.id}
+                        >
+                          {volunteer.firstName} {volunteer.lastName}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="selectedRooms"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Ruimtes</FormLabel>
+                  <Select
+                    value={field.value?.[0] || ""}
+                    onValueChange={(value) => {
+                      const current = field.value || [];
+                      const updated = current.includes(value)
+                        ? current.filter(id => id !== value)
+                        : [...current, value];
+                      field.onChange(updated);
+                    }}
+                  >
+                    <SelectTrigger>
+                      <SelectValue 
+                        placeholder="Selecteer ruimtes"
+                      >
+                        {field.value?.length 
+                          ? `${field.value.length} ruimte(s) geselecteerd` 
+                          : "Selecteer ruimtes"}
+                      </SelectValue>
+                    </SelectTrigger>
+                    <SelectContent>
+                      {rooms.map((room) => (
+                        <SelectItem
+                          key={room.id}
+                          value={room.id}
+                        >
+                          {room.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </>
+        )}
+
+        {/* Date selection */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <FormField
             control={form.control}
