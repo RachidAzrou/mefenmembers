@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { format, startOfWeek, addDays, parseISO, startOfDay } from "date-fns";
+import { format, startOfWeek, addDays, parseISO } from "date-fns";
 import { nl } from "date-fns/locale";
 import { db } from "@/lib/firebase";
 import { ref, onValue } from "firebase/database";
@@ -16,7 +16,7 @@ type Planning = {
 type Room = {
   id: string;
   name: string;
-  channel?: string; // Added channel property
+  channel?: string; 
 };
 
 type Volunteer = {
@@ -68,13 +68,13 @@ export default function PublicCalendar() {
 
   const getPlanningsForDay = (day: Date) => {
     return plannings.filter(planning => {
-      const planningStart = startOfDay(parseISO(planning.startDate));
-      const planningEnd = startOfDay(parseISO(planning.endDate));
-      const comparisonDay = startOfDay(day);
+      // Convert both the planning dates and comparison day to date strings for direct comparison
+      const dayStr = format(day, 'yyyy-MM-dd');
+      const startStr = planning.startDate;
+      const endStr = planning.endDate;
 
-      // Compare timestamps for accurate date comparison
-      return comparisonDay.getTime() >= planningStart.getTime() && 
-             comparisonDay.getTime() <= planningEnd.getTime();
+      // Simple string comparison to check if the day falls within the range (inclusive)
+      return dayStr >= startStr && dayStr <= endStr;
     });
   };
 
