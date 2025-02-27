@@ -49,9 +49,6 @@ export function WeekView({ checkedOutMaterials }: WeekViewProps) {
   const weekStart = startOfWeek(currentWeek, { weekStartsOn: 1 });
   const weekDays = Array.from({ length: 7 }).map((_, i) => addDays(weekStart, i));
 
-  // Mobile view: Only show today + next 2 days by default
-  const displayDays = showFullWeek ? weekDays : weekDays.slice(0, 3);
-
   useEffect(() => {
     const fetchData = async () => {
       const planningsRef = ref(db, "plannings");
@@ -144,7 +141,6 @@ export function WeekView({ checkedOutMaterials }: WeekViewProps) {
   const totalRooms = rooms.length;
   const activeVolunteers = plannings.filter(p => new Date(p.endDate) >= new Date()).length;
 
-  // Group plannings by room for a specific day
   const getPlanningsByRoom = (day: Date) => {
     const dayPlannings = getPlanningsForDay(day);
     const planningsByRoom = new Map<string, Planning[]>();
@@ -161,7 +157,6 @@ export function WeekView({ checkedOutMaterials }: WeekViewProps) {
 
   return (
     <div className="space-y-4 md:space-y-6">
-      {/* Header section */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-3 sm:p-4 rounded-xl shadow-sm border">
         <h2 className="text-base sm:text-xl font-semibold text-[#D9A347]">
           Week van {format(weekStart, "d MMMM yyyy", { locale: nl })}
@@ -229,18 +224,19 @@ export function WeekView({ checkedOutMaterials }: WeekViewProps) {
         </div>
       </div>
 
-      {/* Week overview */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-7 gap-3 md:gap-4">
-        {displayDays.map((day) => {
+        {weekDays.map((day, index) => {
           const isToday = format(day, 'yyyy-MM-dd') === format(new Date(), 'yyyy-MM-dd');
           const planningsByRoom = getPlanningsByRoom(day);
+          const shouldHide = !showFullWeek && index > 2;
 
           return (
             <Card
               key={day.toISOString()}
               className={cn(
                 "min-w-full sm:min-w-0",
-                isToday && "ring-2 ring-[#D9A347] ring-offset-2"
+                isToday && "ring-2 ring-[#D9A347] ring-offset-2",
+                shouldHide && "hidden lg:block"
               )}
             >
               <CardContent className="p-3 sm:p-4">
@@ -297,8 +293,7 @@ export function WeekView({ checkedOutMaterials }: WeekViewProps) {
         })}
       </div>
 
-      {/* Mobile: Show/Hide full week button */}
-      <div className="block md:hidden text-center">
+      <div className="block lg:hidden text-center">
         <Button
           variant="outline"
           onClick={() => setShowFullWeek(!showFullWeek)}
@@ -308,7 +303,6 @@ export function WeekView({ checkedOutMaterials }: WeekViewProps) {
         </Button>
       </div>
 
-      {/* Information cards */}
       <div className="grid grid-cols-2 gap-2 sm:gap-4 lg:grid-cols-4">
         <Card>
           <CardContent className="pt-4 sm:pt-6">
