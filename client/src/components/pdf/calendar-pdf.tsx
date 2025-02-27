@@ -65,11 +65,16 @@ const styles = StyleSheet.create({
     borderTop: 1,
     borderTopColor: '#E5E7EB',
   },
+  roomNameWrapper: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 4,
+  },
   roomName: {
     fontSize: 10,
     fontWeight: 'bold',
-    color: '#963E56', 
-    marginBottom: 4,
+    color: '#963E56',
   },
   planning: {
     backgroundColor: '#fff',
@@ -110,14 +115,7 @@ const styles = StyleSheet.create({
   channelInfo: {
     fontSize: 8,
     color: '#6B7280',
-    display: 'flex',
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 2,
   },
-  channelText: {
-    marginLeft: 4,
-  }
 });
 
 type Planning = {
@@ -187,10 +185,14 @@ export function CalendarPDF({ weekStart, plannings, logoUrl }: CalendarPDFProps)
 
                 {Array.from(planningsByRoom.entries()).map(([roomName, roomPlannings]) => (
                   <View key={roomName} style={styles.roomSection}>
-                    <Text style={styles.roomName}>
-                      {roomName}
-                      {roomPlannings[0]?.room.channel && ` (Kanaal ${roomPlannings[0].room.channel})`}
-                    </Text>
+                    <View style={styles.roomNameWrapper}>
+                      <Text style={styles.roomName}>{roomName}</Text>
+                      {roomPlannings[0]?.room.channel && (
+                        <Text style={styles.channelInfo}>
+                          📻 {roomPlannings[0].room.channel}
+                        </Text>
+                      )}
+                    </View>
                     {roomPlannings.map((planning, index) => (
                       <View key={index} style={styles.planning}>
                         <Text style={styles.volunteerName}>
