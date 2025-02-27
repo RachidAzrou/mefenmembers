@@ -412,7 +412,7 @@ const Planning = () => {
               volunteerId,
               roomId,
               startDate: format(parseISO(data.startDate), 'yyyy-MM-dd'),
-              endDate: format(parseISO(data.endDate), 'yyyy-MM-dd'),
+              endDate: format(parseISO(data.endDate), 'yyyy-MM-dd')
             });
           }
         }
@@ -421,7 +421,7 @@ const Planning = () => {
           volunteerId: data.volunteerId,
           roomId: data.roomId,
           startDate: format(parseISO(data.startDate), 'yyyy-MM-dd'),
-          endDate: format(parseISO(data.endDate), 'yyyy-MM-dd'),
+          endDate: format(parseISO(data.endDate), 'yyyy-MM-dd')
         });
       }
 
