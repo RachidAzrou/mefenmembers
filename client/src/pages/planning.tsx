@@ -87,12 +87,8 @@ const PlanningTable = ({
     const matchesDate = !dateFilter || (() => {
       const filterDate = startOfDay(dateFilter);
       const planningStart = startOfDay(parseISO(planning.startDate));
-      const planningEnd = endOfDay(parseISO(planning.endDate));
-
-      return isWithinInterval(filterDate, {
-        start: planningStart,
-        end: planningEnd
-      });
+      const planningEnd = startOfDay(parseISO(planning.endDate));
+      return filterDate.getTime() === planningStart.getTime() || filterDate.getTime() === planningEnd.getTime();
     })();
 
     return matchesSearch && matchesDate;
