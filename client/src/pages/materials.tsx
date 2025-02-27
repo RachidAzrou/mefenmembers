@@ -140,6 +140,7 @@ export default function Materials() {
   const [selectedMaterialTypes, setSelectedMaterialTypes] = useState<string[]>([]);
   const { toast } = useToast();
   const { isAdmin } = useRole();
+  const [open, setOpen] = useState(false);
 
   const form = useForm<z.infer<typeof materialSchema>>({
     resolver: zodResolver(materialSchema),
@@ -624,10 +625,8 @@ export default function Materials() {
                               type="button"
                               variant="outline"
                               role="combobox"
-                              className={cn(
-                                "w-full justify-between hover:bg-accent hover:text-accent-foreground",
-                                !field.value && "text-muted-foreground"
-                              )}
+                              aria-expanded={open}
+                              className="w-full justify-between"
                             >
                               {field.value ? (
                                 volunteers.find((volunteer) => volunteer.id === field.value)
@@ -638,11 +637,10 @@ export default function Materials() {
                               )}
                             </Button>
                           </PopoverTrigger>
-                          <PopoverContent className="w-[300px] p-0">
+                          <PopoverContent className="w-[300px] p-0" align="start">
                             <Command>
                               <CommandInput
                                 placeholder="Zoek vrijwilliger..."
-                                className="h-9"
                                 value={volunteerSearchTerm}
                                 onValueChange={setVolunteerSearchTerm}
                               />
@@ -659,12 +657,12 @@ export default function Materials() {
                                   .map((volunteer) => (
                                     <CommandItem
                                       key={volunteer.id}
-                                      value={`${volunteer.firstName} ${volunteer.lastName}`}
+                                      value={volunteer.id}
                                       onSelect={() => {
                                         form.setValue("volunteerId", volunteer.id);
                                         setVolunteerSearchTerm("");
                                       }}
-                                      className="cursor-pointer hover:bg-accent"
+                                      className="cursor-pointer py-3 px-4 hover:bg-accent hover:text-accent-foreground"
                                     >
                                       {volunteer.firstName} {volunteer.lastName}
                                     </CommandItem>
