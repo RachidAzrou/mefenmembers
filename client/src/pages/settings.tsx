@@ -44,17 +44,41 @@ import { format } from "date-fns";
 import { nl } from "date-fns/locale";
 import { logUserAction, UserActionTypes, UserAction, getUserLogs } from "@/lib/activity-logger";
 
-// ... bestaande type definities en schema's blijven hetzelfde ...
+type DatabaseUser = {
+  uid: string;
+  email: string;
+  admin: boolean;
+};
 
 export default function Settings() {
-  // ... bestaande state variabelen blijven hetzelfde ...
-
+  const [users, setUsers] = useState<DatabaseUser[]>([]);
   const [userLogs, setUserLogs] = useState<(UserAction & { id: string })[]>([]);
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [selectedUser, setSelectedUser] = useState<string>("all");
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [isLoadingLogs, setIsLoadingLogs] = useState(false);
+  const { isAdmin } = useRole();
 
+  // Fetch users
+  useEffect(() => {
+    const usersRef = ref(db, "users");
+    const unsubscribe = onValue(usersRef, (snapshot) => {
+      const data = snapshot.val();
+      if (data) {
+        const usersList = Object.entries(data).map(([uid, userData]: [string, any]) => ({
+          uid,
+          ...userData
+        }));
+        setUsers(usersList);
+      } else {
+        setUsers([]);
+      }
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  // Fetch logs with filters
   useEffect(() => {
     const fetchLogs = async () => {
       setIsLoadingLogs(true);
@@ -75,9 +99,7 @@ export default function Settings() {
     fetchLogs();
   }, [selectedDate, selectedUser, selectedCategory]);
 
-  // ... andere bestaande functies blijven hetzelfde ...
-
-  // Verbeterde categorieën voor logs
+  // Categories for filtering
   const categories = [
     { id: "all", label: "Alle activiteiten" },
     { id: "auth", label: "Authenticatie" },
@@ -130,7 +152,13 @@ export default function Settings() {
     }
   };
 
-  // ... Rest van de bestaande code blijft hetzelfde tot aan de activity logs sectie ...
+  if (!isAdmin) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <p className="text-gray-500">Je hebt geen toegang tot deze pagina.</p>
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto px-4 py-6 max-w-6xl space-y-6">
