@@ -111,7 +111,7 @@ export function PlanningForm({
                           {filteredVolunteers.map((volunteer) => (
                             <CommandItem
                               key={volunteer.id}
-                              value={volunteer.id}
+                              className="cursor-pointer"
                               onSelect={() => {
                                 const current = field.value || [];
                                 const updated = current.includes(volunteer.id)
@@ -169,7 +169,7 @@ export function PlanningForm({
                           {rooms.map((room) => (
                             <CommandItem
                               key={room.id}
-                              value={room.id}
+                              className="cursor-pointer"
                               onSelect={() => {
                                 const current = field.value || [];
                                 const updated = current.includes(room.id)
@@ -236,7 +236,7 @@ export function PlanningForm({
                           {filteredVolunteers.map((volunteer) => (
                             <CommandItem
                               key={volunteer.id}
-                              value={volunteer.id}
+                              className="cursor-pointer"
                               onSelect={() => {
                                 field.onChange(volunteer.id);
                               }}
@@ -290,7 +290,7 @@ export function PlanningForm({
                           {rooms.map((room) => (
                             <CommandItem
                               key={room.id}
-                              value={room.id}
+                              className="cursor-pointer"
                               onSelect={() => {
                                 field.onChange(room.id);
                               }}
