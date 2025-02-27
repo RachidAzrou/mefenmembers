@@ -32,14 +32,8 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
+  FormControl,
 } from "@/components/ui/form";
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-} from "@/components/ui/command";
 import {
   Popover,
   PopoverContent,
@@ -619,57 +613,43 @@ const MaterialsPage = () => {
                     control={form.control}
                     name="volunteerId"
                     render={({ field }) => (
-                      <FormItem className="flex flex-col">
+                      <FormItem>
                         <FormLabel>Vrijwilliger</FormLabel>
-                        <Popover open={open} onOpenChange={setOpen}>
-                          <PopoverTrigger asChild>
-                            <Button
-                              variant="outline"
-                              role="combobox"
-                              aria-expanded={open}
-                              className="w-full justify-between bg-background"
-                            >
-                              {field.value
-                                ? volunteers.find((volunteer) => volunteer.id === field.value)
-                                  ? `${volunteers.find((volunteer) => volunteer.id === field.value)?.firstName} ${volunteers.find((volunteer) => volunteer.id === field.value)?.lastName}`
-                                  : "Selecteer vrijwilliger"
-                                : "Selecteer vrijwilliger"}
-                              <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                            </Button>
-                          </PopoverTrigger>
-                          <PopoverContent className="w-[300px] p-0">
-                            <Command>
-                              <CommandInput
+                        <Select
+                          onValueChange={field.onChange}
+                          value={field.value}
+                        >
+                          <FormControl>
+                            <SelectTrigger className="w-full bg-white border border-input hover:bg-accent hover:text-accent-foreground">
+                              <SelectValue placeholder="Selecteer vrijwilliger" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <div className="px-3 py-2">
+                              <Input
                                 placeholder="Zoek vrijwilliger..."
-                                onValueChange={setSearchTerm}
-                                className="border-none focus:ring-0"
                                 value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                                className="mb-2"
                               />
-                              <CommandEmpty>Geen vrijwilliger gevonden.</CommandEmpty>
-                              <CommandGroup className="max-h-[300px] overflow-y-auto">
-                                {filteredVolunteers.map((volunteer) => (
-                                  <CommandItem
-                                    key={volunteer.id}
-                                    onSelect={() => {
-                                      form.setValue("volunteerId", volunteer.id);
-                                      setSearchTerm("");
-                                      setOpen(false);
-                                    }}
-                                    className="flex items-center px-4 py-2 cursor-pointer text-sm hover:bg-accent hover:text-accent-foreground aria-selected:bg-accent aria-selected:text-accent-foreground"
-                                  >
-                                    <Check
-                                      className={cn(
-                                        "mr-2 h-4 w-4",
-                                        field.value === volunteer.id ? "opacity-100" : "opacity-0"
-                                      )}
-                                    />
-                                    <span className="text-foreground">{volunteer.firstName} {volunteer.lastName}</span>
-                                  </CommandItem>
-                                ))}
-                              </CommandGroup>
-                            </Command>
-                          </PopoverContent>
-                        </Popover>
+                            </div>
+                            {volunteers
+                              .filter(volunteer => {
+                                const fullName = `${volunteer.firstName} ${volunteer.lastName}`.toLowerCase();
+                                return fullName.includes(searchTerm.toLowerCase());
+                              })
+                              .sort((a, b) => `${a.firstName} ${a.lastName}`.localeCompare(`${b.firstName} ${b.lastName}`))
+                              .map((volunteer) => (
+                                <SelectItem
+                                  key={volunteer.id}
+                                  value={volunteer.id}
+                                  className="cursor-pointer py-2 px-3 hover:bg-accent hover:text-accent-foreground"
+                                >
+                                  {volunteer.firstName} {volunteer.lastName}
+                                </SelectItem>
+                              ))}
+                          </SelectContent>
+                        </Select>
                         <FormMessage />
                       </FormItem>
                     )}
@@ -923,7 +903,7 @@ const MaterialsPage = () => {
                                   size="icon"
                                   onClick={() => handleReturn(item.id)}
                                   className="text-[#963E56] hover:text-[#963E56]/90 hover:bg-[#963E56]/10"
-                               >
+                                >
                                   <RotateCcw className="h-4 w-4" />
                                 </Button>
                               </TooltipTrigger>
