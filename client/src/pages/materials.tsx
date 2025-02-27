@@ -17,8 +17,17 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
   Form,
-  FormControl,
   FormField,
   FormItem,
   FormLabel,
@@ -31,6 +40,19 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge"; 
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { useToast } from "@/hooks/use-toast";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -54,7 +76,6 @@ import { logUserAction, UserActionTypes } from "@/lib/activity-logger";
 import { cn } from "@/lib/utils";
 import { GiMonclerJacket, GiWalkieTalkie } from 'react-icons/gi';
 import { TbJacket } from 'react-icons/tb';
-
 
 const materialSchema = z.object({
   volunteerId: z.string().min(1, "Vrijwilliger is verplicht"),
@@ -108,12 +129,12 @@ export default function Materials() {
   const [selectedMaterials, setSelectedMaterials] = useState<string[]>([]);
   const [isEditMode, setIsEditMode] = useState(false);
   const [selectedMaterialTypes, setSelectedMaterialTypes] = useState<string[]>([]);
-  const { toast } = useToast();
-  const { isAdmin } = useRole();
   const [isTypesDialogOpen, setIsTypesDialogOpen] = useState(false);
   const [editingMaterialType, setEditingMaterialType] = useState<MaterialType | null>(null);
   const [deleteMaterialTypeId, setDeleteMaterialTypeId] = useState<string | null>(null);
   const [editingMaterial, setEditingMaterial] = useState<Material | null>(null);
+  const { toast } = useToast();
+  const { isAdmin } = useRole();
 
   const form = useForm<z.infer<typeof materialSchema>>({
     resolver: zodResolver(materialSchema),
@@ -464,7 +485,6 @@ export default function Materials() {
   };
 
 
-  // Filter volunteers based on search term
   const filteredVolunteers = volunteers.filter(volunteer => {
     const fullName = `${volunteer.firstName} ${volunteer.lastName}`.toLowerCase();
     return fullName.includes(volunteerSearchTerm.toLowerCase());
@@ -601,23 +621,27 @@ export default function Materials() {
                               className="mb-2"
                             />
                             <Select
-                              onValueChange={field.onChange}
                               value={field.value}
+                              onValueChange={field.onChange}
+                              defaultValue=""
                             >
-                              <FormControl>
-                                <SelectTrigger>
-                                  <SelectValue placeholder="Selecteer vrijwilliger" />
-                                </SelectTrigger>
-                              </FormControl>
+                              <SelectTrigger 
+                                className="w-full bg-white border border-input hover:bg-accent hover:text-accent-foreground"
+                              >
+                                <SelectValue placeholder="Selecteer vrijwilliger" />
+                              </SelectTrigger>
                               <SelectContent>
-                                {filteredVolunteers.map((volunteer) => (
-                                  <SelectItem
-                                    key={volunteer.id}
-                                    value={volunteer.id}
-                                  >
-                                    {volunteer.firstName} {volunteer.lastName}
-                                  </SelectItem>
-                                ))}
+                                {filteredVolunteers
+                                  .sort((a, b) => `${a.firstName} ${a.lastName}`.localeCompare(`${b.firstName} ${b.lastName}`))
+                                  .map((volunteer) => (
+                                    <SelectItem
+                                      key={volunteer.id}
+                                      value={volunteer.id}
+                                      className="cursor-pointer py-2 px-3 hover:bg-accent hover:text-accent-foreground"
+                                    >
+                                      {volunteer.firstName} {volunteer.lastName}
+                                    </SelectItem>
+                                  ))}
                               </SelectContent>
                             </Select>
                           </div>
@@ -914,28 +938,31 @@ export default function Materials() {
             onClick={() => handleBulkReturn(selectedMaterials)}
             className="bg-primary hover:bg-primary/90"
           >
-            <RotateCcw className="h-4 w-4 mr-2" />
-            Retourneren
+            <RotateCcw className="h-4 w-4 mr-2" />            Retourneren
           </Button>
         </div>
       )}
 
       <AlertDialog
         open={!!deleteMaterialTypeId}
-        onOpenChange={() => setDeleteMaterialTypeId(null)}>
+        onOpenChange={() => setDeleteMaterialTypeId(null)}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Weet je het zeker?</AlertDialogTitle>
             <AlertDialogDescription>
-              Deze actie kan niet ongedaan worden gemaakt. Dit zal het materiaaltype permanent verwijderen.
+              Deze actie kan niet ongedaan worden gemaakt.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Annuleren</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={() => deleteMaterialTypeId && handleDeleteMaterialType(deleteMaterialTypeId)}
-              className="bg-red-600 hover:bg-red-700"
-            >
+            <AlertDialogCancel onClick={() => setDeleteMaterialTypeId(null)}>
+              Annuleren
+            </AlertDialogCancel>
+            <AlertDialogAction onClick={() => {
+              if (deleteMaterialTypeId) {
+                handleDeleteMaterialType(deleteMaterialTypeId);
+              }
+            }}>
               Verwijderen
             </AlertDialogAction>
           </AlertDialogFooter>
