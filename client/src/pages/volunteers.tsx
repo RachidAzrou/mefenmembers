@@ -10,7 +10,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { db } from "@/lib/firebase";
 import { ref, push, remove, update, onValue } from "firebase/database";
-import { UserPlus, Edit2, Trash2, Search, Users, CheckSquare, Square, Settings2, ChevronLeft, ChevronRight, ArrowUpDown } from "lucide-react";
+import { UserPlus, Edit2, Trash2, Search, Users, CheckSquare, Square, Settings2, ChevronLeft, ChevronRight, ArrowUpDown, Plus } from "lucide-react";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -36,6 +36,7 @@ export default function Volunteers() {
   const [deleteVolunteerId, setDeleteVolunteerId] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [showBulkDialog, setShowBulkDialog] = useState(false);
   const [selectedVolunteers, setSelectedVolunteers] = useState<string[]>([]);
   const [isEditMode, setIsEditMode] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
@@ -140,6 +141,7 @@ export default function Volunteers() {
       form.reset();
       setEditingVolunteer(null);
       setDialogOpen(false);
+      setShowBulkDialog(false);
     } catch (error) {
       toast({
         variant: "destructive",
@@ -272,17 +274,23 @@ export default function Volunteers() {
           </Select>
         </div>
         <div className="flex items-center gap-2 w-full sm:w-auto">
-          <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+          <Dialog open={dialogOpen || showBulkDialog} onOpenChange={(open) => {
+            if (!open) {
+              setDialogOpen(false);
+              setShowBulkDialog(false);
+              form.reset();
+            }
+          }}>
             <DialogTrigger asChild>
               <Button className="bg-[#963E56] hover:bg-[#963E56]/90 flex-1 sm:flex-none">
                 <UserPlus className="h-4 w-4 mr-2" />
-                Vrijwilliger Toevoegen
+                {selectedVolunteers.length > 0 ? "Bulk Planning" : "Vrijwilliger Toevoegen"}
               </Button>
             </DialogTrigger>
-            <DialogContent>
+            <DialogContent className="max-w-[95vw] sm:max-w-[450px] p-4 sm:p-6 bg-white border-none shadow-lg mx-4">
               <DialogHeader>
-                <DialogTitle>
-                  {editingVolunteer ? "Vrijwilliger Bewerken" : "Nieuwe Vrijwilliger"}
+                <DialogTitle className="text-xl font-semibold text-[#963E56]">
+                  {selectedVolunteers.length > 0 ? "Bulk Planning" : "Nieuwe Vrijwilliger"}
                 </DialogTitle>
               </DialogHeader>
               <Form {...form}>
@@ -476,7 +484,7 @@ export default function Volunteers() {
           <Separator orientation="vertical" className="h-6 hidden sm:block" />
           <Button
             variant="destructive"
-            onClick={() => setDeleteVolunteerId("bulk")}
+            onClick={() => setShowBulkDialog(true)}
             className="w-full sm:w-auto bg-[#963E56] hover:bg-[#963E56]/90"
           >
             <Trash2 className="h-4 w-4 mr-2" />
