@@ -74,21 +74,26 @@ const styles = StyleSheet.create({
     fontSize: 7,
     color: '#963E56',
     opacity: 0.7,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  channelIcon: {
+    marginRight: 2,
+    fontSize: 7,
   },
   planningCard: {
-    backgroundColor: '#963E56',
-    opacity: 0.05,
     borderRadius: 2,
     padding: 4,
     marginBottom: 3,
     borderWidth: 1,
-    borderColor: '#963E56',
-    borderOpacity: 0.1,
+    borderColor: 'rgba(150, 62, 86, 0.1)',
+    backgroundColor: 'rgba(150, 62, 86, 0.05)',
   },
   volunteerName: {
     fontSize: 7,
-    fontWeight: 'medium',
-    color: '#000000', 
+    fontWeight: 'bold',
+    color: 'black',
+    fontFamily: 'Helvetica-Bold',
   },
   noPlanning: {
     fontSize: 7,
@@ -183,9 +188,10 @@ export function CalendarPDF({ weekStart, plannings, logoUrl }: CalendarPDFProps)
                     <View style={styles.roomHeader}>
                       <Text style={styles.roomName}>{roomName}</Text>
                       {roomPlannings[0]?.room.channel && (
-                        <Text style={styles.channelInfo}>
-                          📻 {roomPlannings[0].room.channel}
-                        </Text>
+                        <View style={styles.channelInfo}>
+                          <Text style={styles.channelIcon}>📻</Text>
+                          <Text> {roomPlannings[0].room.channel}</Text>
+                        </View>
                       )}
                     </View>
                     {roomPlannings.map((planning, index) => (
