@@ -42,6 +42,9 @@ export default function PublicCalendar() {
         id,
         ...(planning as Omit<Planning, "id">),
       })) : [];
+
+      // Log alle planningen bij het laden
+      console.log("Loaded plannings:", planningsList);
       setPlannings(planningsList);
     });
 
@@ -67,32 +70,27 @@ export default function PublicCalendar() {
   }, []);
 
   const getPlanningsForDay = (day: Date) => {
-    // Log voor debugging
-    console.log("Checking plannings for day:", format(day, 'yyyy-MM-dd'));
+    const dayFormatted = format(day, 'yyyy-MM-dd');
+    console.log(`\nChecking plannings for: ${dayFormatted}`);
 
-    return plannings.filter(planning => {
-      // Log elke planning die we checken
-      console.log("Checking planning:", {
-        planning: planning.id,
-        startDate: planning.startDate,
-        endDate: planning.endDate,
-        checkingDay: format(day, 'yyyy-MM-dd')
+    const filteredPlannings = plannings.filter(planning => {
+      console.log(`\nChecking planning ${planning.id}:`, {
+        planning_start: planning.startDate,
+        planning_end: planning.endDate,
+        checking_day: dayFormatted,
+        is_start_match: planning.startDate === dayFormatted,
+        is_end_match: planning.endDate === dayFormatted,
+        is_within_range: dayFormatted >= planning.startDate && dayFormatted <= planning.endDate
       });
 
-      // Direct string comparison voor datums
-      const currentDayStr = format(day, 'yyyy-MM-dd');
-
-      // Log de vergelijking
-      console.log("Date comparison:", {
-        currentDay: currentDayStr,
-        start: planning.startDate,
-        end: planning.endDate,
-        startComparison: currentDayStr >= planning.startDate,
-        endComparison: currentDayStr <= planning.endDate
-      });
-
-      return currentDayStr >= planning.startDate && currentDayStr <= planning.endDate;
+      return dayFormatted >= planning.startDate && dayFormatted <= planning.endDate;
     });
+
+    console.log(`Found ${filteredPlannings.length} plannings for ${dayFormatted}:`, 
+      filteredPlannings.map(p => ({ id: p.id, start: p.startDate, end: p.endDate }))
+    );
+
+    return filteredPlannings;
   };
 
   const getPlanningsByRoom = (day: Date) => {
