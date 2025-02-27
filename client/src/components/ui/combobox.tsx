@@ -47,7 +47,7 @@ export function Combobox({
           variant="outline"
           role="combobox"
           aria-expanded={open}
-          className="w-full justify-between hover:bg-accent hover:text-accent-foreground"
+          className="w-full justify-between bg-background hover:bg-accent hover:text-accent-foreground"
         >
           {value
             ? items.find((item) => item.value === value)?.label
@@ -61,6 +61,7 @@ export function Combobox({
             placeholder="Zoeken..." 
             value={searchTerm}
             onValueChange={setSearchTerm}
+            className="border-none focus-visible:ring-0 focus-visible:ring-offset-0"
           />
           <CommandEmpty>Geen resultaten gevonden.</CommandEmpty>
           <CommandGroup className="max-h-[300px] overflow-auto">
@@ -72,7 +73,7 @@ export function Combobox({
                   onChange(currentValue)
                   setOpen(false)
                 }}
-                className="cursor-pointer"
+                className="cursor-pointer text-foreground hover:bg-accent hover:text-accent-foreground aria-selected:bg-accent aria-selected:text-accent-foreground"
               >
                 <Check
                   className={cn(
