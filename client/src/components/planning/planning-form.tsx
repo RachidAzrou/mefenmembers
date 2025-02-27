@@ -50,12 +50,6 @@ export function PlanningForm({
   const isBulkPlanning = form.watch("isBulkPlanning");
   const [searchTerm, setSearchTerm] = useState("");
 
-  // Reset search term when dialog closes
-  const handleClose = () => {
-    setSearchTerm("");
-    onClose();
-  };
-
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -74,7 +68,7 @@ export function PlanningForm({
               }}
               className="data-[state=checked]:bg-[#963E56]"
             />
-            <Label>Bulk Inplannen</Label>
+            <Label className="text-sm">Bulk Inplannen</Label>
           </div>
         )}
 
@@ -86,29 +80,29 @@ export function PlanningForm({
               name="volunteerId"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Vrijwilliger</FormLabel>
+                  <FormLabel className="text-sm">Vrijwilliger</FormLabel>
                   <Select
                     value={field.value}
                     onValueChange={field.onChange}
                   >
-                    <SelectTrigger>
+                    <SelectTrigger className="w-full">
                       <SelectValue placeholder="Selecteer vrijwilliger" />
                     </SelectTrigger>
-                    <SelectContent>
-                      <div className="sticky top-0 px-2 py-2 bg-white border-b">
+                    <SelectContent className="max-h-[300px]">
+                      <div className="sticky top-0 p-2 bg-white border-b">
                         <div className="relative">
-                          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+                          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                           <input
                             type="text"
                             placeholder="Zoek vrijwilliger..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                             onClick={(e) => e.stopPropagation()}
-                            className="w-full pl-9 h-9 rounded-md border border-input bg-white px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-offset-0 disabled:cursor-not-allowed disabled:opacity-50"
+                            className="w-full pl-9 h-9 rounded-md border text-sm bg-white"
                           />
                         </div>
                       </div>
-                      <div className="pt-1 max-h-[300px] overflow-y-auto">
+                      <div className="pt-1">
                         {volunteers
                           .filter(volunteer => {
                             const fullName = `${volunteer.firstName} ${volunteer.lastName}`.toLowerCase();
@@ -118,7 +112,7 @@ export function PlanningForm({
                             <SelectItem
                               key={volunteer.id}
                               value={volunteer.id}
-                              className="flex items-center py-2.5 px-3 cursor-pointer hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
+                              className="flex items-center py-2 px-3"
                             >
                               <div className="flex items-center gap-2 w-full">
                                 <Check
@@ -167,12 +161,12 @@ export function PlanningForm({
               name="roomId"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Ruimte</FormLabel>
+                  <FormLabel className="text-sm">Ruimte</FormLabel>
                   <Select
                     value={field.value}
                     onValueChange={field.onChange}
                   >
-                    <SelectTrigger>
+                    <SelectTrigger className="w-full">
                       <SelectValue placeholder="Selecteer een ruimte" />
                     </SelectTrigger>
                     <SelectContent>
@@ -210,7 +204,7 @@ export function PlanningForm({
               name="selectedVolunteers"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Vrijwilligers</FormLabel>
+                  <FormLabel className="text-sm">Vrijwilligers</FormLabel>
                   <Select
                     value={field.value?.[0] || ""}
                     onValueChange={(value) => {
@@ -221,28 +215,28 @@ export function PlanningForm({
                       field.onChange(updated);
                     }}
                   >
-                    <SelectTrigger>
+                    <SelectTrigger className="w-full">
                       <SelectValue placeholder="Selecteer vrijwilligers">
                         {field.value?.length
                           ? `${field.value.length} vrijwilliger(s) geselecteerd`
                           : "Selecteer vrijwilligers"}
                       </SelectValue>
                     </SelectTrigger>
-                    <SelectContent>
-                      <div className="sticky top-0 px-2 py-2 bg-white border-b">
+                    <SelectContent className="max-h-[300px]">
+                      <div className="sticky top-0 p-2 bg-white border-b">
                         <div className="relative">
-                          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+                          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                           <input
                             type="text"
                             placeholder="Zoek vrijwilliger..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                             onClick={(e) => e.stopPropagation()}
-                            className="w-full pl-9 h-9 rounded-md border border-input bg-white px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-offset-0 disabled:cursor-not-allowed disabled:opacity-50"
+                            className="w-full pl-9 h-9 rounded-md border text-sm bg-white"
                           />
                         </div>
                       </div>
-                      <div className="pt-1 max-h-[300px] overflow-y-auto">
+                      <div className="pt-1">
                         {volunteers
                           .filter(volunteer => {
                             const fullName = `${volunteer.firstName} ${volunteer.lastName}`.toLowerCase();
@@ -252,7 +246,7 @@ export function PlanningForm({
                             <SelectItem
                               key={volunteer.id}
                               value={volunteer.id}
-                              className="flex items-center py-2.5 px-3 cursor-pointer hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
+                              className="flex items-center py-2 px-3"
                             >
                               <div className="flex items-center gap-2 w-full">
                                 <Check
@@ -304,7 +298,7 @@ export function PlanningForm({
               name="selectedRooms"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Ruimtes</FormLabel>
+                  <FormLabel className="text-sm">Ruimtes</FormLabel>
                   <Select
                     value={field.value?.[0] || ""}
                     onValueChange={(value) => {
@@ -315,7 +309,7 @@ export function PlanningForm({
                       field.onChange(updated);
                     }}
                   >
-                    <SelectTrigger>
+                    <SelectTrigger className="w-full">
                       <SelectValue
                         placeholder="Selecteer ruimtes"
                       >
@@ -329,7 +323,7 @@ export function PlanningForm({
                         <SelectItem
                           key={room.id}
                           value={room.id}
-                          className="flex items-center py-2.5 px-3 cursor-pointer hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
+                          className="flex items-center py-2 px-3 cursor-pointer hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
                         >
                           <div className="flex items-center gap-2 w-full">
                             <Check
@@ -480,13 +474,14 @@ export function PlanningForm({
           <Button
             type="button"
             variant="ghost"
-            onClick={handleClose}
+            onClick={onClose}
+            className="text-sm"
           >
             Annuleren
           </Button>
           <Button
             type="submit"
-            className="bg-[#963E56] hover:bg-[#963E56]/90"
+            className="bg-[#963E56] hover:bg-[#963E56]/90 text-sm"
           >
             {editingPlanning ? "Planning Bijwerken" : "Planning Opslaan"}
           </Button>
