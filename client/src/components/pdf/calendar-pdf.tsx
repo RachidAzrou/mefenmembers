@@ -4,117 +4,114 @@ import { nl } from "date-fns/locale";
 
 const styles = StyleSheet.create({
   page: {
-    padding: 20,
+    padding: 30,
     backgroundColor: '#fff',
     fontFamily: 'Helvetica',
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 20,
+    marginBottom: 30,
     borderBottom: 1,
     borderBottomColor: '#E5E7EB',
-    paddingBottom: 10,
+    paddingBottom: 15,
   },
   logo: {
-    width: 120,
-    marginRight: 15,
+    width: 80,
+    marginRight: 20,
   },
-  headerText: {
+  headerContent: {
     flex: 1,
   },
   title: {
-    fontSize: 18,
-    color: '#963E56', 
-    marginBottom: 2,
-    textAlign: 'left',
+    fontSize: 24,
+    color: '#D9A347',
+    marginBottom: 5,
   },
-  weekInfo: {
-    fontSize: 12,
+  subtitle: {
+    fontSize: 14,
     color: '#4B5563',
   },
-  calendar: {
+  weekGrid: {
     flexDirection: 'row',
-    gap: 8,
+    gap: 12,
   },
-  day: {
+  dayCard: {
     flex: 1,
-    backgroundColor: '#F9FAFB',
-    borderRadius: 4,
-    padding: 8,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 8,
+    padding: 12,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
   },
   dayHeader: {
-    borderBottom: 1,
-    borderBottomColor: '#E5E7EB',
-    paddingBottom: 6,
-    marginBottom: 8,
+    marginBottom: 12,
   },
   dayName: {
-    fontSize: 11,
+    fontSize: 14,
     fontWeight: 'bold',
-    color: '#963E56', 
+    color: '#963E56',
   },
   dayDate: {
-    fontSize: 9,
+    fontSize: 12,
     color: '#6B7280',
     marginTop: 2,
   },
   roomSection: {
-    marginTop: 6,
-    paddingTop: 6,
-    borderTop: 1,
+    marginTop: 8,
+    paddingTop: 8,
+    borderTopWidth: 1,
     borderTopColor: '#E5E7EB',
   },
-  roomNameWrapper: {
+  roomHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 4,
+    marginBottom: 6,
   },
   roomName: {
-    fontSize: 10,
+    fontSize: 12,
     fontWeight: 'bold',
     color: '#963E56',
   },
-  planning: {
-    backgroundColor: '#fff',
-    borderRadius: 2,
-    padding: 4,
-    marginBottom: 4,
-    borderLeft: 1,
-    borderLeftColor: '#963E56', 
+  channelInfo: {
+    fontSize: 10,
+    color: '#963E56',
+    opacity: 0.7,
+  },
+  planningCard: {
+    backgroundColor: '#963E56',
+    opacity: 0.05,
+    borderRadius: 4,
+    padding: 8,
+    marginBottom: 6,
+    borderWidth: 1,
+    borderColor: '#963E56',
+    borderOpacity: 0.1,
   },
   volunteerName: {
-    fontSize: 9,
-    color: '#4B5563',
+    fontSize: 11,
+    fontWeight: 'medium',
+    color: '#374151',
   },
-  timeSlot: {
-    fontSize: 8,
-    color: '#6B7280',
-    marginTop: 1,
-  },
-  emptyMessage: {
-    fontSize: 8,
-    color: '#9CA3AF',
+  noPlanning: {
+    fontSize: 11,
     fontStyle: 'italic',
     textAlign: 'center',
-    marginTop: 10,
+    color: '#6B7280',
+    marginTop: 12,
   },
   footer: {
     position: 'absolute',
-    bottom: 20,
-    left: 20,
-    right: 20,
+    bottom: 30,
+    left: 30,
+    right: 30,
     textAlign: 'center',
     color: '#6B7280',
-    fontSize: 7,
+    fontSize: 8,
     borderTop: 1,
     borderTopColor: '#E5E7EB',
-    paddingTop: 8,
-  },
-  channelInfo: {
-    fontSize: 8,
-    color: '#6B7280',
+    paddingTop: 10,
   },
 });
 
@@ -125,8 +122,6 @@ type Planning = {
   };
   volunteer: { firstName: string; lastName: string };
   date: Date;
-  startTime?: string;
-  endTime?: string;
 };
 
 type CalendarPDFProps = {
@@ -160,22 +155,26 @@ export function CalendarPDF({ weekStart, plannings, logoUrl }: CalendarPDFProps)
       <Page size="A4" orientation="landscape" style={styles.page}>
         <View style={styles.header}>
           {logoUrl && <Image src={logoUrl} style={styles.logo} />}
-          <View style={styles.headerText}>
-            <Text style={styles.title}>Planning Vrijwilligers</Text>
-            <Text style={styles.weekInfo}>
-              Week van {format(weekStart, 'd MMMM yyyy', { locale: nl })}
-            </Text>
+          <View style={styles.headerContent}>
+            <Text style={styles.title}>Week van {format(weekStart, 'd MMMM yyyy', { locale: nl })}</Text>
           </View>
         </View>
 
-        <View style={styles.calendar}>
+        <View style={styles.weekGrid}>
           {weekDays.map((day) => {
+            const isToday = format(day, 'yyyy-MM-dd') === format(new Date(), 'yyyy-MM-dd');
             const planningsByRoom = getPlanningsForDay(day);
 
             return (
-              <View key={day.toISOString()} style={styles.day}>
+              <View key={day.toISOString()} style={[
+                styles.dayCard,
+                isToday && { borderColor: '#D9A347', borderWidth: 2 }
+              ]}>
                 <View style={styles.dayHeader}>
-                  <Text style={styles.dayName}>
+                  <Text style={[
+                    styles.dayName,
+                    isToday && { color: '#D9A347' }
+                  ]}>
                     {format(day, 'EEEE', { locale: nl })}
                   </Text>
                   <Text style={styles.dayDate}>
@@ -185,7 +184,7 @@ export function CalendarPDF({ weekStart, plannings, logoUrl }: CalendarPDFProps)
 
                 {Array.from(planningsByRoom.entries()).map(([roomName, roomPlannings]) => (
                   <View key={roomName} style={styles.roomSection}>
-                    <View style={styles.roomNameWrapper}>
+                    <View style={styles.roomHeader}>
                       <Text style={styles.roomName}>{roomName}</Text>
                       {roomPlannings[0]?.room.channel && (
                         <Text style={styles.channelInfo}>
@@ -194,22 +193,17 @@ export function CalendarPDF({ weekStart, plannings, logoUrl }: CalendarPDFProps)
                       )}
                     </View>
                     {roomPlannings.map((planning, index) => (
-                      <View key={index} style={styles.planning}>
+                      <View key={index} style={styles.planningCard}>
                         <Text style={styles.volunteerName}>
                           {planning.volunteer.firstName} {planning.volunteer.lastName}
                         </Text>
-                        {(planning.startTime && planning.endTime) && (
-                          <Text style={styles.timeSlot}>
-                            {planning.startTime} - {planning.endTime}
-                          </Text>
-                        )}
                       </View>
                     ))}
                   </View>
                 ))}
 
                 {planningsByRoom.size === 0 && (
-                  <Text style={styles.emptyMessage}>Geen planning</Text>
+                  <Text style={styles.noPlanning}>Geen toewijzingen</Text>
                 )}
               </View>
             );
