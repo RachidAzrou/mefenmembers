@@ -21,11 +21,11 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 
-interface Room {
+type Room = {
   id: string;
   name: string;
   channel?: string;
-}
+};
 
 export default function Communication() {
   const [rooms, setRooms] = useState<Room[]>([]);
