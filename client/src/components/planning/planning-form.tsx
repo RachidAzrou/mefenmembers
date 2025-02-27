@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
@@ -49,6 +49,20 @@ export function PlanningForm({
 }: PlanningFormProps) {
   const isBulkPlanning = form.watch("isBulkPlanning");
   const [searchTerm, setSearchTerm] = useState("");
+
+  // Add logging voor debugging
+  useEffect(() => {
+    const subscription = form.watch((value, { name, type }) => {
+      if (name === "startDate" || name === "endDate") {
+        console.log(`Date changed - ${name}:`, {
+          value,
+          formattedValue: value ? format(parseISO(value), 'yyyy-MM-dd') : null
+        });
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, [form]);
 
   return (
     <Form {...form}>

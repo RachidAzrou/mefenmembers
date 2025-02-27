@@ -16,7 +16,7 @@ type Planning = {
 type Room = {
   id: string;
   name: string;
-  channel?: string; 
+  channel?: string;
 };
 
 type Volunteer = {
@@ -42,6 +42,9 @@ export default function PublicCalendar() {
         id,
         ...(planning as Omit<Planning, "id">),
       })) : [];
+
+      // Log de opgehaalde planningen
+      console.log("Loaded plannings from Firebase:", planningsList);
       setPlannings(planningsList);
     });
 
@@ -67,35 +70,32 @@ export default function PublicCalendar() {
   }, []);
 
   const getPlanningsForDay = (day: Date) => {
-    // Reset time to midnight for the day we're checking
-    const checkDate = new Date(day);
-    checkDate.setHours(0, 0, 0, 0);
-    const checkTime = checkDate.getTime();
+    // Format de dag die we checken
+    const checkDay = format(day, 'yyyy-MM-dd');
 
-    return plannings.filter(planning => {
-      // Convert string dates to Date objects and reset time to midnight
-      const startDate = parseISO(planning.startDate);
-      const endDate = parseISO(planning.endDate);
-      startDate.setHours(0, 0, 0, 0);
-      endDate.setHours(0, 0, 0, 0);
+    // Log de dag die we checken
+    console.log("\nChecking plannings for day:", checkDay);
 
-      // Get timestamps for comparison
-      const startTime = startDate.getTime();
-      const endTime = endDate.getTime();
-
-      // Log voor debugging
-      console.log('Planning check:', {
-        planning_id: planning.id,
-        check_date: format(checkDate, 'yyyy-MM-dd'),
-        start_date: format(startDate, 'yyyy-MM-dd'),
-        end_date: format(endDate, 'yyyy-MM-dd'),
-        is_after_or_equal_start: checkTime >= startTime,
-        is_before_or_equal_end: checkTime <= endTime
+    const filtered = plannings.filter(planning => {
+      // Log de planning die we checken
+      console.log("\nChecking planning:", {
+        id: planning.id,
+        startDate: planning.startDate,
+        endDate: planning.endDate,
+        checkDay: checkDay,
+        // Log de string vergelijkingen
+        startCheck: checkDay >= planning.startDate,
+        endCheck: checkDay <= planning.endDate
       });
 
-      // Check if the day falls within the range (inclusive)
-      return checkTime >= startTime && checkTime <= endTime;
+      // Simpele string vergelijking
+      return checkDay >= planning.startDate && checkDay <= planning.endDate;
     });
+
+    // Log de gefilterde planningen
+    console.log(`Found ${filtered.length} plannings for ${checkDay}:`, filtered);
+
+    return filtered;
   };
 
   const getPlanningsByRoom = (day: Date) => {

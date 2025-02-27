@@ -402,13 +402,20 @@ const Planning = () => {
 
   const onSubmit = async (data: z.infer<typeof planningSchema>) => {
     try {
-      // Log de data voor debugging
-      console.log("Planning submission data:", {
-        startDate: data.startDate,
-        endDate: data.endDate,
-        formattedStart: format(parseISO(data.startDate), 'yyyy-MM-dd'),
-        formattedEnd: format(parseISO(data.endDate), 'yyyy-MM-dd')
+      // Voeg uitgebreide logging toe
+      console.log("Planning submission - Raw data:", {
+        data,
+        type: typeof data.startDate,
+        startDateRaw: data.startDate,
+        endDateRaw: data.endDate
       });
+
+      const planningData = {
+        startDate: format(parseISO(data.startDate), 'yyyy-MM-dd'),
+        endDate: format(parseISO(data.endDate), 'yyyy-MM-dd')
+      };
+
+      console.log("Formatted planning data:", planningData);
 
       if (data.isBulkPlanning) {
         const volunteers = data.selectedVolunteers || [];
@@ -419,8 +426,7 @@ const Planning = () => {
             await push(ref(db, "plannings"), {
               volunteerId,
               roomId,
-              startDate: format(parseISO(data.startDate), 'yyyy-MM-dd'),
-              endDate: format(parseISO(data.endDate), 'yyyy-MM-dd')
+              ...planningData
             });
           }
         }
@@ -428,8 +434,7 @@ const Planning = () => {
         await push(ref(db, "plannings"), {
           volunteerId: data.volunteerId,
           roomId: data.roomId,
-          startDate: format(parseISO(data.startDate), 'yyyy-MM-dd'),
-          endDate: format(parseISO(data.endDate), 'yyyy-MM-dd')
+          ...planningData
         });
       }
 
