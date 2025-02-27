@@ -12,6 +12,7 @@ import { nl } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { z } from "zod";
 import { UseFormReturn } from "react-hook-form";
+import { X } from 'lucide-react'; //Import X icon
 
 // Keep the same schema
 const planningSchema = z.object({
@@ -150,11 +151,11 @@ export function PlanningForm({
                     }}
                   >
                     <SelectTrigger>
-                      <SelectValue 
+                      <SelectValue
                         placeholder="Selecteer vrijwilligers"
                       >
-                        {field.value?.length 
-                          ? `${field.value.length} vrijwilliger(s) geselecteerd` 
+                        {field.value?.length
+                          ? `${field.value.length} vrijwilliger(s) geselecteerd`
                           : "Selecteer vrijwilligers"}
                       </SelectValue>
                     </SelectTrigger>
@@ -169,6 +170,32 @@ export function PlanningForm({
                       ))}
                     </SelectContent>
                   </Select>
+                  {field.value?.length > 0 && (
+                    <div className="mt-2 flex flex-wrap gap-2">
+                      {field.value.map(id => {
+                        const volunteer = volunteers.find(v => v.id === id);
+                        return volunteer && (
+                          <div
+                            key={id}
+                            className="bg-[#963E56]/10 text-[#963E56] text-sm rounded-full px-3 py-1 flex items-center gap-2"
+                          >
+                            <span>{volunteer.firstName} {volunteer.lastName}</span>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="icon"
+                              className="h-4 w-4 p-0 hover:bg-transparent"
+                              onClick={() => {
+                                field.onChange(field.value?.filter(v => v !== id));
+                              }}
+                            >
+                              <X className="h-3 w-3" />
+                            </Button>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
                   <FormMessage />
                 </FormItem>
               )}
@@ -191,11 +218,11 @@ export function PlanningForm({
                     }}
                   >
                     <SelectTrigger>
-                      <SelectValue 
+                      <SelectValue
                         placeholder="Selecteer ruimtes"
                       >
-                        {field.value?.length 
-                          ? `${field.value.length} ruimte(s) geselecteerd` 
+                        {field.value?.length
+                          ? `${field.value.length} ruimte(s) geselecteerd`
                           : "Selecteer ruimtes"}
                       </SelectValue>
                     </SelectTrigger>
@@ -210,6 +237,32 @@ export function PlanningForm({
                       ))}
                     </SelectContent>
                   </Select>
+                  {field.value?.length > 0 && (
+                    <div className="mt-2 flex flex-wrap gap-2">
+                      {field.value.map(id => {
+                        const room = rooms.find(r => r.id === id);
+                        return room && (
+                          <div
+                            key={id}
+                            className="bg-[#963E56]/10 text-[#963E56] text-sm rounded-full px-3 py-1 flex items-center gap-2"
+                          >
+                            <span>{room.name}</span>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="icon"
+                              className="h-4 w-4 p-0 hover:bg-transparent"
+                              onClick={() => {
+                                field.onChange(field.value?.filter(r => r !== id));
+                              }}
+                            >
+                              <X className="h-3 w-3" />
+                            </Button>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
                   <FormMessage />
                 </FormItem>
               )}
