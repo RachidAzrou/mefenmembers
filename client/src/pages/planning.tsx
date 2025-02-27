@@ -403,19 +403,18 @@ const Planning = () => {
   const onSubmit = async (data: z.infer<typeof planningSchema>) => {
     try {
       // Debug logging voor datum verwerking
-      console.log("Planning submission - Raw form data:", {
-        raw_start: data.startDate,
-        raw_end: data.endDate
+      console.log("Planning submission - Raw data:", {
+        startDate: data.startDate,
+        endDate: data.endDate
       });
 
-      // Zorg ervoor dat we consistente datumstrings hebben
-      const startDate = format(new Date(data.startDate), 'yyyy-MM-dd');
-      const endDate = format(new Date(data.endDate), 'yyyy-MM-dd');
+      // Ensure we're storing dates in yyyy-MM-dd format
+      const planningData = {
+        startDate: format(new Date(data.startDate), 'yyyy-MM-dd'),
+        endDate: format(new Date(data.endDate), 'yyyy-MM-dd')
+      };
 
-      console.log("Formatted dates for Firebase:", {
-        startDate,
-        endDate
-      });
+      console.log("Formatted dates for storage:", planningData);
 
       if (data.isBulkPlanning) {
         const volunteers = data.selectedVolunteers || [];
@@ -426,8 +425,7 @@ const Planning = () => {
             await push(ref(db, "plannings"), {
               volunteerId,
               roomId,
-              startDate,
-              endDate
+              ...planningData
             });
           }
         }
@@ -435,8 +433,7 @@ const Planning = () => {
         await push(ref(db, "plannings"), {
           volunteerId: data.volunteerId,
           roomId: data.roomId,
-          startDate,
-          endDate
+          ...planningData
         });
       }
 

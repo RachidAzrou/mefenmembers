@@ -72,19 +72,25 @@ export default function PublicCalendar() {
 
     console.log("\n=== Checking plannings for day:", dayStr, "===");
 
-    return plannings.filter(planning => {
-      const matches = planning.startDate <= dayStr && planning.endDate >= dayStr; //Simplified comparison
+    const matches = plannings.filter(planning => {
+      const isMatch = (
+        // Check of de dag binnen het bereik valt (inclusief start- en einddatum)
+        dayStr >= planning.startDate && 
+        dayStr <= planning.endDate
+      );
 
       console.log("Planning check:", {
         planning_id: planning.id,
         day: dayStr,
         start: planning.startDate,
         end: planning.endDate,
-        matches
+        matches: isMatch
       });
 
-      return matches;
+      return isMatch;
     });
+
+    return matches;
   };
 
   const getPlanningsByRoom = (day: Date) => {
