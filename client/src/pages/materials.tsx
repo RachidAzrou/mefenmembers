@@ -128,7 +128,7 @@ const getMaterialIcon = (materialName: string) => {
   return <Package2 className="h-8 w-8 text-primary/80" />;
 };
 
-export default function Materials() {
+const MaterialsPage = () => {
   const [materials, setMaterials] = useState<Material[]>([]);
   const [materialTypes, setMaterialTypes] = useState<MaterialType[]>([]);
   const [volunteers, setVolunteers] = useState<Volunteer[]>([]);
@@ -627,36 +627,46 @@ export default function Materials() {
                               variant="outline"
                               role="combobox"
                               aria-expanded={open}
-                              className="w-full justify-between"
+                              className={cn(
+                                "w-full justify-between",
+                                !field.value && "text-muted-foreground"
+                              )}
                             >
-                              {field.value ? (
-                                volunteers.find((volunteer) => volunteer.id === field.value)
+                              {field.value
+                                ? volunteers.find((volunteer) => volunteer.id === field.value)
                                   ? `${volunteers.find((volunteer) => volunteer.id === field.value)?.firstName} ${volunteers.find((volunteer) => volunteer.id === field.value)?.lastName}`
                                   : "Selecteer vrijwilliger"
-                              ) : (
-                                "Selecteer vrijwilliger"
-                              )}
+                                : "Selecteer vrijwilliger"}
                               <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                             </Button>
                           </PopoverTrigger>
                           <PopoverContent className="w-[300px] p-0">
                             <Command>
-                              <CommandInput placeholder="Zoek vrijwilliger..." />
+                              <CommandInput 
+                                placeholder="Zoek vrijwilliger..." 
+                                onValueChange={e => setSearchTerm(e.target.value)}
+                                value={searchTerm}
+                              />
                               <CommandEmpty>Geen vrijwilliger gevonden.</CommandEmpty>
                               <CommandGroup className="max-h-[300px] overflow-y-auto">
-                                {filteredVolunteers
+                                {volunteers
+                                  .filter(volunteer => 
+                                    `${volunteer.firstName} ${volunteer.lastName}`
+                                      .toLowerCase()
+                                      .includes(searchTerm.toLowerCase())
+                                  )
                                   .sort((a, b) =>
                                     `${a.firstName} ${a.lastName}`.localeCompare(`${b.firstName} ${b.lastName}`)
                                   )
                                   .map((volunteer) => (
                                     <CommandItem
                                       key={volunteer.id}
-                                      value={`${volunteer.firstName} ${volunteer.lastName}`}
                                       onSelect={() => {
                                         form.setValue("volunteerId", volunteer.id);
+                                        setSearchTerm("");
                                         setOpen(false);
                                       }}
-                                      className="cursor-pointer"
+                                      className="py-3 px-4 cursor-pointer hover:bg-accent hover:text-accent-foreground"
                                     >
                                       <Check
                                         className={cn(
@@ -995,4 +1005,6 @@ export default function Materials() {
       </AlertDialog>
     </div>
   );
-}
+};
+
+export default MaterialsPage;
