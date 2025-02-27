@@ -92,17 +92,18 @@ export function PlanningForm({
                         <Button
                           variant="outline"
                           role="combobox"
+                          type="button"
                           className="w-full justify-start"
                         >
-                          {selectedVolunteers.length > 0 ? (
-                            <span>{selectedVolunteers.length} vrijwilliger(s) geselecteerd</span>
+                          {field.value?.length > 0 ? (
+                            <span>{field.value.length} vrijwilliger(s) geselecteerd</span>
                           ) : (
                             <span>Selecteer vrijwilligers</span>
                           )}
                         </Button>
                       </FormControl>
                     </PopoverTrigger>
-                    <PopoverContent className="w-full p-0" align="start">
+                    <PopoverContent className="w-[300px] p-0" align="start">
                       <Command>
                         <CommandInput
                           placeholder="Zoek vrijwilligers..."
@@ -120,15 +121,12 @@ export function PlanningForm({
                                   ? current.filter(id => id !== volunteer.id)
                                   : [...current, volunteer.id];
                                 field.onChange(updated);
-                                if (!current.includes(volunteer.id)) {
-                                  setOpenVolunteer(false);
-                                }
                               }}
                             >
                               <Check
                                 className={cn(
                                   "mr-2 h-4 w-4",
-                                  field.value?.includes(volunteer.id) ? "opacity-100" : "opacity-0"
+                                  (field.value || []).includes(volunteer.id) ? "opacity-100" : "opacity-0"
                                 )}
                               />
                               {volunteer.firstName} {volunteer.lastName}
@@ -138,35 +136,6 @@ export function PlanningForm({
                       </Command>
                     </PopoverContent>
                   </Popover>
-                  {selectedVolunteers.length > 0 && (
-                    <div className="mt-2 flex flex-wrap gap-2">
-                      {selectedVolunteers.map(id => {
-                        const volunteer = volunteers.find(v => v.id === id);
-                        return (
-                          <div
-                            key={id}
-                            className="bg-[#963E56]/10 text-[#963E56] text-sm rounded-full px-3 py-1 flex items-center gap-2"
-                          >
-                            <span>{volunteer?.firstName} {volunteer?.lastName}</span>
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="icon"
-                              className="h-4 w-4 p-0 hover:bg-transparent"
-                              onClick={() => {
-                                form.setValue(
-                                  "selectedVolunteers",
-                                  selectedVolunteers.filter(v => v !== id)
-                                );
-                              }}
-                            >
-                              <X className="h-3 w-3" />
-                            </Button>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  )}
                   <FormMessage />
                 </FormItem>
               )}
@@ -184,17 +153,18 @@ export function PlanningForm({
                         <Button
                           variant="outline"
                           role="combobox"
+                          type="button"
                           className="w-full justify-start"
                         >
-                          {selectedRooms.length > 0 ? (
-                            <span>{selectedRooms.length} ruimte(s) geselecteerd</span>
+                          {field.value?.length > 0 ? (
+                            <span>{field.value.length} ruimte(s) geselecteerd</span>
                           ) : (
                             <span>Selecteer ruimtes</span>
                           )}
                         </Button>
                       </FormControl>
                     </PopoverTrigger>
-                    <PopoverContent className="w-full p-0" align="start">
+                    <PopoverContent className="w-[300px] p-0" align="start">
                       <Command>
                         <CommandInput placeholder="Zoek ruimtes..." />
                         <CommandEmpty>Geen ruimtes gevonden.</CommandEmpty>
@@ -208,15 +178,12 @@ export function PlanningForm({
                                   ? current.filter(id => id !== room.id)
                                   : [...current, room.id];
                                 field.onChange(updated);
-                                if (!current.includes(room.id)) {
-                                  setOpenRoom(false);
-                                }
                               }}
                             >
                               <Check
                                 className={cn(
                                   "mr-2 h-4 w-4",
-                                  field.value?.includes(room.id) ? "opacity-100" : "opacity-0"
+                                  (field.value || []).includes(room.id) ? "opacity-100" : "opacity-0"
                                 )}
                               />
                               {room.name}
@@ -226,35 +193,6 @@ export function PlanningForm({
                       </Command>
                     </PopoverContent>
                   </Popover>
-                  {selectedRooms.length > 0 && (
-                    <div className="mt-2 flex flex-wrap gap-2">
-                      {selectedRooms.map(id => {
-                        const room = rooms.find(r => r.id === id);
-                        return (
-                          <div
-                            key={id}
-                            className="bg-[#963E56]/10 text-[#963E56] text-sm rounded-full px-3 py-1 flex items-center gap-2"
-                          >
-                            <span>{room?.name}</span>
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="icon"
-                              className="h-4 w-4 p-0 hover:bg-transparent"
-                              onClick={() => {
-                                form.setValue(
-                                  "selectedRooms",
-                                  selectedRooms.filter(r => r !== id)
-                                );
-                              }}
-                            >
-                              <X className="h-3 w-3" />
-                            </Button>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  )}
                   <FormMessage />
                 </FormItem>
               )}
@@ -274,6 +212,7 @@ export function PlanningForm({
                         <Button
                           variant="outline"
                           role="combobox"
+                          type="button"
                           className="w-full justify-start"
                         >
                           {field.value ? (
@@ -287,7 +226,7 @@ export function PlanningForm({
                         </Button>
                       </FormControl>
                     </PopoverTrigger>
-                    <PopoverContent className="w-full p-0" align="start">
+                    <PopoverContent className="w-[300px] p-0" align="start">
                       <Command>
                         <CommandInput
                           placeholder="Zoek vrijwilliger..."
@@ -334,6 +273,7 @@ export function PlanningForm({
                         <Button
                           variant="outline"
                           role="combobox"
+                          type="button"
                           className="w-full justify-start"
                         >
                           {field.value ? (
@@ -344,7 +284,7 @@ export function PlanningForm({
                         </Button>
                       </FormControl>
                     </PopoverTrigger>
-                    <PopoverContent className="w-full p-0" align="start">
+                    <PopoverContent className="w-[300px] p-0" align="start">
                       <Command>
                         <CommandInput placeholder="Zoek ruimtes..." />
                         <CommandEmpty>Geen ruimtes gevonden.</CommandEmpty>
