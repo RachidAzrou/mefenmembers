@@ -21,6 +21,7 @@ import { Calendar as CustomCalendar } from "@/components/ui/calendar";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "@/components/ui/command";
 import { Check } from "lucide-react";
 import { FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { logUserAction, UserActionTypes } from "@/lib/activity-logger";
 
 
 const planningSchema = z.object({
@@ -395,6 +396,12 @@ const Planning = () => {
   const handleDelete = async (id: string) => {
     try {
       await remove(ref(db, `plannings/${id}`));
+
+      // Log the delete action
+      await logUserAction(UserActionTypes.PLANNING_DELETE, 
+        "Planning verwijderd",
+        { type: 'planning', id }
+      );
     } catch (error) {
       console.error("Error deleting planning:", error);
     }
@@ -408,7 +415,6 @@ const Planning = () => {
         endDate: data.endDate
       });
 
-      // Ensure we're storing dates in yyyy-MM-dd format
       const planningData = {
         startDate: format(new Date(data.startDate), 'yyyy-MM-dd'),
         endDate: format(new Date(data.endDate), 'yyyy-MM-dd')
@@ -420,6 +426,16 @@ const Planning = () => {
         const volunteers = data.selectedVolunteers || [];
         const rooms = data.selectedRooms || [];
 
+        // Log bulk planning creation
+        await logUserAction(
+          UserActionTypes.PLANNING_BULK_CREATE,
+          `Bulk planning aangemaakt voor ${volunteers.length} vrijwilligers en ${rooms.length} ruimtes`,
+          {
+            type: 'planning',
+            details: `Periode: ${planningData.startDate} tot ${planningData.endDate}`
+          }
+        );
+
         for (const volunteerId of volunteers) {
           for (const roomId of rooms) {
             await push(ref(db, "plannings"), {
@@ -430,11 +446,26 @@ const Planning = () => {
           }
         }
       } else {
-        await push(ref(db, "plannings"), {
+        const result = await push(ref(db, "plannings"), {
           volunteerId: data.volunteerId,
           roomId: data.roomId,
           ...planningData
         });
+
+        // Log single planning creation
+        const volunteer = volunteers.find(v => v.id === data.volunteerId);
+        const room = rooms.find(r => r.id === data.roomId);
+
+        await logUserAction(
+          UserActionTypes.PLANNING_CREATE,
+          "Planning toegevoegd",
+          {
+            type: 'planning',
+            id: result.key,
+            details: `${volunteer?.firstName} ${volunteer?.lastName} ingepland voor ${room?.name}`,
+            targetName: `${room?.name} (${planningData.startDate} - ${planningData.endDate})`
+          }
+        );
       }
 
       setDialogOpen(false);
@@ -475,7 +506,7 @@ const Planning = () => {
     <div className="space-y-4 sm:space-y-6 p-3 sm:p-6">
       <div className="flex items-center gap-3">
         <Calendar className="h-6 w-6 sm:h-8 sm:w-8 text-[#963E56]" />
-        <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-[#963E56]">Planning</h1>
+        <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-[#963E56]">Planning</h1>
       </div>
 
       <CollapsibleSection
