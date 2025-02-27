@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { format, startOfWeek, addDays, parseISO, startOfDay, isSameDay, isAfter, isBefore } from "date-fns";
+import { format, startOfWeek, addDays, parseISO, startOfDay } from "date-fns";
 import { nl } from "date-fns/locale";
 import { db } from "@/lib/firebase";
 import { ref, onValue } from "firebase/database";
@@ -72,18 +72,9 @@ export default function PublicCalendar() {
       const planningEnd = startOfDay(parseISO(planning.endDate));
       const comparisonDay = startOfDay(day);
 
-      // Include the day if:
-      // 1. It's the start date, OR
-      // 2. It's the end date, OR
-      // 3. It's after or equal to start date AND before or equal to end date
-      return (
-        isSameDay(comparisonDay, planningStart) ||
-        isSameDay(comparisonDay, planningEnd) ||
-        (
-          (isAfter(comparisonDay, planningStart) || isSameDay(comparisonDay, planningStart)) &&
-          (isBefore(comparisonDay, planningEnd) || isSameDay(comparisonDay, planningEnd))
-        )
-      );
+      // Compare timestamps for accurate date comparison
+      return comparisonDay.getTime() >= planningStart.getTime() && 
+             comparisonDay.getTime() <= planningEnd.getTime();
     });
   };
 
