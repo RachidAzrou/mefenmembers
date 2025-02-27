@@ -204,7 +204,7 @@ export default function Equipment() {
                                 <SelectItem
                                   key={volunteer.id}
                                   value={volunteer.id}
-                                  className="cursor-pointer py-2.5 px-3 hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
+                                  className="flex items-center justify-between py-2.5 px-3 cursor-pointer hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
                                 >
                                   <div className="flex items-center gap-2">
                                     <Check
@@ -213,7 +213,7 @@ export default function Equipment() {
                                         field.value === volunteer.id ? "opacity-100" : "opacity-0"
                                       )}
                                     />
-                                    <span>{volunteer.firstName} {volunteer.lastName}</span>
+                                    <span className="flex-grow">{volunteer.firstName} {volunteer.lastName}</span>
                                   </div>
                                 </SelectItem>
                               ))}

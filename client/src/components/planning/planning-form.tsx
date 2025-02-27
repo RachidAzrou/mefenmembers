@@ -114,9 +114,17 @@ export function PlanningForm({
                             <SelectItem
                               key={volunteer.id}
                               value={volunteer.id}
-                              className="cursor-pointer py-2.5 px-3 hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
+                              className="flex items-center justify-between py-2.5 px-3 cursor-pointer hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
                             >
-                              {volunteer.firstName} {volunteer.lastName}
+                              <div className="flex items-center gap-2">
+                                <Check
+                                  className={cn(
+                                    "h-4 w-4 flex-shrink-0",
+                                    field.value === volunteer.id ? "opacity-100" : "opacity-0"
+                                  )}
+                                />
+                                <span className="flex-grow">{volunteer.firstName} {volunteer.lastName}</span>
+                              </div>
                             </SelectItem>
                           ))}
                       </div>
