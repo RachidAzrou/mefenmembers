@@ -61,7 +61,7 @@ export function Sidebar() {
     { icon: Calendar, label: "Planning", href: "/planning" },
     { icon: Users, label: "Vrijwilligers", href: "/volunteers" },
     { icon: House, label: "Ruimtes", href: "/rooms", adminOnly: true },
-    { icon: Radio, label: "Communicatie", href: "/communication", adminOnly: true },
+    { icon: Radio, label: "Communicatie", href: "/communication" }, 
     { icon: Package2, label: "Materialen", href: "/materials" },
     {
       icon: FileJson,
