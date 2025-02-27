@@ -70,32 +70,42 @@ export default function PublicCalendar() {
   }, []);
 
   const getPlanningsForDay = (day: Date) => {
-    // Format de dag die we checken
-    const checkDay = format(day, 'yyyy-MM-dd');
+    // Zorg ervoor dat we altijd met UTC midnight werken voor consistentie
+    const checkDate = new Date(Date.UTC(day.getFullYear(), day.getMonth(), day.getDate()));
+    const checkDateStr = format(checkDate, 'yyyy-MM-dd');
 
-    // Log de dag die we checken
-    console.log("\nChecking plannings for day:", checkDay);
+    console.log("\n=== Checking plannings ===");
+    console.log("Checking date:", checkDateStr);
+    console.log("All plannings:", plannings);
 
-    const filtered = plannings.filter(planning => {
-      // Log de planning die we checken
-      console.log("\nChecking planning:", {
-        id: planning.id,
-        startDate: planning.startDate,
-        endDate: planning.endDate,
-        checkDay: checkDay,
-        // Log de string vergelijkingen
-        startCheck: checkDay >= planning.startDate,
-        endCheck: checkDay <= planning.endDate
+    const filteredPlannings = plannings.filter(planning => {
+      // Converteer planning datums naar UTC midnight
+      const startDate = new Date(Date.UTC(...planning.startDate.split('-').map(Number)));
+      const endDate = new Date(Date.UTC(...planning.endDate.split('-').map(Number)));
+
+      console.log("\nPlanning check:", {
+        planning_id: planning.id,
+        check_date: checkDateStr,
+        start_date: planning.startDate,
+        end_date: planning.endDate,
+        start_timestamp: startDate.getTime(),
+        check_timestamp: checkDate.getTime(),
+        end_timestamp: endDate.getTime(),
+        is_in_range: checkDate >= startDate && checkDate <= endDate
       });
 
-      // Simpele string vergelijking
-      return checkDay >= planning.startDate && checkDay <= planning.endDate;
+      return checkDate >= startDate && checkDate <= endDate;
     });
 
-    // Log de gefilterde planningen
-    console.log(`Found ${filtered.length} plannings for ${checkDay}:`, filtered);
+    console.log(`Found ${filteredPlannings.length} plannings for ${checkDateStr}:`,
+      filteredPlannings.map(p => ({
+        id: p.id,
+        start: p.startDate,
+        end: p.endDate
+      }))
+    );
 
-    return filtered;
+    return filteredPlannings;
   };
 
   const getPlanningsByRoom = (day: Date) => {
@@ -131,8 +141,8 @@ export default function PublicCalendar() {
             const planningsByRoom = getPlanningsByRoom(day);
 
             return (
-              <div 
-                key={day.toISOString()} 
+              <div
+                key={day.toISOString()}
                 className={`bg-white rounded-lg shadow p-4 ${
                   isToday ? 'ring-2 ring-[#D9A347] ring-offset-2' : ''
                 }`}
@@ -204,8 +214,8 @@ export default function PublicCalendar() {
             const planningsByRoom = getPlanningsByRoom(day);
 
             return (
-              <div 
-                key={day.toISOString()} 
+              <div
+                key={day.toISOString()}
                 className={`bg-white rounded-lg shadow p-4 ${
                   isToday ? 'ring-2 ring-[#D9A347] ring-offset-2' : ''
                 }`}

@@ -419,7 +419,15 @@ export function PlanningForm({
                       selected={field.value ? new Date(field.value) : undefined}
                       onSelect={(date) => {
                         if (date) {
-                          field.onChange(format(date, 'yyyy-MM-dd'));
+                          // Gebruik UTC midnight voor consistente datumvergelijking
+                          const utcDate = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+                          const dateStr = format(utcDate, 'yyyy-MM-dd');
+                          console.log('Selected date:', {
+                            original: date,
+                            utc: utcDate,
+                            formatted: dateStr
+                          });
+                          field.onChange(dateStr);
                         }
                       }}
                       initialFocus
@@ -463,7 +471,15 @@ export function PlanningForm({
                       selected={field.value ? new Date(field.value) : undefined}
                       onSelect={(date) => {
                         if (date) {
-                          field.onChange(format(date, 'yyyy-MM-dd'));
+                          // Gebruik UTC midnight voor consistente datumvergelijking
+                          const utcDate = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+                          const dateStr = format(utcDate, 'yyyy-MM-dd');
+                          console.log('Selected date:', {
+                            original: date,
+                            utc: utcDate,
+                            formatted: dateStr
+                          });
+                          field.onChange(dateStr);
                         }
                       }}
                       disabled={(date) => {

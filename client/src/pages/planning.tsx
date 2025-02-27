@@ -402,20 +402,25 @@ const Planning = () => {
 
   const onSubmit = async (data: z.infer<typeof planningSchema>) => {
     try {
-      // Voeg uitgebreide logging toe
-      console.log("Planning submission - Raw data:", {
-        data,
-        type: typeof data.startDate,
-        startDateRaw: data.startDate,
-        endDateRaw: data.endDate
+      // Debug logging om te zien wat er precies binnenkomt
+      console.log("Planning submission - Raw form data:", {
+        startDate: data.startDate,
+        endDate: data.endDate
+      });
+
+      // Ensure we're working with proper date strings
+      const startDate = format(new Date(data.startDate), 'yyyy-MM-dd');
+      const endDate = format(new Date(data.endDate), 'yyyy-MM-dd');
+
+      console.log("Formatted dates for Firebase:", {
+        startDate,
+        endDate
       });
 
       const planningData = {
-        startDate: format(parseISO(data.startDate), 'yyyy-MM-dd'),
-        endDate: format(parseISO(data.endDate), 'yyyy-MM-dd')
+        startDate,
+        endDate
       };
-
-      console.log("Formatted planning data:", planningData);
 
       if (data.isBulkPlanning) {
         const volunteers = data.selectedVolunteers || [];
