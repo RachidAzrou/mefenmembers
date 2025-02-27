@@ -14,7 +14,7 @@ import {
   CommandInput,
   CommandItem,
 } from "@/components/ui/command";
-import { format, parseISO } from "date-fns";
+import { format } from "date-fns";
 import { nl } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { z } from "zod";
@@ -50,13 +50,14 @@ export function PlanningForm({
   const isBulkPlanning = form.watch("isBulkPlanning");
   const [searchTerm, setSearchTerm] = useState("");
 
-  // Add logging voor debugging
+  // Debug logging voor datum veranderingen
   useEffect(() => {
-    const subscription = form.watch((value, { name, type }) => {
+    const subscription = form.watch((value, { name }) => {
       if (name === "startDate" || name === "endDate") {
         console.log(`Date changed - ${name}:`, {
           value,
-          formattedValue: value ? format(parseISO(value), 'yyyy-MM-dd') : null
+          // Alleen formatteren als we een geldige string hebben
+          formattedValue: typeof value === 'string' ? format(new Date(value), 'yyyy-MM-dd') : null
         });
       }
     });
@@ -404,7 +405,7 @@ export function PlanningForm({
                         )}
                       >
                         {field.value ? (
-                          format(parseISO(field.value), "d MMM yyyy", { locale: nl })
+                          format(new Date(field.value), "d MMM yyyy", { locale: nl })
                         ) : (
                           <span>Kies een datum</span>
                         )}
@@ -415,7 +416,7 @@ export function PlanningForm({
                   <PopoverContent className="w-auto p-0" align="start">
                     <Calendar
                       mode="single"
-                      selected={field.value ? parseISO(field.value) : undefined}
+                      selected={field.value ? new Date(field.value) : undefined}
                       onSelect={(date) => {
                         if (date) {
                           field.onChange(format(date, 'yyyy-MM-dd'));
@@ -448,7 +449,7 @@ export function PlanningForm({
                         )}
                       >
                         {field.value ? (
-                          format(parseISO(field.value), "d MMM yyyy", { locale: nl })
+                          format(new Date(field.value), "d MMM yyyy", { locale: nl })
                         ) : (
                           <span>Kies een datum</span>
                         )}
@@ -459,7 +460,7 @@ export function PlanningForm({
                   <PopoverContent className="w-auto p-0" align="start">
                     <Calendar
                       mode="single"
-                      selected={field.value ? parseISO(field.value) : undefined}
+                      selected={field.value ? new Date(field.value) : undefined}
                       onSelect={(date) => {
                         if (date) {
                           field.onChange(format(date, 'yyyy-MM-dd'));
@@ -468,10 +469,7 @@ export function PlanningForm({
                       disabled={(date) => {
                         const startDate = form.getValues("startDate");
                         if (!startDate) return true;
-                        const minDate = parseISO(startDate);
-                        minDate.setHours(0, 0, 0, 0);
-                        date.setHours(0, 0, 0, 0);
-                        return date < minDate;
+                        return date < new Date(startDate);
                       }}
                       initialFocus
                       locale={nl}
