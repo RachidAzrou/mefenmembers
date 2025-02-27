@@ -377,29 +377,86 @@ export default function Settings() {
           <AccordionContent>
             <div className="p-6">
               <div className="rounded-lg border overflow-hidden">
-                <Table>
-                  <TableHeader>
-                    <TableRow className="bg-gray-50/50">
-                      <TableHead>E-mailadres</TableHead>
-                      <TableHead>Huidige Rol</TableHead>
-                      <TableHead className="text-right">Acties</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
+                <div className="overflow-x-auto">
+                  {/* Desktop view */}
+                  <div className="hidden sm:block">
+                    <Table>
+                      <TableHeader>
+                        <TableRow className="bg-gray-50/50">
+                          <TableHead>E-mailadres</TableHead>
+                          <TableHead>Huidige Rol</TableHead>
+                          <TableHead className="text-right">Acties</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {users.map((user) => (
+                          <TableRow key={user.uid} className="hover:bg-gray-50/30">
+                            <TableCell>{user.email}</TableCell>
+                            <TableCell>
+                              <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                                user.admin
+                                  ? 'bg-[#963E56]/10 text-[#963E56]'
+                                  : 'bg-blue-100 text-blue-800'
+                              }`}>
+                                {user.admin ? 'Admin' : 'Medewerker'}
+                              </span>
+                            </TableCell>
+                            <TableCell className="text-right">
+                              <div className="flex justify-end gap-2">
+                                <Button
+                                  onClick={() => handleRoleChange(user.uid, user.email, !user.admin)}
+                                  variant="outline"
+                                  size="icon"
+                                  className="h-8 w-8 bg-[#963E56] text-white hover:bg-[#963E56]/90"
+                                  title={`Maak ${user.admin ? 'Medewerker' : 'Admin'}`}
+                                >
+                                  <Shield className="h-4 w-4" />
+                                  <span className="sr-only">{`Maak ${user.admin ? 'Medewerker' : 'Admin'}`}</span>
+                                </Button>
+                                <Button
+                                  onClick={() => handlePasswordReset(user.email)}
+                                  variant="outline"
+                                  size="icon"
+                                  className="h-8 w-8 bg-[#963E56] text-white hover:bg-[#963E56]/90"
+                                  title="Reset Wachtwoord"
+                                >
+                                  <Key className="h-4 w-4" />
+                                  <span className="sr-only">Reset Wachtwoord</span>
+                                </Button>
+                                <Button
+                                  onClick={() => setDeletingUser(user)}
+                                  variant="destructive"
+                                  size="icon"
+                                  className="h-8 w-8"
+                                  title="Verwijderen"
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                  <span className="sr-only">Verwijderen</span>
+                                </Button>
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+
+                  {/* Mobile view */}
+                  <div className="block sm:hidden divide-y">
                     {users.map((user) => (
-                      <TableRow key={user.uid} className="hover:bg-gray-50/30">
-                        <TableCell>{user.email}</TableCell>
-                        <TableCell>
-                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                            user.admin
-                              ? 'bg-[#963E56]/10 text-[#963E56]'
-                              : 'bg-blue-100 text-blue-800'
-                          }`}>
-                            {user.admin ? 'Admin' : 'Medewerker'}
-                          </span>
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <div className="flex justify-end gap-2">
+                      <div key={user.uid} className="p-4 space-y-3">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <div className="font-medium">{user.email}</div>
+                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium mt-1 ${
+                              user.admin
+                                ? 'bg-[#963E56]/10 text-[#963E56]'
+                                : 'bg-blue-100 text-blue-800'
+                            }`}>
+                              {user.admin ? 'Admin' : 'Medewerker'}
+                            </span>
+                          </div>
+                          <div className="flex gap-2">
                             <Button
                               onClick={() => handleRoleChange(user.uid, user.email, !user.admin)}
                               variant="outline"
@@ -408,6 +465,7 @@ export default function Settings() {
                               title={`Maak ${user.admin ? 'Medewerker' : 'Admin'}`}
                             >
                               <Shield className="h-4 w-4" />
+                              <span className="sr-only">{`Maak ${user.admin ? 'Medewerker' : 'Admin'}`}</span>
                             </Button>
                             <Button
                               onClick={() => handlePasswordReset(user.email)}
@@ -417,6 +475,7 @@ export default function Settings() {
                               title="Reset Wachtwoord"
                             >
                               <Key className="h-4 w-4" />
+                              <span className="sr-only">Reset Wachtwoord</span>
                             </Button>
                             <Button
                               onClick={() => setDeletingUser(user)}
@@ -426,21 +485,20 @@ export default function Settings() {
                               title="Verwijderen"
                             >
                               <Trash2 className="h-4 w-4" />
+                              <span className="sr-only">Verwijderen</span>
                             </Button>
                           </div>
-                        </TableCell>
-                      </TableRow>
+                        </div>
+                      </div>
                     ))}
                     {users.length === 0 && (
-                      <TableRow>
-                        <TableCell colSpan={3} className="text-center py-8 text-gray-500">
-                          <Users className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                          <p>Geen gebruikers gevonden</p>
-                        </TableCell>
-                      </TableRow>
+                      <div className="text-center py-8 text-gray-500">
+                        <Users className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                        <p>Geen gebruikers gevonden</p>
+                      </div>
                     )}
-                  </TableBody>
-                </Table>
+                  </div>
+                </div>
               </div>
             </div>
           </AccordionContent>
