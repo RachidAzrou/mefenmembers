@@ -68,16 +68,13 @@ export default function PublicCalendar() {
 
   const getPlanningsForDay = (day: Date) => {
     return plannings.filter(planning => {
-      // Convert date strings to Date objects
       const planningStart = parseISO(planning.startDate);
       const planningEnd = parseISO(planning.endDate);
 
-      // Set hours to 0 for accurate date comparison
       const startDate = new Date(planningStart.setHours(0, 0, 0, 0));
       const endDate = new Date(planningEnd.setHours(0, 0, 0, 0));
       const checkDate = new Date(day.setHours(0, 0, 0, 0));
 
-      // Check if the day falls within the planning period
       return (
         isWithinInterval(checkDate, { start: startDate, end: endDate }) ||
         isSameDay(checkDate, startDate) ||
@@ -163,9 +160,6 @@ export default function PublicCalendar() {
                                     ? `${volunteer.firstName} ${volunteer.lastName}`
                                     : 'Niet toegewezen'
                                   }
-                                </div>
-                                <div className="text-xs text-muted-foreground mt-1">
-                                  {format(new Date(planning.startDate), "HH:mm")} - {format(new Date(planning.endDate), "HH:mm")}
                                 </div>
                               </div>
                             );
