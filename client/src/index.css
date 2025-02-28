@@ -9,7 +9,7 @@
 
   body {
     @apply font-sans antialiased text-foreground;
-    background: url('/attached_assets/123.jpg') center/cover fixed no-repeat,
+    background: url('/123.jpg') center/cover fixed no-repeat,
                 linear-gradient(135deg, rgba(255, 255, 255, 0.97), rgba(255, 255, 255, 0.93));
     background-blend-mode: overlay;
     min-height: 100vh;
