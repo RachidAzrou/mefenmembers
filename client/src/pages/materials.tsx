@@ -822,48 +822,56 @@ const MaterialsPage = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {materials.map((item) => {
-                  const type = materialTypes.find(t => t.id === item.typeId);
-                  const volunteer = volunteers.find((v) => v.id === item.volunteerId);
-                  return (
-                    <TableRow key={item.id}>
-                      <TableCell className="capitalize">
-                        {type?.name || 'Onbekend type'}
-                      </TableCell>
-                      <TableCell>{item.number}</TableCell>
-                      <TableCell>
-                        {volunteer
-                          ? `${volunteer.firstName} ${volunteer.lastName}`
-                          : "-"}
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant={item.isCheckedOut ? "destructive" : "success"}>
-                          {item.isCheckedOut ? "Uitgeleend" : "Beschikbaar"}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        {item.isCheckedOut && (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleReturn(item.id)}
-                            className="bg-green-50 text-green-600 hover:bg-green-100 hover:text-green-700 border-green-200"
-                          >
-                            <RotateCcw className="h-4 w-4 mr-2" />
-                            Retourneren
-                          </Button>
-                        )}
-                      </TableCell>
-                    </TableRow>
-                  );
-                })}
-                {materials.length === 0 && (
+                {materials
+                  .filter(material => material.isCheckedOut)
+                  .map((item) => {
+                    const type = materialTypes.find(t => t.id === item.typeId);
+                    const volunteer = volunteers.find((v) => v.id === item.volunteerId);
+                    return (
+                      <TableRow key={item.id}>
+                        <TableCell className="capitalize">
+                          {type?.name || 'Onbekend type'}
+                        </TableCell>
+                        <TableCell>{item.number}</TableCell>
+                        <TableCell>
+                          {volunteer
+                            ? `${volunteer.firstName} ${volunteer.lastName}`
+                            : "-"}
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant="destructive">
+                            Uitgeleend
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  onClick={() => handleReturn(item.id)}
+                                  className="h-8 w-8 text-green-600 hover:text-green-700 hover:bg-green-50"
+                                >
+                                  <RotateCcw className="h-4 w-4" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                Retourneren
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                {materials.filter(m => m.isCheckedOut).length === 0 && (
                   <TableRow>
                     <TableCell
                       colSpan={5}
                       className="h-24 text-center"
                     >
-                      Geen materialen gevonden.
+                      Geen uitgeleende materialen gevonden.
                     </TableCell>
                   </TableRow>
                 )}
@@ -883,8 +891,7 @@ const MaterialsPage = () => {
             onClick={() => handleBulkReturn(selectedMaterials)}
             className="bg-primary hover:bg-primary/90"
           >
-            <RotateCcw className="h-4 w-4 mr-2" />            Retourneren
-          </Button>
+            <RotateCcw className="h-4 w-4 mr-2" />            Retourneren          </Button>
         </div>
       )}
 
