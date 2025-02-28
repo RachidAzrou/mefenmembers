@@ -18,6 +18,7 @@ import { Separator } from "@/components/ui/separator";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { logUserAction, UserActionTypes } from "@/lib/activity-logger";
 
+
 const volunteerSchema = z.object({
   firstName: z.string().min(1, "Voornaam is verplicht"),
   lastName: z.string().min(1, "Achternaam is verplicht"),
@@ -203,17 +204,40 @@ export default function Volunteers() {
     setDialogOpen(true);
   };
 
+  // Verbeterde zoekfunctie
+  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setSearchTerm(value);
+    setCurrentPage(1); // Reset pagina bij nieuwe zoekopdracht
+  };
+
+  // Verbeterde filterfunctie voor Nederlandse karakters
+  const normalizeString = (str: string) => 
+    str.toLowerCase()
+       .normalize('NFD')
+       .replace(/[\u0300-\u036f]/g, ''); // Verwijder diakritische tekens
+
   const filteredVolunteers = volunteers.filter(volunteer => {
-    const searchString = `${volunteer.firstName} ${volunteer.lastName} ${volunteer.phoneNumber}`.toLowerCase();
-    return searchString.includes(searchTerm.toLowerCase());
+    if (!searchTerm.trim()) return true;
+
+    const searchNormalized = normalizeString(searchTerm);
+    const firstNameNormalized = normalizeString(volunteer.firstName);
+    const lastNameNormalized = normalizeString(volunteer.lastName);
+    const phoneNormalized = normalizeString(volunteer.phoneNumber);
+    const fullNameNormalized = `${firstNameNormalized} ${lastNameNormalized}`;
+
+    return firstNameNormalized.includes(searchNormalized) ||
+           lastNameNormalized.includes(searchNormalized) ||
+           phoneNormalized.includes(searchNormalized) ||
+           fullNameNormalized.includes(searchNormalized);
   });
 
   const sortedVolunteers = [...filteredVolunteers].sort((a, b) => {
     const [field, direction] = sortOrder.split("-");
-    const compareValue = field === "firstName"
-      ? a.firstName.localeCompare(b.firstName)
-      : a.lastName.localeCompare(b.lastName);
-    return direction === "asc" ? compareValue : -compareValue;
+    const fieldA = field === "firstName" ? a.firstName : a.lastName;
+    const fieldB = field === "firstName" ? b.firstName : b.lastName;
+    const compareResult = fieldA.localeCompare(fieldB, 'nl');
+    return direction === "asc" ? compareResult : -compareResult;
   });
 
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
@@ -258,10 +282,12 @@ export default function Volunteers() {
           <div className="relative flex-1 w-full">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
             <Input
-              placeholder="Zoeken..."
+              placeholder="Zoek op naam of telefoonnummer..."
+              onChange={handleSearch}
               value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-9 w-full"
+              type="search"
+              autoComplete="off"
             />
           </div>
           <Select
@@ -284,7 +310,6 @@ export default function Volunteers() {
         </div>
 
         <div className="flex items-center gap-2 w-full sm:w-auto">
-          {/* Main action button - Add Volunteer or Bulk Action */}
           {selectedVolunteers.length > 0 ? (
             <Button
               className="bg-[#963E56] hover:bg-[#963E56]/90 flex-1 sm:flex-none"
@@ -507,7 +532,6 @@ export default function Volunteers() {
         </div>
       )}
 
-      {/* Bulk Actions */}
       {isEditMode && selectedVolunteers.length > 0 && (
         <div className="fixed bottom-4 left-4 right-4 sm:left-auto sm:right-4 flex items-center gap-3 bg-white p-4 rounded-lg shadow-lg border animate-in slide-in-from-bottom-2">
           <span className="text-sm text-muted-foreground hidden sm:inline">
@@ -525,7 +549,6 @@ export default function Volunteers() {
         </div>
       )}
 
-      {/* Delete Confirmation Dialog */}
       <AlertDialog
         open={!!deleteVolunteerId}
         onOpenChange={() => setDeleteVolunteerId(null)}
