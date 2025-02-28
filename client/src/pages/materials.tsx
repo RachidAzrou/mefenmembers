@@ -839,7 +839,10 @@ const MaterialsPage = () => {
                             : "-"}
                         </TableCell>
                         <TableCell>
-                          <Badge variant="destructive">
+                          <Badge
+                            variant="outline"
+                            className="bg-[#963E56]/10 text-[#963E56] border-[#963E56]/20"
+                          >
                             Uitgeleend
                           </Badge>
                         </TableCell>
