@@ -42,7 +42,6 @@ export default function PublicCalendar() {
         id,
         ...(planning as Omit<Planning, "id">),
       })) : [];
-      console.log("Loaded plannings from Firebase:", planningsList);
       setPlannings(planningsList);
     });
 
@@ -69,27 +68,21 @@ export default function PublicCalendar() {
 
   const getPlanningsForDay = (day: Date) => {
     return plannings.filter(planning => {
-      // Parse the dates using parseISO to ensure correct date objects
+      // Convert date strings to Date objects
       const planningStart = parseISO(planning.startDate);
       const planningEnd = parseISO(planning.endDate);
 
-      // Check if the day falls within the interval (inclusive)
-      const isInInterval = isWithinInterval(day, { 
-        start: planningStart,
-        end: planningEnd 
-      }) || isSameDay(day, planningStart) || isSameDay(day, planningEnd);
+      // Set hours to 0 for accurate date comparison
+      const startDate = new Date(planningStart.setHours(0, 0, 0, 0));
+      const endDate = new Date(planningEnd.setHours(0, 0, 0, 0));
+      const checkDate = new Date(day.setHours(0, 0, 0, 0));
 
-      // Debug logging
-      const volunteer = volunteers.find(v => v.id === planning.volunteerId);
-      console.log(`Checking planning for ${volunteer?.firstName} ${volunteer?.lastName}:`, {
-        planning_id: planning.id,
-        check_date: format(day, 'yyyy-MM-dd'),
-        start_date: planning.startDate,
-        end_date: planning.endDate,
-        is_in_interval: isInInterval
-      });
-
-      return isInInterval;
+      // Check if the day falls within the planning period
+      return (
+        isWithinInterval(checkDate, { start: startDate, end: endDate }) ||
+        isSameDay(checkDate, startDate) ||
+        isSameDay(checkDate, endDate)
+      );
     });
   };
 
