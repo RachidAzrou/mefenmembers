@@ -814,113 +814,53 @@ const MaterialsPage = () => {
             <Table>
               <TableHeader>
                 <TableRow>
-                  {isEditMode && (
-                    <TableHead className="w-[50px]">
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={toggleSelectAll}
-                              className="hover:bg-transparent"
-                            >
-                              {selectedMaterials.length === filteredMaterials.length ? (
-                                <CheckSquare className="h-4 w-4" />
-                              ) : (
-                                <Square className="h-4 w-4" />
-                              )}
-                            </Button>
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            {selectedMaterials.length === filteredMaterials.length ?
-                              "Deselecteer alles" : "Selecteer alles"}
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
-                    </TableHead>
-                  )}
                   <TableHead className="whitespace-nowrap">Type</TableHead>
                   <TableHead className="whitespace-nowrap">Nummer</TableHead>
                   <TableHead className="whitespace-nowrap">Vrijwilliger</TableHead>
-                  {isEditMode && <TableHead className="w-[100px]">Acties</TableHead>}
+                  <TableHead className="whitespace-nowrap">Status</TableHead>
+                  <TableHead className="whitespace-nowrap">Acties</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredMaterials.map((item) => {
-                  const type = materialTypes.find((t) => t.id === item.typeId);
+                {materials.map((item) => {
+                  const type = materialTypes.find(t => t.id === item.typeId);
                   const volunteer = volunteers.find((v) => v.id === item.volunteerId);
                   return (
                     <TableRow key={item.id}>
-                      {isEditMode && (
-                        <TableCell>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => toggleSelect(item.id)}
-                            className="hover:bg-transparent"
-                          >
-                            {selectedMaterials.includes(item.id) ? (
-                              <CheckSquare className="h-4 w-4" />
-                            ) : (
-                              <Square className="h-4 w-4" />
-                            )}
-                          </Button>
-                        </TableCell>
-                      )}
-                      <TableCell>{type?.name || "-"}</TableCell>
-                      <TableCell className="whitespace-nowrap">#{item.number}</TableCell>
-                      <TableCell>{volunteer ? `${volunteer.firstName} ${volunteer.lastName}` : "-"}</TableCell>
-                      <TableCell className="whitespace-nowrap">
-                        <Badge variant={item.isCheckedOut ? "default" : "secondary"}>
+                      <TableCell className="capitalize">
+                        {type?.name || 'Onbekend type'}
+                      </TableCell>
+                      <TableCell>{item.number}</TableCell>
+                      <TableCell>
+                        {volunteer
+                          ? `${volunteer.firstName} ${volunteer.lastName}`
+                          : "-"}
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant={item.isCheckedOut ? "destructive" : "success"}>
                           {item.isCheckedOut ? "Uitgeleend" : "Beschikbaar"}
                         </Badge>
                       </TableCell>
-                      {isEditMode && (
-                        <TableCell>
-                          <div className="flex items-center gap-2">
-                            {item.isCheckedOut && (
-                              <TooltipProvider>
-                                <Tooltip>
-                                  <TooltipTrigger asChild>
-                                    <Button
-                                      variant="ghost"
-                                      size="icon"
-                                      onClick={() => handleReturn(item.id)}
-                                      className="text-[#963E56] hover:text-[#963E56]/90 hover:bg-[#963E56]/10"
-                                    >
-                                      <RotateCcw className="h-4 w-4" />
-                                    </Button>
-                                  </TooltipTrigger>
-                                  <TooltipContent>Retourneren</TooltipContent>
-                                </Tooltip>
-                              </TooltipProvider>
-                            )}
-                            <TooltipProvider>
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    onClick={() => handleEdit(item)}
-                                    className="text-[#963E56] hover:text-[#963E56]/90 hover:bg-[#963E56]/10"
-                                  >
-                                    <Edit2 className="h-4 w-4" />
-                                  </Button>
-                                </TooltipTrigger>
-                                <TooltipContent>Bewerken</TooltipContent>
-                              </Tooltip>
-                            </TooltipProvider>
-                          </div>
-                        </TableCell>
-                      )}
+                      <TableCell>
+                        {item.isCheckedOut && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleReturn(item.id)}
+                            className="bg-green-50 text-green-600 hover:bg-green-100 hover:text-green-700 border-green-200"
+                          >
+                            <RotateCcw className="h-4 w-4 mr-2" />
+                            Retourneren
+                          </Button>
+                        )}
+                      </TableCell>
                     </TableRow>
                   );
                 })}
-                {filteredMaterials.length === 0 && (
+                {materials.length === 0 && (
                   <TableRow>
                     <TableCell
-                      colSpan={isEditMode ? 6 : 5}
+                      colSpan={5}
                       className="h-24 text-center"
                     >
                       Geen materialen gevonden.
