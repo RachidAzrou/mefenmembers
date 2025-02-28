@@ -851,7 +851,7 @@ const MaterialsPage = () => {
                                   variant="ghost"
                                   size="icon"
                                   onClick={() => handleReturn(item.id)}
-                                  className="h-8 w-8 text-green-600 hover:text-green-700 hover:bg-green-50"
+                                  className="h-8 w-8 text-[#963E56] hover:text-[#963E56]/90 hover:bg-[#963E56]/10"
                                 >
                                   <RotateCcw className="h-4 w-4" />
                                 </Button>
