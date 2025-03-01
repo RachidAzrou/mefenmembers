@@ -74,7 +74,7 @@ import { GiMonclerJacket, GiWalkieTalkie } from 'react-icons/gi';
 import { TbJacket } from 'react-icons/tb';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
-const materialSchema = z.object({
+const planningSchema = z.object({
   volunteerId: z.string().min(1, "Vrijwilliger is verplicht"),
   materials: z.array(z.object({
     typeId: z.string().min(1, "Type materiaal is verplicht"),
@@ -138,11 +138,11 @@ const MaterialsPage = () => {
   const { toast } = useToast();
   const { isAdmin } = useRole();
 
-  const form = useForm<z.infer<typeof materialSchema>>({
-    resolver: zodResolver(materialSchema),
+  const form = useForm<z.infer<typeof planningSchema>>({
+    resolver: zodResolver(planningSchema),
     defaultValues: {
       volunteerId: "",
-      materials: [],
+      materials: []
     },
   });
 
@@ -204,18 +204,14 @@ const MaterialsPage = () => {
     }
   };
 
-  const onSubmit = async (data: z.infer<typeof materialSchema>) => {
+  const onSubmit = async (data: z.infer<typeof planningSchema>) => {
     try {
-      console.log("Form data bij submit:", data);
-
-      // Check of er materialen met nummers zijn
-      const materialsWithNumbers = data.materials.filter(material => 
-        Array.isArray(material.numbers) && material.numbers.length > 0
+      // Check of er materialen zijn met geldige nummers
+      const validMaterials = (data.materials || []).filter(material =>
+        material.numbers && material.numbers.length > 0
       );
 
-      console.log("Materialen met nummers:", materialsWithNumbers);
-
-      if (materialsWithNumbers.length === 0) {
+      if (validMaterials.length === 0) {
         toast({
           variant: "destructive",
           title: "Fout",
@@ -227,13 +223,11 @@ const MaterialsPage = () => {
 
       const volunteer = volunteers.find(v => v.id === data.volunteerId);
 
-      // Check beschikbaarheid van materialen
-      for (const material of materialsWithNumbers) {
+      // Check beschikbaarheid voor elk materiaal
+      for (const material of validMaterials) {
         const materialType = materialTypes.find(t => t.id === material.typeId);
 
         for (const number of material.numbers) {
-          console.log(`Checking materiaal: ${materialType?.name} #${number}`);
-
           const isCheckedOut = materials.some(m =>
             m.typeId === material.typeId &&
             m.number === number &&
@@ -253,7 +247,7 @@ const MaterialsPage = () => {
       }
 
       // Wijs materialen toe
-      for (const material of materialsWithNumbers) {
+      for (const material of validMaterials) {
         const materialType = materialTypes.find(t => t.id === material.typeId);
 
         for (const number of material.numbers) {
@@ -277,7 +271,7 @@ const MaterialsPage = () => {
         }
       }
 
-      const totalItems = materialsWithNumbers.reduce((sum, material) =>
+      const totalItems = validMaterials.reduce((sum, material) =>
         sum + material.numbers.length, 0
       );
 
@@ -287,7 +281,6 @@ const MaterialsPage = () => {
         duration: 3000,
       });
 
-      // Reset form met lege arrays voor materials
       form.reset({
         volunteerId: "",
         materials: []
@@ -566,6 +559,40 @@ const MaterialsPage = () => {
 
   const emptyMessage = filteredMaterials.length === 0 ? "Geen uitgeleende materialen gevonden." : "";
 
+  const handleAddNumber = (index: number, number: number, materialType: typeof materialTypes[0] | undefined) => {
+    const currentMaterials = [...form.getValues("materials")];
+
+    if (!currentMaterials[index].numbers) {
+      currentMaterials[index].numbers = [];
+    }
+
+    const isCheckedOut = materials.some(m =>
+      m.typeId === currentMaterials[index].typeId &&
+      m.number === number &&
+      m.isCheckedOut
+    );
+
+    if (isCheckedOut) {
+      form.setError(`materials.${index}.error`, {
+        type: 'manual',
+        message: `Dit materiaal is alreeds uitgeleend`
+      });
+      return;
+    }
+
+    if (!currentMaterials[index].numbers.includes(number)) {
+      currentMaterials[index].numbers.push(number);
+      form.setValue("materials", currentMaterials);
+      form.clearErrors(`materials.${index}.error`);
+    } else {
+      form.setError(`materials.${index}.error`, {
+        type: 'manual',
+        message: `Je hebt materiaal nummer ${number} al geselecteerd`
+      });
+    }
+  };
+
+
   return (
     <div className="container mx-auto px-2 sm:px-4 py-4 sm:py-6 max-w-7xl space-y-4 sm:space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -776,15 +803,16 @@ const MaterialsPage = () => {
                           if (!selectedMaterialTypes.includes(value)) {
                             setSelectedMaterialTypes([...selectedMaterialTypes, value]);
 
-                            // Initialiseer de numbers array als leeg array
                             const currentMaterials = form.getValues("materials") || [];
-                            form.setValue("materials", [
+                            const updatedMaterials = [
                               ...currentMaterials,
-                              { 
-                                typeId: value, 
-                                numbers: [] 
+                              {
+                                typeId: value,
+                                numbers: []
                               }
-                            ]);
+                            ];
+
+                            form.setValue("materials", updatedMaterials);
                           }
                         }}
                       >
@@ -833,54 +861,9 @@ const MaterialsPage = () => {
                                     if (e.key === 'Enter') {
                                       e.preventDefault();
                                       const number = parseInt(e.currentTarget.value);
-
-                                      console.log("Enter pressed voor materiaal input:", {
-                                        materialType: materialType?.name,
-                                        typeId: material.typeId,
-                                        inputNumber: number,
-                                        currentNumbers: form.getValues(`materials.${index}.numbers`)
-                                      });
-
                                       if (number && number >= 1 && number <= (materialType?.maxCount || 100)) {
-                                        const isCheckedOut = materials.some(m =>
-                                          m.typeId === material.typeId &&
-                                          m.number === number &&
-                                          m.isCheckedOut
-                                        );
-
-                                        if (isCheckedOut) {
-                                          console.log("Materiaal is uitgeleend:", {
-                                            type: materialType?.name,
-                                            number
-                                          });
-
-                                          form.setError(`materials.${index}.error`, {
-                                            type: 'manual',
-                                            message: `Dit materiaal is alreeds uitgeleend`
-                                          });
-                                          return; // Stop verwerking als materiaal is uitgeleend
-                                        }
-
-                                        const currentNumbers = form.getValues(`materials.${index}.numbers`) || [];
-
-                                        if (!currentNumbers.includes(number)) {
-                                          console.log("Voeg nummer toe:", {
-                                            type: materialType?.name,
-                                            number,
-                                            currentNumbers,
-                                            newNumbers: [...currentNumbers, number]
-                                          });
-
-                                          // Update numbers array voor dit materiaal
-                                          form.setValue(`materials.${index}.numbers`, [...currentNumbers, number]);
-                                          form.clearErrors(`materials.${index}.error`);
-                                          e.currentTarget.value = '';
-                                        } else {
-                                          form.setError(`materials.${index}.error`, {
-                                            type: 'manual',
-                                            message: `Je hebt materiaal nummer ${number} al geselecteerd`
-                                          });
-                                        }
+                                        handleAddNumber(index, number, materialType);
+                                        e.currentTarget.value = '';
                                       }
                                     }
                                   }}
