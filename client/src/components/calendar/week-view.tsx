@@ -6,6 +6,7 @@ import { nl } from "date-fns/locale";
 import { useState, useEffect } from "react";
 import { db } from "@/lib/firebase";
 import { ref, onValue } from "firebase/database";
+import { GiWalkieTalkie } from "react-icons/gi";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -15,7 +16,6 @@ import {
 import { CalendarPDF } from "../pdf/calendar-pdf";
 import { PDFDownloadLink } from "@react-pdf/renderer";
 import { cn } from "@/lib/utils";
-import { GiWalkieTalkie } from "react-icons/gi";
 
 type Volunteer = {
   id: string;
@@ -48,52 +48,48 @@ export function WeekView() {
   const weekDays = Array.from({ length: 7 }).map((_, i) => addDays(weekStart, i));
 
   useEffect(() => {
-    const fetchData = async () => {
-      const planningsRef = ref(db, "plannings");
-      const volunteersRef = ref(db, "volunteers");
-      const roomsRef = ref(db, "rooms");
+    const planningsRef = ref(db, "plannings");
+    const volunteersRef = ref(db, "volunteers");
+    const roomsRef = ref(db, "rooms");
 
-      onValue(planningsRef, (snapshot) => {
-        const data = snapshot.val();
-        if (data) {
-          const planningsList = Object.entries(data).map(([id, planning]: [string, any]) => ({
-            id,
-            ...planning
-          }));
-          setPlannings(planningsList);
-        } else {
-          setPlannings([]);
-        }
-      });
+    onValue(planningsRef, (snapshot) => {
+      const data = snapshot.val();
+      if (data) {
+        const planningsList = Object.entries(data).map(([id, planning]: [string, any]) => ({
+          id,
+          ...planning
+        }));
+        setPlannings(planningsList);
+      } else {
+        setPlannings([]);
+      }
+    });
 
-      onValue(volunteersRef, (snapshot) => {
-        const data = snapshot.val();
-        if (data) {
-          const volunteersList = Object.entries(data).map(([id, volunteer]: [string, any]) => ({
-            id,
-            ...volunteer
-          }));
-          setVolunteers(volunteersList);
-        } else {
-          setVolunteers([]);
-        }
-      });
+    onValue(volunteersRef, (snapshot) => {
+      const data = snapshot.val();
+      if (data) {
+        const volunteersList = Object.entries(data).map(([id, volunteer]: [string, any]) => ({
+          id,
+          ...volunteer
+        }));
+        setVolunteers(volunteersList);
+      } else {
+        setVolunteers([]);
+      }
+    });
 
-      onValue(roomsRef, (snapshot) => {
-        const data = snapshot.val();
-        if (data) {
-          const roomsList = Object.entries(data).map(([id, room]: [string, any]) => ({
-            id,
-            ...room
-          }));
-          setRooms(roomsList);
-        } else {
-          setRooms([]);
-        }
-      });
-    };
-
-    fetchData();
+    onValue(roomsRef, (snapshot) => {
+      const data = snapshot.val();
+      if (data) {
+        const roomsList = Object.entries(data).map(([id, room]: [string, any]) => ({
+          id,
+          ...room
+        }));
+        setRooms(roomsList);
+      } else {
+        setRooms([]);
+      }
+    });
   }, []);
 
   const goToPreviousWeek = () => setCurrentWeek(addWeeks(currentWeek, -1));
@@ -268,16 +264,16 @@ export function WeekView() {
                         <div className="space-y-1 pl-1">
                           {roomPlannings.map(planning => {
                             const volunteer = volunteers.find(v => v.id === planning.volunteerId);
+                            const name = volunteer
+                              ? `${volunteer.firstName}${volunteer.lastName ? ' ' + volunteer.lastName[0] + '.' : ''}`
+                              : 'Niet toegewezen';
                             return (
                               <div
                                 key={planning.id}
                                 className="text-[11px] leading-tight p-1.5 rounded bg-[#963E56]/5 border border-[#963E56]/10"
                               >
                                 <div className="font-medium text-[#963E56]/90 overflow-hidden whitespace-nowrap">
-                                  {volunteer
-                                    ? `${volunteer.firstName} ${volunteer.lastName}`
-                                    : 'Niet toegewezen'
-                                  }
+                                  {name}
                                 </div>
                               </div>
                             );
