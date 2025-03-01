@@ -10,7 +10,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { db } from "@/lib/firebase";
 import { ref, push, remove, update, onValue } from "firebase/database";
-import { UserPlus, Edit2, Trash2, Search, Users, CheckSquare, Square, Settings2, ChevronLeft, ChevronRight, ArrowUpDown } from "lucide-react";
+import { UserPlus, Edit2, Trash2, Search, Users, CheckSquare, Square, Settings2, ChevronLeft, ChevronRight, ArrowUpDown, CheckCircle2 } from "lucide-react";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -23,6 +23,7 @@ const volunteerSchema = z.object({
   firstName: z.string().min(1, "Voornaam is verplicht"),
   lastName: z.string().min(1, "Achternaam is verplicht"),
   phoneNumber: z.string().min(1, "Telefoonnummer is verplicht"),
+  isActive: z.boolean().default(true) // Added isActive field
 });
 
 type Volunteer = z.infer<typeof volunteerSchema> & { id: string };
@@ -41,6 +42,7 @@ export default function Volunteers() {
   const [isEditMode, setIsEditMode] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [sortOrder, setSortOrder] = useState<SortOrder>("lastName-asc");
+  const [activeFilter, setActiveFilter] = useState<'all' | 'active' | 'inactive'>('all');
   const { toast } = useToast();
 
   const form = useForm<z.infer<typeof volunteerSchema>>({
@@ -49,6 +51,7 @@ export default function Volunteers() {
       firstName: "",
       lastName: "",
       phoneNumber: "",
+      isActive: true // Added default value for isActive
     },
   });
 
@@ -200,24 +203,33 @@ export default function Volunteers() {
       firstName: volunteer.firstName,
       lastName: volunteer.lastName,
       phoneNumber: volunteer.phoneNumber,
+      isActive: volunteer.isActive // Added isActive to reset
     });
     setDialogOpen(true);
   };
 
-  // Verbeterde zoekfunctie
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setSearchTerm(value);
-    setCurrentPage(1); // Reset pagina bij nieuwe zoekopdracht
+    setCurrentPage(1); 
   };
 
-  // Verbeterde filterfunctie voor Nederlandse karakters
   const normalizeString = (str: string) => 
     str.toLowerCase()
        .normalize('NFD')
-       .replace(/[\u0300-\u036f]/g, ''); // Verwijder diakritische tekens
+       .replace(/[\u0300-\u036f]/g, ''); 
 
+  // Get filtered counts
+  const activeVolunteers = volunteers.filter(v => v.isActive);
+  const inactiveVolunteers = volunteers.filter(v => !v.isActive);
+
+  // Update the filtered volunteers logic
   const filteredVolunteers = volunteers.filter(volunteer => {
+    // First apply active/inactive filter
+    if (activeFilter === 'active' && !volunteer.isActive) return false;
+    if (activeFilter === 'inactive' && volunteer.isActive) return false;
+
+    // Then apply search filter
     if (!searchTerm.trim()) return true;
 
     const searchNormalized = normalizeString(searchTerm);
@@ -258,11 +270,65 @@ export default function Volunteers() {
     );
   };
 
+  // Toggle filter function
+  const toggleFilter = (filter: 'all' | 'active' | 'inactive') => {
+    setActiveFilter(current => current === filter ? 'all' : filter);
+    setCurrentPage(1); // Reset to first page when changing filter
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-3">
         <Users className="h-8 w-8 text-[#963E56]" />
         <h1 className="text-3xl font-bold text-[#963E56]">Vrijwilligers</h1>
+      </div>
+
+      {/* Statistics Blocks */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <Card 
+          className={`cursor-pointer transition-all hover:shadow-md ${
+            activeFilter === 'all' ? 'ring-2 ring-[#963E56] ring-offset-2' : ''
+          }`}
+          onClick={() => toggleFilter('all')}
+        >
+          <CardContent className="p-6 flex items-center justify-between">
+            <div>
+              <p className="text-sm text-muted-foreground">Totaal Vrijwilligers</p>
+              <p className="text-2xl font-bold text-[#963E56]">{volunteers.length}</p>
+            </div>
+            <Users className="h-8 w-8 text-[#963E56]" />
+          </CardContent>
+        </Card>
+
+        <Card 
+          className={`cursor-pointer transition-all hover:shadow-md ${
+            activeFilter === 'active' ? 'ring-2 ring-green-600 ring-offset-2' : ''
+          }`}
+          onClick={() => toggleFilter('active')}
+        >
+          <CardContent className="p-6 flex items-center justify-between">
+            <div>
+              <p className="text-sm text-muted-foreground">Actieve Vrijwilligers</p>
+              <p className="text-2xl font-bold text-green-600">{activeVolunteers.length}</p>
+            </div>
+            <CheckCircle2 className="h-8 w-8 text-green-600" />
+          </CardContent>
+        </Card>
+
+        <Card 
+          className={`cursor-pointer transition-all hover:shadow-md ${
+            activeFilter === 'inactive' ? 'ring-2 ring-gray-400 ring-offset-2' : ''
+          }`}
+          onClick={() => toggleFilter('inactive')}
+        >
+          <CardContent className="p-6 flex items-center justify-between">
+            <div>
+              <p className="text-sm text-muted-foreground">Inactieve Vrijwilligers</p>
+              <p className="text-2xl font-bold text-gray-600">{inactiveVolunteers.length}</p>
+            </div>
+            <Users className="h-8 w-8 text-gray-400" />
+          </CardContent>
+        </Card>
       </div>
 
       <Card>
@@ -371,6 +437,19 @@ export default function Volunteers() {
                           <FormLabel>Telefoonnummer</FormLabel>
                           <FormControl>
                             <Input placeholder="Telefoonnummer" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="isActive"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Actief</FormLabel>
+                          <FormControl>
+                            <Input type="checkbox" {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
