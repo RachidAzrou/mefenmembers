@@ -1,3 +1,14 @@
+const ITEMS_PER_PAGE = 10;
+
+type SortOrder = "firstName-asc" | "firstName-desc" | "lastName-asc" | "lastName-desc";
+
+type Planning = {
+  id: string;
+  volunteerId: string;
+  startDate: string;
+  endDate: string;
+};
+
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -28,12 +39,6 @@ const volunteerSchema = z.object({
 
 type Volunteer = z.infer<typeof volunteerSchema> & { id: string };
 
-type Planning = {
-  id: string;
-  volunteerId: string;
-  startDate: string;
-  endDate: string;
-};
 
 export default function Volunteers() {
   const [volunteers, setVolunteers] = useState<Volunteer[]>([]);
