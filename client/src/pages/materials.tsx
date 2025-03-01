@@ -648,20 +648,23 @@ const MaterialsPage = () => {
                             <SelectValue placeholder="Selecteer vrijwilliger" />
                           </SelectTrigger>
                           <SelectContent>
-                            <div className="sticky top-0 px-2 py-2 bg-white border-b">
+                            <div className="sticky top-0 p-2 bg-white border-b">
                               <div className="relative">
                                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
-                                <input
+                                <Input
                                   type="text"
                                   placeholder="Zoek vrijwilliger..."
                                   value={searchTerm}
-                                  onChange={handleSearch}
-                                  onClick={(e) => e.stopPropagation()}
-                                  className="w-full pl-9 h-9 rounded-md border border-input bg-white px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-offset-0 disabled:cursor-not-allowed disabled:opacity-50"
+                                  onKeyDown={(e) => e.stopPropagation()}
+                                  onChange={(e) => {
+                                    e.preventDefault();
+                                    setSearchTerm(e.target.value);
+                                  }}
+                                  className="pl-9 h-9"
                                 />
                               </div>
                             </div>
-                            <div className="pt-1 max-h-[300px] overflow-y-auto">
+                            <div className="pt-1">
                               {volunteers
                                 .filter(volunteer => {
                                   const fullName = `${volunteer.firstName} ${volunteer.lastName}`.toLowerCase();
@@ -671,16 +674,16 @@ const MaterialsPage = () => {
                                   <SelectItem
                                     key={volunteer.id}
                                     value={volunteer.id}
-                                    className="flex items-center justify-between py-2.5 px-3 cursor-pointer hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
+                                    className="flex items-center py-2 px-3 cursor-pointer hover:bg-accent hover:text-accent-foreground"
                                   >
-                                    <div className="flex items-center gap-2">
+                                    <div className="flex items-center gap-2 w-full">
                                       <Check
                                         className={cn(
                                           "h-4 w-4 flex-shrink-0",
                                           field.value === volunteer.id ? "opacity-100" : "opacity-0"
                                         )}
                                       />
-                                      <span className="flex-grow">{volunteer.firstName} {volunteer.lastName}</span>
+                                      <span className="flex-grow truncate">{volunteer.firstName} {volunteer.lastName}</span>
                                     </div>
                                   </SelectItem>
                                 ))}
@@ -902,11 +905,12 @@ const MaterialsPage = () => {
                   </TableRow>
                 )}
               </TableBody>
-            </Table>          </div>
+            </Table>
+          </div>
         </div>
       </div>
 
-      {isEditMode && selectedMaterials.length > 0 && (
+      {isEditMode && selectedMaterials.length > 0 &&(
         <div className="fixed bottom-4 left-4 right-4 flex items-center justify-between bg-card p-4 rounded-lg shadow-lg border animate-in slide-in-from-bottom-2">
           <span className="text-sm text-muted-foreground">
             {selectedMaterials.length} geselecteerd
