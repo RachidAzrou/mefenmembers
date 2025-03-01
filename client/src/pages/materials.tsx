@@ -206,22 +206,7 @@ const MaterialsPage = () => {
 
   const onSubmit = async (data: z.infer<typeof materialSchema>) => {
     try {
-      // Controleer of er materialen zijn geselecteerd met nummers
-      const hasValidMaterials = data.materials.some(material =>
-        material.numbers && material.numbers.length > 0
-      );
-
-      if (!hasValidMaterials) {
-        toast({
-          variant: "destructive",
-          title: "Fout",
-          description: "Selecteer ten minste één materiaal met een geldig nummer",
-          duration: 3000,
-        });
-        return;
-      }
-
-      // Controleer op validatiefouten
+      // Controleer op validatiefouten voordat we proberen materialen toe te wijzen
       const hasErrors = data.materials.some(material => material.error);
       if (hasErrors) {
         toast({
@@ -233,9 +218,24 @@ const MaterialsPage = () => {
         return;
       }
 
+      // Controleer of er materialen zijn geselecteerd met geldige nummers
+      const validMaterials = data.materials.filter(material =>
+        material.numbers && material.numbers.length > 0
+      );
+
+      if (validMaterials.length === 0) {
+        toast({
+          variant: "destructive",
+          title: "Fout",
+          description: "Selecteer ten minste één materiaal met een geldig nummer",
+          duration: 3000,
+        });
+        return;
+      }
+
       const volunteer = volunteers.find(v => v.id === data.volunteerId);
 
-      const createPromises = data.materials.flatMap(material => {
+      const createPromises = validMaterials.flatMap(material => {
         const materialType = materialTypes.find(t => t.id === material.typeId);
 
         return material.numbers.map(async (number) => {
@@ -261,7 +261,7 @@ const MaterialsPage = () => {
 
       await Promise.all(createPromises);
 
-      const totalItems = data.materials.reduce((sum, material) => sum + material.numbers.length, 0);
+      const totalItems = validMaterials.reduce((sum, material) => sum + material.numbers.length, 0);
 
       toast({
         title: "Succes",
@@ -818,8 +818,11 @@ const MaterialsPage = () => {
 
                                         const currentNumbers = material.numbers || [];
                                         if (!currentNumbers.includes(number)) {
-                                          const updatedMaterials = form.getValues("materials");
-                                          updatedMaterials[index].numbers = [...currentNumbers, number];
+                                          const updatedMaterials = [...form.getValues("materials")];
+                                          if (!updatedMaterials[index].numbers) {
+                                            updatedMaterials[index].numbers = [];
+                                          }
+                                          updatedMaterials[index].numbers.push(number);
                                           form.setValue("materials", updatedMaterials);
                                           form.clearErrors(`materials.${index}.error`);
                                           e.currentTarget.value = '';
@@ -893,8 +896,7 @@ const MaterialsPage = () => {
                   <TableHead className="whitespace-nowrap">Type</TableHead>
                   <TableHead className="whitespace-nowrap">Nummer</TableHead>
                   <TableHead className="whitespace-nowrap">Vrijwilliger</TableHead>
-                  <TableHead className="whitespace-nowrap">Status</TableHead>
-                  <TableHead className="whitespace-nowrap">Acties</TableHead>
+                  <TableHead className="whitespace-nowrap">Status</TableHead>                  <TableHead className="whitespace-nowrap">Acties</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
