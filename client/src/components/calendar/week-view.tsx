@@ -1,6 +1,6 @@
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, ChevronRight, Download, Share2, Package2, Users2, UserCheck, House } from "lucide-react";
+import { ChevronLeft, ChevronRight, Download, Share2 } from "lucide-react";
 import { format, startOfWeek, addDays, isWithinInterval, isSameDay, parseISO, addWeeks } from "date-fns";
 import { nl } from "date-fns/locale";
 import { useState, useEffect } from "react";
@@ -37,11 +37,7 @@ type Planning = {
   endDate: string;
 };
 
-type WeekViewProps = {
-  checkedOutMaterials: number;
-}
-
-export function WeekView({ checkedOutMaterials }: WeekViewProps) {
+export function WeekView() {
   const [currentWeek, setCurrentWeek] = useState(new Date());
   const [plannings, setPlannings] = useState<Planning[]>([]);
   const [volunteers, setVolunteers] = useState<Volunteer[]>([]);
@@ -111,11 +107,9 @@ export function WeekView({ checkedOutMaterials }: WeekViewProps) {
 
   const getPlanningsForDay = (day: Date) => {
     return plannings.filter(planning => {
-      // Parse the dates using parseISO to ensure correct date objects
       const planningStart = parseISO(planning.startDate);
       const planningEnd = parseISO(planning.endDate);
 
-      // Check if the day falls within the interval (inclusive) or is the same as start/end date
       return isWithinInterval(day, { 
         start: planningStart,
         end: planningEnd 
@@ -137,7 +131,7 @@ export function WeekView({ checkedOutMaterials }: WeekViewProps) {
           },
           room: {
             name: room?.name || 'Onbekende ruimte',
-            channel: room?.channel  // Add the channel information
+            channel: room?.channel
           },
           date: day
         });
@@ -145,10 +139,6 @@ export function WeekView({ checkedOutMaterials }: WeekViewProps) {
     }
     return planningsForPDF;
   };
-
-  const totalVolunteers = volunteers.length;
-  const totalRooms = rooms.length;
-  const activeVolunteers = plannings.filter(p => new Date(p.endDate) >= new Date()).length;
 
   const getPlanningsByRoom = (day: Date) => {
     const dayPlannings = getPlanningsForDay(day);
@@ -316,56 +306,6 @@ export function WeekView({ checkedOutMaterials }: WeekViewProps) {
         >
           {showFullWeek ? "Toon minder dagen" : "Toon volledige week"}
         </Button>
-      </div>
-
-      <div className="grid grid-cols-2 gap-2 sm:gap-4 lg:grid-cols-4">
-        <Card>
-          <CardContent className="pt-4 sm:pt-6">
-            <div className="flex items-center space-x-2 sm:space-x-3">
-              <Package2 className="h-5 w-5 sm:h-8 sm:w-8 text-[#963E56]/80" />
-              <div>
-                <p className="text-xs sm:text-sm font-medium text-muted-foreground">Uitgeleende Materialen</p>
-                <p className="text-lg sm:text-2xl font-bold text-[#963E56]">{checkedOutMaterials}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="pt-4 sm:pt-6">
-            <div className="flex items-center space-x-2 sm:space-x-3">
-              <Users2 className="h-5 w-5 sm:h-8 sm:w-8 text-[#963E56]/80" />
-              <div>
-                <p className="text-xs sm:text-sm font-medium text-muted-foreground">Totaal Vrijwilligers</p>
-                <p className="text-lg sm:text-2xl font-bold text-[#963E56]">{totalVolunteers}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="pt-4 sm:pt-6">
-            <div className="flex items-center space-x-2 sm:space-x-3">
-              <House className="h-5 w-5 sm:h-8 sm:w-8 text-[#963E56]/80" />
-              <div>
-                <p className="text-xs sm:text-sm font-medium text-muted-foreground">Totaal Ruimtes</p>
-                <p className="text-lg sm:text-2xl font-bold text-[#963E56]">{totalRooms}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="pt-4 sm:pt-6">
-            <div className="flex items-center space-x-2 sm:space-x-3">
-              <UserCheck className="h-5 w-5 sm:h-8 sm:w-8 text-[#963E56]/80" />
-              <div>
-                <p className="text-xs sm:text-sm font-medium text-muted-foreground">Actieve Vrijwilligers</p>
-                <p className="text-lg sm:text-2xl font-bold text-[#963E56]">{activeVolunteers}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
       </div>
     </div>
   );
