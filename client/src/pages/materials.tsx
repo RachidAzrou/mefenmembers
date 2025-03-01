@@ -206,28 +206,53 @@ const MaterialsPage = () => {
 
   const onSubmit = async (data: z.infer<typeof materialSchema>) => {
     try {
-      // Check of er materialen zijn met nummers en zonder fouten
-      const validMaterials = data.materials.filter(material =>
-        material.numbers?.length > 0 && !material.error
+      // Filter materialen met nummers
+      const materialsWithNumbers = data.materials.filter(material =>
+        material.numbers && material.numbers.length > 0
       );
 
-      // Als er geen geldige materialen zijn, toon een foutmelding
-      if (validMaterials.length === 0) {
+      if (materialsWithNumbers.length === 0) {
         toast({
           variant: "destructive",
           title: "Fout",
-          description: "Er zijn geen geldige materialen om toe te wijzen",
+          description: "Voeg eerst materiaalnummers toe",
           duration: 3000,
         });
         return;
       }
 
       const volunteer = volunteers.find(v => v.id === data.volunteerId);
+      const unavailableMaterials: string[] = [];
 
-      // Verwerk alleen de geldige materialen
-      const createPromises = validMaterials.flatMap(material => {
+      // Check beschikbaarheid van alle geselecteerde materialen
+      for (const material of materialsWithNumbers) {
+        for (const number of material.numbers) {
+          const isCheckedOut = materials.some(
+            m => m.typeId === material.typeId &&
+                m.number === number &&
+                m.isCheckedOut
+          );
+          if (isCheckedOut) {
+            const type = materialTypes.find(t => t.id === material.typeId);
+            unavailableMaterials.push(`${type?.name} #${number}`);
+          }
+        }
+      }
+
+      // Als er onbeschikbare materialen zijn, toon foutmelding
+      if (unavailableMaterials.length > 0) {
+        toast({
+          variant: "destructive",
+          title: "Fout",
+          description: "Een of meer materialen zijn niet beschikbaar voor uitleen",
+          duration: 3000,
+        });
+        return;
+      }
+
+      // Verwerk alleen de beschikbare materialen
+      const createPromises = materialsWithNumbers.flatMap(material => {
         const materialType = materialTypes.find(t => t.id === material.typeId);
-
         return material.numbers.map(async (number) => {
           await push(ref(db, "materials"), {
             typeId: material.typeId,
@@ -251,8 +276,8 @@ const MaterialsPage = () => {
 
       await Promise.all(createPromises);
 
-      const totalItems = validMaterials.reduce((sum, material) =>
-        sum + (material.numbers?.length || 0), 0
+      const totalItems = materialsWithNumbers.reduce((sum, material) =>
+        sum + material.numbers.length, 0
       );
 
       toast({
@@ -794,23 +819,23 @@ const MaterialsPage = () => {
                                       e.preventDefault();
                                       const number = parseInt(e.currentTarget.value);
                                       if (number && number >= 1 && number <= (materialType?.maxCount || 100)) {
+                                        // Check combinatie type + nummer
                                         const isCheckedOut = materials.some(
                                           m => m.typeId === material.typeId &&
-                                            m.number === number &&
-                                            m.isCheckedOut
+                                               m.number === number &&
+                                               m.isCheckedOut
                                         );
 
                                         if (isCheckedOut) {
-                                          // Zet de fout en voorkom toevoegen van het nummer
                                           form.setError(`materials.${index}.error`, {
                                             type: 'manual',
-                                            message: `Sorry, maar dit materiaal is alreeds uitgeleend`
+                                            message: `Dit materiaal is alreeds uitgeleend`
                                           });
                                         } else {
                                           const currentNumbers = form.getValues(`materials.${index}.numbers`) || [];
                                           if (!currentNumbers.includes(number)) {
-                                            // Update alleen de numbers array voor dit materiaal
                                             form.setValue(`materials.${index}.numbers`, [...currentNumbers, number]);
+                                            // Clear any existing errors when successfully adding a number
                                             form.clearErrors(`materials.${index}.error`);
                                             e.currentTarget.value = '';
                                           } else {
@@ -889,7 +914,7 @@ const MaterialsPage = () => {
               </TableHeader>
               <TableBody>
                 {filteredMaterials.map((item) => {
-                                    const type = materialTypes.find(t => t.id === item.typeId);
+                                    const type= materialTypes.find(t => t.id === item.typeId);
                     const volunteer = volunteers.find((v) => v.id === item.volunteerId);
                     return (
                       <TableRow key={item.id}>
