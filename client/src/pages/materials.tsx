@@ -206,12 +206,12 @@ const MaterialsPage = () => {
 
   const onSubmit = async (data: z.infer<typeof planningSchema>) => {
     try {
-      // Check of er materialen zijn met geldige nummers
-      const validMaterials = (data.materials || []).filter(material =>
+      // Check of er materialen zijn met nummers
+      const materialsWithNumbers = data.materials.filter(material =>
         material.numbers && material.numbers.length > 0
       );
 
-      if (validMaterials.length === 0) {
+      if (materialsWithNumbers.length === 0) {
         toast({
           variant: "destructive",
           title: "Fout",
@@ -223,11 +223,12 @@ const MaterialsPage = () => {
 
       const volunteer = volunteers.find(v => v.id === data.volunteerId);
 
-      // Check beschikbaarheid voor elk materiaal
-      for (const material of validMaterials) {
+      // Check of alle geselecteerde materialen beschikbaar zijn
+      for (const material of materialsWithNumbers) {
         const materialType = materialTypes.find(t => t.id === material.typeId);
 
         for (const number of material.numbers) {
+          // Controleer of deze combinatie van type + nummer al is uitgeleend
           const isCheckedOut = materials.some(m =>
             m.typeId === material.typeId &&
             m.number === number &&
@@ -246,8 +247,8 @@ const MaterialsPage = () => {
         }
       }
 
-      // Wijs materialen toe
-      for (const material of validMaterials) {
+      // Als alle materialen beschikbaar zijn, wijs ze toe
+      for (const material of materialsWithNumbers) {
         const materialType = materialTypes.find(t => t.id === material.typeId);
 
         for (const number of material.numbers) {
@@ -271,7 +272,7 @@ const MaterialsPage = () => {
         }
       }
 
-      const totalItems = validMaterials.reduce((sum, material) =>
+      const totalItems = materialsWithNumbers.reduce((sum, material) =>
         sum + material.numbers.length, 0
       );
 
@@ -562,10 +563,7 @@ const MaterialsPage = () => {
   const handleAddNumber = (index: number, number: number, materialType: typeof materialTypes[0] | undefined) => {
     const currentMaterials = [...form.getValues("materials")];
 
-    if (!currentMaterials[index].numbers) {
-      currentMaterials[index].numbers = [];
-    }
-
+    // Controleer of dit materiaal (type + nummer combinatie) al is uitgeleend
     const isCheckedOut = materials.some(m =>
       m.typeId === currentMaterials[index].typeId &&
       m.number === number &&
@@ -578,6 +576,11 @@ const MaterialsPage = () => {
         message: `Dit materiaal is alreeds uitgeleend`
       });
       return;
+    }
+
+    // Voeg nummer toe als het nog niet in de lijst staat
+    if (!currentMaterials[index].numbers) {
+      currentMaterials[index].numbers = [];
     }
 
     if (!currentMaterials[index].numbers.includes(number)) {
