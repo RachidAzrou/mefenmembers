@@ -8,7 +8,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { WeekView } from "@/components/calendar/week-view";
-import { format, parseISO, isToday } from "date-fns";
+import { format, parseISO, isWithinInterval, startOfToday, endOfToday } from "date-fns";
 
 type Material = {
   id: string;
@@ -112,20 +112,32 @@ export default function Dashboard() {
 
   // Get unique volunteers active today (have a planning for today)
   const activeVolunteers = volunteers.filter(volunteer => {
-    const hasActivePlanning = plannings.some(planning => {
-      const startDate = parseISO(planning.startDate);
-      const endDate = parseISO(planning.endDate);
+    const today = new Date();
+    const todayStart = startOfToday();
+    const todayEnd = endOfToday();
+
+    return plannings.some(planning => {
+      const planningStart = parseISO(planning.startDate);
+      const planningEnd = parseISO(planning.endDate);
+
       return planning.volunteerId === volunteer.id && 
-             (isToday(startDate) || isToday(endDate));
+             isWithinInterval(today, { 
+               start: planningStart,
+               end: planningEnd 
+             });
     });
-    return hasActivePlanning;
   });
 
   // Get all plannings for today
   const todayPlannings = plannings.filter(planning => {
-    const startDate = parseISO(planning.startDate);
-    const endDate = parseISO(planning.endDate);
-    return isToday(startDate) || isToday(endDate);
+    const today = new Date();
+    const planningStart = parseISO(planning.startDate);
+    const planningEnd = parseISO(planning.endDate);
+
+    return isWithinInterval(today, { 
+      start: planningStart,
+      end: planningEnd 
+    });
   });
 
   return (
