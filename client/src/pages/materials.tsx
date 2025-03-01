@@ -39,6 +39,13 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -70,25 +77,30 @@ import {
 import { useRole } from "@/hooks/use-role";
 import { logUserAction, UserActionTypes } from "@/lib/activity-logger";
 import { cn } from "@/lib/utils";
-import { GiMonclerJacket, GiWalkieTalkie } from 'react-icons/gi';
-import { TbJacket } from 'react-icons/tb';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { GiMonclerJacket, GiWalkieTalkie } from "react-icons/gi";
+import { TbJacket } from "react-icons/tb";
+import { format, parseISO } from 'date-fns';
+import { nl } from 'date-fns/locale';
 
-const planningSchema = z.object({
+
+const materialSchema = z.object({
   volunteerId: z.string().min(1, "Vrijwilliger is verplicht"),
-  materials: z.array(z.object({
-    typeId: z.string().min(1, "Type materiaal is verplicht"),
-    numbers: z.array(z.number().min(1).max(100)).default([]),
-    error: z.object({
-      type: z.string(),
-      message: z.string()
-    }).optional()
-  })).min(1, "Selecteer ten minste één materiaal"),
+  materials: z
+    .array(
+      z.object({
+        typeId: z.string().min(1, "Type materiaal is verplicht"),
+        numbers: z.array(z.number().min(1).max(100)),
+      }),
+    )
+    .min(1, "Selecteer ten minste één materiaal"),
 });
 
 const materialTypeSchema = z.object({
   name: z.string().min(1, "Naam is verplicht"),
-  maxCount: z.coerce.number().min(1, "Minimaal 1 vereist").max(100, "Maximaal 100 toegestaan"),
+  maxCount: z.coerce
+    .number()
+    .min(1, "Minimaal 1 vereist")
+    .max(100, "Maximaal 100 toegestaan"),
 });
 
 type MaterialType = {
@@ -113,14 +125,30 @@ type Volunteer = {
 
 const getMaterialIcon = (materialName: string) => {
   const name = materialName.toLowerCase();
-  if (name.includes('jas')) return <GiMonclerJacket className="h-8 w-8 text-primary/80" />;
-  if (name.includes('hesje')) return <TbJacket className="h-8 w-8 text-primary/80" />;
-  if (name.includes('lamp')) return <Flashlight className="h-8 w-8 text-primary/80" />;
-  if (name.includes('walkie')) return <GiWalkieTalkie className="h-8 w-8 text-primary/80" />;
+  if (name.includes("jas"))
+    return <GiMonclerJacket className="h-8 w-8 text-primary/80" />;
+  if (name.includes("hesje"))
+    return <TbJacket className="h-8 w-8 text-primary/80" />;
+  if (name.includes("lamp"))
+    return <Flashlight className="h-8 w-8 text-primary/80" />;
+  if (name.includes("walkie"))
+    return <GiWalkieTalkie className="h-8 w-8 text-primary/80" />;
   return <Package2 className="h-8 w-8 text-primary/80" />;
 };
 
-const MaterialsPage = () => {
+const PlanningSection = ({ title, children }: {
+  title: string;
+  children: React.ReactNode;
+}) => {
+  return (
+    <div className="space-y-4">
+      <h2 className="text-lg font-semibold text-[#963E56]">{title}</h2>
+      {children}
+    </div>
+  );
+};
+
+const Materials = () => {
   const [materials, setMaterials] = useState<Material[]>([]);
   const [materialTypes, setMaterialTypes] = useState<MaterialType[]>([]);
   const [volunteers, setVolunteers] = useState<Volunteer[]>([]);
@@ -128,21 +156,36 @@ const MaterialsPage = () => {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedMaterials, setSelectedMaterials] = useState<string[]>([]);
   const [isEditMode, setIsEditMode] = useState(false);
-  const [selectedMaterialTypes, setSelectedMaterialTypes] = useState<string[]>([]);
+  const [selectedMaterialTypes, setSelectedMaterialTypes] = useState<string[]>(
+    [],
+  );
   const [isTypesDialogOpen, setIsTypesDialogOpen] = useState(false);
-  const [editingMaterialType, setEditingMaterialType] = useState<MaterialType | null>(null);
-  const [deleteMaterialTypeId, setDeleteMaterialTypeId] = useState<string | null>(null);
+  const [editingMaterialType, setEditingMaterialType] =
+    useState<MaterialType | null>(null);
+  const [deleteMaterialTypeId, setDeleteMaterialTypeId] = useState<
+    string | null
+  >(null);
   const [editingMaterial, setEditingMaterial] = useState<Material | null>(null);
   const [open, setOpen] = useState(false);
-  const [currentPage, setCurrentPage] = useState(1);
+  const [currentPage, setCurrentPage] = useState(1); 
   const { toast } = useToast();
   const { isAdmin } = useRole();
+  const [searchReturned, setSearchReturned] = useState("");
+  const [returnedMaterials, setReturnedMaterials] = useState<Array<{
+    id: string;
+    materialType: string;
+    number: number;
+    borrower: string;
+    borrowDate: string;
+    returnDate: string;
+    processedBy: string;
+  }>>([]);
 
-  const form = useForm<z.infer<typeof planningSchema>>({
-    resolver: zodResolver(planningSchema),
+  const form = useForm<z.infer<typeof materialSchema>>({
+    resolver: zodResolver(materialSchema),
     defaultValues: {
       volunteerId: "",
-      materials: []
+      materials: [],
     },
   });
 
@@ -158,38 +201,44 @@ const MaterialsPage = () => {
     const materialTypesRef = ref(db, "materialTypes");
     onValue(materialTypesRef, (snapshot) => {
       const data = snapshot.val();
-      const typesList = data ? Object.entries(data).map(([id, type]) => ({
-        id,
-        ...(type as Omit<MaterialType, "id">),
-      })) : [];
+      const typesList = data
+        ? Object.entries(data).map(([id, type]) => ({
+            id,
+            ...(type as Omit<MaterialType, "id">),
+          }))
+        : [];
       setMaterialTypes(typesList);
     });
 
     const materialsRef = ref(db, "materials");
     onValue(materialsRef, (snapshot) => {
       const data = snapshot.val();
-      const materialsList = data ? Object.entries(data).map(([id, material]) => ({
-        id,
-        ...(material as Omit<Material, "id">),
-      })) : [];
+      const materialsList = data
+        ? Object.entries(data).map(([id, material]) => ({
+            id,
+            ...(material as Omit<Material, "id">),
+          }))
+        : [];
       setMaterials(materialsList);
     });
 
     const volunteersRef = ref(db, "volunteers");
     onValue(volunteersRef, (snapshot) => {
       const data = snapshot.val();
-      const volunteersList = data ? Object.entries(data).map(([id, volunteer]) => ({
-        id,
-        ...(volunteer as Omit<Volunteer, "id">),
-      })) : [];
+      const volunteersList = data
+        ? Object.entries(data).map(([id, volunteer]) => ({
+            id,
+            ...(volunteer as Omit<Volunteer, "id">),
+          }))
+        : [];
       setVolunteers(volunteersList);
     });
   }, []);
 
   const logActivity = async (
-    action: 'checkout' | 'return',
+    action: "checkout" | "return",
     material: Material,
-    volunteerId: string
+    volunteerId: string,
   ) => {
     try {
       await push(ref(db, "activityLogs"), {
@@ -197,86 +246,50 @@ const MaterialsPage = () => {
         materialTypeId: material.typeId,
         materialNumber: material.number,
         volunteerId,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       });
     } catch (error) {
       console.error("Failed to log activity:", error);
     }
   };
 
-  const onSubmit = async (data: z.infer<typeof planningSchema>) => {
+  const onSubmit = async (data: z.infer<typeof materialSchema>) => {
     try {
-      const materialsToProcess = data.materials.filter(m =>
-        m.numbers && m.numbers.length > 0
-      );
+      const volunteer = volunteers.find((v) => v.id === data.volunteerId);
 
-      if (materialsToProcess.length === 0) {
-        toast({
-          variant: "destructive",
-          title: "Fout",
-          description: "Voeg eerst materiaalnummers toe",
-          duration: 3000,
-        });
-        return;
-      }
+      const createPromises = data.materials.flatMap((material) => {
+        const materialType = materialTypes.find(
+          (t) => t.id === material.typeId,
+        );
 
-      const volunteer = volunteers.find(v => v.id === data.volunteerId);
-      const unavailableMaterials: string[] = [];
-
-      // Check beschikbaarheid van alle materialen
-      for (const material of materialsToProcess) {
-        const materialType = materialTypes.find(t => t.id === material.typeId);
-
-        for (const number of material.numbers) {
-          const isCheckedOut = materials.some(m =>
-            m.typeId === material.typeId &&
-            m.number === number &&
-            m.isCheckedOut
-          );
-
-          if (isCheckedOut) {
-            unavailableMaterials.push(`${materialType?.name} #${number}`);
-          }
-        }
-      }
-
-      if (unavailableMaterials.length > 0) {
-        toast({
-          variant: "destructive",
-          title: "Fout",
-          description: `De volgende materialen zijn al uitgeleend: ${unavailableMaterials.join(", ")}`,
-          duration: 3000,
-        });
-        return;
-      }
-
-      // Wijs alle materialen toe
-      for (const material of materialsToProcess) {
-        const materialType = materialTypes.find(t => t.id === material.typeId);
-
-        for (const number of material.numbers) {
+        return material.numbers.map(async (number) => {
           await push(ref(db, "materials"), {
             typeId: material.typeId,
             volunteerId: data.volunteerId,
-            number: number,
+            number,
             isCheckedOut: true,
           });
 
           await logUserAction(
             UserActionTypes.MATERIAL_CHECKOUT,
-            `${materialType?.name} #${number} uitgeleend aan ${volunteer?.firstName} ${volunteer?.lastName}`,
+            `${materialType?.name || "Materiaal"} #${number} uitgeleend aan ${volunteer ? `${volunteer.firstName} ${volunteer.lastName}` : "onbekende vrijwilliger"}`,
             {
               type: "material",
-              name: materialType?.name,
+              name: materialType?.name || "Onbekend materiaal",
               materialNumber: number.toString(),
-              volunteerName: volunteer ? `${volunteer.firstName} ${volunteer.lastName}` : undefined
-            }
+              volunteerName: volunteer
+                ? `${volunteer.firstName} ${volunteer.lastName}`
+                : undefined,
+            },
           );
-        }
-      }
+        });
+      });
 
-      const totalItems = materialsToProcess.reduce((sum, material) =>
-        sum + material.numbers.length, 0
+      await Promise.all(createPromises);
+
+      const totalItems = data.materials.reduce(
+        (sum, material) => sum + material.numbers.length,
+        0,
       );
 
       toast({
@@ -285,19 +298,14 @@ const MaterialsPage = () => {
         duration: 3000,
       });
 
-      form.reset({
-        volunteerId: "",
-        materials: []
-      });
+      form.reset();
       setSelectedMaterialTypes([]);
       setDialogOpen(false);
-
     } catch (error) {
-      console.error("Submit error:", error);
       toast({
         variant: "destructive",
         title: "Fout",
-        description: "Kon materialen niet toewijzen",
+        description: "Kon materiaal niet toewijzen",
         duration: 3000,
       });
     }
@@ -313,8 +321,8 @@ const MaterialsPage = () => {
           {
             type: "material",
             id: editingMaterialType.id,
-            name: data.name
-          }
+            name: data.name,
+          },
         );
         toast({
           title: "Succes",
@@ -330,8 +338,8 @@ const MaterialsPage = () => {
           {
             type: "material",
             id: newTypeRef.key!,
-            name: data.name
-          }
+            name: data.name,
+          },
         );
         toast({
           title: "Succes",
@@ -353,7 +361,7 @@ const MaterialsPage = () => {
 
   const handleDeleteMaterialType = async (id: string) => {
     try {
-      const materialType = materialTypes.find(t => t.id === id);
+      const materialType = materialTypes.find((t) => t.id === id);
       if (!materialType) return;
 
       await remove(ref(db, `materialTypes/${id}`));
@@ -363,8 +371,8 @@ const MaterialsPage = () => {
         {
           type: "material",
           id: id,
-          name: materialType.name
-        }
+          name: materialType.name,
+        },
       );
       toast({
         title: "Succes",
@@ -384,26 +392,38 @@ const MaterialsPage = () => {
 
   const handleReturn = async (materialId: string) => {
     try {
-      const material = materials.find(m => m.id === materialId);
+      const material = materials.find((m) => m.id === materialId);
       if (!material) return;
 
-      const materialType = materialTypes.find(t => t.id === material.typeId);
-      const volunteer = volunteers.find(v => v.id === material.volunteerId);
+      const materialType = materialTypes.find((t) => t.id === material.typeId);
+      const volunteer = volunteers.find((v) => v.id === material.volunteerId);
 
       await update(ref(db, `materials/${materialId}`), {
         volunteerId: null,
         isCheckedOut: false,
       });
 
+      await push(ref(db, "activityLogs"), {
+        action: "return",
+        materialTypeId: material.typeId,
+        materialNumber: material.number,
+        volunteerId: material.volunteerId,
+        originalCheckoutDate: material.originalCheckoutDate || new Date().toISOString(), 
+        timestamp: new Date().toISOString(),
+        processedBy: "Admin" 
+      });
+
       await logUserAction(
         UserActionTypes.MATERIAL_RETURN,
-        `${materialType?.name || 'Materiaal'} #${material.number} geretourneerd van ${volunteer ? `${volunteer.firstName} ${volunteer.lastName}` : 'onbekende vrijwilliger'}`,
+        `${materialType?.name || "Materiaal"} #${material.number} geretourneerd van ${volunteer ? `${volunteer.firstName} ${volunteer.lastName}` : "onbekende vrijwilliger"}`,
         {
           type: "material",
           id: material.id,
-          name: materialType?.name || 'Onbekend materiaal',
+          name: materialType?.name || "Onbekend materiaal",
           materialNumber: material.number.toString(),
-          volunteerName: volunteer ? `${volunteer.firstName} ${volunteer.lastName}` : undefined
+          volunteerName: volunteer
+            ? `${volunteer.firstName} ${volunteer.lastName}`
+            : undefined,
         }
       );
 
@@ -414,6 +434,7 @@ const MaterialsPage = () => {
         variant: "success",
       });
     } catch (error) {
+      console.error("Error returning material:", error);
       toast({
         variant: "destructive",
         title: "Fout",
@@ -443,58 +464,60 @@ const MaterialsPage = () => {
   };
 
   const normalizeString = (str: string) =>
-    str.toLowerCase()
-      .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, '');
+    str
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, ""); 
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setSearchTerm(value);
-    setCurrentPage(1);
+    setCurrentPage(1); 
   };
 
-  const filteredMaterials = materials.filter(material => {
+  const filteredMaterials = materials.filter((material) => {
     if (!material.isCheckedOut) return false;
     if (!searchTerm.trim()) return true;
 
-    const type = materialTypes.find(t => t.id === material.typeId);
-    const volunteer = volunteers.find(v => v.id === material.volunteerId);
+    const type = materialTypes.find((t) => t.id === material.typeId);
+    const volunteer = volunteers.find((v) => v.id === material.volunteerId);
 
     const searchNormalized = normalizeString(searchTerm);
-    const typeNameNormalized = normalizeString(type?.name || '');
+    const typeNameNormalized = normalizeString(type?.name || "");
     const volunteerNameNormalized = volunteer
       ? normalizeString(`${volunteer.firstName} ${volunteer.lastName}`)
-      : '';
+      : "";
     const numberString = material.number.toString();
 
-    return typeNameNormalized.includes(searchNormalized) ||
+    return (
+      typeNameNormalized.includes(searchNormalized) ||
       volunteerNameNormalized.includes(searchNormalized) ||
-      numberString.includes(searchNormalized);
+      numberString.includes(searchNormalized)
+    );
   });
 
-  const selectedType = materialTypes.find(t => t.id === form.watch("typeId"));
+  const selectedType = materialTypes.find((t) => t.id === form.watch("typeId"));
   const maxNumber = selectedType?.maxCount || 100;
 
-  const checkedOutMaterials = materials.filter(m => m.isCheckedOut).length;
-  const checkedOutByType = materialTypes.map(type => ({
+  const checkedOutMaterials = materials.filter((m) => m.isCheckedOut).length;
+  const checkedOutByType = materialTypes.map((type) => ({
     name: type.name,
-    count: materials.filter(m => m.typeId === type.id && m.isCheckedOut).length,
-    total: type.maxCount
+    count: materials.filter((m) => m.typeId === type.id && m.isCheckedOut)
+      .length,
+    total: type.maxCount,
   }));
 
   const toggleSelectAll = () => {
     if (selectedMaterials.length === filteredMaterials.length) {
       setSelectedMaterials([]);
     } else {
-      setSelectedMaterials(filteredMaterials.map(m => m.id));
+      setSelectedMaterials(filteredMaterials.map((m) => m.id));
     }
   };
 
   const toggleSelect = (id: string) => {
-    setSelectedMaterials(prev =>
-      prev.includes(id)
-        ? prev.filter(m => m !== id)
-        : [...prev, id]
+    setSelectedMaterials((prev) =>
+      prev.includes(id) ? prev.filter((m) => m !== id) : [...prev, id],
     );
   };
 
@@ -505,111 +528,117 @@ const MaterialsPage = () => {
       const materialsList = [];
 
       for (const id of materialIds) {
-        const material = materials.find(m => m.id === id);
+        const material = materials.find((m) => m.id === id);
         if (!material) continue;
 
         updates[`materials/${id}/volunteerId`] = null;
         updates[`materials/${id}/isCheckedOut`] = false;
 
-        const type = materialTypes.find(t => t.id === material.typeId);
-        const volunteer = volunteers.find(v => v.id === material.volunteerId);
+        const type = materialTypes.find((t) => t.id === material.typeId);
+        const volunteer = volunteers.find((v) => v.id === material.volunteerId);
         materialsList.push({
-          name: type?.name || 'Onbekend materiaal',
+          name: type?.name || "Onbekend materiaal",
           number: material.number,
-          volunteer: volunteer ? `${volunteer.firstName} ${volunteer.lastName}` : 'Onbekend'
+          volunteer: volunteer
+            ? `${volunteer.firstName} ${volunteer.lastName}`
+            : "Onbekend",
         });
 
         loggingPromises.push(
           logUserAction(
             UserActionTypes.MATERIAL_BULK_RETURN,
-            `${type?.name || 'Materiaal'} #${material.number} geretourneerd van ${volunteer ? `${volunteer.firstName} ${volunteer.lastName}` : 'onbekende vrijwilliger'}`,
+            `${type?.name || "Materiaal"} #${material.number} geretourneerd van ${volunteer ? `${volunteer.firstName} ${volunteer.lastName}` : "onbekende vrijwilliger"}`,
             {
               type: "material",
               id: material.id,
-              name: type?.name || 'Onbekend materiaal',
+              name: type?.name || "Onbekend materiaal",
               materialNumber: material.number.toString(),
               volunteerId: material.volunteerId,
-              volunteerName: volunteer ? `${volunteer.firstName} ${volunteer.lastName}` : undefined
-            }
-          )
+              volunteerName: volunteer
+                ? `${volunteer.firstName} ${volunteer.lastName}`
+                : undefined,
+            },
+          ),
         );
       }
 
-      await update(ref(db, ''), updates);
+      await update(ref(db, ""), updates);
       await Promise.all(loggingPromises);
 
       toast({
-        title: 'Succes',
-        description: 'Materialen succesvol geretourneerd',
+        title: "Succes",
+        description: "Materialen succesvol geretourneerd",
         duration: 3000,
-        variant: "success"
+        variant: "success",
       });
       setSelectedMaterials([]);
     } catch (error) {
       toast({
-        variant: 'destructive',
-        title: 'Fout',
-        description: 'Kon materialen niet retourneren',
-        duration: 3000
+        variant: "destructive",
+        title: "Fout",
+        description: "Kon materialen niet retourneren",
+        duration: 3000,
       });
     }
   };
 
-
-  const filteredVolunteers = volunteers.filter(volunteer => {
-    const fullName = `${volunteer.firstName} ${volunteer.lastName}`.toLowerCase();
+  const filteredVolunteers = volunteers.filter((volunteer) => {
+    const fullName =
+      `${volunteer.firstName} ${volunteer.lastName}`.toLowerCase();
     return fullName.includes(searchTerm.toLowerCase());
   });
 
-  const emptyMessage = filteredMaterials.length === 0 ? "Geen uitgeleende materialen gevonden." : "";
+  useEffect(() => {
+    const activityLogsRef = ref(db, "activityLogs");
+    onValue(activityLogsRef, (snapshot) => {
+      const data = snapshot.val();
+      if (!data) return;
 
-  const handleAddNumber = (index: number, number: number, materialType: typeof materialTypes[0] | undefined) => {
-    if (!materialType) return;
+      const returnedItems = Object.entries(data)
+        .filter(([_, log]: [string, any]) => log.action === "return")
+        .map(([id, log]: [string, any]) => {
+          const materialType = materialTypes.find(t => t.id === log.materialTypeId);
+          const volunteer = volunteers.find(v => v.id === log.volunteerId);
+          return {
+            id,
+            materialType: materialType?.name || "Onbekend",
+            number: log.materialNumber,
+            borrower: volunteer ? `${volunteer.firstName} ${volunteer.lastName}` : "Onbekend",
+            borrowDate: log.originalCheckoutDate || "Onbekend",
+            returnDate: log.timestamp,
+            processedBy: log.processedBy || "Systeem"
+          };
+        });
 
-    // Check eerst of deze combinatie van type + nummer al is uitgeleend
-    const existingMaterial = materials.find(m =>
-      m.typeId === materialType.id &&
-      m.number === number &&
-      m.isCheckedOut
+      setReturnedMaterials(returnedItems);
+    });
+  }, [materialTypes, volunteers]);
+
+  const filteredReturnedMaterials = returnedMaterials.filter(item => {
+    if (!searchReturned) return true;
+
+    const searchLower = searchReturned.toLowerCase();
+    return (
+      item.borrower.toLowerCase().includes(searchLower) ||
+      item.materialType.toLowerCase().includes(searchLower) ||
+      item.number.toString().includes(searchLower)
     );
+  });
 
-    if (existingMaterial) {
-      form.setError(`materials.${index}.error`, {
-        type: 'manual',
-        message: `Dit materiaal is alreeds uitgeleend`
-      });
-      return;
-    }
-
-    // Haal huidige materialen op en update numbers array
-    const currentMaterials = form.getValues("materials");
-    const currentNumbers = currentMaterials[index].numbers || [];
-
-    if (currentNumbers.includes(number)) {
-      form.setError(`materials.${index}.error`, {
-        type: 'manual',
-        message: `Je hebt materiaal nummer ${number} al geselecteerd`
-      });
-      return;
-    }
-
-    // Voeg nummer toe aan de lijst
-    currentMaterials[index].numbers = [...currentNumbers, number];
-    form.setValue("materials", currentMaterials);
-    form.clearErrors(`materials.${index}.error`);
-  };
 
   return (
     <div className="container mx-auto px-2 sm:px-4 py-4 sm:py-6 max-w-7xl space-y-4 sm:space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div className="flex items-center gap-3">
           <Package2 className="h-6 w-6 sm:h-8 sm:w-8 text-primary" />
-          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-primary">Materiaalbeheer</h1>
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-primary">
+            Materiaalbeheer
+          </h1>
         </div>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-4">
-        {checkedOutByType.map(stat => (
+        {checkedOutByType.map((stat) => (
           <Card key={stat.name} className="p-2 sm:p-4">
             <CardHeader className="pb-2">
               <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground">
@@ -621,14 +650,158 @@ const MaterialsPage = () => {
                 <div className="flex items-center">
                   {getMaterialIcon(stat.name)}
                   <div className="ml-2 sm:ml-3">
-                    <div className="text-lg sm:text-2xl font-bold">{stat.count}</div>
-                    <div className="text-xs sm:text-sm text-muted-foreground">van {stat.total}</div>
+                    <div className="text-lg sm:text-2xl font-bold">
+                      {stat.count}
+                    </div>
+                    <div className="text-xs sm:text-sm text-muted-foreground">
+                      van {stat.total}
+                    </div>
                   </div>
                 </div>
               </div>
             </CardContent>
           </Card>
         ))}
+      </div>
+
+      <div className="space-y-6">
+        <PlanningSection title="Uitgeleende Materialen">
+          <div className="relative flex-1 w-full">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Zoek op type, nummer of vrijwilliger..."
+              onChange={handleSearch}
+              value={searchTerm}
+              className="pl-9 w-full"
+              type="search"
+              autoComplete="off"
+            />
+          </div>
+
+          <div className="rounded-lg border bg-card">
+            <div className="overflow-x-auto -mx-2 sm:mx-0">
+              <div className="min-w-[600px] sm:min-w-full">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="whitespace-nowrap">Type</TableHead>
+                      <TableHead className="whitespace-nowrap">Nummer</TableHead>
+                      <TableHead className="whitespace-nowrap">
+                        Vrijwilliger
+                      </TableHead>
+                      <TableHead className="whitespace-nowrap">Status</TableHead>
+                      <TableHead className="whitespace-nowrap">Acties</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredMaterials.map((item) => {
+                      const type = materialTypes.find((t) => t.id === item.typeId);
+                      const volunteer = volunteers.find(
+                        (v) => v.id === item.volunteerId,
+                      );
+                      return (
+                        <TableRow key={item.id}>
+                          <TableCell className="capitalize">
+                            {type?.name || "Onbekend type"}
+                          </TableCell>
+                          <TableCell>{item.number}</TableCell>
+                          <TableCell>
+                            {volunteer
+                              ? `${volunteer.firstName} ${volunteer.lastName}`
+                              : "-"}
+                          </TableCell>
+                          <TableCell>
+                            <Badge
+                              variant="outline"
+                              className="bg-[#963E56]/10 text-[#963E56] border-[#963E56]/20"
+                            >
+                              Uitgeleend
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            <TooltipProvider>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={() => handleReturn(item.id)}
+                                    className="h-8 w-8 text-[#963E56] hover:text-[#963E56]/90 hover:bg-[#963E56]/10"
+                                  >
+                                    <RotateCcw className="h-4 w-4" />
+                                  </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>Retourneren</TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                    {filteredMaterials.length === 0 && (
+                      <TableRow>
+                        <TableCell colSpan={5} className="h-24 text-center">
+                          Geen uitgeleende materialen gevonden.
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>{" "}
+              </div>
+            </div>
+          </div>
+        </PlanningSection>
+
+        <PlanningSection title="Geretourneerde Materialen">
+          <div className="relative flex-1 w-full">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
+            <Input
+              placeholder="Zoek op naam, materiaal of nummer..."
+              value={searchReturned}
+              onChange={(e) => setSearchReturned(e.target.value)}
+              className="pl-9 w-full"
+              type="search"
+              autoComplete="off"
+            />
+          </div>
+
+          <div className="rounded-lg border bg-card">
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Materiaal</TableHead>
+                    <TableHead>Nummer</TableHead>
+                    <TableHead>Uitgeleend aan</TableHead>
+                    <TableHead>Uitgeleend op</TableHead>
+                    <TableHead>Geretourneerd op</TableHead>
+                    <TableHead>Verwerkt door</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filteredReturnedMaterials.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={6} className="text-center py-4 text-muted-foreground">
+                        Geen geretourneerde materialen gevonden
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    filteredReturnedMaterials.map((item) => (
+                      <TableRow key={item.id}>
+                        <TableCell>{item.materialType}</TableCell>
+                        <TableCell>{item.number}</TableCell>
+                        <TableCell>{item.borrower}</TableCell>
+                        <TableCell>{format(parseISO(item.borrowDate), "d MMM yyyy", { locale: nl })}</TableCell>
+                        <TableCell>{format(parseISO(item.returnDate), "d MMM yyyy", { locale: nl })}</TableCell>
+                        <TableCell>{item.processedBy}</TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+          </div>
+        </PlanningSection>
       </div>
 
       <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
@@ -646,7 +819,10 @@ const MaterialsPage = () => {
 
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
           {isAdmin && (
-            <Dialog open={isTypesDialogOpen} onOpenChange={setIsTypesDialogOpen}>
+            <Dialog
+              open={isTypesDialogOpen}
+              onOpenChange={setIsTypesDialogOpen}
+            >
               <DialogTrigger asChild>
                 <Button variant="outline" className="w-full sm:w-auto">
                   <Settings2 className="h-4 w-4 mr-2" />
@@ -656,11 +832,16 @@ const MaterialsPage = () => {
               <DialogContent className="max-w-[95vw] sm:max-w-[450px] p-4 bg-white">
                 <DialogHeader>
                   <DialogTitle>
-                    {editingMaterialType ? "Materiaaltype Bewerken" : "Nieuw Materiaaltype"}
+                    {editingMaterialType
+                      ? "Materiaaltype Bewerken"
+                      : "Nieuw Materiaaltype"}
                   </DialogTitle>
                 </DialogHeader>
                 <Form {...typeForm}>
-                  <form onSubmit={typeForm.handleSubmit(onSubmitType)} className="space-y-4">
+                  <form
+                    onSubmit={typeForm.handleSubmit(onSubmitType)}
+                    className="space-y-4"
+                  >
                     <FormField
                       control={typeForm.control}
                       name="name"
@@ -668,7 +849,10 @@ const MaterialsPage = () => {
                         <FormItem>
                           <FormLabel>Naam</FormLabel>
                           <FormControl>
-                            <Input {...field} placeholder="Materiaaltype naam" />
+                            <Input
+                              {...field}
+                              placeholder="Materiaaltype naam"
+                            />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -716,7 +900,10 @@ const MaterialsPage = () => {
                 </DialogTitle>
               </DialogHeader>
               <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                <form
+                  onSubmit={form.handleSubmit(onSubmit)}
+                  className="space-y-4"
+                >
                   <FormField
                     control={form.control}
                     name="volunteerId"
@@ -731,42 +918,47 @@ const MaterialsPage = () => {
                             <SelectValue placeholder="Selecteer vrijwilliger" />
                           </SelectTrigger>
                           <SelectContent>
-                            <div className="sticky top-0 p-2 bg-white border-b">
+                            <div className="sticky top-0 px-2 py-2 bg-white border-b">
                               <div className="relative">
                                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
-                                <Input
+                                <input
                                   type="text"
                                   placeholder="Zoek vrijwilliger..."
                                   value={searchTerm}
-                                  onKeyDown={(e) => e.stopPropagation()}
-                                  onChange={(e) => {
-                                    e.preventDefault();
-                                    setSearchTerm(e.target.value);
-                                  }}
-                                  className="pl-9 h-9"
+                                  onChange={handleSearch}
+                                  onClick={(e) => e.stopPropagation()}
+                                  className="w-full pl-9 h-9 rounded-md border border-input bg-white px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-offset-0 disabled:cursor-not-allowed disabled:opacity-50"
                                 />
                               </div>
                             </div>
-                            <div className="pt-1">
+                            <div className="pt-1 max-h-[300px] overflow-y-auto">
                               {volunteers
-                                .filter(volunteer => {
-                                  const fullName = `${volunteer.firstName} ${volunteer.lastName}`.toLowerCase();
-                                  return fullName.includes(searchTerm.toLowerCase());
+                                .filter((volunteer) => {
+                                  const fullName =
+                                    `${volunteer.firstName} ${volunteer.lastName}`.toLowerCase();
+                                  return fullName.includes(
+                                    searchTerm.toLowerCase(),
+                                  );
                                 })
                                 .map((volunteer) => (
                                   <SelectItem
                                     key={volunteer.id}
                                     value={volunteer.id}
-                                    className="flex items-center py-2 px-3 cursor-pointer hover:bg-accent hover:text-accent-foreground"
+                                    className="flex items-center justify-between py-2.5 px-3 cursor-pointer hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
                                   >
-                                    <div className="flex items-center gap-2 w-full">
+                                    <div className="flex items-center gap-2">
                                       <Check
                                         className={cn(
                                           "h-4 w-4 flex-shrink-0",
-                                          field.value === volunteer.id ? "opacity-100" : "opacity-0"
+                                          field.value === volunteer.id
+                                            ? "opacity-100"
+                                            : "opacity-0",
                                         )}
                                       />
-                                      <span className="flex-grow truncate">{volunteer.firstName} {volunteer.lastName}</span>
+                                      <span className="flex-grow">
+                                        {volunteer.firstName}{" "}
+                                        {volunteer.lastName}
+                                      </span>
                                     </div>
                                   </SelectItem>
                                 ))}
@@ -776,11 +968,15 @@ const MaterialsPage = () => {
                         {field.value && (
                           <div className="mt-2">
                             {(() => {
-                              const volunteer = volunteers.find(v => v.id === field.value);
+                              const volunteer = volunteers.find(
+                                (v) => v.id === field.value,
+                              );
                               if (volunteer) {
                                 return (
                                   <div className="bg-[#963E56]/10 text-[#963E56] text-sm rounded-full px-3 py-1 flex items-center gap-2 w-fit">
-                                    <span>{volunteer.firstName} {volunteer.lastName}</span>
+                                    <span>
+                                      {volunteer.firstName} {volunteer.lastName}
+                                    </span>
                                     <Button
                                       type="button"
                                       variant="ghost"
@@ -807,18 +1003,16 @@ const MaterialsPage = () => {
                       <Select
                         onValueChange={(value) => {
                           if (!selectedMaterialTypes.includes(value)) {
-                            setSelectedMaterialTypes([...selectedMaterialTypes, value]);
-
-                            const currentMaterials = form.getValues("materials") || [];
-                            const updatedMaterials = [
+                            setSelectedMaterialTypes([
+                              ...selectedMaterialTypes,
+                              value,
+                            ]);
+                            const currentMaterials =
+                              form.getValues("materials") || [];
+                            form.setValue("materials", [
                               ...currentMaterials,
-                              {
-                                typeId: value,
-                                numbers: []
-                              }
-                            ];
-
-                            form.setValue("materials", updatedMaterials);
+                              { typeId: value, numbers: [] },
+                            ]);
                           }
                         }}
                       >
@@ -835,80 +1029,114 @@ const MaterialsPage = () => {
                       </Select>
 
                       {form.watch("materials")?.map((material, index) => {
-                        const materialType = materialTypes.find(t => t.id === material.typeId);
+                        const materialType = materialTypes.find(
+                          (t) => t.id === material.typeId,
+                        );
                         return (
-                          <div key={material.typeId} className="space-y-2 p-4 border rounded-lg">
+                          <div
+                            key={material.typeId}
+                            className="space-y-2 p-4 border rounded-lg"
+                          >
                             <div className="flex justify-between items-center">
-                              <h4 className="font-medium">{materialType?.name}</h4>
+                              <h4 className="font-medium">
+                                {materialType?.name}
+                              </h4>
                               <Button
                                 type="button"
                                 variant="ghost"
                                 size="icon"
                                 onClick={() => {
-                                  const updatedMaterials = form.getValues("materials").filter((_, i) => i !== index);
+                                  const updatedMaterials = form
+                                    .getValues("materials")
+                                    .filter((_, i) => i !== index);
                                   form.setValue("materials", updatedMaterials);
-                                  setSelectedMaterialTypes(selectedMaterialTypes.filter(id => id !== material.typeId));
+                                  setSelectedMaterialTypes(
+                                    selectedMaterialTypes.filter(
+                                      (id) => id !== material.typeId,
+                                    ),
+                                  );
                                 }}
                               >
                                 <X className="h-4 w-4" />
                               </Button>
                             </div>
-                            <div className="space-y-2">
-                              <div className="relative">
-                                <Input
-                                  type="number"
-                                  min={1}
-                                  max={materialType?.maxCount || 100}
-                                  placeholder="Voer nummer in"
-                                  className={cn("w-full",
-                                    form.formState.errors.materials?.[index]?.error && "border-destructive"
-                                  )}
-                                  onKeyDown={(e) => {
-                                    if (e.key === 'Enter') {
-                                      e.preventDefault();
-                                      const number = parseInt(e.currentTarget.value);
-                                      if (number && number >= 1 && number <= (materialType?.maxCount || 100)) {
-                                        handleAddNumber(index, number, materialType);
-                                        e.currentTarget.value = '';
-                                      }
-                                    }
-                                  }}
-                                />
-                              </div>
-                              <p className="text-xs text-muted-foreground">
-                                Druk op Enter om nummer toe te voegen (1-{materialType?.maxCount || 100})
-                              </p>
-                              {form.formState.errors.materials?.[index]?.error && (
-                                <p className="text-sm text-destructive">
-                                  {form.formState.errors.materials[index].error.message}
-                                </p>
-                              )}
-                            </div>
-                            {material.numbers && material.numbers.length > 0 && (
-                              <div className="flex flex-wrap gap-2 mt-2">
-                                {material.numbers.map((number) => (
-                                  <div
-                                    key={number}
-                                    className="bg-primary/10 text-primary text-sm rounded-full px-3 py-1 flex items-center gap-2"
-                                  >
-                                    <span>#{number}</span>
-                                    <Button
-                                      type="button"
-                                      variant="ghost"
-                                      size="icon"
-                                      className="h-4 w-4 p0 hover:bg-transparent"
-                                      onClick={() => {
-                                        const updatedMaterials = form.getValues("materials");
-                                        updatedMaterials[index].numbers = material.numbers.filter(n => n !== number);
-                                        form.setValue("materials", updatedMaterials);
-                                      }}
+                            <Select
+                              onValueChange={(value) => {
+                                const number = parseInt(value);
+                                const currentNumbers = material.numbers || [];
+                                if (!currentNumbers.includes(number)) {
+                                  const updatedMaterials =
+                                    form.getValues("materials");
+                                  updatedMaterials[index].numbers = [
+                                    ...currentNumbers,
+                                    number,
+                                  ];
+                                  form.setValue("materials", updatedMaterials);
+                                }
+                              }}
+                            >
+                              <SelectTrigger>
+                                <SelectValue placeholder="Selecteer nummer" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {Array.from({
+                                  length: materialType?.maxCount || 0,
+                                }).map((_, i) => {
+                                  const number = i + 1;
+                                  const isCheckedOut = materials.some(
+                                    (m) =>
+                                      m.typeId === material.typeId &&
+                                      m.number === number &&
+                                      m.isCheckedOut,
+                                  );
+                                  if (!isCheckedOut) {
+                                    return (
+                                      <SelectItem
+                                        key={number}
+                                        value={number.toString()}
+                                      >
+                                        {number}
+                                      </SelectItem>
+                                    );
+                                  }
+                                  return null;
+                                })}
+                              </SelectContent>
+                            </Select>
+
+                            {material.numbers &&
+                              material.numbers.length > 0 && (
+                                <div className="flex flex-wrap gap-2 mt-2">
+                                  {material.numbers.map((number) => (
+                                    <div
+                                      key={number}
+                                      className="bg-primary/10 text-primary text-sm rounded-full px-3 py-1 flex items-center gap-2"
                                     >
-                                      <X className="h3 w-3" />
-                                    </Button>
-                                  </div>
-                                ))}
-                              </div>
-                            )}
+                                      <span>#{number}</span>
+                                      <Button
+                                        type="button"
+                                        variant="ghost"
+                                        size="icon"
+                                        className="h-4 w-4 p-0 hover:bg-transparent"
+                                        onClick={() => {
+                                          const updatedMaterials =
+                                            form.getValues("materials");
+                                          updatedMaterials[index].numbers =
+                                            material.numbers.filter(
+                                              (n) => n !== number,
+                                            );
+                                          form.setValue(
+                                            "materials",
+                                            updatedMaterials,
+                                          );
+                                        }}
+                                      >
+                                        <X className="h-3 w-3" />
+                                      </Button>
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
                           </div>
                         );
                       })}
@@ -933,67 +1161,67 @@ const MaterialsPage = () => {
                 <TableRow>
                   <TableHead className="whitespace-nowrap">Type</TableHead>
                   <TableHead className="whitespace-nowrap">Nummer</TableHead>
-                  <TableHead className="whitespace-nowrap">Vrijwilliger</TableHead>
-                  <TableHead className="whitespace-nowrap">Status</TableHead>                  <TableHead className="whitespace-nowrap">Acties</TableHead>
+                  <TableHead className="whitespace-nowrap">
+                    Vrijwilliger
+                  </TableHead>
+                  <TableHead className="whitespace-nowrap">Status</TableHead>
+                  <TableHead className="whitespace-nowrap">Acties</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filteredMaterials.map((item) => {
-                    const type= materialTypes.find(t => t.id === item.typeId);
-                    const volunteer = volunteers.find((v) => v.id === item.volunteerId);
-                    return (
-                      <TableRow key={item.id}>
-                        <TableCell className="capitalize">
-                          {type?.name || 'Onbekend type'}
-                        </TableCell>
-                        <TableCell>{item.number}</TableCell>
-                        <TableCell>
-                          {volunteer
-                            ? `${volunteer.firstName} ${volunteer.lastName}`
-                            : "-"}
-                        </TableCell>
-                        <TableCell>
-                          <Badge
-                            variant="outline"
-                            className="bg-[#963E56]/10 text-[#963E56] border-[#963E56]/20"
-                          >
-                            Uitgeleend
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          <TooltipProvider>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  onClick={() => handleReturn(item.id)}
-                                  className="h-8 w-8 text-[#963E56] hover:text-[#963E56]/90 hover:bg-[#963E56]/10"
-                                >
-                                  <RotateCcw className="h-4 w-4" />
-                                </Button>
-                              </TooltipTrigger>
-                              <TooltipContent>
-                                Retourneren
-                              </TooltipContent>
-                            </Tooltip>
-                          </TooltipProvider>
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })}
+                  const type = materialTypes.find((t) => t.id === item.typeId);
+                  const volunteer = volunteers.find(
+                    (v) => v.id === item.volunteerId,
+                  );
+                  return (
+                    <TableRow key={item.id}>
+                      <TableCell className="capitalize">
+                        {type?.name || "Onbekend type"}
+                      </TableCell>
+                      <TableCell>{item.number}</TableCell>
+                      <TableCell>
+                        {volunteer
+                          ? `${volunteer.firstName} ${volunteer.lastName}`
+                          : "-"}
+                      </TableCell>
+                      <TableCell>
+                        <Badge
+                          variant="outline"
+                          className="bg-[#963E56]/10 text-[#963E56] border-[#963E56]/20"
+                        >
+                          Uitgeleend
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => handleReturn(item.id)}
+                                className="h-8 w-8 text-[#963E56] hover:text-[#963E56]/90 hover:bg-[#963E56]/10"
+                              >
+                                <RotateCcw className="h-4 w-4" />
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>Retourneren</TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
                 {filteredMaterials.length === 0 && (
                   <TableRow>
-                    <TableCell
-                      colSpan={5}
-                      className="h-24 text-center"
-                    >
-                      {emptyMessage}
+                    <TableCell colSpan={5} className="h-24 text-center">
+                      Geen uitgeleende materialen gevonden.
                     </TableCell>
                   </TableRow>
                 )}
               </TableBody>
-            </Table>
+            </Table>{" "}
           </div>
         </div>
       </div>
@@ -1003,25 +1231,16 @@ const MaterialsPage = () => {
           <span className="text-sm text-muted-foreground">
             {selectedMaterials.length} geselecteerd
           </span>
-          <div className="flex items-center gap-2">
-            <Button
-              variant="ghost"
-              onClick={() => setSelectedMaterials([])}
-              className="text-muted-foreground"
-            >
-              Annuleren
-            </Button>
-            <Button
-              variant="destructive"
-              onClick={() => handleBulkReturn(selectedMaterials)}
-              className="gap-2"
-            >
-              <RotateCcw className="h-4 w-4" />
-              Retourneren
-            </Button>
-          </div>
+          <Button
+            variant="default"
+            onClick={() => handleBulkReturn(selectedMaterials)}
+            className="bg-primary hover:bg-primary/90"
+          >
+            <RotateCcw className="h-4 w-4 mr-2" /> Retourneren{" "}
+          </Button>
         </div>
       )}
+
       <AlertDialog
         open={!!deleteMaterialTypeId}
         onOpenChange={() => setDeleteMaterialTypeId(null)}
@@ -1037,11 +1256,13 @@ const MaterialsPage = () => {
             <AlertDialogCancel onClick={() => setDeleteMaterialTypeId(null)}>
               Annuleren
             </AlertDialogCancel>
-            <AlertDialogAction onClick={() => {
-              if (deleteMaterialTypeId) {
-                handleDeleteMaterialType(deleteMaterialTypeId);
-              }
-            }}>
+            <AlertDialogAction
+              onClick={() => {
+                if (deleteMaterialTypeId) {
+                  handleDeleteMaterialType(deleteMaterialTypeId);
+                }
+              }}
+            >
               Verwijderen
             </AlertDialogAction>
           </AlertDialogFooter>
@@ -1051,4 +1272,4 @@ const MaterialsPage = () => {
   );
 };
 
-export default MaterialsPage;
+export default Materials;
