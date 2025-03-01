@@ -130,7 +130,7 @@ const MaterialsPage = () => {
   const [deleteMaterialTypeId, setDeleteMaterialTypeId] = useState<string | null>(null);
   const [editingMaterial, setEditingMaterial] = useState<Material | null>(null);
   const [open, setOpen] = useState(false);
-  const [currentPage, setCurrentPage] = useState(1); 
+  const [currentPage, setCurrentPage] = useState(1);
   const { toast } = useToast();
   const { isAdmin } = useRole();
 
@@ -393,12 +393,12 @@ const MaterialsPage = () => {
   const normalizeString = (str: string) =>
     str.toLowerCase()
       .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, ''); 
+      .replace(/[\u0300-\u036f]/g, '');
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setSearchTerm(value);
-    setCurrentPage(1); 
+    setCurrentPage(1);
   };
 
   const filteredMaterials = materials.filter(material => {
@@ -757,36 +757,52 @@ const MaterialsPage = () => {
                               </Button>
                             </div>
                             <div className="space-y-2">
-                              <Input
-                                type="number"
-                                min={1}
-                                max={materialType?.maxCount || 100}
-                                placeholder="Voer nummer in"
-                                className="w-full"
-                                onKeyDown={(e) => {
-                                  if (e.key === 'Enter') {
-                                    e.preventDefault();
-                                    const number = parseInt(e.currentTarget.value);
-                                    if (number && number >= 1 && number <= (materialType?.maxCount || 100)) {
-                                      
-                                      const isCheckedOut = materials.some(
-                                        m => m.typeId === material.typeId &&
-                                          m.number === number &&
-                                          m.isCheckedOut
-                                      );
-                                      if (!isCheckedOut) {
-                                        const currentNumbers = material.numbers || [];
-                                        if (!currentNumbers.includes(number)) {
-                                          const updatedMaterials = form.getValues("materials");
-                                          updatedMaterials[index].numbers = [...currentNumbers, number];
-                                          form.setValue("materials", updatedMaterials);
+                              <div className="relative">
+                                <Input
+                                  type="number"
+                                  min={1}
+                                  max={materialType?.maxCount || 100}
+                                  placeholder="Voer nummer in"
+                                  className="w-full"
+                                  onKeyDown={(e) => {
+                                    if (e.key === 'Enter') {
+                                      e.preventDefault();
+                                      const number = parseInt(e.currentTarget.value);
+                                      if (number && number >= 1 && number <= (materialType?.maxCount || 100)) {
+                                        const isCheckedOut = materials.some(
+                                          m => m.typeId === material.typeId &&
+                                            m.number === number &&
+                                            m.isCheckedOut
+                                        );
+
+                                        if (isCheckedOut) {
+                                          toast({
+                                            title: "Materiaal niet beschikbaar",
+                                            description: `Materiaal nummer ${number} is al uitgeleend`,
+                                            variant: "destructive",
+                                            duration: 3000,
+                                          });
+                                        } else {
+                                          const currentNumbers = material.numbers || [];
+                                          if (!currentNumbers.includes(number)) {
+                                            const updatedMaterials = form.getValues("materials");
+                                            updatedMaterials[index].numbers = [...currentNumbers, number];
+                                            form.setValue("materials", updatedMaterials);
+                                            e.currentTarget.value = '';
+                                          } else {
+                                            toast({
+                                              title: "Dubbele invoer",
+                                              description: `Je hebt materiaal nummer ${number} al geselecteerd`,
+                                              variant: "destructive",
+                                              duration: 3000,
+                                            });
+                                          }
                                         }
                                       }
-                                      e.currentTarget.value = ''; 
                                     }
-                                  }
-                                }}
-                              />
+                                  }}
+                                />
+                              </div>
                               <p className="text-xs text-muted-foreground">
                                 Druk op Enter om nummer toe te voegen (1-{materialType?.maxCount || 100})
                               </p>
@@ -876,7 +892,7 @@ const MaterialsPage = () => {
                                 variant="ghost"
                                 size="icon"
                                 onClick={() => handleReturn(item.id)}
-                                className="h-8 w-8 text-[#963E56] hover:text-[#963E56]/90 hover:bg-[#963E56]/10"
+                                                               className="h-8 w-8 text-[#963E56] hover:text-[#963E56]/90 hover:bg-[#963E56]/10"
                               >
                                 <RotateCcw className="h-4 w-4" />
                               </Button>
@@ -906,7 +922,8 @@ const MaterialsPage = () => {
         </div>
       </div>
 
-      {isEditMode && selectedMaterials.length > 0 && (        <div className="fixed bottom-4 left-4 right-4 flex items-center justify-between bg-card p-4 rounded-lg shadow-lg border animate-in slide-in-from-bottom-2">
+      {isEditMode && selectedMaterials.length > 0 && (
+        <div className="fixed bottom-4 left-4 right-4 flex items-center justify-between bg-card p-4 rounded-lg shadow-lg border animate-in slide-in-from-bottom-2">
           <span className="text-sm text-muted-foreground">
             {selectedMaterials.length} geselecteerd
           </span>
