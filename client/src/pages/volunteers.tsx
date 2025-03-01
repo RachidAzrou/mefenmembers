@@ -1,14 +1,3 @@
-const ITEMS_PER_PAGE = 10;
-
-type SortOrder = "firstName-asc" | "firstName-desc" | "lastName-asc" | "lastName-desc";
-
-type Planning = {
-  id: string;
-  volunteerId: string;
-  startDate: string;
-  endDate: string;
-};
-
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -21,7 +10,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { db } from "@/lib/firebase";
 import { ref, push, remove, update, onValue } from "firebase/database";
-import { UserPlus, Edit2, Trash2, Search, Users, CheckSquare, Square, Settings2, ChevronLeft, ChevronRight, ArrowUpDown, CheckCircle2 } from "lucide-react";
+import { UserPlus, Edit2, Trash2, Search, Users, CheckSquare, Square, Settings2, ChevronLeft, ChevronRight, ArrowUpDown, CheckCircle2, XCircle } from "lucide-react";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -30,15 +19,27 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { logUserAction, UserActionTypes } from "@/lib/activity-logger";
 import { format, parseISO, isWithinInterval, startOfToday, endOfToday } from "date-fns";
 
+const ITEMS_PER_PAGE = 10;
+
+type SortOrder = "firstName-asc" | "firstName-desc" | "lastName-asc" | "lastName-desc";
+
 const volunteerSchema = z.object({
   firstName: z.string().min(1, "Voornaam is verplicht"),
   lastName: z.string().min(1, "Achternaam is verplicht"),
   phoneNumber: z.string().min(1, "Telefoonnummer is verplicht"),
-  isActive: z.boolean().default(true)
 });
 
-type Volunteer = z.infer<typeof volunteerSchema> & { id: string };
+type Volunteer = z.infer<typeof volunteerSchema> & { 
+  id: string;
+  isActive?: boolean;
+};
 
+type Planning = {
+  id: string;
+  volunteerId: string;
+  startDate: string;
+  endDate: string;
+};
 
 export default function Volunteers() {
   const [volunteers, setVolunteers] = useState<Volunteer[]>([]);
@@ -239,7 +240,6 @@ export default function Volunteers() {
       firstName: volunteer.firstName,
       lastName: volunteer.lastName,
       phoneNumber: volunteer.phoneNumber,
-      isActive: volunteer.isActive 
     });
     setDialogOpen(true);
   };
@@ -314,7 +314,6 @@ export default function Volunteers() {
       firstName: "",
       lastName: "",
       phoneNumber: "",
-      isActive: true 
     },
   });
 
@@ -327,22 +326,7 @@ export default function Volunteers() {
       </div>
 
       {/* Statistics Blocks */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <Card 
-          className={`cursor-pointer transition-all hover:shadow-md ${
-            activeFilter === 'all' ? 'ring-2 ring-[#963E56] ring-offset-2' : ''
-          }`}
-          onClick={() => toggleFilter('all')}
-        >
-          <CardContent className="p-6 flex items-center justify-between">
-            <div>
-              <p className="text-sm text-muted-foreground">Totaal Vrijwilligers</p>
-              <p className="text-2xl font-bold text-[#963E56]">{volunteers.length}</p>
-            </div>
-            <Users className="h-8 w-8 text-[#963E56]" />
-          </CardContent>
-        </Card>
-
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <Card 
           className={`cursor-pointer transition-all hover:shadow-md ${
             activeFilter === 'active' ? 'ring-2 ring-[#963E56] ring-offset-2' : ''
@@ -369,7 +353,7 @@ export default function Volunteers() {
               <p className="text-sm text-muted-foreground">Niet Ingepland</p>
               <p className="text-2xl font-bold text-[#963E56]">{inactiveVolunteers.length}</p>
             </div>
-            <Users className="h-8 w-8 text-[#963E56]" />
+            <XCircle className="h-8 w-8 text-[#963E56]" />
           </CardContent>
         </Card>
       </div>
@@ -474,19 +458,6 @@ export default function Volunteers() {
                         </FormItem>
                       )}
                     />
-                    <FormField
-                      control={form.control}
-                      name="isActive"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Actief</FormLabel>
-                          <FormControl>
-                            <Input type="checkbox" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
                     <div className="flex justify-end gap-3 pt-4">
                       <Button
                         type="button"
@@ -510,7 +481,6 @@ export default function Volunteers() {
               </DialogContent>
             </Dialog>
           )}
-
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
