@@ -258,8 +258,15 @@ export default function Volunteers() {
   // Update the filtered volunteers logic
   const filteredVolunteers = volunteers.filter(volunteer => {
     // First apply active/inactive filter
-    if (activeFilter === 'active' && !activeVolunteers.some(v => v.id === volunteer.id)) return false;
-    if (activeFilter === 'inactive' && activeVolunteers.some(v => v.id === volunteer.id)) return false;
+    if (activeFilter === 'active') {
+      if (!activeVolunteers.some(v => v.id === volunteer.id)) {
+        return false;
+      }
+    } else if (activeFilter === 'inactive') {
+      if (!inactiveVolunteers.some(v => v.id === volunteer.id)) {
+        return false;
+      }
+    }
 
     // Then apply search filter
     if (!searchTerm.trim()) return true;
@@ -327,6 +334,16 @@ export default function Volunteers() {
 
       {/* Statistics Blocks */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <Card>
+          <CardContent className="p-6 flex items-center justify-between">
+            <div>
+              <p className="text-sm text-muted-foreground">Totaal Vrijwilligers</p>
+              <p className="text-2xl font-bold text-[#963E56]">{volunteers.length}</p>
+            </div>
+            <Users className="h-8 w-8 text-[#963E56]" />
+          </CardContent>
+        </Card>
+
         <Card 
           className={`cursor-pointer transition-all hover:shadow-md ${
             activeFilter === 'active' ? 'ring-2 ring-[#963E56] ring-offset-2' : ''
@@ -339,16 +356,6 @@ export default function Volunteers() {
               <p className="text-2xl font-bold text-[#963E56]">{activeVolunteers.length}</p>
             </div>
             <CheckCircle2 className="h-8 w-8 text-[#963E56]" />
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-6 flex items-center justify-between">
-            <div>
-              <p className="text-sm text-muted-foreground">Totaal Vrijwilligers</p>
-              <p className="text-2xl font-bold text-[#963E56]">{volunteers.length}</p>
-            </div>
-            <Users className="h-8 w-8 text-[#963E56]" />
           </CardContent>
         </Card>
 
