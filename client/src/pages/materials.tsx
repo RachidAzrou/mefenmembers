@@ -78,7 +78,11 @@ const materialSchema = z.object({
   volunteerId: z.string().min(1, "Vrijwilliger is verplicht"),
   materials: z.array(z.object({
     typeId: z.string().min(1, "Type materiaal is verplicht"),
-    numbers: z.array(z.number().min(1).max(100))
+    numbers: z.array(z.number().min(1).max(100)),
+    error: z.object({
+      type: z.string(),
+      message: z.string()
+    }).optional()
   })).min(1, "Selecteer ten minste één materiaal"),
 });
 
@@ -776,11 +780,9 @@ const MaterialsPage = () => {
                                         );
 
                                         if (isCheckedOut) {
-                                          toast({
-                                            title: "Materiaal niet beschikbaar",
-                                            description: `Materiaal nummer ${number} is al uitgeleend`,
-                                            variant: "destructive",
-                                            duration: 3000,
+                                          form.setError(`materials.${index}.error`, {
+                                            type: 'manual',
+                                            message: `Materiaal nummer ${number} is al uitgeleend`
                                           });
                                         } else {
                                           const currentNumbers = material.numbers || [];
@@ -788,13 +790,12 @@ const MaterialsPage = () => {
                                             const updatedMaterials = form.getValues("materials");
                                             updatedMaterials[index].numbers = [...currentNumbers, number];
                                             form.setValue("materials", updatedMaterials);
+                                            form.clearErrors(`materials.${index}.error`);
                                             e.currentTarget.value = '';
                                           } else {
-                                            toast({
-                                              title: "Dubbele invoer",
-                                              description: `Je hebt materiaal nummer ${number} al geselecteerd`,
-                                              variant: "destructive",
-                                              duration: 3000,
+                                            form.setError(`materials.${index}.error`, {
+                                              type: 'manual',
+                                              message: `Je hebt materiaal nummer ${number} al geselecteerd`
                                             });
                                           }
                                         }
@@ -806,6 +807,11 @@ const MaterialsPage = () => {
                               <p className="text-xs text-muted-foreground">
                                 Druk op Enter om nummer toe te voegen (1-{materialType?.maxCount || 100})
                               </p>
+                              {form.formState.errors.materials?.[index]?.error && (
+                                <p className="text-sm text-destructive">
+                                  {form.formState.errors.materials[index].error.message}
+                                </p>
+                              )}
                             </div>
                             {material.numbers && material.numbers.length > 0 && (
                               <div className="flex flex-wrap gap-2 mt-2">
@@ -892,7 +898,7 @@ const MaterialsPage = () => {
                                 variant="ghost"
                                 size="icon"
                                 onClick={() => handleReturn(item.id)}
-                                                               className="h-8 w-8 text-[#963E56] hover:text-[#963E56]/90 hover:bg-[#963E56]/10"
+                                className="h-8 w-8 text-[#963E56] hover:text-[#963E56]/90 hover:bg-[#963E56]/10"
                               >
                                 <RotateCcw className="h-4 w-4" />
                               </Button>
