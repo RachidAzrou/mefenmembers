@@ -794,7 +794,7 @@ const MaterialsPage = () => {
                                   min={1}
                                   max={materialType?.maxCount || 100}
                                   placeholder="Voer nummer in"
-                                  className={cn("w-full", 
+                                  className={cn("w-full",
                                     form.formState.errors.materials?.[index]?.error && "border-destructive"
                                   )}
                                   onKeyDown={(e) => {
@@ -811,7 +811,7 @@ const MaterialsPage = () => {
                                         if (isCheckedOut) {
                                           form.setError(`materials.${index}.error`, {
                                             type: 'manual',
-                                            message: `Materiaal nummer ${number} is al uitgeleend`
+                                            message: `Sorry, maar dit materiaal is alreeds uitgeleend`
                                           });
                                           return; // Stop hier als het materiaal al is uitgeleend
                                         }
