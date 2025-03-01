@@ -4,118 +4,128 @@ import { nl } from "date-fns/locale";
 
 const styles = StyleSheet.create({
   page: {
-    padding: 20,
+    padding: 30,
     backgroundColor: '#fff',
     fontFamily: 'Helvetica',
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 15,
+    marginBottom: 20,
     borderBottomWidth: 1,
     borderBottomColor: '#E5E7EB',
-    paddingBottom: 10,
+    paddingBottom: 15,
   },
   logo: {
-    width: 60,
-    marginRight: 15,
+    width: 80,
+    marginRight: 20,
   },
   headerContent: {
     flex: 1,
   },
   title: {
+    fontSize: 24,
+    color: '#963E56',
+    marginBottom: 4,
+    fontWeight: 'bold',
+  },
+  subtitle: {
+    fontSize: 12,
+    color: '#6B7280',
+  },
+  roomSection: {
+    marginBottom: 30,
+  },
+  roomHeader: {
+    backgroundColor: '#963E56',
+    padding: 10,
+    marginBottom: 15,
+    borderRadius: 4,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  roomName: {
+    color: 'white',
     fontSize: 16,
-    color: '#D9A347',
-    marginBottom: 2,
+    fontWeight: 'bold',
+  },
+  channelInfo: {
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    borderRadius: 4,
+    padding: 4,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  channelText: {
+    color: 'white',
+    fontSize: 10,
   },
   weekGrid: {
     flexDirection: 'row',
-    gap: 8,
+    gap: 10,
   },
   dayCard: {
     flex: 1,
     backgroundColor: '#FFFFFF',
     borderRadius: 4,
-    padding: 8,
+    padding: 10,
     borderWidth: 1,
     borderColor: '#E5E7EB',
   },
   dayHeader: {
-    marginBottom: 8,
-  },
-  dayName: {
-    fontSize: 10,
-    color: '#963E56',
-  },
-  dayDate: {
-    fontSize: 8,
-    color: '#6B7280',
-    marginTop: 1,
-  },
-  roomSection: {
-    marginTop: 6,
-    paddingTop: 4,
-    borderTopWidth: 1,
-    borderTopColor: '#E5E7EB',
-  },
-  roomHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 4,
-    paddingBottom: 2,
+    marginBottom: 10,
     borderBottomWidth: 1,
     borderBottomColor: '#E5E7EB',
+    paddingBottom: 8,
   },
-  roomName: {
-    fontSize: 8,
+  dayName: {
+    fontSize: 14,
     color: '#963E56',
+    fontWeight: 'bold',
   },
-  channelInfo: {
-    backgroundColor: 'rgba(150, 62, 86, 0.1)',
-    borderRadius: 4,
-    paddingVertical: 1,
-    paddingHorizontal: 4,
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  channelText: {
-    fontSize: 7,
-    color: '#963E56',
+  dayDate: {
+    fontSize: 12,
+    color: '#6B7280',
+    marginTop: 2,
   },
   planningCard: {
-    borderRadius: 2,
-    padding: 4,
-    marginBottom: 3,
+    backgroundColor: '#F9FAFB',
+    borderRadius: 4,
+    padding: 8,
+    marginBottom: 6,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
   },
   volunteerName: {
-    fontSize: 7,
-    color: 'black',
+    fontSize: 12,
+    color: '#111827',
+    fontWeight: 'bold',
   },
   noPlanning: {
-    fontSize: 7,
+    fontSize: 12,
     fontStyle: 'italic',
     textAlign: 'center',
     color: '#6B7280',
-    marginTop: 6,
+    marginTop: 8,
   },
   footer: {
     position: 'absolute',
-    bottom: 20,
-    left: 20,
-    right: 20,
+    bottom: 30,
+    left: 30,
+    right: 30,
     textAlign: 'center',
     color: '#6B7280',
-    fontSize: 6,
+    fontSize: 10,
     borderTopWidth: 1,
     borderTopColor: '#E5E7EB',
-    paddingTop: 8,
+    paddingTop: 15,
   },
   pageNumber: {
     position: 'absolute',
     bottom: 30,
-    right: 20,
-    fontSize: 6,
+    right: 30,
+    fontSize: 10,
     color: '#6B7280',
   },
 });
@@ -138,17 +148,6 @@ type CalendarPDFProps = {
 export function CalendarPDF({ weekStart, plannings, logoUrl }: CalendarPDFProps) {
   const weekDays = Array.from({ length: 7 }).map((_, i) => addDays(weekStart, i));
 
-  const getPlanningsForDay = (day: Date) => {
-    return plannings.filter(planning => {
-      const planningStart = parseISO(planning.date.toISOString());
-      const planningEnd = parseISO(planning.date.toISOString());
-      return isWithinInterval(day, { 
-        start: planningStart,
-        end: planningEnd 
-      }) || isSameDay(day, planningStart) || isSameDay(day, planningEnd);
-    });
-  };
-
   // Group plannings by room
   const roomPlannings = plannings.reduce((acc, planning) => {
     const roomName = planning.room.name;
@@ -163,22 +162,25 @@ export function CalendarPDF({ weekStart, plannings, logoUrl }: CalendarPDFProps)
     return acc;
   }, {} as Record<string, { name: string; channel?: string; plannings: Planning[] }>);
 
-  // Split rooms into groups of 4 for pagination
-  const roomsPerPage = 4;
-  const roomGroups = Object.values(roomPlannings).reduce((acc, room, i) => {
+  // Split rooms into groups of 3 for better readability
+  const roomsPerPage = 3;
+  const roomGroups = Object.values(roomPlannings).reduce((acc: any[], room, i) => {
     const groupIndex = Math.floor(i / roomsPerPage);
     if (!acc[groupIndex]) acc[groupIndex] = [];
     acc[groupIndex].push(room);
     return acc;
-  }, [] as Array<typeof Object.values<typeof roomPlannings>>);
+  }, []);
 
   const Header = ({ pageNumber, totalPages }: { pageNumber: number; totalPages: number }) => (
     <View style={styles.header}>
       {logoUrl && <Image src={logoUrl} style={styles.logo} />}
       <View style={styles.headerContent}>
         <Text style={styles.title}>
+          Weekplanning
+        </Text>
+        <Text style={styles.subtitle}>
           Week van {format(weekStart, 'd MMMM yyyy', { locale: nl })}
-          {totalPages > 1 ? ` (${pageNumber}/${totalPages})` : ''}
+          {totalPages > 1 ? ` (Pagina ${pageNumber} van ${totalPages})` : ''}
         </Text>
       </View>
     </View>
@@ -196,9 +198,9 @@ export function CalendarPDF({ weekStart, plannings, logoUrl }: CalendarPDFProps)
           <Header pageNumber={pageIndex + 1} totalPages={roomGroups.length} />
 
           {roomGroup.map((room) => (
-            <View key={room.name} style={{ marginBottom: 20 }}>
+            <View key={room.name} style={styles.roomSection}>
               <View style={styles.roomHeader}>
-                <Text style={[styles.roomName, { fontSize: 10, fontWeight: 'bold' }]}>
+                <Text style={styles.roomName}>
                   {room.name}
                 </Text>
                 {room.channel && (
@@ -218,12 +220,12 @@ export function CalendarPDF({ weekStart, plannings, logoUrl }: CalendarPDFProps)
                   return (
                     <View key={day.toISOString()} style={[
                       styles.dayCard,
-                      isToday && { borderColor: '#D9A347', borderWidth: 2 }
+                      isToday && { borderColor: '#963E56', borderWidth: 2 }
                     ]}>
                       <View style={styles.dayHeader}>
                         <Text style={[
                           styles.dayName,
-                          isToday && { color: '#D9A347' }
+                          isToday && { color: '#963E56' }
                         ]}>
                           {format(day, 'EEEE', { locale: nl })}
                         </Text>
