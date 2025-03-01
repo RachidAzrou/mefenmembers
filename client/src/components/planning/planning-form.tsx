@@ -7,7 +7,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { CalendarIcon, Check, Search, X } from "lucide-react";
-import { Input } from "@/components/ui/input"; // Import Input component
+import { Input } from "@/components/ui/input";
 import { format } from "date-fns";
 import { nl } from "date-fns/locale";
 import { cn } from "@/lib/utils";
@@ -43,6 +43,7 @@ export function PlanningForm({
 }: PlanningFormProps) {
   const isBulkPlanning = form.watch("isBulkPlanning");
   const [searchTerm, setSearchTerm] = useState("");
+  const [searchTermBulk, setSearchTermBulk] = useState("");
   const [volunteerOpen, setVolunteerOpen] = useState(false);
 
   useEffect(() => {
@@ -233,14 +234,17 @@ export function PlanningForm({
                     <SelectContent className="max-h-[300px]">
                       <div className="sticky top-0 p-2 bg-white border-b">
                         <div className="relative">
-                          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                          <input
+                          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+                          <Input
                             type="text"
                             placeholder="Zoek vrijwilliger..."
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                            onClick={(e) => e.stopPropagation()}
-                            className="w-full pl-9 h-9 rounded-md border text-sm bg-white"
+                            value={searchTermBulk}
+                            onKeyDown={(e) => e.stopPropagation()}
+                            onChange={(e) => {
+                              e.preventDefault();
+                              setSearchTermBulk(e.target.value);
+                            }}
+                            className="pl-9 h-9"
                           />
                         </div>
                       </div>
@@ -248,13 +252,13 @@ export function PlanningForm({
                         {volunteers
                           .filter(volunteer => {
                             const fullName = `${volunteer.firstName} ${volunteer.lastName}`.toLowerCase();
-                            return fullName.includes(searchTerm.toLowerCase());
+                            return fullName.includes(searchTermBulk.toLowerCase());
                           })
                           .map((volunteer) => (
                             <SelectItem
                               key={volunteer.id}
                               value={volunteer.id}
-                              className="flex items-center py-2 px-3"
+                              className="flex items-center py-2 px-3 cursor-pointer hover:bg-accent hover:text-accent-foreground"
                             >
                               <div className="flex items-center gap-2 w-full">
                                 <Check
