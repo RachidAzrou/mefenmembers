@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
-import { Calendar, Search, Plus, Settings2, Trash2, Edit2 } from "lucide-react";
+import { Calendar, Search, Plus, Settings2, Trash2, Edit2, ChevronRight } from "lucide-react";
 import { format, parseISO, startOfDay, endOfDay, startOfWeek, isBefore, isAfter } from "date-fns";
 import { nl } from "date-fns/locale";
 import { Card, CardContent } from "@/components/ui/card";
@@ -67,6 +67,7 @@ const PlanningTable = ({
   const [dateFilter, setDateFilter] = useState<Date | undefined>();
   const [sortByDate, setSortByDate] = useState(false);
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
+  const [expandedRooms, setExpandedRooms] = useState<Record<string, boolean>>({});
 
   // Group plannings by room
   const planningsByRoom = plannings.reduce((acc, planning) => {
@@ -123,6 +124,13 @@ const PlanningTable = ({
     acc[roomId] = { room, plannings: sortedPlannings };
     return acc;
   }, {} as Record<string, { room: typeof rooms[0], plannings: Planning[] }>);
+
+  const toggleRoom = (roomId: string) => {
+    setExpandedRooms(prev => ({
+      ...prev,
+      [roomId]: !prev[roomId]
+    }));
+  };
 
   return (
     <div className="space-y-3 sm:space-y-4">
@@ -198,62 +206,111 @@ const PlanningTable = ({
         ) : (
           Object.entries(sortedPlanningsByRoom).map(([roomId, { room, plannings }]) => (
             <div key={roomId} className="rounded-lg border overflow-hidden">
-              <div className="bg-muted/50 px-4 py-2 border-b">
+              <button
+                className="w-full bg-muted/50 px-4 py-2 border-b flex items-center justify-between hover:bg-muted/70 transition-colors"
+                onClick={() => toggleRoom(roomId)}
+              >
                 <h3 className="font-medium text-sm">{room.name}</h3>
-              </div>
-              <div className="hidden sm:block">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Vrijwilliger</TableHead>
-                      <TableHead>Periode</TableHead>
-                      {showActions && <TableHead className="w-[150px]">Acties</TableHead>}
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
+                <ChevronRight className={cn(
+                  "h-4 w-4 transition-transform",
+                  expandedRooms[roomId] && "transform rotate-90"
+                )} />
+              </button>
+              {expandedRooms[roomId] && (
+                <>
+                  <div className="hidden sm:block">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Vrijwilliger</TableHead>
+                          <TableHead>Periode</TableHead>
+                          {showActions && <TableHead className="w-[150px]">Acties</TableHead>}
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {plannings.map((planning) => {
+                          const volunteer = volunteers.find((v) => v.id === planning.volunteerId);
+
+                          return (
+                            <TableRow key={planning.id}>
+                              <TableCell className="font-medium">
+                                {volunteer ? `${volunteer.firstName} ${volunteer.lastName}` : "-"}
+                              </TableCell>
+                              <TableCell>
+                                <div className="flex flex-col gap-1 text-sm">
+                                  <div className="whitespace-nowrap">
+                                    {format(parseISO(planning.startDate), "EEEE d MMM yyyy", {
+                                      locale: nl,
+                                    })}
+                                  </div>
+                                  <div className="whitespace-nowrap text-muted-foreground">
+                                    {format(parseISO(planning.endDate), "EEEE d MMM yyyy", {
+                                      locale: nl,
+                                    })}
+                                  </div>
+                                </div>
+                              </TableCell>
+                              {showActions && (
+                                <TableCell>
+                                  <div className="flex items-center gap-2">
+                                    {onEdit && (
+                                      <TooltipProvider>
+                                        <Tooltip>
+                                          <TooltipTrigger asChild>
+                                            <Button
+                                              variant="ghost"
+                                              size="icon"
+                                              onClick={() => onEdit(planning)}
+                                              className="text-[#963E56] hover:text-[#963E56]/90 hover:bg-[#963E56]/10"
+                                            >
+                                              <Edit2 className="h-4 w-4" />
+                                            </Button>
+                                          </TooltipTrigger>
+                                          <TooltipContent>
+                                            Bewerken
+                                          </TooltipContent>
+                                        </Tooltip>
+                                      </TooltipProvider>
+                                    )}
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      onClick={() => onDelete(planning.id)}
+                                      className="text-[#963E56] hover:text-[#963E56]/90 hover:bg-[#963E56]/10"
+                                    >
+                                      <Trash2 className="h-4 w-4" />
+                                    </Button>
+                                  </div>
+                                </TableCell>
+                              )}
+                            </TableRow>
+                          );
+                        })}
+                      </TableBody>
+                    </Table>
+                  </div>
+
+                  <div className="block sm:hidden">
                     {plannings.map((planning) => {
                       const volunteer = volunteers.find((v) => v.id === planning.volunteerId);
 
                       return (
-                        <TableRow key={planning.id}>
-                          <TableCell className="font-medium">
-                            {volunteer ? `${volunteer.firstName} ${volunteer.lastName}` : "-"}
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex flex-col gap-1 text-sm">
-                              <div className="whitespace-nowrap">
-                                {format(parseISO(planning.startDate), "EEEE d MMM yyyy", {
-                                  locale: nl,
-                                })}
-                              </div>
-                              <div className="whitespace-nowrap text-muted-foreground">
-                                {format(parseISO(planning.endDate), "EEEE d MMM yyyy", {
-                                  locale: nl,
-                                })}
-                              </div>
+                        <div key={planning.id} className="p-3 space-y-2 border-b last:border-b-0">
+                          <div className="flex items-center justify-between">
+                            <div className="font-medium text-sm">
+                              {volunteer ? `${volunteer.firstName} ${volunteer.lastName}` : "-"}
                             </div>
-                          </TableCell>
-                          {showActions && (
-                            <TableCell>
+                            {showActions && (
                               <div className="flex items-center gap-2">
                                 {onEdit && (
-                                  <TooltipProvider>
-                                    <Tooltip>
-                                      <TooltipTrigger asChild>
-                                        <Button
-                                          variant="ghost"
-                                          size="icon"
-                                          onClick={() => onEdit(planning)}
-                                          className="text-[#963E56] hover:text-[#963E56]/90 hover:bg-[#963E56]/10"
-                                        >
-                                          <Edit2 className="h-4 w-4" />
-                                        </Button>
-                                      </TooltipTrigger>
-                                      <TooltipContent>
-                                        Bewerken
-                                      </TooltipContent>
-                                    </Tooltip>
-                                  </TooltipProvider>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={() => onEdit(planning)}
+                                    className="text-[#963E56] hover:text-[#963E56]/90 hover:bg-[#963E56]/10"
+                                  >
+                                    <Edit2 className="h-4 w-4" />
+                                  </Button>
                                 )}
                                 <Button
                                   variant="ghost"
@@ -264,62 +321,24 @@ const PlanningTable = ({
                                   <Trash2 className="h-4 w-4" />
                                 </Button>
                               </div>
-                            </TableCell>
-                          )}
-                        </TableRow>
+                            )}
+                          </div>
+                          <div className="text-xs space-y-1 text-muted-foreground">
+                            <div className="flex items-center gap-1">
+                              <Calendar className="h-3 w-3" />
+                              <span>Start: {format(parseISO(planning.startDate), "d MMM yyyy", { locale: nl })}</span>
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <Calendar className="h-3 w-3" />
+                              <span>Eind: {format(parseISO(planning.endDate), "d MMM yyyy", { locale: nl })}</span>
+                            </div>
+                          </div>
+                        </div>
                       );
                     })}
-                  </TableBody>
-                </Table>
-              </div>
-
-              <div className="block sm:hidden">
-                {plannings.map((planning) => {
-                  const volunteer = volunteers.find((v) => v.id === planning.volunteerId);
-
-                  return (
-                    <div key={planning.id} className="p-3 space-y-2 border-b last:border-b-0">
-                      <div className="flex items-center justify-between">
-                        <div className="font-medium text-sm">
-                          {volunteer ? `${volunteer.firstName} ${volunteer.lastName}` : "-"}
-                        </div>
-                        {showActions && (
-                          <div className="flex items-center gap-2">
-                            {onEdit && (
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={() => onEdit(planning)}
-                                className="text-[#963E56] hover:text-[#963E56]/90 hover:bg-[#963E56]/10"
-                              >
-                                <Edit2 className="h-4 w-4" />
-                              </Button>
-                            )}
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => onDelete(planning.id)}
-                              className="text-[#963E56] hover:text-[#963E56]/90 hover:bg-[#963E56]/10"
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        )}
-                      </div>
-                      <div className="text-xs space-y-1 text-muted-foreground">
-                        <div className="flex items-center gap-1">
-                          <Calendar className="h-3 w-3" />
-                          <span>Start: {format(parseISO(planning.startDate), "d MMM yyyy", { locale: nl })}</span>
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <Calendar className="h-3 w-3" />
-                          <span>Eind: {format(parseISO(planning.endDate), "d MMM yyyy", { locale: nl })}</span>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
+                  </div>
+                </>
+              )}
             </div>
           ))
         )}
@@ -595,22 +614,38 @@ const Planning = () => {
     return start > now;
   });
 
-  const pastPlannings = plannings.filter((planning) => {
+  const pastPlannings = useMemo(() => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
     // Get start of current week
     const weekStart = startOfWeek(today, { locale: nl });
 
-    const planningStart = parseISO(planning.startDate);
-    const planningEnd = parseISO(planning.endDate);
-    planningStart.setHours(0, 0, 0, 0);
-    planningEnd.setHours(0, 0, 0, 0);
+    return plannings.map(planning => {
+      const planningStart = parseISO(planning.startDate);
+      const planningEnd = parseISO(planning.endDate);
+      planningStart.setHours(0, 0, 0, 0);
+      planningEnd.setHours(0, 0, 0, 0);
 
-    // Check if any part of the planning period falls before today
-    // and starts on or before the current week
-    return planningStart < today && planningStart >= weekStart;
-  });
+      // If planning starts before today and after week start, include it
+      // but adjust the end date to today if it extends beyond today
+      if (planningStart < today && planningStart >= weekStart) {
+        return {
+          ...planning,
+          endDate: planningEnd > today ? format(today, 'yyyy-MM-dd') : planning.endDate
+        };
+      }
+      // If planning started before week start but extends into this week
+      else if (planningStart < weekStart && planningEnd >= weekStart && planningEnd < today) {
+        return {
+          ...planning,
+          startDate: format(weekStart, 'yyyy-MM-dd'),
+          endDate: format(new Date(Math.min(planningEnd.getTime(), today.getTime())), 'yyyy-MM-dd')
+        };
+      }
+      return null;
+    }).filter((p): p is Planning => p !== null);
+  }, [plannings]);
 
   return (
     <div className="space-y-4 sm:space-y-6 p-3 sm:p-6">
