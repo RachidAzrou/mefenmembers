@@ -2,7 +2,7 @@ import { WeekView } from "@/components/calendar/week-view";
 import { useState, useEffect } from "react";
 import { db } from "@/lib/firebase";
 import { ref, onValue } from "firebase/database";
-import { LayoutGrid, Users, Package2, CheckCircle2 } from "lucide-react";
+import { LayoutGrid, Users, Package2, CheckCircle2, DoorOpen } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Card, CardContent } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -28,16 +28,23 @@ type Volunteer = {
   isActive: boolean;
 };
 
+type Room = {
+  id: string;
+  name: string;
+};
+
 export default function Dashboard() {
   const [checkedOutMaterials, setCheckedOutMaterials] = useState<Material[]>([]);
   const [volunteers, setVolunteers] = useState<Volunteer[]>([]);
   const [materialTypes, setMaterialTypes] = useState<MaterialType[]>([]);
-  const [selectedBlock, setSelectedBlock] = useState<'materials' | 'volunteers' | 'active' | null>(null);
+  const [rooms, setRooms] = useState<Room[]>([]);
+  const [selectedBlock, setSelectedBlock] = useState<'materials' | 'volunteers' | 'active' | 'rooms' | null>(null);
 
   useEffect(() => {
     const materialsRef = ref(db, "materials");
     const volunteersRef = ref(db, "volunteers");
     const materialTypesRef = ref(db, "materialTypes");
+    const roomsRef = ref(db, "rooms");
 
     onValue(materialsRef, (snapshot) => {
       const data = snapshot.val();
@@ -69,6 +76,16 @@ export default function Dashboard() {
         })) : [];
       setMaterialTypes(typesList);
     });
+
+    onValue(roomsRef, (snapshot) => {
+      const data = snapshot.val();
+      const roomsList = data ? Object.entries(data)
+        .map(([id, room]: [string, any]) => ({
+          id,
+          ...room
+        })) : [];
+      setRooms(roomsList);
+    });
   }, []);
 
   const activeVolunteers = volunteers.filter(v => v.isActive);
@@ -80,8 +97,8 @@ export default function Dashboard() {
         <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-[#963E56]">Dashboard</h1>
       </div>
 
-      {/* Statistics Blocks - Now above the calendar */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      {/* Statistics Blocks - Above the calendar */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card 
           className="cursor-pointer transition-all hover:shadow-md"
           onClick={() => setSelectedBlock('materials')}
@@ -105,6 +122,19 @@ export default function Dashboard() {
               <p className="text-2xl font-bold">{volunteers.length}</p>
             </div>
             <Users className="h-8 w-8 text-[#963E56]" />
+          </CardContent>
+        </Card>
+
+        <Card 
+          className="cursor-pointer transition-all hover:shadow-md"
+          onClick={() => setSelectedBlock('rooms')}
+        >
+          <CardContent className="p-6 flex items-center justify-between">
+            <div>
+              <p className="text-sm text-muted-foreground">Totaal Ruimtes</p>
+              <p className="text-2xl font-bold">{rooms.length}</p>
+            </div>
+            <DoorOpen className="h-8 w-8 text-blue-600" />
           </CardContent>
         </Card>
 
@@ -134,6 +164,7 @@ export default function Dashboard() {
               {selectedBlock === 'materials' && 'Uitgeleende Materialen'}
               {selectedBlock === 'volunteers' && 'Alle Vrijwilligers'}
               {selectedBlock === 'active' && 'Actieve Vrijwilligers'}
+              {selectedBlock === 'rooms' && 'Alle Ruimtes'}
             </DialogTitle>
           </DialogHeader>
           <ScrollArea className="max-h-[60vh]">
@@ -182,6 +213,22 @@ export default function Dashboard() {
                           <span className="text-gray-500">Inactief</span>
                         )}
                       </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            )}
+            {selectedBlock === 'rooms' && (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Naam</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {rooms.map(room => (
+                    <TableRow key={room.id}>
+                      <TableCell>{room.name}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
