@@ -1,23 +1,51 @@
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { useToast } from "@/hooks/use-toast";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { z } from "zod";
 import { db } from "@/lib/firebase";
 import { ref, push, remove, update, onValue } from "firebase/database";
 import { UserPlus, Edit2, Trash2, Search, Users, CheckSquare, Square, Settings2, ChevronLeft, ChevronRight, ArrowUpDown, CheckCircle2, XCircle } from "lucide-react";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Separator } from "@/components/ui/separator";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { logUserAction, UserActionTypes } from "@/lib/activity-logger";
-import { format, parseISO, isWithinInterval, startOfToday, endOfToday } from "date-fns";
+import { format, parseISO, isWithinInterval } from "date-fns";
+import { useToast } from "@/hooks/use-toast";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 
 const ITEMS_PER_PAGE = 10;
 
@@ -29,7 +57,7 @@ const volunteerSchema = z.object({
   phoneNumber: z.string().min(1, "Telefoonnummer is verplicht"),
 });
 
-type Volunteer = z.infer<typeof volunteerSchema> & { 
+type Volunteer = z.infer<typeof volunteerSchema> & {
   id: string;
   isActive?: boolean;
 };
@@ -54,6 +82,8 @@ export default function Volunteers() {
   const [sortOrder, setSortOrder] = useState<SortOrder>("lastName-asc");
   const [activeFilter, setActiveFilter] = useState<'all' | 'active' | 'inactive'>('all');
   const { toast } = useToast();
+  const [open, setOpen] = useState(false);
+
 
   useEffect(() => {
     const volunteersRef = ref(db, "volunteers");
@@ -84,11 +114,11 @@ export default function Volunteers() {
     return plannings.some(planning => {
       const planningStart = parseISO(planning.startDate);
       const planningEnd = parseISO(planning.endDate);
-      return planning.volunteerId === volunteer.id && 
-             isWithinInterval(today, { 
-               start: planningStart,
-               end: planningEnd 
-             });
+      return planning.volunteerId === volunteer.id &&
+        isWithinInterval(today, {
+          start: planningStart,
+          end: planningEnd
+        });
     });
   });
 
@@ -98,11 +128,11 @@ export default function Volunteers() {
     return !plannings.some(planning => {
       const planningStart = parseISO(planning.startDate);
       const planningEnd = parseISO(planning.endDate);
-      return planning.volunteerId === volunteer.id && 
-             isWithinInterval(today, { 
-               start: planningStart,
-               end: planningEnd 
-             });
+      return planning.volunteerId === volunteer.id &&
+        isWithinInterval(today, {
+          start: planningStart,
+          end: planningEnd
+        });
     });
   });
 
@@ -247,13 +277,13 @@ export default function Volunteers() {
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setSearchTerm(value);
-    setCurrentPage(1); 
+    setCurrentPage(1);
   };
 
-  const normalizeString = (str: string) => 
+  const normalizeString = (str: string) =>
     str.toLowerCase()
-       .normalize('NFD')
-       .replace(/[\u0300-\u036f]/g, ''); 
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '');
 
   // Update the filtered volunteers logic
   const filteredVolunteers = volunteers.filter(volunteer => {
@@ -278,9 +308,9 @@ export default function Volunteers() {
     const fullNameNormalized = `${firstNameNormalized} ${lastNameNormalized}`;
 
     return firstNameNormalized.includes(searchNormalized) ||
-           lastNameNormalized.includes(searchNormalized) ||
-           phoneNormalized.includes(searchNormalized) ||
-           fullNameNormalized.includes(searchNormalized);
+      lastNameNormalized.includes(searchNormalized) ||
+      phoneNormalized.includes(searchNormalized) ||
+      fullNameNormalized.includes(searchNormalized);
   });
 
   const sortedVolunteers = [...filteredVolunteers].sort((a, b) => {
@@ -344,7 +374,7 @@ export default function Volunteers() {
           </CardContent>
         </Card>
 
-        <Card 
+        <Card
           className={`cursor-pointer transition-all hover:shadow-md ${
             activeFilter === 'active' ? 'ring-2 ring-[#963E56] ring-offset-2' : ''
           }`}
@@ -359,7 +389,7 @@ export default function Volunteers() {
           </CardContent>
         </Card>
 
-        <Card 
+        <Card
           className={`cursor-pointer transition-all hover:shadow-md ${
             activeFilter === 'inactive' ? 'ring-2 ring-[#963E56] ring-offset-2' : ''
           }`}
@@ -420,7 +450,10 @@ export default function Volunteers() {
           ) : (
             <Dialog open={dialogOpen} onOpenChange={(open) => {
               setDialogOpen(open);
-              if (!open) resetForm();
+              if (!open) {
+                resetForm();
+                setSearchTerm(""); // Reset search term when closing the dialog
+              }
             }}>
               <DialogTrigger asChild>
                 <Button className="bg-[#963E56] hover:bg-[#963E56]/90 flex-1 sm:flex-none">
@@ -436,6 +469,64 @@ export default function Volunteers() {
                 </DialogHeader>
                 <Form {...form}>
                   <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                    <FormField
+                      control={form.control}
+                      name="volunteerId"
+                      render={({ field }) => (
+                        <FormItem className="flex flex-col space-y-2">
+                          <FormLabel>Vrijwilliger</FormLabel>
+                          <Select
+                            open={open}
+                            onOpenChange={setOpen}
+                            value={field.value}
+                            onValueChange={(value) => {
+                              field.onChange(value);
+                              setOpen(false);
+                            }}
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder="Selecteer vrijwilliger" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <div className="sticky top-0 px-2 py-2 bg-white border-b">
+                                <div className="relative">
+                                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+                                  <Input
+                                    type="text"
+                                    placeholder="Zoek vrijwilliger..."
+                                    value={searchTerm}
+                                    onClick={(e) => e.stopPropagation()}
+                                    onChange={(e) => {
+                                      e.stopPropagation();
+                                      e.preventDefault();
+                                      setSearchTerm(e.target.value);
+                                    }}
+                                    className="pl-9 h-9"
+                                  />
+                                </div>
+                              </div>
+                              <div className="pt-1 max-h-[300px] overflow-y-auto">
+                                {volunteers
+                                  .filter(volunteer => {
+                                    const fullName = `${volunteer.firstName} ${volunteer.lastName}`.toLowerCase();
+                                    return fullName.includes(searchTerm.toLowerCase());
+                                  })
+                                  .map((volunteer) => (
+                                    <SelectItem
+                                      key={volunteer.id}
+                                      value={volunteer.id}
+                                      className="cursor-pointer"
+                                    >
+                                      {volunteer.firstName} {volunteer.lastName}
+                                    </SelectItem>
+                                  ))}
+                              </div>
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
                     <FormField
                       control={form.control}
                       name="firstName"
