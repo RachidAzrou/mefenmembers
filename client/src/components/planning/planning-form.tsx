@@ -94,7 +94,7 @@ export function PlanningForm({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel className="text-sm">Vrijwilliger</FormLabel>
-                  <Command className="rounded-lg border shadow-md">
+                  <Command className="rounded-lg border shadow-md bg-background">
                     <div className="flex items-center border-b px-3">
                       <Search className="mr-2 h-4 w-4 shrink-0 opacity-50" />
                       <input
@@ -104,7 +104,7 @@ export function PlanningForm({
                         className="flex h-10 w-full rounded-md bg-transparent py-3 text-sm outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50"
                       />
                     </div>
-                    <CommandEmpty>Geen vrijwilligers gevonden.</CommandEmpty>
+                    <CommandEmpty className="py-2 px-3 text-sm text-muted-foreground">Geen vrijwilligers gevonden.</CommandEmpty>
                     <CommandGroup className="max-h-[200px] overflow-auto">
                       {volunteers
                         .filter(volunteer => {
@@ -118,6 +118,7 @@ export function PlanningForm({
                             onSelect={() => {
                               field.onChange(volunteer.id);
                             }}
+                            className="cursor-pointer py-2 px-3 hover:bg-accent hover:text-accent-foreground"
                           >
                             <Check
                               className={cn(
