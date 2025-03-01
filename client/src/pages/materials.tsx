@@ -206,6 +206,33 @@ const MaterialsPage = () => {
 
   const onSubmit = async (data: z.infer<typeof materialSchema>) => {
     try {
+      // Controleer of er materialen zijn geselecteerd met nummers
+      const hasValidMaterials = data.materials.some(material =>
+        material.numbers && material.numbers.length > 0
+      );
+
+      if (!hasValidMaterials) {
+        toast({
+          variant: "destructive",
+          title: "Fout",
+          description: "Selecteer ten minste één materiaal met een geldig nummer",
+          duration: 3000,
+        });
+        return;
+      }
+
+      // Controleer op validatiefouten
+      const hasErrors = data.materials.some(material => material.error);
+      if (hasErrors) {
+        toast({
+          variant: "destructive",
+          title: "Fout",
+          description: "Los eerst de validatiefouten op voordat je materialen toewijst",
+          duration: 3000,
+        });
+        return;
+      }
+
       const volunteer = volunteers.find(v => v.id === data.volunteerId);
 
       const createPromises = data.materials.flatMap(material => {
@@ -767,7 +794,9 @@ const MaterialsPage = () => {
                                   min={1}
                                   max={materialType?.maxCount || 100}
                                   placeholder="Voer nummer in"
-                                  className="w-full"
+                                  className={cn("w-full", 
+                                    form.formState.errors.materials?.[index]?.error && "border-destructive"
+                                  )}
                                   onKeyDown={(e) => {
                                     if (e.key === 'Enter') {
                                       e.preventDefault();
@@ -784,20 +813,21 @@ const MaterialsPage = () => {
                                             type: 'manual',
                                             message: `Materiaal nummer ${number} is al uitgeleend`
                                           });
+                                          return; // Stop hier als het materiaal al is uitgeleend
+                                        }
+
+                                        const currentNumbers = material.numbers || [];
+                                        if (!currentNumbers.includes(number)) {
+                                          const updatedMaterials = form.getValues("materials");
+                                          updatedMaterials[index].numbers = [...currentNumbers, number];
+                                          form.setValue("materials", updatedMaterials);
+                                          form.clearErrors(`materials.${index}.error`);
+                                          e.currentTarget.value = '';
                                         } else {
-                                          const currentNumbers = material.numbers || [];
-                                          if (!currentNumbers.includes(number)) {
-                                            const updatedMaterials = form.getValues("materials");
-                                            updatedMaterials[index].numbers = [...currentNumbers, number];
-                                            form.setValue("materials", updatedMaterials);
-                                            form.clearErrors(`materials.${index}.error`);
-                                            e.currentTarget.value = '';
-                                          } else {
-                                            form.setError(`materials.${index}.error`, {
-                                              type: 'manual',
-                                              message: `Je hebt materiaal nummer ${number} al geselecteerd`
-                                            });
-                                          }
+                                          form.setError(`materials.${index}.error`, {
+                                            type: 'manual',
+                                            message: `Je hebt materiaal nummer ${number} al geselecteerd`
+                                          });
                                         }
                                       }
                                     }
@@ -869,7 +899,7 @@ const MaterialsPage = () => {
               </TableHeader>
               <TableBody>
                 {filteredMaterials.map((item) => {
-                  const type = materialTypes.find(t => t.id === item.typeId);
+                                    const type = materialTypes.find(t => t.id === item.typeId);
                   const volunteer = volunteers.find((v) => v.id === item.volunteerId);
                   return (
                     <TableRow key={item.id}>
