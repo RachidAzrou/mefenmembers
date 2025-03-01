@@ -597,15 +597,19 @@ const Planning = () => {
 
   const pastPlannings = plannings.filter((planning) => {
     const today = new Date();
-    const end = parseISO(planning.endDate);
-    end.setHours(0, 0, 0, 0);
     today.setHours(0, 0, 0, 0);
 
     // Get start of current week
     const weekStart = startOfWeek(today, { locale: nl });
 
-    // Only show plannings that ended before today but after the start of the week
-    return end < today && end >= weekStart;
+    const planningStart = parseISO(planning.startDate);
+    const planningEnd = parseISO(planning.endDate);
+    planningStart.setHours(0, 0, 0, 0);
+    planningEnd.setHours(0, 0, 0, 0);
+
+    // Check if any part of the planning period falls before today
+    // and starts on or before the current week
+    return planningStart < today && planningStart >= weekStart;
   });
 
   return (
