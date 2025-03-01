@@ -49,14 +49,13 @@ export function PlanningForm({
 }: PlanningFormProps) {
   const isBulkPlanning = form.watch("isBulkPlanning");
   const [searchTerm, setSearchTerm] = useState("");
+  const [volunteerOpen, setVolunteerOpen] = useState(false);
 
-  // Debug logging voor datum veranderingen
   useEffect(() => {
     const subscription = form.watch((value, { name }) => {
       if (name === "startDate" || name === "endDate") {
         console.log(`Date changed - ${name}:`, {
           value,
-          // Alleen formatteren als we een geldige string hebben
           formattedValue: typeof value === 'string' ? format(new Date(value), 'yyyy-MM-dd') : null
         });
       }
@@ -87,7 +86,6 @@ export function PlanningForm({
           </div>
         )}
 
-        {/* Single volunteer selection */}
         {!isBulkPlanning && (
           <>
             <FormField
@@ -96,53 +94,42 @@ export function PlanningForm({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel className="text-sm">Vrijwilliger</FormLabel>
-                  <Select
-                    value={field.value}
-                    onValueChange={field.onChange}
-                  >
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Selecteer vrijwilliger" />
-                    </SelectTrigger>
-                    <SelectContent className="max-h-[300px]">
-                      <div className="sticky top-0 p-2 bg-white border-b">
-                        <div className="relative">
-                          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                          <input
-                            type="text"
-                            placeholder="Zoek vrijwilliger..."
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                            onClick={(e) => e.stopPropagation()}
-                            className="w-full pl-9 h-9 rounded-md border text-sm bg-white"
-                          />
-                        </div>
-                      </div>
-                      <div className="pt-1">
-                        {volunteers
-                          .filter(volunteer => {
-                            const fullName = `${volunteer.firstName} ${volunteer.lastName}`.toLowerCase();
-                            return fullName.includes(searchTerm.toLowerCase());
-                          })
-                          .map((volunteer) => (
-                            <SelectItem
-                              key={volunteer.id}
-                              value={volunteer.id}
-                              className="flex items-center py-2 px-3"
-                            >
-                              <div className="flex items-center gap-2 w-full">
-                                <Check
-                                  className={cn(
-                                    "h-4 w-4 flex-shrink-0",
-                                    field.value === volunteer.id ? "opacity-100" : "opacity-0"
-                                  )}
-                                />
-                                <span className="flex-grow truncate">{volunteer.firstName} {volunteer.lastName}</span>
-                              </div>
-                            </SelectItem>
-                          ))}
-                      </div>
-                    </SelectContent>
-                  </Select>
+                  <Command className="rounded-lg border shadow-md">
+                    <div className="flex items-center border-b px-3">
+                      <Search className="mr-2 h-4 w-4 shrink-0 opacity-50" />
+                      <input
+                        placeholder="Zoek vrijwilliger..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="flex h-10 w-full rounded-md bg-transparent py-3 text-sm outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50"
+                      />
+                    </div>
+                    <CommandEmpty>Geen vrijwilligers gevonden.</CommandEmpty>
+                    <CommandGroup className="max-h-[200px] overflow-auto">
+                      {volunteers
+                        .filter(volunteer => {
+                          const fullName = `${volunteer.firstName} ${volunteer.lastName}`.toLowerCase();
+                          return fullName.includes(searchTerm.toLowerCase());
+                        })
+                        .map((volunteer) => (
+                          <CommandItem
+                            key={volunteer.id}
+                            value={volunteer.id}
+                            onSelect={() => {
+                              field.onChange(volunteer.id);
+                            }}
+                          >
+                            <Check
+                              className={cn(
+                                "mr-2 h-4 w-4",
+                                field.value === volunteer.id ? "opacity-100" : "opacity-0"
+                              )}
+                            />
+                            {volunteer.firstName} {volunteer.lastName}
+                          </CommandItem>
+                        ))}
+                    </CommandGroup>
+                  </Command>
                   {field.value && (
                     <div className="mt-2">
                       {(() => {
@@ -170,7 +157,6 @@ export function PlanningForm({
                 </FormItem>
               )}
             />
-
             <FormField
               control={form.control}
               name="roomId"
@@ -211,7 +197,6 @@ export function PlanningForm({
           </>
         )}
 
-        {/* Multiple volunteer/room selection */}
         {isBulkPlanning && (
           <>
             <FormField
@@ -386,7 +371,6 @@ export function PlanningForm({
           </>
         )}
 
-        {/* Date selection */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <FormField
             control={form.control}
@@ -419,7 +403,6 @@ export function PlanningForm({
                       selected={field.value ? new Date(field.value) : undefined}
                       onSelect={(date) => {
                         if (date) {
-                          // Gebruik UTC midnight voor consistente datumvergelijking
                           const utcDate = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
                           const dateStr = format(utcDate, 'yyyy-MM-dd');
                           console.log('Selected date:', {
@@ -472,7 +455,6 @@ export function PlanningForm({
                       selected={field.value ? new Date(field.value) : undefined}
                       onSelect={(date) => {
                         if (date) {
-                          // Gebruik UTC midnight voor consistente datumvergelijking
                           const utcDate = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
                           const dateStr = format(utcDate, 'yyyy-MM-dd');
                           console.log('Selected date:', {
