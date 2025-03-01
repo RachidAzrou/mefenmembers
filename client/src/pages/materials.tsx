@@ -39,13 +39,6 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -79,6 +72,7 @@ import { logUserAction, UserActionTypes } from "@/lib/activity-logger";
 import { cn } from "@/lib/utils";
 import { GiMonclerJacket, GiWalkieTalkie } from 'react-icons/gi';
 import { TbJacket } from 'react-icons/tb';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 const materialSchema = z.object({
   volunteerId: z.string().min(1, "Vrijwilliger is verplicht"),
@@ -136,7 +130,7 @@ const MaterialsPage = () => {
   const [deleteMaterialTypeId, setDeleteMaterialTypeId] = useState<string | null>(null);
   const [editingMaterial, setEditingMaterial] = useState<Material | null>(null);
   const [open, setOpen] = useState(false);
-  const [currentPage, setCurrentPage] = useState(1); // Added for pagination
+  const [currentPage, setCurrentPage] = useState(1); 
   const { toast } = useToast();
   const { isAdmin } = useRole();
 
@@ -399,13 +393,12 @@ const MaterialsPage = () => {
   const normalizeString = (str: string) =>
     str.toLowerCase()
       .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, ''); // Verwijder diakritische tekens
-
+      .replace(/[\u0300-\u036f]/g, ''); 
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setSearchTerm(value);
-    setCurrentPage(1); // Reset pagina bij nieuwe zoekopdracht
+    setCurrentPage(1); 
   };
 
   const filteredMaterials = materials.filter(material => {
@@ -515,6 +508,8 @@ const MaterialsPage = () => {
     const fullName = `${volunteer.firstName} ${volunteer.lastName}`.toLowerCase();
     return fullName.includes(searchTerm.toLowerCase());
   });
+
+  const emptyMessage = filteredMaterials.length === 0 ? "Geen uitgeleende materialen gevonden." : "";
 
   return (
     <div className="container mx-auto px-2 sm:px-4 py-4 sm:py-6 max-w-7xl space-y-4 sm:space-y-6">
@@ -761,40 +756,41 @@ const MaterialsPage = () => {
                                 <X className="h-4 w-4" />
                               </Button>
                             </div>
-                            <Select
-                              onValueChange={(value) => {
-                                const number = parseInt(value);
-                                const currentNumbers = material.numbers || [];
-                                if (!currentNumbers.includes(number)) {
-                                  const updatedMaterials = form.getValues("materials");
-                                  updatedMaterials[index].numbers = [...currentNumbers, number];
-                                  form.setValue("materials", updatedMaterials);
-                                }
-                              }}
-                            >
-                              <SelectTrigger>
-                                <SelectValue placeholder="Selecteer nummer" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {Array.from({ length: materialType?.maxCount || 0 }).map((_, i) => {
-                                  const number = i + 1;
-                                  const isCheckedOut = materials.some(
-                                    m => m.typeId === material.typeId &&
-                                      m.number === number &&
-                                      m.isCheckedOut
-                                  );
-                                  if (!isCheckedOut) {
-                                    return (
-                                      <SelectItem key={number} value={number.toString()}>
-                                        {number}
-                                      </SelectItem>
-                                    );
+                            <div className="space-y-2">
+                              <Input
+                                type="number"
+                                min={1}
+                                max={materialType?.maxCount || 100}
+                                placeholder="Voer nummer in"
+                                className="w-full"
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Enter') {
+                                    e.preventDefault();
+                                    const number = parseInt(e.currentTarget.value);
+                                    if (number && number >= 1 && number <= (materialType?.maxCount || 100)) {
+                                      
+                                      const isCheckedOut = materials.some(
+                                        m => m.typeId === material.typeId &&
+                                          m.number === number &&
+                                          m.isCheckedOut
+                                      );
+                                      if (!isCheckedOut) {
+                                        const currentNumbers = material.numbers || [];
+                                        if (!currentNumbers.includes(number)) {
+                                          const updatedMaterials = form.getValues("materials");
+                                          updatedMaterials[index].numbers = [...currentNumbers, number];
+                                          form.setValue("materials", updatedMaterials);
+                                        }
+                                      }
+                                      e.currentTarget.value = ''; 
+                                    }
                                   }
-                                  return null;
-                                })}
-                              </SelectContent>
-                            </Select>
-
+                                }}
+                              />
+                              <p className="text-xs text-muted-foreground">
+                                Druk op Enter om nummer toe te voegen (1-{materialType?.maxCount || 100})
+                              </p>
+                            </div>
                             {material.numbers && material.numbers.length > 0 && (
                               <div className="flex flex-wrap gap-2 mt-2">
                                 {material.numbers.map((number) => (
@@ -900,7 +896,7 @@ const MaterialsPage = () => {
                       colSpan={5}
                       className="h-24 text-center"
                     >
-                      Geen uitgeleende materialen gevonden.
+                      {emptyMessage}
                     </TableCell>
                   </TableRow>
                 )}
@@ -910,20 +906,29 @@ const MaterialsPage = () => {
         </div>
       </div>
 
-      {isEditMode && selectedMaterials.length > 0 &&(
-        <div className="fixed bottom-4 left-4 right-4 flex items-center justify-between bg-card p-4 rounded-lg shadow-lg border animate-in slide-in-from-bottom-2">
+      {isEditMode && selectedMaterials.length > 0 && (        <div className="fixed bottom-4 left-4 right-4 flex items-center justify-between bg-card p-4 rounded-lg shadow-lg border animate-in slide-in-from-bottom-2">
           <span className="text-sm text-muted-foreground">
             {selectedMaterials.length} geselecteerd
           </span>
-          <Button
-            variant="default"
-            onClick={() => handleBulkReturn(selectedMaterials)}
-            className="bg-primary hover:bg-primary/90"
-          >
-            <RotateCcw className="h-4 w-4 mr-2" />            Retourneren          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="ghost"
+              onClick={() => setSelectedMaterials([])}
+              className="text-muted-foreground"
+            >
+              Annuleren
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={() => handleBulkReturn(selectedMaterials)}
+              className="gap-2"
+            >
+              <RotateCcw className="h-4 w-4" />
+              Retourneren
+            </Button>
+          </div>
         </div>
       )}
-
       <AlertDialog
         open={!!deleteMaterialTypeId}
         onOpenChange={() => setDeleteMaterialTypeId(null)}
