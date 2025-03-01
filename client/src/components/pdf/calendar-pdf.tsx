@@ -4,123 +4,129 @@ import { nl } from "date-fns/locale";
 
 const styles = StyleSheet.create({
   page: {
-    padding: 20,
+    padding: 15,
     backgroundColor: '#fff',
     fontFamily: 'Helvetica',
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 15,
+    marginBottom: 10,
     borderBottomWidth: 1,
     borderBottomColor: '#E5E7EB',
-    paddingBottom: 10,
+    paddingBottom: 8,
   },
   logo: {
-    width: 50,
-    marginRight: 15,
+    width: 40,
+    marginRight: 12,
   },
   headerContent: {
     flex: 1,
   },
   title: {
-    fontSize: 16,
+    fontSize: 14,
     color: '#963E56',
     fontWeight: 'bold',
   },
   subtitle: {
-    fontSize: 10,
+    fontSize: 9,
     color: '#6B7280',
-    marginTop: 2,
+    marginTop: 1,
   },
   roomSection: {
-    marginBottom: 15,
+    marginBottom: 8,
   },
   roomHeader: {
     backgroundColor: '#963E56',
-    padding: 6,
-    marginBottom: 8,
-    borderRadius: 3,
+    padding: 4,
+    marginBottom: 4,
+    borderRadius: 2,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
   },
   roomName: {
     color: 'white',
-    fontSize: 10,
+    fontSize: 9,
     fontWeight: 'bold',
   },
   channelInfo: {
     backgroundColor: 'rgba(255, 255, 255, 0.2)',
     borderRadius: 2,
-    padding: 3,
+    padding: 2,
     flexDirection: 'row',
     alignItems: 'center',
   },
   channelText: {
     color: 'white',
-    fontSize: 8,
+    fontSize: 7,
   },
   weekGrid: {
     flexDirection: 'row',
-    gap: 6,
+    gap: 4,
   },
   dayCard: {
     flex: 1,
     backgroundColor: '#FFFFFF',
-    borderRadius: 3,
-    padding: 6,
+    borderRadius: 2,
+    padding: 4,
     borderWidth: 1,
     borderColor: '#E5E7EB',
   },
   dayHeader: {
-    marginBottom: 6,
+    marginBottom: 3,
     borderBottomWidth: 1,
     borderBottomColor: '#E5E7EB',
-    paddingBottom: 4,
+    paddingBottom: 2,
   },
   dayName: {
-    fontSize: 9,
+    fontSize: 8,
     color: '#963E56',
     fontWeight: 'bold',
   },
   dayDate: {
-    fontSize: 8,
+    fontSize: 7,
     color: '#6B7280',
     marginTop: 1,
   },
   planningCard: {
     backgroundColor: '#F9FAFB',
     borderRadius: 2,
-    padding: 4,
-    marginBottom: 3,
+    padding: 3,
+    marginBottom: 2,
     borderWidth: 1,
     borderColor: '#E5E7EB',
   },
   volunteerName: {
-    fontSize: 8,
+    fontSize: 7,
     color: '#111827',
     fontWeight: 'bold',
   },
   noPlanning: {
-    fontSize: 8,
+    fontSize: 7,
     fontStyle: 'italic',
     textAlign: 'center',
     color: '#6B7280',
-    marginTop: 4,
+    marginTop: 2,
   },
   footer: {
     position: 'absolute',
-    bottom: 20,
-    left: 20,
-    right: 20,
+    bottom: 15,
+    left: 15,
+    right: 15,
     textAlign: 'center',
     color: '#6B7280',
-    fontSize: 8,
+    fontSize: 7,
     borderTopWidth: 1,
     borderTopColor: '#E5E7EB',
-    paddingTop: 10,
+    paddingTop: 8,
+    backgroundColor: 'white',
   },
+  contentWrapper: {
+    minHeight: 0,
+    flexShrink: 1,
+    paddingBottom: 40, // Ruimte voor footer
+  }
 });
 
 type Planning = {
@@ -155,80 +161,77 @@ export function CalendarPDF({ weekStart, plannings, logoUrl }: CalendarPDFProps)
     return acc;
   }, {} as Record<string, { name: string; channel?: string; plannings: Planning[] }>);
 
-  const Header = ({ pageNumber, totalPages }: { pageNumber: number; totalPages: number }) => (
-    <View style={styles.header}>
-      {logoUrl && <Image src={logoUrl} style={styles.logo} />}
-      <View style={styles.headerContent}>
-        <Text style={styles.title}>
-          Weekplanning
-        </Text>
-        <Text style={styles.subtitle}>
-          Week van {format(weekStart, 'd MMMM yyyy', { locale: nl })}
-        </Text>
-      </View>
-    </View>
-  );
-
-
   return (
     <Document>
       <Page size="A4" orientation="landscape" style={styles.page}>
-        <Header pageNumber={1} totalPages={1} />
+        <View style={styles.header}>
+          {logoUrl && <Image src={logoUrl} style={styles.logo} />}
+          <View style={styles.headerContent}>
+            <Text style={styles.title}>
+              Weekplanning
+            </Text>
+            <Text style={styles.subtitle}>
+              Week van {format(weekStart, 'd MMMM yyyy', { locale: nl })}
+            </Text>
+          </View>
+        </View>
 
-        {Object.values(roomPlannings).map((room) => (
-          <View key={room.name} style={styles.roomSection}>
-            <View style={styles.roomHeader}>
-              <Text style={styles.roomName}>
-                {room.name}
-              </Text>
-              {room.channel && (
-                <View style={styles.channelInfo}>
-                  <Text style={styles.channelText}>KANAAL {room.channel}</Text>
-                </View>
-              )}
-            </View>
+        <View style={styles.contentWrapper}>
+          {Object.values(roomPlannings).map((room) => (
+            <View key={room.name} style={styles.roomSection} wrap={false}>
+              <View style={styles.roomHeader}>
+                <Text style={styles.roomName}>
+                  {room.name}
+                </Text>
+                {room.channel && (
+                  <View style={styles.channelInfo}>
+                    <Text style={styles.channelText}>KANAAL {room.channel}</Text>
+                  </View>
+                )}
+              </View>
 
-            <View style={styles.weekGrid}>
-              {weekDays.map((day) => {
-                const isToday = format(day, 'yyyy-MM-dd') === format(new Date(), 'yyyy-MM-dd');
-                const dayPlannings = room.plannings.filter(p => 
-                  format(p.date, 'yyyy-MM-dd') === format(day, 'yyyy-MM-dd')
-                );
+              <View style={styles.weekGrid}>
+                {weekDays.map((day) => {
+                  const isToday = format(day, 'yyyy-MM-dd') === format(new Date(), 'yyyy-MM-dd');
+                  const dayPlannings = room.plannings.filter(p => 
+                    format(p.date, 'yyyy-MM-dd') === format(day, 'yyyy-MM-dd')
+                  );
 
-                return (
-                  <View key={day.toISOString()} style={[
-                    styles.dayCard,
-                    isToday && { borderColor: '#963E56', borderWidth: 1 }
-                  ]}>
-                    <View style={styles.dayHeader}>
-                      <Text style={[
-                        styles.dayName,
-                        isToday && { color: '#963E56' }
-                      ]}>
-                        {format(day, 'EEEE', { locale: nl })}
-                      </Text>
-                      <Text style={styles.dayDate}>
-                        {format(day, 'd MMMM', { locale: nl })}
-                      </Text>
-                    </View>
-
-                    {dayPlannings.map((planning, index) => (
-                      <View key={index} style={styles.planningCard}>
-                        <Text style={styles.volunteerName}>
-                          {`${planning.volunteer.firstName} ${planning.volunteer.lastName[0]}.`}
+                  return (
+                    <View key={day.toISOString()} style={[
+                      styles.dayCard,
+                      isToday && { borderColor: '#963E56', borderWidth: 1 }
+                    ]}>
+                      <View style={styles.dayHeader}>
+                        <Text style={[
+                          styles.dayName,
+                          isToday && { color: '#963E56' }
+                        ]}>
+                          {format(day, 'EEEE', { locale: nl })}
+                        </Text>
+                        <Text style={styles.dayDate}>
+                          {format(day, 'd MMMM', { locale: nl })}
                         </Text>
                       </View>
-                    ))}
 
-                    {dayPlannings.length === 0 && (
-                      <Text style={styles.noPlanning}>Geen toewijzingen</Text>
-                    )}
-                  </View>
-                );
-              })}
+                      {dayPlannings.map((planning, index) => (
+                        <View key={index} style={styles.planningCard}>
+                          <Text style={styles.volunteerName}>
+                            {`${planning.volunteer.firstName} ${planning.volunteer.lastName[0]}.`}
+                          </Text>
+                        </View>
+                      ))}
+
+                      {dayPlannings.length === 0 && (
+                        <Text style={styles.noPlanning}>Geen toewijzingen</Text>
+                      )}
+                    </View>
+                  );
+                })}
+              </View>
             </View>
-          </View>
-        ))}
+          ))}
+        </View>
 
         <Text style={styles.footer}>
           MEFEN Vrijwilligers Management Systeem • Gegenereerd op {format(new Date(), 'd MMMM yyyy', { locale: nl })}
