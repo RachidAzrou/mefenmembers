@@ -206,9 +206,9 @@ const MaterialsPage = () => {
 
   const onSubmit = async (data: z.infer<typeof planningSchema>) => {
     try {
-      // Check of er materialen zijn met nummers
-      const materialsWithNumbers = data.materials.filter(material =>
-        material.numbers && material.numbers.length > 0
+      // Check of er materialen met nummers zijn
+      const materialsWithNumbers = data.materials.filter(m =>
+        m.numbers && m.numbers.length > 0
       );
 
       if (materialsWithNumbers.length === 0) {
@@ -223,12 +223,11 @@ const MaterialsPage = () => {
 
       const volunteer = volunteers.find(v => v.id === data.volunteerId);
 
-      // Check of alle geselecteerde materialen beschikbaar zijn
+      // Check beschikbaarheid van alle materialen
       for (const material of materialsWithNumbers) {
         const materialType = materialTypes.find(t => t.id === material.typeId);
 
         for (const number of material.numbers) {
-          // Controleer of deze combinatie van type + nummer al is uitgeleend
           const isCheckedOut = materials.some(m =>
             m.typeId === material.typeId &&
             m.number === number &&
@@ -247,7 +246,7 @@ const MaterialsPage = () => {
         }
       }
 
-      // Als alle materialen beschikbaar zijn, wijs ze toe
+      // Wijs beschikbare materialen toe
       for (const material of materialsWithNumbers) {
         const materialType = materialTypes.find(t => t.id === material.typeId);
 
@@ -561,11 +560,9 @@ const MaterialsPage = () => {
   const emptyMessage = filteredMaterials.length === 0 ? "Geen uitgeleende materialen gevonden." : "";
 
   const handleAddNumber = (index: number, number: number, materialType: typeof materialTypes[0] | undefined) => {
-    const currentMaterials = [...form.getValues("materials")];
-
-    // Controleer of dit materiaal (type + nummer combinatie) al is uitgeleend
+    // Check eerst of dit materiaal al is uitgeleend
     const isCheckedOut = materials.some(m =>
-      m.typeId === currentMaterials[index].typeId &&
+      m.typeId === materialType?.id &&
       m.number === number &&
       m.isCheckedOut
     );
@@ -578,21 +575,27 @@ const MaterialsPage = () => {
       return;
     }
 
-    // Voeg nummer toe als het nog niet in de lijst staat
+    // Haal huidige materialen op
+    const currentMaterials = form.getValues("materials");
+
+    // Zorg ervoor dat de numbers array bestaat
     if (!currentMaterials[index].numbers) {
       currentMaterials[index].numbers = [];
     }
 
-    if (!currentMaterials[index].numbers.includes(number)) {
-      currentMaterials[index].numbers.push(number);
-      form.setValue("materials", currentMaterials);
-      form.clearErrors(`materials.${index}.error`);
-    } else {
+    // Controleer of het nummer al is geselecteerd
+    if (currentMaterials[index].numbers.includes(number)) {
       form.setError(`materials.${index}.error`, {
         type: 'manual',
         message: `Je hebt materiaal nummer ${number} al geselecteerd`
       });
+      return;
     }
+
+    // Voeg nummer toe aan de lijst
+    currentMaterials[index].numbers.push(number);
+    form.setValue("materials", currentMaterials);
+    form.clearErrors(`materials.${index}.error`);
   };
 
 
