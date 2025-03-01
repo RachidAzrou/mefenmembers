@@ -1,5 +1,4 @@
-import { WeekView } from "@/components/calendar/week-view";
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { db } from "@/lib/firebase";
 import { ref, onValue } from "firebase/database";
 import { LayoutGrid, Users, Package2, CheckCircle2, DoorOpen } from "lucide-react";
@@ -8,6 +7,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { WeekView } from "@/components/calendar/week-view";
+import { format, parseISO, isToday } from "date-fns";
 
 type Material = {
   id: string;
@@ -34,11 +35,20 @@ type Room = {
   name: string;
 };
 
+type Planning = {
+  id: string;
+  volunteerId: string;
+  roomId: string;
+  startDate: string;
+  endDate: string;
+};
+
 export default function Dashboard() {
   const [checkedOutMaterials, setCheckedOutMaterials] = useState<Material[]>([]);
   const [volunteers, setVolunteers] = useState<Volunteer[]>([]);
   const [materialTypes, setMaterialTypes] = useState<MaterialType[]>([]);
   const [rooms, setRooms] = useState<Room[]>([]);
+  const [plannings, setPlannings] = useState<Planning[]>([]);
   const [selectedBlock, setSelectedBlock] = useState<'materials' | 'volunteers' | 'active' | 'rooms' | null>(null);
 
   useEffect(() => {
@@ -46,6 +56,7 @@ export default function Dashboard() {
     const volunteersRef = ref(db, "volunteers");
     const materialTypesRef = ref(db, "materialTypes");
     const roomsRef = ref(db, "rooms");
+    const planningsRef = ref(db, "plannings");
 
     onValue(materialsRef, (snapshot) => {
       const data = snapshot.val();
@@ -87,9 +98,27 @@ export default function Dashboard() {
         })) : [];
       setRooms(roomsList);
     });
+
+    onValue(planningsRef, (snapshot) => {
+      const data = snapshot.val();
+      const planningsList = data ? Object.entries(data)
+        .map(([id, planning]: [string, any]) => ({
+          id,
+          ...planning
+        })) : [];
+      setPlannings(planningsList);
+    });
   }, []);
 
-  const activeVolunteers = volunteers.filter(v => v.isActive);
+  // Get volunteers active today (have a planning for today)
+  const activeVolunteers = volunteers.filter(volunteer => {
+    return plannings.some(planning => {
+      const startDate = parseISO(planning.startDate);
+      const endDate = parseISO(planning.endDate);
+      return planning.volunteerId === volunteer.id && 
+             (isToday(startDate) || isToday(endDate));
+    });
+  });
 
   return (
     <div className="space-y-4 sm:space-y-6 p-3 sm:p-6">
@@ -181,7 +210,7 @@ export default function Dashboard() {
                 <CheckCircle2 className="h-8 w-8 text-[#963E56]" />
                 <div className="ml-2 sm:ml-3">
                   <div className="text-lg sm:text-2xl font-bold">{activeVolunteers.length}</div>
-                  <div className="text-xs sm:text-sm text-muted-foreground">actief</div>
+                  <div className="text-xs sm:text-sm text-muted-foreground">vandaag actief</div>
                 </div>
               </div>
             </div>
@@ -201,7 +230,7 @@ export default function Dashboard() {
               <DialogTitle className="text-lg font-semibold text-[#963E56]">
                 {selectedBlock === 'materials' && 'Uitgeleende Materialen'}
                 {selectedBlock === 'volunteers' && 'Alle Vrijwilligers'}
-                {selectedBlock === 'active' && 'Actieve Vrijwilligers'}
+                {selectedBlock === 'active' && 'Actieve Vrijwilligers Vandaag'}
                 {selectedBlock === 'rooms' && 'Alle Ruimtes'}
               </DialogTitle>
             </div>
@@ -240,31 +269,59 @@ export default function Dashboard() {
                 </TableBody>
               </Table>
             )}
-            {(selectedBlock === 'volunteers' || selectedBlock === 'active') && (
+            {selectedBlock === 'volunteers' && (
               <Table>
                 <TableHeader>
                   <TableRow className="hover:bg-transparent">
                     <TableHead className="font-semibold">Naam</TableHead>
-                    <TableHead className="font-semibold">Status</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {(selectedBlock === 'volunteers' ? volunteers : activeVolunteers).map(volunteer => (
+                  {volunteers.map(volunteer => (
                     <TableRow key={volunteer.id}>
                       <TableCell className="font-medium">
                         {volunteer.firstName} {volunteer.lastName}
                       </TableCell>
-                      <TableCell>
-                        <Badge variant="outline" className={
-                          volunteer.isActive 
-                            ? "bg-green-50 text-green-700 border-green-200/50"
-                            : "bg-gray-50 text-gray-600 border-gray-200/50"
-                        }>
-                          {volunteer.isActive ? 'Actief' : 'Inactief'}
-                        </Badge>
-                      </TableCell>
                     </TableRow>
                   ))}
+                </TableBody>
+              </Table>
+            )}
+            {selectedBlock === 'active' && (
+              <Table>
+                <TableHeader>
+                  <TableRow className="hover:bg-transparent">
+                    <TableHead className="font-semibold">Naam</TableHead>
+                    <TableHead className="font-semibold">Ruimte</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {activeVolunteers.map(volunteer => {
+                    const volunteerPlannings = plannings.filter(p => 
+                      p.volunteerId === volunteer.id && 
+                      (isToday(parseISO(p.startDate)) || isToday(parseISO(p.endDate)))
+                    );
+                    return volunteerPlannings.map(planning => {
+                      const room = rooms.find(r => r.id === planning.roomId);
+                      return (
+                        <TableRow key={`${volunteer.id}-${planning.id}`}>
+                          <TableCell className="font-medium">
+                            {volunteer.firstName} {volunteer.lastName}
+                          </TableCell>
+                          <TableCell>
+                            {room?.name || 'Onbekende ruimte'}
+                          </TableCell>
+                        </TableRow>
+                      );
+                    });
+                  })}
+                  {activeVolunteers.length === 0 && (
+                    <TableRow>
+                      <TableCell colSpan={2} className="text-center text-muted-foreground py-8">
+                        Geen actieve vrijwilligers vandaag
+                      </TableCell>
+                    </TableRow>
+                  )}
                 </TableBody>
               </Table>
             )}
