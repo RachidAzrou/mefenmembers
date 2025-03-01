@@ -110,14 +110,22 @@ export default function Dashboard() {
     });
   }, []);
 
-  // Get volunteers active today (have a planning for today)
+  // Get unique volunteers active today (have a planning for today)
   const activeVolunteers = volunteers.filter(volunteer => {
-    return plannings.some(planning => {
+    const hasActivePlanning = plannings.some(planning => {
       const startDate = parseISO(planning.startDate);
       const endDate = parseISO(planning.endDate);
       return planning.volunteerId === volunteer.id && 
              (isToday(startDate) || isToday(endDate));
     });
+    return hasActivePlanning;
+  });
+
+  // Get all plannings for today
+  const todayPlannings = plannings.filter(planning => {
+    const startDate = parseISO(planning.startDate);
+    const endDate = parseISO(planning.endDate);
+    return isToday(startDate) || isToday(endDate);
   });
 
   return (
@@ -296,26 +304,21 @@ export default function Dashboard() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {activeVolunteers.map(volunteer => {
-                    const volunteerPlannings = plannings.filter(p => 
-                      p.volunteerId === volunteer.id && 
-                      (isToday(parseISO(p.startDate)) || isToday(parseISO(p.endDate)))
+                  {todayPlannings.map(planning => {
+                    const volunteer = volunteers.find(v => v.id === planning.volunteerId);
+                    const room = rooms.find(r => r.id === planning.roomId);
+                    return (
+                      <TableRow key={planning.id}>
+                        <TableCell className="font-medium">
+                          {volunteer ? `${volunteer.firstName} ${volunteer.lastName}` : 'Onbekend'}
+                        </TableCell>
+                        <TableCell>
+                          {room?.name || 'Onbekende ruimte'}
+                        </TableCell>
+                      </TableRow>
                     );
-                    return volunteerPlannings.map(planning => {
-                      const room = rooms.find(r => r.id === planning.roomId);
-                      return (
-                        <TableRow key={`${volunteer.id}-${planning.id}`}>
-                          <TableCell className="font-medium">
-                            {volunteer.firstName} {volunteer.lastName}
-                          </TableCell>
-                          <TableCell>
-                            {room?.name || 'Onbekende ruimte'}
-                          </TableCell>
-                        </TableRow>
-                      );
-                    });
                   })}
-                  {activeVolunteers.length === 0 && (
+                  {todayPlannings.length === 0 && (
                     <TableRow>
                       <TableCell colSpan={2} className="text-center text-muted-foreground py-8">
                         Geen actieve vrijwilligers vandaag
