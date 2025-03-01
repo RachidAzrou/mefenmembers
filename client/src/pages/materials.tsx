@@ -206,28 +206,17 @@ const MaterialsPage = () => {
 
   const onSubmit = async (data: z.infer<typeof materialSchema>) => {
     try {
-      // Controleer op validatiefouten voordat we proberen materialen toe te wijzen
-      const hasErrors = data.materials.some(material => material.error);
-      if (hasErrors) {
-        toast({
-          variant: "destructive",
-          title: "Fout",
-          description: "Los eerst de validatiefouten op voordat je materialen toewijst",
-          duration: 3000,
-        });
-        return;
-      }
-
-      // Controleer of er materialen zijn geselecteerd met geldige nummers
+      // Check of er materialen zijn met nummers en zonder fouten
       const validMaterials = data.materials.filter(material =>
-        material.numbers && material.numbers.length > 0
+        material.numbers?.length > 0 && !material.error
       );
 
+      // Als er geen geldige materialen zijn, toon een foutmelding
       if (validMaterials.length === 0) {
         toast({
           variant: "destructive",
           title: "Fout",
-          description: "Selecteer ten minste één materiaal met een geldig nummer",
+          description: "Er zijn geen geldige materialen om toe te wijzen",
           duration: 3000,
         });
         return;
@@ -235,6 +224,7 @@ const MaterialsPage = () => {
 
       const volunteer = volunteers.find(v => v.id === data.volunteerId);
 
+      // Verwerk alleen de geldige materialen
       const createPromises = validMaterials.flatMap(material => {
         const materialType = materialTypes.find(t => t.id === material.typeId);
 
@@ -261,7 +251,9 @@ const MaterialsPage = () => {
 
       await Promise.all(createPromises);
 
-      const totalItems = validMaterials.reduce((sum, material) => sum + material.numbers.length, 0);
+      const totalItems = validMaterials.reduce((sum, material) =>
+        sum + (material.numbers?.length || 0), 0
+      );
 
       toast({
         title: "Succes",
@@ -809,28 +801,24 @@ const MaterialsPage = () => {
                                         );
 
                                         if (isCheckedOut) {
+                                          // Zet de fout en voorkom toevoegen van het nummer
                                           form.setError(`materials.${index}.error`, {
                                             type: 'manual',
                                             message: `Sorry, maar dit materiaal is alreeds uitgeleend`
                                           });
-                                          return; // Stop hier als het materiaal al is uitgeleend
-                                        }
-
-                                        const currentNumbers = material.numbers || [];
-                                        if (!currentNumbers.includes(number)) {
-                                          const updatedMaterials = [...form.getValues("materials")];
-                                          if (!updatedMaterials[index].numbers) {
-                                            updatedMaterials[index].numbers = [];
-                                          }
-                                          updatedMaterials[index].numbers.push(number);
-                                          form.setValue("materials", updatedMaterials);
-                                          form.clearErrors(`materials.${index}.error`);
-                                          e.currentTarget.value = '';
                                         } else {
-                                          form.setError(`materials.${index}.error`, {
-                                            type: 'manual',
-                                            message: `Je hebt materiaal nummer ${number} al geselecteerd`
-                                          });
+                                          const currentNumbers = form.getValues(`materials.${index}.numbers`) || [];
+                                          if (!currentNumbers.includes(number)) {
+                                            // Update alleen de numbers array voor dit materiaal
+                                            form.setValue(`materials.${index}.numbers`, [...currentNumbers, number]);
+                                            form.clearErrors(`materials.${index}.error`);
+                                            e.currentTarget.value = '';
+                                          } else {
+                                            form.setError(`materials.${index}.error`, {
+                                              type: 'manual',
+                                              message: `Je hebt materiaal nummer ${number} al geselecteerd`
+                                            });
+                                          }
                                         }
                                       }
                                     }
@@ -902,48 +890,48 @@ const MaterialsPage = () => {
               <TableBody>
                 {filteredMaterials.map((item) => {
                                     const type = materialTypes.find(t => t.id === item.typeId);
-                  const volunteer = volunteers.find((v) => v.id === item.volunteerId);
-                  return (
-                    <TableRow key={item.id}>
-                      <TableCell className="capitalize">
-                        {type?.name || 'Onbekend type'}
-                      </TableCell>
-                      <TableCell>{item.number}</TableCell>
-                      <TableCell>
-                        {volunteer
-                          ? `${volunteer.firstName} ${volunteer.lastName}`
-                          : "-"}
-                      </TableCell>
-                      <TableCell>
-                        <Badge
-                          variant="outline"
-                          className="bg-[#963E56]/10 text-[#963E56] border-[#963E56]/20"
-                        >
-                          Uitgeleend
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <TooltipProvider>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={() => handleReturn(item.id)}
-                                className="h-8 w-8 text-[#963E56] hover:text-[#963E56]/90 hover:bg-[#963E56]/10"
-                              >
-                                <RotateCcw className="h-4 w-4" />
-                              </Button>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                              Retourneren
-                            </TooltipContent>
-                          </Tooltip>
-                        </TooltipProvider>
-                      </TableCell>
-                    </TableRow>
-                  );
-                })}
+                    const volunteer = volunteers.find((v) => v.id === item.volunteerId);
+                    return (
+                      <TableRow key={item.id}>
+                        <TableCell className="capitalize">
+                          {type?.name || 'Onbekend type'}
+                        </TableCell>
+                        <TableCell>{item.number}</TableCell>
+                        <TableCell>
+                          {volunteer
+                            ? `${volunteer.firstName} ${volunteer.lastName}`
+                            : "-"}
+                        </TableCell>
+                        <TableCell>
+                          <Badge
+                            variant="outline"
+                            className="bg-[#963E56]/10 text-[#963E56] border-[#963E56]/20"
+                          >
+                            Uitgeleend
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  onClick={() => handleReturn(item.id)}
+                                  className="h-8 w-8 text-[#963E56] hover:text-[#963E56]/90 hover:bg-[#963E56]/10"
+                                >
+                                  <RotateCcw className="h-4 w-4" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                Retourneren
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
                 {filteredMaterials.length === 0 && (
                   <TableRow>
                     <TableCell
