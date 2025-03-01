@@ -4,7 +4,7 @@ import { db } from "@/lib/firebase";
 import { ref, onValue } from "firebase/database";
 import { LayoutGrid, Users, Package2, CheckCircle2, DoorOpen } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
@@ -98,17 +98,26 @@ export default function Dashboard() {
       </div>
 
       {/* Statistics Blocks - Above the calendar */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4">
         <Card 
           className="cursor-pointer transition-all hover:shadow-md"
           onClick={() => setSelectedBlock('materials')}
         >
-          <CardContent className="p-6 flex items-center justify-between">
-            <div>
-              <p className="text-sm text-muted-foreground">Uitgeleende Materialen</p>
-              <p className="text-2xl font-bold">{checkedOutMaterials.length}</p>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground">
+              Uitgeleende Materialen
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center">
+                <Package2 className="h-8 w-8 text-[#D9A347]" />
+                <div className="ml-2 sm:ml-3">
+                  <div className="text-lg sm:text-2xl font-bold">{checkedOutMaterials.length}</div>
+                  <div className="text-xs sm:text-sm text-muted-foreground">materialen</div>
+                </div>
+              </div>
             </div>
-            <Package2 className="h-8 w-8 text-[#D9A347]" />
           </CardContent>
         </Card>
 
@@ -116,12 +125,21 @@ export default function Dashboard() {
           className="cursor-pointer transition-all hover:shadow-md"
           onClick={() => setSelectedBlock('volunteers')}
         >
-          <CardContent className="p-6 flex items-center justify-between">
-            <div>
-              <p className="text-sm text-muted-foreground">Totaal Vrijwilligers</p>
-              <p className="text-2xl font-bold">{volunteers.length}</p>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground">
+              Totaal Vrijwilligers
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center">
+                <Users className="h-8 w-8 text-[#963E56]" />
+                <div className="ml-2 sm:ml-3">
+                  <div className="text-lg sm:text-2xl font-bold">{volunteers.length}</div>
+                  <div className="text-xs sm:text-sm text-muted-foreground">vrijwilligers</div>
+                </div>
+              </div>
             </div>
-            <Users className="h-8 w-8 text-[#963E56]" />
           </CardContent>
         </Card>
 
@@ -129,12 +147,21 @@ export default function Dashboard() {
           className="cursor-pointer transition-all hover:shadow-md"
           onClick={() => setSelectedBlock('rooms')}
         >
-          <CardContent className="p-6 flex items-center justify-between">
-            <div>
-              <p className="text-sm text-muted-foreground">Totaal Ruimtes</p>
-              <p className="text-2xl font-bold">{rooms.length}</p>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground">
+              Totaal Ruimtes
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center">
+                <DoorOpen className="h-8 w-8 text-blue-600" />
+                <div className="ml-2 sm:ml-3">
+                  <div className="text-lg sm:text-2xl font-bold">{rooms.length}</div>
+                  <div className="text-xs sm:text-sm text-muted-foreground">ruimtes</div>
+                </div>
+              </div>
             </div>
-            <DoorOpen className="h-8 w-8 text-blue-600" />
           </CardContent>
         </Card>
 
@@ -142,12 +169,21 @@ export default function Dashboard() {
           className="cursor-pointer transition-all hover:shadow-md"
           onClick={() => setSelectedBlock('active')}
         >
-          <CardContent className="p-6 flex items-center justify-between">
-            <div>
-              <p className="text-sm text-muted-foreground">Actieve Vrijwilligers</p>
-              <p className="text-2xl font-bold">{activeVolunteers.length}</p>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground">
+              Actieve Vrijwilligers
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center">
+                <CheckCircle2 className="h-8 w-8 text-green-600" />
+                <div className="ml-2 sm:ml-3">
+                  <div className="text-lg sm:text-2xl font-bold">{activeVolunteers.length}</div>
+                  <div className="text-xs sm:text-sm text-muted-foreground">actief</div>
+                </div>
+              </div>
             </div>
-            <CheckCircle2 className="h-8 w-8 text-green-600" />
           </CardContent>
         </Card>
       </div>
