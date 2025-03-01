@@ -408,9 +408,9 @@ const Materials = () => {
         materialTypeId: material.typeId,
         materialNumber: material.number,
         volunteerId: material.volunteerId,
-        originalCheckoutDate: material.originalCheckoutDate || new Date().toISOString(), 
         timestamp: new Date().toISOString(),
-        processedBy: "Admin" 
+        originalCheckoutDate: material.isCheckedOut ? new Date().toISOString() : null, // Store checkout date
+        processedBy: "Systeem"
       });
 
       await logUserAction(
@@ -424,7 +424,7 @@ const Materials = () => {
           volunteerName: volunteer
             ? `${volunteer.firstName} ${volunteer.lastName}`
             : undefined,
-        }
+        },
       );
 
       toast({
@@ -791,8 +791,16 @@ const Materials = () => {
                         <TableCell>{item.materialType}</TableCell>
                         <TableCell>{item.number}</TableCell>
                         <TableCell>{item.borrower}</TableCell>
-                        <TableCell>{format(parseISO(item.borrowDate), "d MMM yyyy", { locale: nl })}</TableCell>
-                        <TableCell>{format(parseISO(item.returnDate), "d MMM yyyy", { locale: nl })}</TableCell>
+                        <TableCell>
+                          {item.borrowDate && item.borrowDate !== "Onbekend" 
+                            ? format(parseISO(item.borrowDate), "d MMM yyyy", { locale: nl })
+                            : "Onbekend"}
+                        </TableCell>
+                        <TableCell>
+                          {item.returnDate && item.returnDate !== "Onbekend"
+                            ? format(parseISO(item.returnDate), "d MMM yyyy", { locale: nl })
+                            : "Onbekend"}
+                        </TableCell>
                         <TableCell>{item.processedBy}</TableCell>
                       </TableRow>
                     ))
