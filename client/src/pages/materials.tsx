@@ -206,12 +206,11 @@ const MaterialsPage = () => {
 
   const onSubmit = async (data: z.infer<typeof planningSchema>) => {
     try {
-      // Check of er materialen met nummers zijn
-      const materialsWithNumbers = data.materials.filter(m =>
+      const materialsToProcess = data.materials.filter(m =>
         m.numbers && m.numbers.length > 0
       );
 
-      if (materialsWithNumbers.length === 0) {
+      if (materialsToProcess.length === 0) {
         toast({
           variant: "destructive",
           title: "Fout",
@@ -222,9 +221,10 @@ const MaterialsPage = () => {
       }
 
       const volunteer = volunteers.find(v => v.id === data.volunteerId);
+      const unavailableMaterials: string[] = [];
 
       // Check beschikbaarheid van alle materialen
-      for (const material of materialsWithNumbers) {
+      for (const material of materialsToProcess) {
         const materialType = materialTypes.find(t => t.id === material.typeId);
 
         for (const number of material.numbers) {
@@ -235,19 +235,23 @@ const MaterialsPage = () => {
           );
 
           if (isCheckedOut) {
-            toast({
-              variant: "destructive",
-              title: "Fout",
-              description: `${materialType?.name} #${number} is alreeds uitgeleend`,
-              duration: 3000,
-            });
-            return;
+            unavailableMaterials.push(`${materialType?.name} #${number}`);
           }
         }
       }
 
-      // Wijs beschikbare materialen toe
-      for (const material of materialsWithNumbers) {
+      if (unavailableMaterials.length > 0) {
+        toast({
+          variant: "destructive",
+          title: "Fout",
+          description: `De volgende materialen zijn al uitgeleend: ${unavailableMaterials.join(", ")}`,
+          duration: 3000,
+        });
+        return;
+      }
+
+      // Wijs alle materialen toe
+      for (const material of materialsToProcess) {
         const materialType = materialTypes.find(t => t.id === material.typeId);
 
         for (const number of material.numbers) {
@@ -260,10 +264,10 @@ const MaterialsPage = () => {
 
           await logUserAction(
             UserActionTypes.MATERIAL_CHECKOUT,
-            `${materialType?.name || 'Materiaal'} #${number} uitgeleend aan ${volunteer ? `${volunteer.firstName} ${volunteer.lastName}` : 'onbekende vrijwilliger'}`,
+            `${materialType?.name} #${number} uitgeleend aan ${volunteer?.firstName} ${volunteer?.lastName}`,
             {
               type: "material",
-              name: materialType?.name || 'Onbekend materiaal',
+              name: materialType?.name,
               materialNumber: number.toString(),
               volunteerName: volunteer ? `${volunteer.firstName} ${volunteer.lastName}` : undefined
             }
@@ -271,7 +275,7 @@ const MaterialsPage = () => {
         }
       }
 
-      const totalItems = materialsWithNumbers.reduce((sum, material) =>
+      const totalItems = materialsToProcess.reduce((sum, material) =>
         sum + material.numbers.length, 0
       );
 
@@ -560,14 +564,16 @@ const MaterialsPage = () => {
   const emptyMessage = filteredMaterials.length === 0 ? "Geen uitgeleende materialen gevonden." : "";
 
   const handleAddNumber = (index: number, number: number, materialType: typeof materialTypes[0] | undefined) => {
-    // Check eerst of dit materiaal al is uitgeleend
-    const isCheckedOut = materials.some(m =>
-      m.typeId === materialType?.id &&
+    if (!materialType) return;
+
+    // Check eerst of deze combinatie van type + nummer al is uitgeleend
+    const existingMaterial = materials.find(m =>
+      m.typeId === materialType.id &&
       m.number === number &&
       m.isCheckedOut
     );
 
-    if (isCheckedOut) {
+    if (existingMaterial) {
       form.setError(`materials.${index}.error`, {
         type: 'manual',
         message: `Dit materiaal is alreeds uitgeleend`
@@ -575,16 +581,11 @@ const MaterialsPage = () => {
       return;
     }
 
-    // Haal huidige materialen op
+    // Haal huidige materialen op en update numbers array
     const currentMaterials = form.getValues("materials");
+    const currentNumbers = currentMaterials[index].numbers || [];
 
-    // Zorg ervoor dat de numbers array bestaat
-    if (!currentMaterials[index].numbers) {
-      currentMaterials[index].numbers = [];
-    }
-
-    // Controleer of het nummer al is geselecteerd
-    if (currentMaterials[index].numbers.includes(number)) {
+    if (currentNumbers.includes(number)) {
       form.setError(`materials.${index}.error`, {
         type: 'manual',
         message: `Je hebt materiaal nummer ${number} al geselecteerd`
@@ -593,11 +594,10 @@ const MaterialsPage = () => {
     }
 
     // Voeg nummer toe aan de lijst
-    currentMaterials[index].numbers.push(number);
+    currentMaterials[index].numbers = [...currentNumbers, number];
     form.setValue("materials", currentMaterials);
     form.clearErrors(`materials.${index}.error`);
   };
-
 
   return (
     <div className="container mx-auto px-2 sm:px-4 py-4 sm:py-6 max-w-7xl space-y-4 sm:space-y-6">
