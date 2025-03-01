@@ -326,7 +326,7 @@ export default function Volunteers() {
       </div>
 
       {/* Statistics Blocks */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <Card 
           className={`cursor-pointer transition-all hover:shadow-md ${
             activeFilter === 'active' ? 'ring-2 ring-[#963E56] ring-offset-2' : ''
@@ -339,6 +339,16 @@ export default function Volunteers() {
               <p className="text-2xl font-bold text-[#963E56]">{activeVolunteers.length}</p>
             </div>
             <CheckCircle2 className="h-8 w-8 text-[#963E56]" />
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-6 flex items-center justify-between">
+            <div>
+              <p className="text-sm text-muted-foreground">Totaal Vrijwilligers</p>
+              <p className="text-2xl font-bold text-[#963E56]">{volunteers.length}</p>
+            </div>
+            <Users className="h-8 w-8 text-[#963E56]" />
           </CardContent>
         </Card>
 
