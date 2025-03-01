@@ -7,13 +7,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { CalendarIcon, Check, Search, X } from "lucide-react";
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-} from "@/components/ui/command";
+import { Input } from "@/components/ui/input"; // Import Input component
 import { format } from "date-fns";
 import { nl } from "date-fns/locale";
 import { cn } from "@/lib/utils";
@@ -94,43 +88,56 @@ export function PlanningForm({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel className="text-sm">Vrijwilliger</FormLabel>
-                  <Command className="rounded-lg border shadow-md bg-background">
-                    <div className="flex items-center border-b px-3">
-                      <Search className="mr-2 h-4 w-4 shrink-0 opacity-50" />
-                      <input
-                        placeholder="Zoek vrijwilliger..."
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        className="flex h-10 w-full rounded-md bg-transparent py-3 text-sm outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50"
-                      />
-                    </div>
-                    <CommandEmpty className="py-2 px-3 text-sm text-muted-foreground">Geen vrijwilligers gevonden.</CommandEmpty>
-                    <CommandGroup className="max-h-[200px] overflow-auto">
-                      {volunteers
-                        .filter(volunteer => {
-                          const fullName = `${volunteer.firstName} ${volunteer.lastName}`.toLowerCase();
-                          return fullName.includes(searchTerm.toLowerCase());
-                        })
-                        .map((volunteer) => (
-                          <CommandItem
-                            key={volunteer.id}
-                            value={volunteer.id}
-                            onSelect={() => {
-                              field.onChange(volunteer.id);
+                  <Select
+                    value={field.value}
+                    onValueChange={field.onChange}
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Selecteer vrijwilliger" />
+                    </SelectTrigger>
+                    <SelectContent className="max-h-[300px]">
+                      <div className="sticky top-0 p-2 bg-white border-b">
+                        <div className="relative">
+                          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+                          <Input
+                            type="text"
+                            placeholder="Zoek vrijwilliger..."
+                            value={searchTerm}
+                            onKeyDown={(e) => e.stopPropagation()}
+                            onChange={(e) => {
+                              e.preventDefault();
+                              setSearchTerm(e.target.value);
                             }}
-                            className="cursor-pointer py-2 px-3 hover:bg-accent hover:text-accent-foreground"
-                          >
-                            <Check
-                              className={cn(
-                                "mr-2 h-4 w-4",
-                                field.value === volunteer.id ? "opacity-100" : "opacity-0"
-                              )}
-                            />
-                            {volunteer.firstName} {volunteer.lastName}
-                          </CommandItem>
-                        ))}
-                    </CommandGroup>
-                  </Command>
+                            className="pl-9 h-9"
+                          />
+                        </div>
+                      </div>
+                      <div className="pt-1">
+                        {volunteers
+                          .filter(volunteer => {
+                            const fullName = `${volunteer.firstName} ${volunteer.lastName}`.toLowerCase();
+                            return fullName.includes(searchTerm.toLowerCase());
+                          })
+                          .map((volunteer) => (
+                            <SelectItem
+                              key={volunteer.id}
+                              value={volunteer.id}
+                              className="flex items-center py-2 px-3 cursor-pointer hover:bg-accent hover:text-accent-foreground"
+                            >
+                              <div className="flex items-center gap-2 w-full">
+                                <Check
+                                  className={cn(
+                                    "h-4 w-4 flex-shrink-0",
+                                    field.value === volunteer.id ? "opacity-100" : "opacity-0"
+                                  )}
+                                />
+                                <span className="flex-grow truncate">{volunteer.firstName} {volunteer.lastName}</span>
+                              </div>
+                            </SelectItem>
+                          ))}
+                      </div>
+                    </SelectContent>
+                  </Select>
                   {field.value && (
                     <div className="mt-2">
                       {(() => {
