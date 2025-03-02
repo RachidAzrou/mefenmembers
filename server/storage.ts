@@ -1,11 +1,7 @@
 import { 
-  volunteers, rooms, materials, schedules, materialTypes,
-  type Volunteer, type Room, type Material, type Schedule, type MaterialType,
-  type InsertVolunteer, type InsertRoom, type InsertMaterial, type InsertSchedule, type InsertMaterialType
-} from "@shared/schema";
-import { users, inventory, materialUsage, 
-  type User, type Inventory, type MaterialUsage,
-  type InsertUser, type InsertInventory, type InsertMaterialUsage
+  volunteers, rooms, materials, schedules, materialTypes, pendingVolunteers,
+  type Volunteer, type Room, type Material, type Schedule, type MaterialType, type PendingVolunteer,
+  type InsertVolunteer, type InsertRoom, type InsertMaterial, type InsertSchedule, type InsertMaterialType, type InsertPendingVolunteer
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, gte } from "drizzle-orm";
@@ -20,6 +16,12 @@ export interface IStorage {
   getVolunteer(id: number): Promise<Volunteer | undefined>;
   listVolunteers(): Promise<Volunteer[]>;
   createVolunteer(volunteer: InsertVolunteer): Promise<Volunteer>;
+
+  // Pending volunteer operations
+  getPendingVolunteer(id: number): Promise<PendingVolunteer | undefined>;
+  listPendingVolunteers(): Promise<PendingVolunteer[]>;
+  createPendingVolunteer(volunteer: InsertPendingVolunteer): Promise<PendingVolunteer>;
+  deletePendingVolunteer(id: number): Promise<void>;
 
   // Room operations
   getRoom(id: number): Promise<Room | undefined>;
@@ -43,20 +45,6 @@ export interface IStorage {
   listMaterialTypes(): Promise<MaterialType[]>;
   createMaterialType(materialType: InsertMaterialType): Promise<MaterialType>;
 
-  // User operations
-  getUser(id: number): Promise<User | undefined>;
-  getUserByEmail(email: string): Promise<User | undefined>;
-  createUser(user: InsertUser): Promise<User>;
-
-  // Inventory operations
-  getInventory(materialTypeId: number): Promise<Inventory | undefined>;
-  getAllInventory(): Promise<Inventory[]>;
-  updateInventoryLevel(materialTypeId: number, change: number): Promise<Inventory>;
-
-  // Material usage tracking
-  createMaterialUsage(usage: InsertMaterialUsage): Promise<MaterialUsage>;
-  getMaterialUsage(userId: number): Promise<MaterialUsage[]>;
-
   // Session store for authentication
   sessionStore: session.Store;
 }
@@ -69,6 +57,25 @@ export class DatabaseStorage implements IStorage {
       pool,
       createTableIfMissing: true,
     });
+  }
+
+  // Pending volunteer operations
+  async getPendingVolunteer(id: number): Promise<PendingVolunteer | undefined> {
+    const [volunteer] = await db.select().from(pendingVolunteers).where(eq(pendingVolunteers.id, id));
+    return volunteer;
+  }
+
+  async listPendingVolunteers(): Promise<PendingVolunteer[]> {
+    return await db.select().from(pendingVolunteers);
+  }
+
+  async createPendingVolunteer(volunteer: InsertPendingVolunteer): Promise<PendingVolunteer> {
+    const [created] = await db.insert(pendingVolunteers).values(volunteer).returning();
+    return created;
+  }
+
+  async deletePendingVolunteer(id: number): Promise<void> {
+    await db.delete(pendingVolunteers).where(eq(pendingVolunteers.id, id));
   }
 
   // Volunteer operations
@@ -160,77 +167,6 @@ export class DatabaseStorage implements IStorage {
   async createMaterialType(materialType: InsertMaterialType): Promise<MaterialType> {
     const [created] = await db.insert(materialTypes).values(materialType).returning();
     return created;
-  }
-
-  // User operations
-  async getUser(id: number): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(eq(users.id, id));
-    return user;
-  }
-
-  async getUserByEmail(email: string): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(eq(users.email, email));
-    return user;
-  }
-
-  async createUser(user: InsertUser): Promise<User> {
-    const [created] = await db.insert(users).values(user).returning();
-    return created;
-  }
-
-  // Inventory operations
-  async getInventory(materialTypeId: number): Promise<Inventory | undefined> {
-    const [inv] = await db.select().from(inventory).where(eq(inventory.materialTypeId, materialTypeId));
-    return inv;
-  }
-
-  async getAllInventory(): Promise<Inventory[]> {
-    return await db.select().from(inventory);
-  }
-
-  async updateInventoryLevel(materialTypeId: number, change: number): Promise<Inventory> {
-    // First get current inventory
-    let [currentInventory] = await db
-      .select()
-      .from(inventory)
-      .where(eq(inventory.materialTypeId, materialTypeId));
-
-    if (!currentInventory) {
-      // Create new inventory record if it doesn't exist
-      [currentInventory] = await db
-        .insert(inventory)
-        .values({
-          materialTypeId,
-          stockLevel: Math.max(0, change), // Ensure we don't go negative for new items
-          minimumLevel: 10, // Default minimum level
-        })
-        .returning();
-    } else {
-      // Update existing inventory
-      [currentInventory] = await db
-        .update(inventory)
-        .set({
-          stockLevel: Math.max(0, currentInventory.stockLevel + change),
-          lastUpdated: new Date(),
-        })
-        .where(eq(inventory.materialTypeId, materialTypeId))
-        .returning();
-    }
-
-    return currentInventory;
-  }
-
-  // Material usage tracking
-  async createMaterialUsage(usage: InsertMaterialUsage): Promise<MaterialUsage> {
-    const [created] = await db.insert(materialUsage).values(usage).returning();
-    return created;
-  }
-
-  async getMaterialUsage(userId: number): Promise<MaterialUsage[]> {
-    return await db
-      .select()
-      .from(materialUsage)
-      .where(eq(materialUsage.userId, userId));
   }
 }
 

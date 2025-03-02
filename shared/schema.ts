@@ -2,40 +2,10 @@ import { pgTable, text, serial, integer, timestamp, boolean } from "drizzle-orm/
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
-// User authentication
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
   email: text("email").notNull().unique(),
   password: text("password").notNull(),
-  role: text("role").notNull().default('medic'),
-  firstName: text("first_name").notNull(),
-  lastName: text("last_name").notNull(),
-});
-
-// Inventory tracking
-export const inventory = pgTable("inventory", {
-  id: serial("id").primaryKey(),
-  materialTypeId: integer("material_type_id").references(() => materialTypes.id),
-  stockLevel: integer("stock_level").notNull().default(0),
-  minimumLevel: integer("minimum_level").notNull().default(10),
-  lastUpdated: timestamp("last_updated").notNull().defaultNow(),
-});
-
-// Material usage tracking
-export const materialUsage = pgTable("material_usage", {
-  id: serial("id").primaryKey(),
-  materialTypeId: integer("material_type_id").references(() => materialTypes.id),
-  userId: integer("user_id").references(() => users.id),
-  quantity: integer("quantity").notNull(),
-  usedAt: timestamp("used_at").notNull().defaultNow(),
-  notes: text("notes"),
-});
-
-// Material types (existing table)
-export const materialTypes = pgTable("material_types", {
-  id: serial("id").primaryKey(),
-  name: text("name").notNull(),
-  maxCount: integer("max_count").notNull(),
 });
 
 export const volunteers = pgTable("volunteers", {
@@ -45,9 +15,24 @@ export const volunteers = pgTable("volunteers", {
   phoneNumber: text("phone_number").notNull(),
 });
 
+export const pendingVolunteers = pgTable("pending_volunteers", {
+  id: serial("id").primaryKey(),
+  firstName: text("first_name").notNull(),
+  lastName: text("last_name").notNull(),
+  phoneNumber: text("phone_number").notNull(),
+  submittedAt: timestamp("submitted_at").notNull().defaultNow(),
+  status: text("status").notNull().default('pending'),
+});
+
 export const rooms = pgTable("rooms", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
+});
+
+export const materialTypes = pgTable("material_types", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  maxCount: integer("max_count").notNull(),
 });
 
 export const materials = pgTable("materials", {
@@ -68,30 +53,29 @@ export const schedules = pgTable("schedules", {
 
 // Create insert schemas
 export const insertUserSchema = createInsertSchema(users);
-export const insertInventorySchema = createInsertSchema(inventory);
-export const insertMaterialUsageSchema = createInsertSchema(materialUsage);
-export const insertMaterialTypeSchema = createInsertSchema(materialTypes);
 export const insertVolunteerSchema = createInsertSchema(volunteers);
+export const insertPendingVolunteerSchema = createInsertSchema(pendingVolunteers, {
+  submittedAt: z.coerce.date(),
+});
 export const insertRoomSchema = createInsertSchema(rooms);
+export const insertMaterialTypeSchema = createInsertSchema(materialTypes);
 export const insertMaterialSchema = createInsertSchema(materials);
 export const insertScheduleSchema = createInsertSchema(schedules);
 
 // Export types
 export type User = typeof users.$inferSelect;
-export type Inventory = typeof inventory.$inferSelect;
-export type MaterialUsage = typeof materialUsage.$inferSelect;
-export type MaterialType = typeof materialTypes.$inferSelect;
 export type Volunteer = typeof volunteers.$inferSelect;
+export type PendingVolunteer = typeof pendingVolunteers.$inferSelect;
 export type Room = typeof rooms.$inferSelect;
+export type MaterialType = typeof materialTypes.$inferSelect;
 export type Material = typeof materials.$inferSelect;
 export type Schedule = typeof schedules.$inferSelect;
 
 // Export insert types
 export type InsertUser = z.infer<typeof insertUserSchema>;
-export type InsertInventory = z.infer<typeof insertInventorySchema>;
-export type InsertMaterialUsage = z.infer<typeof insertMaterialUsageSchema>;
-export type InsertMaterialType = z.infer<typeof insertMaterialTypeSchema>;
 export type InsertVolunteer = z.infer<typeof insertVolunteerSchema>;
+export type InsertPendingVolunteer = z.infer<typeof insertPendingVolunteerSchema>;
 export type InsertRoom = z.infer<typeof insertRoomSchema>;
 export type InsertMaterial = z.infer<typeof insertMaterialSchema>;
 export type InsertSchedule = z.infer<typeof insertScheduleSchema>;
+export type InsertMaterialType = z.infer<typeof insertMaterialTypeSchema>;
