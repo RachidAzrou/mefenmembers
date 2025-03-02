@@ -6,31 +6,40 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useToast } from "@/hooks/use-toast";
 import { useLocation } from "wouter";
-import { LockKeyhole, Mail } from "lucide-react";
+import { LockKeyhole, Mail, User } from "lucide-react";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 
-const loginSchema = z.object({
+const formSchema = z.object({
   email: z.string().email("Ongeldig e-mailadres"),
   password: z.string().min(6, "Wachtwoord moet minimaal 6 tekens bevatten"),
+  firstName: z.string().min(1, "Voornaam is verplicht"),
+  lastName: z.string().min(1, "Achternaam is verplicht"),
 });
 
-type LoginFormData = z.infer<typeof loginSchema>;
+type FormData = z.infer<typeof formSchema>;
 
 export default function Login() {
   const { toast } = useToast();
   const [_, setLocation] = useLocation();
   const [formError, setFormError] = useState<string | null>(null);
+  const [isRegistering, setIsRegistering] = useState(false);
 
-  const form = useForm<LoginFormData>({
-    resolver: zodResolver(loginSchema),
+  const form = useForm<FormData>({
+    resolver: zodResolver(formSchema),
   });
 
-  const loginMutation = useMutation({
-    mutationFn: async (data: LoginFormData) => {
-      const res = await apiRequest("POST", "/api/login", data);
+  const mutation = useMutation({
+    mutationFn: async (data: FormData) => {
+      const endpoint = isRegistering ? "/api/register" : "/api/login";
+      const payload = isRegistering ? data : {
+        email: data.email,
+        password: data.password
+      };
+
+      const res = await apiRequest("POST", endpoint, payload);
       return await res.json();
     },
     onSuccess: () => {
@@ -47,9 +56,9 @@ export default function Login() {
     },
   });
 
-  const onSubmit = async (data: LoginFormData) => {
+  const onSubmit = async (data: FormData) => {
     setFormError(null);
-    loginMutation.mutate(data);
+    mutation.mutate(data);
   };
 
   return (
@@ -76,12 +85,56 @@ export default function Login() {
                 Vrijwilligersbeheer
               </h1>
               <p className="text-gray-600 text-sm sm:text-base">
-                Log in om materialen en planningen te beheren
+                {isRegistering ? "Registreer om materialen en planningen te beheren" : "Log in om materialen en planningen te beheren"}
               </p>
             </div>
 
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
+                {isRegistering && (
+                  <>
+                    <FormField
+                      control={form.control}
+                      name="firstName"
+                      render={({ field }) => (
+                        <FormItem>
+                          <div className="relative">
+                            <User className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-[#963E56]" />
+                            <FormControl>
+                              <Input
+                                placeholder="Voornaam"
+                                className="h-12 pl-10 border-gray-200 focus:border-[#963E56] focus:ring-[#963E56] transition-all duration-200"
+                                {...field}
+                              />
+                            </FormControl>
+                          </div>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="lastName"
+                      render={({ field }) => (
+                        <FormItem>
+                          <div className="relative">
+                            <User className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-[#963E56]" />
+                            <FormControl>
+                              <Input
+                                placeholder="Achternaam"
+                                className="h-12 pl-10 border-gray-200 focus:border-[#963E56] focus:ring-[#963E56] transition-all duration-200"
+                                {...field}
+                              />
+                            </FormControl>
+                          </div>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </>
+                )}
+
                 <FormField
                   control={form.control}
                   name="email"
@@ -133,10 +186,27 @@ export default function Login() {
                 <Button
                   type="submit"
                   className="w-full h-12 text-base font-medium bg-[#963E56] hover:bg-[#963E56]/90 transition-colors duration-300"
-                  disabled={loginMutation.isPending}
+                  disabled={mutation.isPending}
                 >
-                  {loginMutation.isPending ? "Bezig met inloggen..." : "Inloggen"}
+                  {mutation.isPending 
+                    ? (isRegistering ? "Bezig met registreren..." : "Bezig met inloggen...") 
+                    : (isRegistering ? "Registreren" : "Inloggen")}
                 </Button>
+
+                <div className="text-center">
+                  <Button
+                    type="button"
+                    variant="link"
+                    className="text-[#963E56] hover:text-[#963E56]/90"
+                    onClick={() => {
+                      setIsRegistering(!isRegistering);
+                      setFormError(null);
+                      form.reset();
+                    }}
+                  >
+                    {isRegistering ? "Al een account? Log in" : "Nog geen account? Registreer"}
+                  </Button>
+                </div>
               </form>
             </Form>
           </CardContent>
