@@ -180,7 +180,7 @@ const Materials = () => {
     returnDate: string;
   }>>([]);
   const [volunteerSearchTerm, setVolunteerSearchTerm] = useState("");
-  const [materialNumber, setMaterialNumber] = useState<string>(""); // Added state
+  const [materialNumber, setMaterialNumber] = useState<string>("");
 
   const form = useForm<z.infer<typeof materialSchema>>({
     resolver: zodResolver(materialSchema),
@@ -772,7 +772,6 @@ const Materials = () => {
                                         setVolunteerSearchTerm(e.target.value);
                                       }}
                                       onKeyDown={(e) => {
-                                        // Prevent select from closing on typing
                                         e.stopPropagation();
                                       }}
                                       className="w-full pl-9 h-9 rounded-md border border-input bg-white px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-offset-0 disabled:cursor-not-allowed disabled:opacity-50"
@@ -936,11 +935,10 @@ const Materials = () => {
                                         if (isCheckedOut) {
                                           toast({
                                             variant: "destructive",
-                                                                           title: "Fout",
+                                            title: "Fout",
                                             description: "Sorry maar dit materiaal is alreeds uitgeleend",
                                             duration: 3000,
                                           });
-                                          setMaterialNumber(""); // Clear input
                                           return;
                                         }
 
@@ -979,7 +977,6 @@ const Materials = () => {
                                           description: "Sorry maar dit materiaal is alreeds uitgeleend",
                                           duration: 3000,
                                         });
-                                        setMaterialNumber(""); // Clear input
                                         return;
                                       }
 
