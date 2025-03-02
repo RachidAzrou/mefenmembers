@@ -274,7 +274,7 @@ const Materials = () => {
 
       if (hasCheckedOutMaterials) {
         setFormError("Sorry maar één of meerdere geselecteerde materialen zijn alreeds uitgeleend");
-        return; // Don't close dialog
+        return; // Don't close dialog, keep form error visible
       }
 
       const volunteer = volunteers.find((v) => v.id === data.volunteerId);
@@ -294,7 +294,9 @@ const Materials = () => {
 
           await logUserAction(
             UserActionTypes.MATERIAL_CHECKOUT,
-            `${materialType?.name || "Materiaal"} #${number} uitgeleend aan ${volunteer ? `${volunteer.firstName} ${volunteer.lastName}` : "onbekende vrijwilliger"}`,
+            `${materialType?.name || "Materiaal"} #${number} uitgeleend aan ${
+              volunteer ? `${volunteer.firstName} ${volunteer.lastName}` : "onbekende vrijwilliger"
+            }`,
             {
               type: "material",
               name: materialType?.name || "Onbekend materiaal",
@@ -1047,7 +1049,7 @@ const Materials = () => {
                       </div>
 
                       {formError && (
-                        <div className="bg-destructive/10 text-destructive text-sm rounded-lg p-3">
+                        <div className="bg-destructive/10 text-destructive text-sm rounded-lg p-3 mt-4">
                           {formError}
                         </div>
                       )}
