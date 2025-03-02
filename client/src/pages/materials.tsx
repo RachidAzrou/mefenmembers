@@ -939,7 +939,7 @@ const Materials = () => {
                                       form.setValue("materials", updatedMaterials);
                                       setSelectedMaterialTypes(
                                         selectedMaterialTypes.filter(
-                                          (id) => id !== material.typeId,
+                                          (id) =>id !== material.typeId,
                                         ),
                                       );
                                     }}
@@ -1038,9 +1038,11 @@ const Materials = () => {
                         </div>
                       </div>
 
+                      {/* Foutmelding boven de submit button */}
                       {formError && (
-                        <div className="bg-destructive/10 text-destructive text-sm rounded-lg p-3 mt-4">
-                          {formError}
+                        <div className="bg-destructive/10 text-destructive text-sm rounded-lg p-4 mb-4">
+                          <p className="font-medium">Let op!</p>
+                          <p>{formError}</p>
                         </div>
                       )}
 
@@ -1057,7 +1059,21 @@ const Materials = () => {
                         >
                           Annuleren
                         </Button>
-                        <Button type="submit">
+                        <Button 
+                          type="submit"
+                          onClick={async (e) => {
+                            e.preventDefault();
+                            const data = form.getValues();
+                            const hasCheckedOutMaterials = checkForCheckedOutMaterials(materials, data.materials);
+
+                            if (hasCheckedOutMaterials) {
+                              setFormError("Sorry maar één of meerdere geselecteerde materialen zijn alreeds uitgeleend");
+                              return;
+                            }
+
+                            form.handleSubmit(onSubmit)(e);
+                          }}
+                        >
                           Materiaal Toewijzen
                         </Button>
                       </div>
