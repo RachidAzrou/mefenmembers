@@ -256,6 +256,27 @@ const Materials = () => {
 
   const onSubmit = async (data: z.infer<typeof materialSchema>) => {
     try {
+      // Check if any selected materials are already checked out
+      const hasCheckedOutMaterials = data.materials.some(material => 
+        material.numbers.some(number => 
+          materials.some(m => 
+            m.typeId === material.typeId && 
+            m.number === number && 
+            m.isCheckedOut
+          )
+        )
+      );
+
+      if (hasCheckedOutMaterials) {
+        toast({
+          variant: "destructive",
+          title: "Fout",
+          description: "Sorry maar één of meerdere geselecteerde materialen zijn alreeds uitgeleend",
+          duration: 3000,
+        });
+        return;
+      }
+
       const volunteer = volunteers.find((v) => v.id === data.volunteerId);
 
       const createPromises = data.materials.flatMap((material) => {
@@ -922,14 +943,36 @@ const Materials = () => {
                                       if (e.key === 'Enter' && materialNumber) {
                                         e.preventDefault();
                                         const number = parseInt(materialNumber);
-                                        const currentNumbers = material.numbers || [];
 
-                                        // Check if number is already checked out
+                                        // Validate number
+                                        if (number < 1 || number > (materialType?.maxCount || 100)) {
+                                          toast({
+                                            variant: "destructive",
+                                            title: "Fout",
+                                            description: `Nummer moet tussen 1 en ${materialType?.maxCount || 100} zijn`,
+                                            duration: 3000,
+                                          });
+                                          return;
+                                        }
+
+                                        // Check if already in current selection
+                                        const currentNumbers = material.numbers || [];
+                                        if (currentNumbers.includes(number)) {
+                                          toast({
+                                            variant: "destructive",
+                                            title: "Fout",
+                                            description: "Dit nummer is al geselecteerd",
+                                            duration: 3000,
+                                          });
+                                          return;
+                                        }
+
+                                        // Check if checked out
                                         const isCheckedOut = materials.some(
                                           (m) =>
                                             m.typeId === material.typeId &&
                                             m.number === number &&
-                                            m.isCheckedOut,
+                                            m.isCheckedOut
                                         );
 
                                         if (isCheckedOut) {
@@ -942,12 +985,11 @@ const Materials = () => {
                                           return;
                                         }
 
-                                        if (!currentNumbers.includes(number)) {
-                                          const updatedMaterials = form.getValues("materials");
-                                          updatedMaterials[index].numbers = [...currentNumbers, number];
-                                          form.setValue("materials", updatedMaterials);
-                                          setMaterialNumber(""); // Clear input after adding
-                                        }
+                                        // If all validation passes, add the number
+                                        const updatedMaterials = form.getValues("materials");
+                                        updatedMaterials[index].numbers = [...currentNumbers, number];
+                                        form.setValue("materials", updatedMaterials);
+                                        setMaterialNumber(""); // Clear input after successful add
                                       }
                                     }}
                                     className="pr-12"
@@ -959,15 +1001,38 @@ const Materials = () => {
                                     className="absolute right-0 top-0 h-full px-3 hover:bg-transparent"
                                     onClick={() => {
                                       if (!materialNumber) return;
-                                      const number = parseInt(materialNumber);
-                                      const currentNumbers = material.numbers || [];
 
-                                      // Check if number is already checked out
+                                      const number = parseInt(materialNumber);
+
+                                      // Validate number
+                                      if (number < 1 || number > (materialType?.maxCount || 100)) {
+                                        toast({
+                                          variant: "destructive",
+                                          title: "Fout",
+                                          description: `Nummer moet tussen 1 en ${materialType?.maxCount || 100} zijn`,
+                                          duration: 3000,
+                                        });
+                                        return;
+                                      }
+
+                                      // Check if already in current selection
+                                      const currentNumbers = material.numbers || [];
+                                      if (currentNumbers.includes(number)) {
+                                        toast({
+                                          variant: "destructive",
+                                          title: "Fout",
+                                          description: "Dit nummer is al geselecteerd",
+                                          duration: 3000,
+                                        });
+                                        return;
+                                      }
+
+                                      // Check if checked out
                                       const isCheckedOut = materials.some(
                                         (m) =>
                                           m.typeId === material.typeId &&
                                           m.number === number &&
-                                          m.isCheckedOut,
+                                          m.isCheckedOut
                                       );
 
                                       if (isCheckedOut) {
@@ -980,12 +1045,11 @@ const Materials = () => {
                                         return;
                                       }
 
-                                      if (!currentNumbers.includes(number)) {
-                                        const updatedMaterials = form.getValues("materials");
-                                        updatedMaterials[index].numbers = [...currentNumbers, number];
-                                        form.setValue("materials", updatedMaterials);
-                                        setMaterialNumber(""); // Clear input after adding
-                                      }
+                                      // If all validation passes, add the number
+                                      const updatedMaterials = form.getValues("materials");
+                                      updatedMaterials[index].numbers = [...currentNumbers, number];
+                                      form.setValue("materials", updatedMaterials);
+                                      setMaterialNumber(""); // Clear input after successful add
                                     }}
                                   >
                                     <Plus className="h-4 w-4" />
