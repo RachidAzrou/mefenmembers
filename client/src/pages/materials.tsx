@@ -274,7 +274,7 @@ const Materials = () => {
 
       if (hasCheckedOutMaterials) {
         setFormError("Sorry maar één of meerdere geselecteerde materialen zijn alreeds uitgeleend");
-        return;
+        return false; // Voorkom form submission
       }
 
       const volunteer = volunteers.find((v) => v.id === data.volunteerId);
@@ -316,18 +316,23 @@ const Materials = () => {
         0,
       );
 
-      toast({
-        title: "Succes",
-        description: `${totalItems} materialen succesvol toegewezen aan ${volunteer?.firstName} ${volunteer?.lastName}`,
-        duration: 3000,
-      });
+      if (totalItems > 0) {
+        toast({
+          title: "Succes",
+          description: `${totalItems} materialen succesvol toegewezen aan ${volunteer?.firstName} ${volunteer?.lastName}`,
+          duration: 3000,
+        });
 
-      form.reset();
-      setSelectedMaterialTypes([]);
-      setFormError(null);
-      setDialogOpen(false);
+        form.reset();
+        setSelectedMaterialTypes([]);
+        setFormError(null);
+        setDialogOpen(false);
+      }
+
+      return true; // Form submission succesvol
     } catch (error) {
       setFormError("Er is een fout opgetreden bij het toewijzen van materialen");
+      return false; // Voorkom form submission
     }
   };
 
@@ -777,7 +782,14 @@ const Materials = () => {
                   </DialogHeader>
                   <Form {...form}>
                     <form
-                      onSubmit={form.handleSubmit(onSubmit)}
+                      onSubmit={async (e) => {
+                        e.preventDefault();
+                        const success = await form.handleSubmit(onSubmit)(e);
+                        // Als onSubmit false retourneert, voorkom dan het sluiten van de dialog
+                        if (!success) {
+                          e.stopPropagation();
+                        }
+                      }}
                       className="space-y-4"
                     >
                       <FormField
