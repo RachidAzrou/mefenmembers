@@ -269,12 +269,12 @@ const Materials = () => {
 
   const onSubmit = async (data: z.infer<typeof materialSchema>) => {
     try {
-      setFormError(null); // Clear any previous errors
+      setFormError(null); 
       const hasCheckedOutMaterials = checkForCheckedOutMaterials(materials, data.materials);
 
       if (hasCheckedOutMaterials) {
         setFormError("Sorry maar één of meerdere geselecteerde materialen zijn alreeds uitgeleend");
-        return; // Don't close dialog, keep form error visible
+        return; 
       }
 
       const volunteer = volunteers.find((v) => v.id === data.volunteerId);
@@ -324,8 +324,8 @@ const Materials = () => {
 
       form.reset();
       setSelectedMaterialTypes([]);
-      setFormError(null); // Clear errors on success
-      setDialogOpen(false); // Only close on success
+      setFormError(null); 
+      setDialogOpen(false); 
     } catch (error) {
       setFormError("Er is een fout opgetreden bij het toewijzen van materialen");
     }
@@ -747,7 +747,20 @@ const Materials = () => {
                 </Dialog>
               )}
 
-              <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+              <Dialog 
+                open={dialogOpen} 
+                onOpenChange={(open) => {
+                  if (!open && formError) {
+                    return; 
+                  }
+                  setDialogOpen(open);
+                  if (!open) {
+                    setFormError(null);
+                    form.reset();
+                    setSelectedMaterialTypes([]);
+                  }
+                }}
+              >
                 <DialogTrigger asChild>
                   <Button className="w-full sm:w-auto gap-2 bg-[#963E56] hover:bg-[#963E56]/90 text-white">
                     <Package2 className="h-4 w-4" />
@@ -899,18 +912,16 @@ const Materials = () => {
                                 key={material.typeId}
                                 className="space-y-2 p-4 border rounded-lg"
                               >
-                                <div className="flex justify-between items-center">
+                                <div className="flex items-center justify-between">
                                   <h4 className="font-medium">
                                     {materialType?.name}
                                   </h4>
                                   <Button
                                     type="button"
                                     variant="ghost"
-                                    size="icon"
+                                    size="sm"
                                     onClick={() => {
-                                      const updatedMaterials = form
-                                        .getValues("materials")
-                                        .filter((_, i) => i !== index);
+                                      const updatedMaterials = form.getValues("materials").filter((_, i) => i !== index);
                                       form.setValue("materials", updatedMaterials);
                                       setSelectedMaterialTypes(
                                         selectedMaterialTypes.filter(
@@ -947,7 +958,7 @@ const Materials = () => {
                                           const updatedMaterials = form.getValues("materials");
                                           updatedMaterials[index].numbers = [...currentNumbers, number];
                                           form.setValue("materials", updatedMaterials);
-                                          setMaterialNumber(""); // Clear input after adding
+                                          setMaterialNumber("");
                                         }
                                       }
                                     }}
@@ -960,55 +971,15 @@ const Materials = () => {
                                     className="absolute right-0 top-0 h-full px-3 hover:bg-transparent"
                                     onClick={() => {
                                       if (!materialNumber) return;
-
                                       const number = parseInt(materialNumber);
-
-                                      // Validate number
-                                      if (number < 1 || number > (materialType?.maxCount || 100)) {
-                                        toast({
-                                          variant: "destructive",
-                                          title: "Fout",
-                                          description: `Nummer moet tussen 1 en ${materialType?.maxCount || 100} zijn`,
-                                          duration: 3000,
-                                        });
-                                        return;
-                                      }
-
-                                      // Check if already in current selection
                                       const currentNumbers = material.numbers || [];
-                                      if (currentNumbers.includes(number)) {
-                                        toast({
-                                          variant: "destructive",
-                                          title: "Fout",
-                                          description: "Dit nummer is al geselecteerd",
-                                          duration: 3000,
-                                        });
-                                        return;
+
+                                      if (!currentNumbers.includes(number)) {
+                                        const updatedMaterials = form.getValues("materials");
+                                        updatedMaterials[index].numbers = [...currentNumbers, number];
+                                        form.setValue("materials", updatedMaterials);
+                                        setMaterialNumber("");
                                       }
-
-                                      // Check if checked out
-                                      const isCheckedOut = materials.some(
-                                        (m) =>
-                                          m.typeId === material.typeId &&
-                                          m.number === number &&
-                                          m.isCheckedOut
-                                      );
-
-                                      if (isCheckedOut) {
-                                        toast({
-                                          variant: "destructive",
-                                          title: "Fout",
-                                          description: "Sorry maar dit materiaal is alreeds uitgeleend",
-                                          duration: 3000,
-                                        });
-                                        return;
-                                      }
-
-                                      // If all validation passes, add the number
-                                      const updatedMaterials = form.getValues("materials");
-                                      updatedMaterials[index].numbers = [...currentNumbers, number];
-                                      form.setValue("materials", updatedMaterials);
-                                      setMaterialNumber(""); // Clear input after successful add
                                     }}
                                   >
                                     <Plus className="h-4 w-4" />
@@ -1018,27 +989,32 @@ const Materials = () => {
                                 {material.numbers && material.numbers.length > 0 && (
                                   <div className="flex flex-wrap gap-2 mt-2">
                                     {material.numbers.map((number) => (
-                                      <div
+                                      <Badge
                                         key={number}
-                                        className="bg-primary/10 text-primary text-sm rounded-full px-3 py-1 flex items-center gap-2"
+                                        variant="outline"
+                                        className="flex items-center gap-1"
                                       >
-                                        <span>#{number}</span>
+                                        #{number}
                                         <Button
                                           type="button"
                                           variant="ghost"
                                           size="icon"
-                                          className="h-4 w-4 p-0 hover:bg-transparent"
+                                          className="h-3 w-3 p-0 hover:bg-transparent"
                                           onClick={() => {
                                             const updatedMaterials = form.getValues("materials");
-                                            updatedMaterials[index].numbers = material.numbers.filter(
-                                              (n) => n !== number
+                                            updatedMaterials[index].numbers =
+                                              material.numbers.filter(
+                                                (n) => n !== number
+                                              );
+                                            form.setValue(
+                                              "materials",
+                                              updatedMaterials
                                             );
-                                            form.setValue("materials", updatedMaterials);
                                           }}
                                         >
                                           <X className="h-3 w-3" />
                                         </Button>
-                                      </div>
+                                      </Badge>
                                     ))}
                                   </div>
                                 )}
