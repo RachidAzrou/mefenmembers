@@ -180,6 +180,7 @@ const Materials = () => {
     returnDate: string;
   }>>([]);
   const [volunteerSearchTerm, setVolunteerSearchTerm] = useState("");
+  const [materialNumber, setMaterialNumber] = useState<string>(""); // Added state
 
   const form = useForm<z.infer<typeof materialSchema>>({
     resolver: zodResolver(materialSchema),
@@ -903,49 +904,70 @@ const Materials = () => {
                                     <X className="h-4 w-4" />
                                   </Button>
                                 </div>
-                                <Select
-                                  onValueChange={(value) => {
-                                    const number = parseInt(value);
-                                    const currentNumbers = material.numbers || [];
-                                    if (!currentNumbers.includes(number)) {
-                                      const updatedMaterials =
-                                        form.getValues("materials");
-                                      updatedMaterials[index].numbers = [
-                                        ...currentNumbers,
-                                        number,
-                                      ];
-                                      form.setValue("materials", updatedMaterials);
-                                    }
-                                  }}
-                                >
-                                  <SelectTrigger>
-                                    <SelectValue placeholder="Selecteer nummer" />
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    {Array.from({
-                                      length: materialType?.maxCount || 0,
-                                    }).map((_, i) => {
-                                      const number = i + 1;
+                                <div className="relative">
+                                  <Input
+                                    type="number"
+                                    min={1}
+                                    max={materialType?.maxCount || 100}
+                                    placeholder="Voer materiaal nummer in"
+                                    value={materialNumber}
+                                    onChange={(e) => {
+                                      const value = parseInt(e.target.value);
+                                      if (!value || value < 1 || value > (materialType?.maxCount || 100)) {
+                                        setMaterialNumber("");
+                                        return;
+                                      }
+
+                                      // Check if number is already checked out
                                       const isCheckedOut = materials.some(
                                         (m) =>
                                           m.typeId === material.typeId &&
-                                          m.number === number &&
+                                          m.number === value &&
                                           m.isCheckedOut,
                                       );
-                                                                     if (!isCheckedOut) {
-                                        return (
-                                          <SelectItem
-                                            key={number}
-                                            value={number.toString()}
-                                          >
-                                            {number}
-                                          </SelectItem>
-                                        );
+
+                                      if (!isCheckedOut) {
+                                        setMaterialNumber(e.target.value);
                                       }
-                                      return null;
-                                    })}
-                                  </SelectContent>
-                                </Select>
+                                    }}
+                                    onKeyDown={(e) => {
+                                      if (e.key === 'Enter' && materialNumber) {
+                                        e.preventDefault();
+                                        const number = parseInt(materialNumber);
+                                        const currentNumbers = material.numbers || [];
+
+                                        if (!currentNumbers.includes(number)) {
+                                          const updatedMaterials = form.getValues("materials");
+                                          updatedMaterials[index].numbers = [...currentNumbers, number];
+                                          form.setValue("materials", updatedMaterials);
+                                          setMaterialNumber(""); // Clear input after adding
+                                        }
+                                      }
+                                    }}
+                                    className="pr-12"
+                                  />
+                                  <Button
+                                    type="button"
+                                    size="sm"
+                                    variant="ghost"
+                                    className="absolute right-0 top-0 h-full px-3 hover:bg-transparent"
+                                    onClick={() => {
+                                      if (!materialNumber) return;
+                                      const number = parseInt(materialNumber);
+                                      const currentNumbers = material.numbers || [];
+
+                                      if (!currentNumbers.includes(number)) {
+                                        const updatedMaterials = form.getValues("materials");
+                                        updatedMaterials[index].numbers = [...currentNumbers, number];
+                                        form.setValue("materials", updatedMaterials);
+                                        setMaterialNumber(""); // Clear input after adding
+                                      }
+                                    }}
+                                  >
+                                    <Plus className="h-4 w-4" />
+                                  </Button>
+                                </div>
+
                                 {material.numbers && material.numbers.length > 0 && (
                                   <div className="flex flex-wrap gap-2 mt-2">
                                     {material.numbers.map((number) => (
