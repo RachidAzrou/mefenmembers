@@ -274,7 +274,7 @@ const Materials = () => {
 
       if (hasCheckedOutMaterials) {
         setFormError("Sorry maar één of meerdere geselecteerde materialen zijn alreeds uitgeleend");
-        return false; 
+        return false;
       }
 
       const volunteer = volunteers.find((v) => v.id === data.volunteerId);
@@ -918,6 +918,18 @@ const Materials = () => {
                             const materialType = materialTypes.find(
                               (t) => t.id === material.typeId,
                             );
+                            // Get available numbers (not checked out)
+                            const availableNumbers = Array.from(
+                              { length: materialType?.maxCount || 0 }, 
+                              (_, i) => i + 1
+                            ).filter(number => 
+                              !materials.some(m => 
+                                m.typeId === material.typeId && 
+                                m.number === number && 
+                                m.isCheckedOut
+                              )
+                            );
+
                             return (
                               <div
                                 key={material.typeId}
@@ -936,7 +948,7 @@ const Materials = () => {
                                       form.setValue("materials", updatedMaterials);
                                       setSelectedMaterialTypes(
                                         selectedMaterialTypes.filter(
-                                          (id) =>id !== material.typeId,
+                                          (id) => id !== material.typeId,
                                         ),
                                       );
                                     }}
@@ -944,56 +956,36 @@ const Materials = () => {
                                     <X className="h-4 w-4" />
                                   </Button>
                                 </div>
-                                <div className="relative">
-                                  <Input
-                                    type="number"
-                                    min={1}
-                                    max={materialType?.maxCount || 100}
-                                    placeholder="Voer materiaal nummer in"                                    value={materialNumber}
-                                    onChange={(e) => {
-                                      const value = parseInt(e.target.value);
-                                      if (!value || value < 1 || value > (materialType?.maxCount || 100)) {
-                                        setMaterialNumber("");
-                                        return;
-                                      }
-                                      setMaterialNumber(e.target.value);
-                                    }}
-                                    onKeyDown={(e) => {
-                                      if (e.key === 'Enter' && materialNumber) {
-                                        e.preventDefault();
-                                        const number = parseInt(materialNumber);
-                                        const currentNumbers = material.numbers || [];
 
-                                        if (!currentNumbers.includes(number)) {
-                                          const updatedMaterials = form.getValues("materials");
-                                          updatedMaterials[index].numbers = [...currentNumbers, number];
-                                          form.setValue("materials", updatedMaterials);
-                                          setMaterialNumber("");
-                                        }
-                                      }
-                                    }}
-                                    className="pr-12"
-                                  />
-                                  <Button
-                                    type="button"
-                                    size="sm"
-                                    variant="ghost"
-                                    className="absolute right-0 top-0 h-full px-3 hover:bg-transparent"
-                                    onClick={() => {
-                                      if (!materialNumber) return;
-                                      const number = parseInt(materialNumber);
+                                <div className="relative">
+                                  <Select
+                                    onValueChange={(value) => {
+                                      if (!value) return;
+
+                                      const number = parseInt(value);
                                       const currentNumbers = material.numbers || [];
 
                                       if (!currentNumbers.includes(number)) {
                                         const updatedMaterials = form.getValues("materials");
                                         updatedMaterials[index].numbers = [...currentNumbers, number];
                                         form.setValue("materials", updatedMaterials);
-                                        setMaterialNumber("");
                                       }
                                     }}
                                   >
-                                    <Plus className="h-4 w-4" />
-                                  </Button>
+                                    <SelectTrigger className="w-full">
+                                      <SelectValue placeholder="Selecteer materiaal nummer" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      {availableNumbers.map((number) => (
+                                        <SelectItem 
+                                          key={number} 
+                                          value={number.toString()}
+                                        >
+                                          #{number}
+                                        </SelectItem>
+                                      ))}
+                                    </SelectContent>
+                                  </Select>
                                 </div>
 
                                 {material.numbers && material.numbers.length > 0 && (
@@ -1012,14 +1004,10 @@ const Materials = () => {
                                           className="h-3 w-3 p-0 hover:bg-transparent"
                                           onClick={() => {
                                             const updatedMaterials = form.getValues("materials");
-                                            updatedMaterials[index].numbers =
-                                              material.numbers.filter(
-                                                (n) => n !== number
-                                              );
-                                            form.setValue(
-                                              "materials",
-                                              updatedMaterials
+                                            updatedMaterials[index].numbers = material.numbers.filter(
+                                              (n) => n !== number
                                             );
+                                            form.setValue("materials", updatedMaterials);
                                           }}
                                         >
                                           <X className="h-3 w-3" />
