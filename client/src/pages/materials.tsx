@@ -917,24 +917,32 @@ const Materials = () => {
                                         setMaterialNumber("");
                                         return;
                                       }
-
-                                      // Check if number is already checked out
-                                      const isCheckedOut = materials.some(
-                                        (m) =>
-                                          m.typeId === material.typeId &&
-                                          m.number === value &&
-                                          m.isCheckedOut,
-                                      );
-
-                                      if (!isCheckedOut) {
-                                        setMaterialNumber(e.target.value);
-                                      }
+                                      setMaterialNumber(e.target.value);
                                     }}
                                     onKeyDown={(e) => {
                                       if (e.key === 'Enter' && materialNumber) {
                                         e.preventDefault();
                                         const number = parseInt(materialNumber);
                                         const currentNumbers = material.numbers || [];
+
+                                        // Check if number is already checked out
+                                        const isCheckedOut = materials.some(
+                                          (m) =>
+                                            m.typeId === material.typeId &&
+                                            m.number === number &&
+                                            m.isCheckedOut,
+                                        );
+
+                                        if (isCheckedOut) {
+                                          toast({
+                                            variant: "destructive",
+                                                                           title: "Fout",
+                                            description: "Sorry maar dit materiaal is alreeds uitgeleend",
+                                            duration: 3000,
+                                          });
+                                          setMaterialNumber(""); // Clear input
+                                          return;
+                                        }
 
                                         if (!currentNumbers.includes(number)) {
                                           const updatedMaterials = form.getValues("materials");
@@ -955,6 +963,25 @@ const Materials = () => {
                                       if (!materialNumber) return;
                                       const number = parseInt(materialNumber);
                                       const currentNumbers = material.numbers || [];
+
+                                      // Check if number is already checked out
+                                      const isCheckedOut = materials.some(
+                                        (m) =>
+                                          m.typeId === material.typeId &&
+                                          m.number === number &&
+                                          m.isCheckedOut,
+                                      );
+
+                                      if (isCheckedOut) {
+                                        toast({
+                                          variant: "destructive",
+                                          title: "Fout",
+                                          description: "Sorry maar dit materiaal is alreeds uitgeleend",
+                                          duration: 3000,
+                                        });
+                                        setMaterialNumber(""); // Clear input
+                                        return;
+                                      }
 
                                       if (!currentNumbers.includes(number)) {
                                         const updatedMaterials = form.getValues("materials");
