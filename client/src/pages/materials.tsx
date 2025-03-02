@@ -766,8 +766,14 @@ const Materials = () => {
                                       type="text"
                                       placeholder="Zoek vrijwilliger..."
                                       value={volunteerSearchTerm}
-                                      onChange={(e) => setVolunteerSearchTerm(e.target.value)}
-                                      onClick={(e) => e.stopPropagation()}
+                                      onChange={(e) => {
+                                        e.stopPropagation();
+                                        setVolunteerSearchTerm(e.target.value);
+                                      }}
+                                      onKeyDown={(e) => {
+                                        // Prevent select from closing on typing
+                                        e.stopPropagation();
+                                      }}
                                       className="w-full pl-9 h-9 rounded-md border border-input bg-white px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-offset-0 disabled:cursor-not-allowed disabled:opacity-50"
                                     />
                                   </div>
@@ -790,7 +796,7 @@ const Materials = () => {
                                               "h-4 w-4 flex-shrink-0",
                                               field.value === volunteer.id
                                                 ? "opacity-100"
-                                                : "opacity-0",
+                                                : "opacity-0"
                                             )}
                                           />
                                           <span className="flex-grow">
@@ -926,7 +932,7 @@ const Materials = () => {
                                           m.number === number &&
                                           m.isCheckedOut,
                                       );
-                                      if (!isCheckedOut) {
+                                                                     if (!isCheckedOut) {
                                         return (
                                           <SelectItem
                                             key={number}
@@ -938,7 +944,7 @@ const Materials = () => {
                                       }
                                       return null;
                                     })}
-                                                                 </SelectContent>
+                                  </SelectContent>
                                 </Select>
                                 {material.numbers && material.numbers.length > 0 && (
                                   <div className="flex flex-wrap gap-2 mt-2">
