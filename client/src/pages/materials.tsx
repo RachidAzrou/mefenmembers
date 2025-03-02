@@ -277,7 +277,7 @@ const Materials = () => {
           description: "Sorry maar één of meerdere geselecteerde materialen zijn alreeds uitgeleend",
           duration: 3000,
         });
-        return;
+        return; // Prevent form submission and dialog closing
       }
 
       const volunteer = volunteers.find((v) => v.id === data.volunteerId);
@@ -1092,13 +1092,9 @@ const Materials = () => {
                         </div>
                       </div>
 
-                      <Button 
-                        type="submit" 
+                      <Button
+                        type="submit"
                         className="w-full"
-                        disabled={checkForCheckedOutMaterials(
-                          materials, 
-                          form.getValues("materials") || []
-                        )}
                       >
                         Materiaal Toewijzen
                       </Button>
