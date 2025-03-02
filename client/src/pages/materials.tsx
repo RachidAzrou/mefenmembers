@@ -179,6 +179,7 @@ const Materials = () => {
     borrowDate: string;
     returnDate: string;
   }>>([]);
+  const [volunteerSearchTerm, setVolunteerSearchTerm] = useState("");
 
   const form = useForm<z.infer<typeof materialSchema>>({
     resolver: zodResolver(materialSchema),
@@ -770,8 +771,8 @@ const Materials = () => {
                                     <input
                                       type="text"
                                       placeholder="Zoek vrijwilliger..."
-                                      value={searchTerm}
-                                      onChange={handleSearch}
+                                      value={volunteerSearchTerm}
+                                      onChange={(e) => setVolunteerSearchTerm(e.target.value)}
                                       onClick={(e) => e.stopPropagation()}
                                       className="w-full pl-9 h-9 rounded-md border border-input bg-white px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-offset-0 disabled:cursor-not-allowed disabled:opacity-50"
                                     />
@@ -780,11 +781,8 @@ const Materials = () => {
                                 <div className="pt-1 max-h-[300px] overflow-y-auto">
                                   {volunteers
                                     .filter((volunteer) => {
-                                      const fullName =
-                                        `${volunteer.firstName} ${volunteer.lastName}`.toLowerCase();
-                                      return fullName.includes(
-                                        searchTerm.toLowerCase(),
-                                      );
+                                      const fullName = `${volunteer.firstName} ${volunteer.lastName}`.toLowerCase();
+                                      return fullName.includes(volunteerSearchTerm.toLowerCase());
                                     })
                                     .map((volunteer) => (
                                       <SelectItem
@@ -802,8 +800,7 @@ const Materials = () => {
                                             )}
                                           />
                                           <span className="flex-grow">
-                                            {volunteer.firstName}{" "}
-                                            {volunteer.lastName}
+                                            {volunteer.firstName} {volunteer.lastName}
                                           </span>
                                         </div>
                                       </SelectItem>
@@ -947,42 +944,35 @@ const Materials = () => {
                                       }
                                       return null;
                                     })}
-                                  </SelectContent>
+                                                                 </SelectContent>
                                 </Select>
-
-                                {material.numbers &&
-                                  material.numbers.length > 0 && (
-                                    <div className="flex flex-wrap gap-2 mt-2">
-                                      {material.numbers.map((number) => (
-                                        <div
-                                          key={number}
-                                          className="bg-primary/10 text-primary text-sm rounded-full px-3 py-1 flex items-center gap-2"
+                                {material.numbers && material.numbers.length > 0 && (
+                                  <div className="flex flex-wrap gap-2 mt-2">
+                                    {material.numbers.map((number) => (
+                                      <div
+                                        key={number}
+                                        className="bg-primary/10 text-primary text-sm rounded-full px-3 py-1 flex items-center gap-2"
+                                      >
+                                        <span>#{number}</span>
+                                        <Button
+                                          type="button"
+                                          variant="ghost"
+                                          size="icon"
+                                          className="h-4 w-4 p-0 hover:bg-transparent"
+                                          onClick={() => {
+                                            const updatedMaterials = form.getValues("materials");
+                                            updatedMaterials[index].numbers = material.numbers.filter(
+                                              (n) => n !== number
+                                            );
+                                            form.setValue("materials", updatedMaterials);
+                                          }}
                                         >
-                                          <span>#{number}</span>
-                                          <Button
-                                            type="button"
-                                            variant="ghost"
-                                            size="icon"
-                                            className="h-4 w-4 p-0 hover:bg-transparent"
-                                            onClick={() => {
-                                              const updatedMaterials =
-                                                form.getValues("materials");
-                                              updatedMaterials[index].numbers =
-                                                material.numbers.filter(
-                                                  (n) => n !== number,
-                                                );
-                                              form.setValue(
-                                                "materials",
-                                                updatedMaterials,
-                                              );
-                                            }}
-                                          >
-                                            <X className="h-3 w-3" />
-                                          </Button>
-                                        </div>
-                                      ))}
-                                    </div>
-                                  )}
+                                          <X className="h-3 w-3" />
+                                        </Button>
+                                      </div>
+                                    ))}
+                                  </div>
+                                )}
                               </div>
                             );
                           })}
@@ -1007,9 +997,7 @@ const Materials = () => {
                     <TableRow>
                       <TableHead className="whitespace-nowrap">Type</TableHead>
                       <TableHead className="whitespace-nowrap">Nummer</TableHead>
-                      <TableHead className="whitespace-nowrap">
-                        Vrijwilliger
-                      </TableHead>
+                      <TableHead className="whitespace-nowrap">Vrijwilliger</TableHead>
                       <TableHead className="whitespace-nowrap">Status</TableHead>
                       <TableHead className="whitespace-nowrap">Acties</TableHead>
                     </TableRow>
