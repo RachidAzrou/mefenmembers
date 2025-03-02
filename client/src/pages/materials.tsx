@@ -269,12 +269,12 @@ const Materials = () => {
 
   const onSubmit = async (data: z.infer<typeof materialSchema>) => {
     try {
-      setFormError(null); 
+      setFormError(null);
       const hasCheckedOutMaterials = checkForCheckedOutMaterials(materials, data.materials);
 
       if (hasCheckedOutMaterials) {
         setFormError("Sorry maar één of meerdere geselecteerde materialen zijn alreeds uitgeleend");
-        return; 
+        return;
       }
 
       const volunteer = volunteers.find((v) => v.id === data.volunteerId);
@@ -324,8 +324,8 @@ const Materials = () => {
 
       form.reset();
       setSelectedMaterialTypes([]);
-      setFormError(null); 
-      setDialogOpen(false); 
+      setFormError(null);
+      setDialogOpen(false);
     } catch (error) {
       setFormError("Er is een fout opgetreden bij het toewijzen van materialen");
     }
@@ -751,14 +751,16 @@ const Materials = () => {
                 open={dialogOpen} 
                 onOpenChange={(open) => {
                   if (!open && formError) {
-                    return; 
+                    // Als er een fout is, voorkom sluiten
+                    return;
                   }
-                  setDialogOpen(open);
                   if (!open) {
+                    // Reset alles alleen als we echt sluiten
                     setFormError(null);
                     form.reset();
                     setSelectedMaterialTypes([]);
                   }
+                  setDialogOpen(open);
                 }}
               >
                 <DialogTrigger asChild>
@@ -1030,12 +1032,23 @@ const Materials = () => {
                         </div>
                       )}
 
-                      <Button
-                        type="submit"
-                        className="w-full"
-                      >
-                        Materiaal Toewijzen
-                      </Button>
+                      <div className="flex gap-2 justify-end mt-6">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={() => {
+                            setFormError(null);
+                            form.reset();
+                            setSelectedMaterialTypes([]);
+                            setDialogOpen(false);
+                          }}
+                        >
+                          Annuleren
+                        </Button>
+                        <Button type="submit">
+                          Materiaal Toewijzen
+                        </Button>
+                      </div>
                     </form>
                   </Form>
                 </DialogContent>
