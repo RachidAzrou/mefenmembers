@@ -928,7 +928,7 @@ const Materials = () => {
                                     placeholder="Voer materiaal nummer in"
                                     value={materialNumber}
                                     onChange={(e) => {
-                                      const value = parseInt(etarget.value);
+                                      const value = parseInt(e.target.value);
                                       if (!value || value < 1 || value > (materialType?.maxCount || 100)) {
                                         setMaterialNumber("");
                                         return;
@@ -939,53 +939,14 @@ const Materials = () => {
                                       if (e.key === 'Enter' && materialNumber) {
                                         e.preventDefault();
                                         const number = parseInt(materialNumber);
-
-                                        // Validate number
-                                        if (number < 1 || number > (materialType?.maxCount || 100)) {
-                                          toast({
-                                            variant: "destructive",
-                                            title: "Fout",
-                                            description: `Nummer moet tussen 1 en ${materialType?.maxCount || 100} zijn`,
-                                            duration: 3000,
-                                          });
-                                          return;
-                                        }
-
-                                        // Check if already in current selection
                                         const currentNumbers = material.numbers || [];
-                                        if (currentNumbers.includes(number)) {
-                                          toast({
-                                            variant: "destructive",
-                                            title: "Fout",
-                                            description: "Dit nummer is al geselecteerd",
-                                            duration: 3000,
-                                          });
-                                          return;
+
+                                        if (!currentNumbers.includes(number)) {
+                                          const updatedMaterials = form.getValues("materials");
+                                          updatedMaterials[index].numbers = [...currentNumbers, number];
+                                          form.setValue("materials", updatedMaterials);
+                                          setMaterialNumber(""); // Clear input after adding
                                         }
-
-                                        // Check if checked out
-                                        const isCheckedOut = materials.some(
-                                          (m) =>
-                                            m.typeId === material.typeId &&
-                                            m.number === number &&
-                                            m.isCheckedOut
-                                        );
-
-                                        if (isCheckedOut) {
-                                          toast({
-                                            variant: "destructive",
-                                            title: "Fout",
-                                            description: "Sorry maar dit materiaal is alreeds uitgeleend",
-                                            duration: 3000,
-                                          });
-                                          return;
-                                        }
-
-                                        // If all validation passes, add the number
-                                        const updatedMaterials = form.getValues("materials");
-                                        updatedMaterials[index].numbers = [...currentNumbers, number];
-                                        form.setValue("materials", updatedMaterials);
-                                        setMaterialNumber(""); // Clear input after successful add
                                       }
                                     }}
                                     className="pr-12"
