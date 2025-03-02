@@ -181,6 +181,7 @@ const Materials = () => {
   }>>([]);
   const [volunteerSearchTerm, setVolunteerSearchTerm] = useState("");
   const [materialNumber, setMaterialNumber] = useState<string>("");
+  const [formError, setFormError] = useState<string | null>(null);
 
   const form = useForm<z.infer<typeof materialSchema>>({
     resolver: zodResolver(materialSchema),
@@ -268,16 +269,12 @@ const Materials = () => {
 
   const onSubmit = async (data: z.infer<typeof materialSchema>) => {
     try {
+      setFormError(null); // Clear any previous errors
       const hasCheckedOutMaterials = checkForCheckedOutMaterials(materials, data.materials);
 
       if (hasCheckedOutMaterials) {
-        toast({
-          variant: "destructive",
-          title: "Fout",
-          description: "Sorry maar één of meerdere geselecteerde materialen zijn alreeds uitgeleend",
-          duration: 3000,
-        });
-        return; // Prevent form submission and dialog closing
+        setFormError("Sorry maar één of meerdere geselecteerde materialen zijn alreeds uitgeleend");
+        return; // Don't close dialog
       }
 
       const volunteer = volunteers.find((v) => v.id === data.volunteerId);
@@ -325,14 +322,10 @@ const Materials = () => {
 
       form.reset();
       setSelectedMaterialTypes([]);
-      setDialogOpen(false);
+      setFormError(null); // Clear errors on success
+      setDialogOpen(false); // Only close on success
     } catch (error) {
-      toast({
-        variant: "destructive",
-        title: "Fout",
-        description: "Kon materiaal niet toewijzen",
-        duration: 3000,
-      });
+      setFormError("Er is een fout opgetreden bij het toewijzen van materialen");
     }
   };
 
@@ -935,7 +928,7 @@ const Materials = () => {
                                     placeholder="Voer materiaal nummer in"
                                     value={materialNumber}
                                     onChange={(e) => {
-                                      const value = parseInt(e.target.value);
+                                      const value = parseInt(etarget.value);
                                       if (!value || value < 1 || value > (materialType?.maxCount || 100)) {
                                         setMaterialNumber("");
                                         return;
@@ -1091,6 +1084,12 @@ const Materials = () => {
                           })}
                         </div>
                       </div>
+
+                      {formError && (
+                        <div className="bg-destructive/10 text-destructive text-sm rounded-lg p-3">
+                          {formError}
+                        </div>
+                      )}
 
                       <Button
                         type="submit"
