@@ -468,12 +468,6 @@ const Materials = () => {
       .normalize("NFD")
       .replace(/[\u0300-\u036f]/g, "");
 
-  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    setSearchTerm(value);
-    setCurrentPage(1);
-  };
-
   const filteredMaterials = materials.filter((material) => {
     if (!material.isCheckedOut) return false;
     if (!searchTerm.trim()) return true;
@@ -667,7 +661,7 @@ const Materials = () => {
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 placeholder="Zoek op type, nummer of vrijwilliger..."
-                onChange={handleSearch}
+                onChange={(e) => setSearchTerm(e.target.value)}
                 value={searchTerm}
                 className="pl-9 w-full"
                 type="search"
