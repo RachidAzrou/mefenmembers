@@ -254,18 +254,21 @@ const Materials = () => {
     }
   };
 
+  const checkForCheckedOutMaterials = (materials: Material[], selectedMaterials: any[]) => {
+    return selectedMaterials.some(material => 
+      material.numbers.some(number => 
+        materials.some(m => 
+          m.typeId === material.typeId && 
+          m.number === number && 
+          m.isCheckedOut
+        )
+      )
+    );
+  };
+
   const onSubmit = async (data: z.infer<typeof materialSchema>) => {
     try {
-      // Check if any selected materials are already checked out
-      const hasCheckedOutMaterials = data.materials.some(material => 
-        material.numbers.some(number => 
-          materials.some(m => 
-            m.typeId === material.typeId && 
-            m.number === number && 
-            m.isCheckedOut
-          )
-        )
-      );
+      const hasCheckedOutMaterials = checkForCheckedOutMaterials(materials, data.materials);
 
       if (hasCheckedOutMaterials) {
         toast({
@@ -1089,7 +1092,14 @@ const Materials = () => {
                         </div>
                       </div>
 
-                      <Button type="submit" className="w-full">
+                      <Button 
+                        type="submit" 
+                        className="w-full"
+                        disabled={checkForCheckedOutMaterials(
+                          materials, 
+                          form.getValues("materials") || []
+                        )}
+                      >
                         Materiaal Toewijzen
                       </Button>
                     </form>
