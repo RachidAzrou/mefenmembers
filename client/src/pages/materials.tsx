@@ -274,7 +274,7 @@ const Materials = () => {
 
       if (hasCheckedOutMaterials) {
         setFormError("Sorry maar één of meerdere geselecteerde materialen zijn alreeds uitgeleend");
-        return false; // Voorkom form submission
+        return false; 
       }
 
       const volunteer = volunteers.find((v) => v.id === data.volunteerId);
@@ -329,10 +329,10 @@ const Materials = () => {
         setDialogOpen(false);
       }
 
-      return true; // Form submission succesvol
+      return true; 
     } catch (error) {
       setFormError("Er is een fout opgetreden bij het toewijzen van materialen");
-      return false; // Voorkom form submission
+      return false; 
     }
   };
 
@@ -756,11 +756,9 @@ const Materials = () => {
                 open={dialogOpen} 
                 onOpenChange={(open) => {
                   if (!open && formError) {
-                    // Als er een fout is, voorkom sluiten
                     return;
                   }
                   if (!open) {
-                    // Reset alles alleen als we echt sluiten
                     setFormError(null);
                     form.reset();
                     setSelectedMaterialTypes([]);
@@ -785,7 +783,6 @@ const Materials = () => {
                       onSubmit={async (e) => {
                         e.preventDefault();
                         const success = await form.handleSubmit(onSubmit)(e);
-                        // Als onSubmit false retourneert, voorkom dan het sluiten van de dialog
                         if (!success) {
                           e.stopPropagation();
                         }
@@ -952,8 +949,7 @@ const Materials = () => {
                                     type="number"
                                     min={1}
                                     max={materialType?.maxCount || 100}
-                                    placeholder="Voer materiaal nummer in"
-                                    value={materialNumber}
+                                    placeholder="Voer materiaal nummer in"                                    value={materialNumber}
                                     onChange={(e) => {
                                       const value = parseInt(e.target.value);
                                       if (!value || value < 1 || value > (materialType?.maxCount || 100)) {
@@ -1038,7 +1034,6 @@ const Materials = () => {
                         </div>
                       </div>
 
-                      {/* Foutmelding boven de submit button */}
                       {formError && (
                         <div className="bg-destructive/10 text-destructive text-sm rounded-lg p-4 mb-4">
                           <p className="font-medium">Let op!</p>
@@ -1059,21 +1054,7 @@ const Materials = () => {
                         >
                           Annuleren
                         </Button>
-                        <Button 
-                          type="submit"
-                          onClick={async (e) => {
-                            e.preventDefault();
-                            const data = form.getValues();
-                            const hasCheckedOutMaterials = checkForCheckedOutMaterials(materials, data.materials);
-
-                            if (hasCheckedOutMaterials) {
-                              setFormError("Sorry maar één of meerdere geselecteerde materialen zijn alreeds uitgeleend");
-                              return;
-                            }
-
-                            form.handleSubmit(onSubmit)(e);
-                          }}
-                        >
+                        <Button type="submit">
                           Materiaal Toewijzen
                         </Button>
                       </div>
