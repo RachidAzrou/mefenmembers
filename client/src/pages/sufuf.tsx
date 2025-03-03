@@ -6,8 +6,8 @@ import { Input } from "@/components/ui/input";
 import { useSocket } from "@/hooks/use-socket";
 import { Route, Switch, useLocation } from "wouter";
 import { FaMosque } from "react-icons/fa";
-import { PiUsersThree } from "react-icons/pi";
-import { TbUserCircle } from "react-icons/tb"; // Changed to use TbUserCircle for imam
+import { PiUsersThree, PiPersonSimpleBold } from "react-icons/pi";
+import { RiUserSmileLine } from "react-icons/ri"; // Changed to Remix Icons for imam representation
 
 // Hadieth Component
 const HadiethCard = () => (
@@ -203,7 +203,7 @@ const RoomStatusToggle = ({ roomId, title }: { roomId: string; title: string }) 
         <CardContent className="p-8">
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 mb-8">
             <div className="flex items-center gap-4">
-              <Grid className="h-8 w-8 text-[#963E56]" />
+              <FaMosque className="h-8 w-8 text-[#963E56]" />
               <h1 className="text-2xl md:text-3xl font-bold text-[#963E56]">
                 {title}
               </h1>
@@ -296,7 +296,7 @@ export default function SufufPage() {
                         className="w-full h-full text-xl font-medium text-[#963E56] hover:bg-[#963E56]/10 py-8"
                         onClick={() => setView('imam')}
                       >
-                        <TbUserCircle className="w-6 h-6 mr-2" />
+                        <RiUserSmileLine className="w-6 h-6 mr-2" />
                         Imam
                       </Button>
                     </CardContent>
@@ -308,7 +308,7 @@ export default function SufufPage() {
                         className="w-full h-full text-xl font-medium text-[#963E56] hover:bg-[#963E56]/10 py-8"
                         onClick={() => setView('volunteer')}
                       >
-                        <PiUsersThree className="w-6 h-6 mr-2" />
+                        <PiPersonSimpleBold className="w-6 h-6 mr-2" />
                         Vrijwilliger
                       </Button>
                     </CardContent>
@@ -322,9 +322,9 @@ export default function SufufPage() {
             <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 mb-4">
               <div className="flex items-center gap-4">
                 {view === 'imam' ? (
-                  <TbUserCircle className="h-8 w-8 text-[#963E56]" />
+                  <RiUserSmileLine className="h-8 w-8 text-[#963E56]" />
                 ) : (
-                  <PiUsersThree className="h-8 w-8 text-[#963E56]" />
+                  <PiPersonSimpleBold className="h-8 w-8 text-[#963E56]" />
                 )}
                 <h1 className="text-2xl md:text-3xl font-bold text-[#963E56]">
                   {view === 'imam' ? 'Imam Dashboard' : 'Vrijwilliger Dashboard'}
