@@ -94,6 +94,7 @@ const RoomStatusToggle = ({ roomId, title }: { roomId: string; title: string }) 
   }, [socket, roomId]);
 
   const handleOkChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!socket) return;
     if (e.target.checked) {
       setNokChecked(false);
       socket.emit('updateStatus', { room: roomId, status: 'OK' });
@@ -104,6 +105,7 @@ const RoomStatusToggle = ({ roomId, title }: { roomId: string; title: string }) 
   };
 
   const handleNokChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!socket) return;
     if (e.target.checked) {
       setOkChecked(false);
       socket.emit('updateStatus', { room: roomId, status: 'NOK' });
@@ -234,63 +236,55 @@ const VolunteerView = () => {
 
 // Hoofdcomponent
 export default function SufufPage() {
-  const [location] = useLocation();
-  const baseRoute = '/sufuf';
-  const isRoot = location === baseRoute;
   const [view, setView] = useState<'select' | 'imam' | 'volunteer'>('select');
-
-  if (isRoot) {
-    if (view === 'select') {
-      return (
-        <div className="space-y-6 p-6">
-          <div className="flex items-center gap-3 mb-6">
-            <Grid className="h-6 w-6 sm:h-8 sm:w-8 text-[#963E56]" />
-            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-[#963E56]">
-              Sufuf (Gebedsrijen)
-            </h1>
-          </div>
-          <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 max-w-md mx-auto">
-            <Button
-              variant="outline"
-              className="p-6 h-auto"
-              onClick={() => setView('imam')}
-            >
-              Imam
-            </Button>
-            <Button
-              variant="outline"
-              className="p-6 h-auto"
-              onClick={() => setView('volunteer')}
-            >
-              Vrijwilliger
-            </Button>
-          </div>
-        </div>
-      );
-    }
-
-    return (
-      <div className="space-y-6 p-6">
-        <div className="flex items-center gap-3 mb-6">
-          <Grid className="h-6 w-6 sm:h-8 sm:w-8 text-[#963E56]" />
-          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-[#963E56]">
-            {view === 'imam' ? 'Imam Dashboard' : 'Vrijwilliger Dashboard'}
-          </h1>
-          <Button
-            variant="ghost"
-            className="ml-auto"
-            onClick={() => setView('select')}
-          >
-            Terug
-          </Button>
-        </div>
-        {view === 'imam' ? <ImamView /> : <VolunteerView />}
-      </div>
-    );
-  }
 
   return (
     <Switch>
+      <Route path="/sufuf">
+        {view === 'select' ? (
+          <div className="space-y-6 p-6">
+            <div className="flex items-center gap-3 mb-6">
+              <Grid className="h-6 w-6 sm:h-8 sm:w-8 text-[#963E56]" />
+              <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-[#963E56]">
+                Sufuf (Gebedsrijen)
+              </h1>
+            </div>
+            <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 max-w-md mx-auto">
+              <Button
+                variant="outline"
+                className="p-6 h-auto"
+                onClick={() => setView('imam')}
+              >
+                Imam
+              </Button>
+              <Button
+                variant="outline"
+                className="p-6 h-auto"
+                onClick={() => setView('volunteer')}
+              >
+                Vrijwilliger
+              </Button>
+            </div>
+          </div>
+        ) : (
+          <div className="space-y-6 p-6">
+            <div className="flex items-center gap-3 mb-6">
+              <Grid className="h-6 w-6 sm:h-8 sm:w-8 text-[#963E56]" />
+              <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-[#963E56]">
+                {view === 'imam' ? 'Imam Dashboard' : 'Vrijwilliger Dashboard'}
+              </h1>
+              <Button
+                variant="ghost"
+                className="ml-auto"
+                onClick={() => setView('select')}
+              >
+                Terug
+              </Button>
+            </div>
+            {view === 'imam' ? <ImamView /> : <VolunteerView />}
+          </div>
+        )}
+      </Route>
       <Route path="/sufuf/boven">
         <RoomStatusToggle roomId="first-floor" title="Boven" />
       </Route>
