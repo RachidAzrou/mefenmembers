@@ -7,7 +7,6 @@ import { useSocket } from "@/hooks/use-socket";
 import { Route, Switch, useLocation } from "wouter";
 import { IoMdPeople } from "react-icons/io";
 import { FaUserTie, FaMosque } from "react-icons/fa";
-import { Grid } from "lucide-react";
 import { SufufIcon } from "@/components/icons/sufuf-icon";
 
 // Hadieth Component
