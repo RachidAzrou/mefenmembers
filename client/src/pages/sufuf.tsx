@@ -56,17 +56,23 @@ export default function SufufPage() {
         {sufufRows.map((row, index) => (
           <div 
             key={index}
-            className={`p-4 rounded-lg border-2 ${row.color} relative overflow-hidden`}
+            className={`p-6 rounded-lg border-2 ${row.color} relative overflow-hidden transition-all duration-300 hover:shadow-lg hover:scale-[1.01]`}
           >
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
-                <h3 className="font-semibold text-lg">{row.title}</h3>
+                <h3 className="font-semibold text-lg mb-1">{row.title}</h3>
                 <p className="text-sm text-muted-foreground">{row.description}</p>
               </div>
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-2 rounded-full bg-[#963E56]" />
-                <div className="w-2 h-2 rounded-full bg-[#963E56]" />
-                <div className="w-2 h-2 rounded-full bg-[#963E56]" />
+              <div className="flex items-center gap-3">
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <div 
+                    key={i} 
+                    className="relative group"
+                  >
+                    <div className={`w-3 h-3 rounded-full bg-[#963E56] transition-all duration-300 group-hover:scale-125 group-hover:opacity-80`} />
+                    <div className={`absolute inset-0 bg-[#963E56] rounded-full animate-ping opacity-30`} />
+                  </div>
+                ))}
               </div>
             </div>
           </div>
@@ -74,16 +80,26 @@ export default function SufufPage() {
       </div>
 
       {/* Additional Info */}
-      <Card className="mt-6">
+      <Card className="mt-8">
         <CardContent className="pt-6">
           <div className="space-y-4">
             <h2 className="font-semibold text-lg text-[#963E56]">Belangrijke punten</h2>
-            <ul className="list-disc pl-4 space-y-2 text-sm text-muted-foreground">
-              <li>Sta schouder aan schouder en voet aan voet</li>
-              <li>Vul de rijen van voor naar achter</li>
-              <li>Laat geen gaten tussen de biddende personen</li>
-              <li>De beste rijen voor mannen zijn de voorste rijen</li>
-              <li>Respecteer de aangegeven indeling voor een geordend gebed</li>
+            <ul className="list-disc pl-4 space-y-3 text-sm text-muted-foreground">
+              <li className="transition-all duration-300 hover:text-[#963E56]">
+                Sta schouder aan schouder en voet aan voet
+              </li>
+              <li className="transition-all duration-300 hover:text-[#963E56]">
+                Vul de rijen van voor naar achter
+              </li>
+              <li className="transition-all duration-300 hover:text-[#963E56]">
+                Laat geen gaten tussen de biddende personen
+              </li>
+              <li className="transition-all duration-300 hover:text-[#963E56]">
+                De beste rijen voor mannen zijn de voorste rijen
+              </li>
+              <li className="transition-all duration-300 hover:text-[#963E56]">
+                Respecteer de aangegeven indeling voor een geordend gebed
+              </li>
             </ul>
           </div>
         </CardContent>
