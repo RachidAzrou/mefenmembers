@@ -45,29 +45,31 @@ export default function SufufPage() {
   useEffect(() => {
     if (!socket) return;
 
-    const handleInitialStatus = (event: MessageEvent) => {
-      const data = JSON.parse(event.data);
-      if (data.type === 'initialStatus') {
-        setRooms(prev => ({ ...prev, ...data.data }));
+    const handleMessage = (event: MessageEvent) => {
+      try {
+        const data = JSON.parse(event.data);
+        console.log('Received message:', data); // Debug log
+
+        if (data.type === 'initialStatus') {
+          setRooms(prev => ({ ...prev, ...data.data }));
+        } else if (data.type === 'statusUpdated') {
+          setRooms(prev => ({
+            ...prev,
+            [data.data.room]: { 
+              ...prev[data.data.room], 
+              status: data.data.status 
+            }
+          }));
+        }
+      } catch (error) {
+        console.error('Error handling message:', error);
       }
     };
 
-    const handleStatusUpdate = (event: MessageEvent) => {
-      const data = JSON.parse(event.data);
-      if (data.type === 'statusUpdated') {
-        setRooms(prev => ({
-          ...prev,
-          [data.data.room]: { ...prev[data.data.room], status: data.data.status }
-        }));
-      }
-    };
-
-    socket.addEventListener('message', handleInitialStatus);
-    socket.addEventListener('message', handleStatusUpdate);
+    socket.addEventListener('message', handleMessage);
 
     return () => {
-      socket.removeEventListener('message', handleInitialStatus);
-      socket.removeEventListener('message', handleStatusUpdate);
+      socket.removeEventListener('message', handleMessage);
     };
   }, [socket]);
 
@@ -90,6 +92,7 @@ export default function SufufPage() {
       room: selectedRoom,
       status: newChecked ? 'OK' : 'OFF'
     };
+    console.log('Sending message:', message); // Debug log
     socket.send(JSON.stringify(message));
   };
 
@@ -105,6 +108,7 @@ export default function SufufPage() {
       room: selectedRoom,
       status: newChecked ? 'NOK' : 'OFF'
     };
+    console.log('Sending message:', message); // Debug log
     socket.send(JSON.stringify(message));
   };
 
@@ -138,7 +142,7 @@ export default function SufufPage() {
                   {room.title}
                 </CardTitle>
                 <div className={`
-                  relative w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300
+                  relative w-10 h-10 rounded-full flex items-center justify-center
                   ${room.status === 'green' ? 'bg-green-500 shadow-lg shadow-green-500/50' :
                     room.status === 'red' ? 'bg-red-500 shadow-lg shadow-red-500/50' :
                     'bg-gray-300'

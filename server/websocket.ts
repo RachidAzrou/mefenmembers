@@ -6,8 +6,8 @@ export function setupWebSocket(server: Server) {
 
   // Store room statuses
   const rooms = {
-    'first-floor': { id: 'first-floor', title: 'Moskee +1', status: 'grey' },
     'beneden': { id: 'beneden', title: 'Moskee +0', status: 'grey' },
+    'first-floor': { id: 'first-floor', title: 'Moskee +1', status: 'grey' },
     'garage': { id: 'garage', title: 'Garage', status: 'grey' }
   };
 
@@ -18,18 +18,19 @@ export function setupWebSocket(server: Server) {
     ws.on('message', (message) => {
       try {
         const data = JSON.parse(message.toString());
-        
+
         if (data.type === 'updateStatus') {
           const { room, status } = data;
           if (rooms[room]) {
-            rooms[room].status = status === 'OK' ? 'green' : status === 'NOK' ? 'red' : 'grey';
-            
+            const newStatus = status === 'OK' ? 'green' : status === 'NOK' ? 'red' : 'grey';
+            rooms[room].status = newStatus;
+
             // Broadcast the update to all clients
             wss.clients.forEach((client) => {
               if (client.readyState === ws.OPEN) {
                 client.send(JSON.stringify({
                   type: 'statusUpdated',
-                  data: { room, status: rooms[room].status }
+                  data: { room, status: newStatus }
                 }));
               }
             });
