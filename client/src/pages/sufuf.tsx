@@ -1,11 +1,11 @@
 import React, { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
-import { Check, X, User } from "lucide-react";
+import { Check, X, User, ChevronLeft, House } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useSocket } from "@/hooks/use-socket";
 import { Route, Switch, useLocation } from "wouter";
-import { FaMosque, FaPray } from "react-icons/fa";
+import { FaPray } from "react-icons/fa";
 import { PiUsersThree } from "react-icons/pi";
 
 // Hadieth Component
@@ -37,8 +37,7 @@ const ImamView = () => {
   const [rooms, setRooms] = useState<Record<string, Room>>({
     'first-floor': { id: 'first-floor', title: 'Moskee +1', status: 'grey' },
     'beneden': { id: 'beneden', title: 'Moskee +0', status: 'grey' },
-    'garage': { id: 'garage', title: 'Garage', status: 'grey' },
-    'vrouwen': { id: 'vrouwen', title: 'Vrouwen', status: 'grey' }
+    'garage': { id: 'garage', title: 'Garage', status: 'grey' }
   });
 
   React.useEffect(() => {
@@ -69,8 +68,7 @@ const ImamView = () => {
 
   return (
     <div className="space-y-8">
-      <HadiethCard />
-      <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 max-w-5xl mx-auto">
+      <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 max-w-5xl mx-auto">
         {Object.values(rooms).map((room) => (
           <Card
             key={room.id}
@@ -79,7 +77,7 @@ const ImamView = () => {
             <CardContent className="p-8">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <FaMosque className="w-6 h-6 text-[#963E56]" />
+                  <House className="w-6 h-6 text-[#963E56]" />
                   <h3 className="text-xl font-semibold text-[#963E56]">{room.title}</h3>
                 </div>
                 <div className={`
@@ -120,25 +118,23 @@ const VolunteerView = () => {
 
   return (
     <div className="space-y-8">
-      <HadiethCard />
-      <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 max-w-3xl mx-auto">
+      <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 max-w-4xl mx-auto">
         {[
-          { title: 'Moskee +1', path: '/sufuf/boven', icon: FaMosque },
-          { title: 'Moskee +0', path: '/sufuf/beneden', icon: FaMosque },
-          { title: 'Garage', path: '/sufuf/garage', icon: FaMosque },
-          { title: 'Vrouwen', path: '/sufuf/vrouwen', icon: PiUsersThree }
+          { title: 'Moskee +1', path: '/sufuf/boven', icon: House },
+          { title: 'Moskee +0', path: '/sufuf/beneden', icon: House },
+          { title: 'Garage', path: '/sufuf/garage', icon: House }
         ].map((room) => (
           <Card
             key={room.title}
             className="hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 bg-gradient-to-br from-white to-gray-50/50 border border-gray-200"
           >
-            <CardContent className="p-8">
+            <CardContent className="p-6">
               <Button
                 variant="ghost"
-                className="w-full h-full text-xl font-medium text-[#963E56] hover:bg-[#963E56]/10"
+                className="w-full h-full text-lg font-medium text-[#963E56] hover:bg-[#963E56]/10 flex items-center justify-center gap-3"
                 onClick={() => setLocation(room.path)}
               >
-                <room.icon className="w-6 h-6 mr-2" />
+                <room.icon className="w-5 h-5" />
                 {room.title}
               </Button>
             </CardContent>
@@ -197,22 +193,23 @@ const RoomStatusToggle = ({ roomId, title }: { roomId: string; title: string }) 
 
   return (
     <div className="space-y-8">
-      <HadiethCard />
       <Card className="w-full max-w-2xl mx-auto bg-gradient-to-br from-white to-gray-50/50">
-        <CardContent className="p-8">
+        <CardContent className="p-6 sm:p-8">
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 mb-8">
             <div className="flex items-center gap-4">
-              <FaMosque className="h-8 w-8 text-[#963E56]" />
+              <House className="h-8 w-8 text-[#963E56]" />
               <h1 className="text-2xl md:text-3xl font-bold text-[#963E56]">
                 {title}
               </h1>
             </div>
             <Button
               variant="outline"
-              className="ml-auto hover:bg-[#963E56]/10 border-[#963E56]/20"
+              size="sm"
+              className="ml-auto flex items-center gap-2 hover:bg-[#963E56]/10 border-[#963E56]/20"
               onClick={() => setLocation('/sufuf')}
             >
-              Terug
+              <ChevronLeft className="h-4 w-4" />
+              <span>Terug</span>
             </Button>
           </div>
           <div className="flex flex-col items-center gap-8 mt-8">
@@ -286,13 +283,13 @@ export default function SufufPage() {
             </div>
             <HadiethCard />
             <Card className="max-w-3xl mx-auto">
-              <CardContent className="p-8">
+              <CardContent className="p-6 sm:p-8">
                 <div className="grid gap-6 grid-cols-1 sm:grid-cols-2">
                   <Card className="hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 border border-gray-200">
-                    <CardContent className="p-8">
+                    <CardContent className="p-6">
                       <Button
                         variant="ghost"
-                        className="w-full h-full text-xl font-medium text-[#963E56] hover:bg-[#963E56]/10 py-8"
+                        className="w-full h-full text-xl font-medium text-[#963E56] hover:bg-[#963E56]/10 py-6 sm:py-8"
                         onClick={() => setView('imam')}
                       >
                         <FaPray className="w-6 h-6 mr-2" />
@@ -301,10 +298,10 @@ export default function SufufPage() {
                     </CardContent>
                   </Card>
                   <Card className="hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 border border-gray-200">
-                    <CardContent className="p-8">
+                    <CardContent className="p-6">
                       <Button
                         variant="ghost"
-                        className="w-full h-full text-xl font-medium text-[#963E56] hover:bg-[#963E56]/10 py-8"
+                        className="w-full h-full text-xl font-medium text-[#963E56] hover:bg-[#963E56]/10 py-6 sm:py-8"
                         onClick={() => setView('volunteer')}
                       >
                         <User className="w-6 h-6 mr-2" />
@@ -331,10 +328,12 @@ export default function SufufPage() {
               </div>
               <Button
                 variant="outline"
-                className="sm:ml-auto hover:bg-[#963E56]/10 border-[#963E56]/20"
+                size="sm"
+                className="sm:ml-auto flex items-center gap-2 hover:bg-[#963E56]/10 border-[#963E56]/20"
                 onClick={() => setView('select')}
               >
-                Terug
+                <ChevronLeft className="h-4 w-4" />
+                <span>Terug</span>
               </Button>
             </div>
             <HadiethCard />
@@ -350,9 +349,6 @@ export default function SufufPage() {
       </Route>
       <Route path="/sufuf/garage">
         <RoomStatusToggle roomId="garage" title="Garage" />
-      </Route>
-      <Route path="/sufuf/vrouwen">
-        <RoomStatusToggle roomId="vrouwen" title="Vrouwen" />
       </Route>
     </Switch>
   );
