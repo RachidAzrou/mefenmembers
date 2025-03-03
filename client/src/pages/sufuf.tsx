@@ -189,31 +189,51 @@ export default function SufufPage() {
                   </div>
                   {selectedRoom === room.id && (
                     <div className="space-y-4">
-                      <Button
-                        variant="outline"
-                        className={`w-full flex items-center justify-between p-4 ${
-                          okChecked ? 'bg-green-50 border-green-200 text-green-700' : 'text-gray-500'
-                        }`}
-                        onClick={() => handleOkChange({ target: { checked: !okChecked }} as any)}
-                      >
+                      <div className="flex items-center justify-between p-3 bg-white rounded-lg shadow-sm border border-gray-100">
                         <div className="flex items-center gap-3">
-                          <CircleCheck className={`w-5 h-5 ${okChecked ? 'text-green-500' : 'text-gray-300'}`} />
-                          <span className="font-medium">Rijen in orde</span>
+                          <Check className={`w-5 h-5 ${okChecked ? 'text-green-500' : 'text-gray-300'}`} />
+                          <span className="font-medium text-[#963E56]">OK</span>
                         </div>
-                      </Button>
+                        <label className="relative inline-block w-12 h-6">
+                          <input
+                            type="checkbox"
+                            className="opacity-0 w-0 h-0"
+                            checked={okChecked}
+                            onChange={handleOkChange}
+                          />
+                          <span className={`
+                            absolute cursor-pointer inset-0 rounded-full transition-all duration-300
+                            ${okChecked ? 'bg-green-500' : 'bg-gray-200'}
+                          `} />
+                          <span className={`
+                            absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-transform duration-300
+                            ${okChecked ? 'transform translate-x-6' : ''}
+                          `} />
+                        </label>
+                      </div>
 
-                      <Button
-                        variant="outline"
-                        className={`w-full flex items-center justify-between p-4 ${
-                          nokChecked ? 'bg-red-50 border-red-200 text-red-700' : 'text-gray-500'
-                        }`}
-                        onClick={() => handleNokChange({ target: { checked: !nokChecked }} as any)}
-                      >
+                      <div className="flex items-center justify-between p-3 bg-white rounded-lg shadow-sm border border-gray-100">
                         <div className="flex items-center gap-3">
-                          <CircleX className={`w-5 h-5 ${nokChecked ? 'text-red-500' : 'text-gray-300'}`} />
-                          <span className="font-medium">Rijen niet in orde</span>
+                          <X className={`w-5 h-5 ${nokChecked ? 'text-red-500' : 'text-gray-300'}`} />
+                          <span className="font-medium text-[#963E56]">NOK</span>
                         </div>
-                      </Button>
+                        <label className="relative inline-block w-12 h-6">
+                          <input
+                            type="checkbox"
+                            className="opacity-0 w-0 h-0"
+                            checked={nokChecked}
+                            onChange={handleNokChange}
+                          />
+                          <span className={`
+                            absolute cursor-pointer inset-0 rounded-full transition-all duration-300
+                            ${nokChecked ? 'bg-red-500' : 'bg-gray-200'}
+                          `} />
+                          <span className={`
+                            absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-transform duration-300
+                            ${nokChecked ? 'transform translate-x-6' : ''}
+                          `} />
+                        </label>
+                      </div>
 
                       {(okChecked || nokChecked) && (
                         <div className={`mt-4 p-3 rounded-lg border ${
