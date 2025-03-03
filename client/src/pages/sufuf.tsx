@@ -1,12 +1,9 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Check, X, User, ChevronLeft, House } from "lucide-react";
+import { Check, X, User, House } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { useSocket } from "@/hooks/use-socket";
-import { Route, Switch, useLocation } from "wouter";
 import { FaPray } from "react-icons/fa";
-import { PiUsersThree } from "react-icons/pi";
 
 // Hadieth Component
 const HadiethCard = () => (
@@ -31,16 +28,19 @@ type Room = {
   status: 'green' | 'red' | 'grey';
 };
 
-// Component voor Imam View
-const ImamView = () => {
+// Main Component
+export default function SufufPage() {
   const { socket } = useSocket();
   const [rooms, setRooms] = useState<Record<string, Room>>({
     'first-floor': { id: 'first-floor', title: 'Moskee +1', status: 'grey' },
     'beneden': { id: 'beneden', title: 'Moskee +0', status: 'grey' },
     'garage': { id: 'garage', title: 'Garage', status: 'grey' }
   });
+  const [selectedRoom, setSelectedRoom] = useState<string | null>(null);
+  const [okChecked, setOkChecked] = useState(false);
+  const [nokChecked, setNokChecked] = useState(false);
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (!socket) return;
 
     socket.on('initialStatus', (data: any) => {
@@ -66,315 +66,179 @@ const ImamView = () => {
     };
   }, [socket]);
 
-  return (
-    <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 max-w-7xl mx-auto">
-      {Object.values(rooms).map((room) => (
-        <Card
-          key={room.id}
-          className="overflow-hidden bg-white hover:shadow-lg transition-all duration-300"
-        >
-          <CardHeader className="p-6 pb-4 flex flex-row items-center justify-between space-y-0">
-            <CardTitle className="flex items-center gap-3 text-lg font-semibold text-[#963E56]">
-              <House className="h-5 w-5" />
-              {room.title}
-            </CardTitle>
-            <div className={`
-              relative w-10 h-10 rounded-full flex items-center justify-center transition-all duration-500
-              ${room.status === 'green' ? 'bg-green-500 animate-pulse shadow-lg shadow-green-500/50' :
-                room.status === 'red' ? 'bg-red-500 animate-pulse shadow-lg shadow-red-500/50' :
-                'bg-gray-300'
-              }
-            `}>
-              {room.status === 'green' && <Check className="w-6 h-6 text-white" />}
-              {room.status === 'red' && <X className="w-6 h-6 text-white" />}
-            </div>
-          </CardHeader>
-          <CardContent className="p-6 pt-2">
-            <div className="mt-4 h-2 w-full bg-gray-100 rounded-full overflow-hidden">
-              <div
-                className={`h-full transition-all duration-500 ${
-                  room.status === 'green' ? 'w-full bg-green-500' :
-                  room.status === 'red' ? 'w-full bg-red-500' :
-                  'w-0'
-                }`}
-              />
-            </div>
-          </CardContent>
-        </Card>
-      ))}
-    </div>
-  );
-};
+  useEffect(() => {
+    if (!socket || !selectedRoom) return;
 
-// Component voor Vrijwilliger View
-const VolunteerView = () => {
-  const [, setLocation] = useLocation();
-
-  return (
-    <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 max-w-7xl mx-auto">
-      {[
-        { title: 'Moskee +1', path: '/sufuf/boven', icon: House },
-        { title: 'Moskee +0', path: '/sufuf/beneden', icon: House },
-        { title: 'Garage', path: '/sufuf/garage', icon: House }
-      ].map((room) => (
-        <Card
-          key={room.title}
-          className="overflow-hidden bg-white hover:shadow-lg transition-all duration-300"
-        >
-          <Button
-            variant="ghost"
-            className="w-full h-full p-6 text-lg font-medium text-[#963E56] hover:bg-[#963E56]/5 flex items-center justify-center gap-3"
-            onClick={() => setLocation(room.path)}
-          >
-            <room.icon className="h-5 w-5" />
-            {room.title}
-          </Button>
-        </Card>
-      ))}
-    </div>
-  );
-};
-
-// Room Status Toggle Component
-const RoomStatusToggle = ({ roomId, title }: { roomId: string; title: string }) => {
-  const { socket } = useSocket();
-  const [, setLocation] = useLocation();
-  const [okChecked, setOkChecked] = useState(false);
-  const [nokChecked, setNokChecked] = useState(false);
-
-  React.useEffect(() => {
-    if (!socket) return;
-
-    socket.on('initialStatus', (data: any) => {
-      if (data[roomId] === 'green') {
-        setOkChecked(true);
-        setNokChecked(false);
-      } else if (data[roomId] === 'red') {
-        setOkChecked(false);
-        setNokChecked(true);
-      } else {
-        setOkChecked(false);
-        setNokChecked(false);
-      }
-    });
-  }, [socket, roomId]);
+    // Reset toggles when room changes
+    setOkChecked(rooms[selectedRoom].status === 'green');
+    setNokChecked(rooms[selectedRoom].status === 'red');
+  }, [selectedRoom, rooms]);
 
   const handleOkChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!socket) return;
+    if (!socket || !selectedRoom) return;
+
     if (e.target.checked) {
       setNokChecked(false);
-      socket.emit('updateStatus', { room: roomId, status: 'OK' });
+      socket.emit('updateStatus', { room: selectedRoom, status: 'OK' });
     } else if (!nokChecked) {
-      socket.emit('updateStatus', { room: roomId, status: 'OFF' });
+      socket.emit('updateStatus', { room: selectedRoom, status: 'OFF' });
     }
     setOkChecked(e.target.checked);
   };
 
   const handleNokChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!socket) return;
+    if (!socket || !selectedRoom) return;
+
     if (e.target.checked) {
       setOkChecked(false);
-      socket.emit('updateStatus', { room: roomId, status: 'NOK' });
+      socket.emit('updateStatus', { room: selectedRoom, status: 'NOK' });
     } else if (!okChecked) {
-      socket.emit('updateStatus', { room: roomId, status: 'OFF' });
+      socket.emit('updateStatus', { room: selectedRoom, status: 'OFF' });
     }
     setNokChecked(e.target.checked);
   };
 
   return (
-    <div className="max-w-2xl mx-auto px-4">
-      <Card className="overflow-hidden bg-white">
-        <CardHeader className="p-6 pb-4 border-b">
-          <div className="flex items-center justify-between">
-            <CardTitle className="flex items-center gap-3 text-xl font-semibold text-[#963E56]">
-              <House className="h-6 w-6" />
-              {title}
-            </CardTitle>
-            <Button
-              variant="outline"
-              size="sm"
-              className="flex items-center gap-2 hover:bg-[#963E56]/5 border-[#963E56]/20"
-              onClick={() => setLocation('/sufuf')}
+    <div className="container mx-auto px-4 py-6 space-y-6">
+      {/* Header */}
+      <div className="flex items-center gap-4">
+        <FaPray className="h-8 w-8 text-[#963E56]" />
+        <h1 className="text-2xl md:text-3xl font-bold text-[#963E56]">
+          Sufuf (Gebedsrijen)
+        </h1>
+      </div>
+
+      <HadiethCard />
+
+      {/* Imam Dashboard */}
+      <div className="space-y-4">
+        <h2 className="text-xl font-semibold text-[#963E56] flex items-center gap-2">
+          <FaPray className="h-5 w-5" />
+          Imam Dashboard
+        </h2>
+        <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+          {Object.values(rooms).map((room) => (
+            <Card
+              key={room.id}
+              className="overflow-hidden bg-white hover:shadow-lg transition-all duration-300"
             >
-              <ChevronLeft className="h-4 w-4" />
-              <span>Terug</span>
-            </Button>
-          </div>
-        </CardHeader>
-        <CardContent className="p-6 space-y-6">
-          <div className="grid gap-4 sm:grid-cols-2">
-            <Card className={`
-              relative overflow-hidden transition-all duration-300
-              ${okChecked ? 'ring-2 ring-green-500 shadow-lg' : 'hover:shadow-md'}
-            `}>
-              <CardContent className="p-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className={`
-                      w-10 h-10 rounded-full flex items-center justify-center
-                      ${okChecked ? 'bg-green-500' : 'bg-gray-100'}
-                    `}>
-                      <Check className={`w-6 h-6 ${okChecked ? 'text-white' : 'text-gray-400'}`} />
-                    </div>
-                    <span className="font-medium text-[#963E56]">OK</span>
-                  </div>
-                  <label className="relative inline-block w-14 h-7">
-                    <input
-                      type="checkbox"
-                      className="opacity-0 w-0 h-0"
-                      checked={okChecked}
-                      onChange={handleOkChange}
-                    />
-                    <span className={`
-                      absolute cursor-pointer inset-0 rounded-full transition-all duration-300
-                      ${okChecked ? 'bg-green-500' : 'bg-gray-200'}
-                    `} />
-                    <span className={`
-                      absolute left-1 top-1 bg-white w-5 h-5 rounded-full transition-transform duration-300
-                      ${okChecked ? 'transform translate-x-7' : ''}
-                    `} />
-                  </label>
+              <CardHeader className="p-6 pb-4 flex flex-row items-center justify-between space-y-0">
+                <CardTitle className="flex items-center gap-3 text-lg font-semibold text-[#963E56]">
+                  <House className="h-5 w-5" />
+                  {room.title}
+                </CardTitle>
+                <div className={`
+                  relative w-10 h-10 rounded-full flex items-center justify-center transition-all duration-500
+                  ${room.status === 'green' ? 'bg-green-500 animate-pulse shadow-lg shadow-green-500/50' :
+                    room.status === 'red' ? 'bg-red-500 animate-pulse shadow-lg shadow-red-500/50' :
+                    'bg-gray-300'
+                  }
+                `}>
+                  {room.status === 'green' && <Check className="w-6 h-6 text-white" />}
+                  {room.status === 'red' && <X className="w-6 h-6 text-white" />}
                 </div>
-                {okChecked && (
-                  <div className="mt-4 p-3 bg-green-50 rounded-lg border border-green-100">
-                    <p className="text-sm text-green-700">Doorgegeven aan imam</p>
-                  </div>
-                )}
+              </CardHeader>
+              <CardContent className="p-6 pt-2">
+                <div className="mt-4 h-2 w-full bg-gray-100 rounded-full overflow-hidden">
+                  <div
+                    className={`h-full transition-all duration-500 ${
+                      room.status === 'green' ? 'w-full bg-green-500' :
+                      room.status === 'red' ? 'w-full bg-red-500' :
+                      'w-0'
+                    }`}
+                  />
+                </div>
               </CardContent>
             </Card>
+          ))}
+        </div>
+      </div>
 
-            <Card className={`
-              relative overflow-hidden transition-all duration-300
-              ${nokChecked ? 'ring-2 ring-red-500 shadow-lg' : 'hover:shadow-md'}
-            `}>
-              <CardContent className="p-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className={`
-                      w-10 h-10 rounded-full flex items-center justify-center
-                      ${nokChecked ? 'bg-red-500' : 'bg-gray-100'}
-                    `}>
-                      <X className={`w-6 h-6 ${nokChecked ? 'text-white' : 'text-gray-400'}`} />
-                    </div>
-                    <span className="font-medium text-[#963E56]">NOK</span>
-                  </div>
-                  <label className="relative inline-block w-14 h-7">
-                    <input
-                      type="checkbox"
-                      className="opacity-0 w-0 h-0"
-                      checked={nokChecked}
-                      onChange={handleNokChange}
-                    />
-                    <span className={`
-                      absolute cursor-pointer inset-0 rounded-full transition-all duration-300
-                      ${nokChecked ? 'bg-red-500' : 'bg-gray-200'}
-                    `} />
-                    <span className={`
-                      absolute left-1 top-1 bg-white w-5 h-5 rounded-full transition-transform duration-300
-                      ${nokChecked ? 'transform translate-x-7' : ''}
-                    `} />
-                  </label>
-                </div>
-                {nokChecked && (
-                  <div className="mt-4 p-3 bg-red-50 rounded-lg border border-red-100">
-                    <p className="text-sm text-red-700">Doorgegeven aan imam</p>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </div>
-        </CardContent>
-      </Card>
-    </div>
-  );
-};
-
-// Hoofdcomponent
-export default function SufufPage() {
-  const [view, setView] = useState<'select' | 'imam' | 'volunteer'>('select');
-
-  return (
-    <Switch>
-      <Route path="/sufuf">
-        {view === 'select' ? (
-          <div className="container mx-auto px-4 py-6 space-y-6">
-            <div className="flex items-center gap-4">
-              <PiUsersThree className="h-8 w-8 text-[#963E56]" />
-              <h1 className="text-2xl md:text-3xl font-bold text-[#963E56]">
-                Sufuf (Gebedsrijen)
-              </h1>
-            </div>
-            <HadiethCard />
-            <Card className="overflow-hidden bg-white">
+      {/* Vrijwilligers Sectie */}
+      <div className="space-y-4">
+        <h2 className="text-xl font-semibold text-[#963E56] flex items-center gap-2">
+          <User className="h-5 w-5" />
+          Vrijwilliger Dashboard
+        </h2>
+        <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+          {Object.values(rooms).map((room) => (
+            <Card
+              key={room.id}
+              className={`
+                overflow-hidden bg-white hover:shadow-lg transition-all duration-300
+                ${selectedRoom === room.id ? 'ring-2 ring-[#963E56] ring-offset-2' : ''}
+              `}
+              onClick={() => setSelectedRoom(room.id)}
+            >
               <CardContent className="p-6">
-                <div className="grid gap-4 grid-cols-1 sm:grid-cols-2">
-                  <Card className="overflow-hidden bg-white hover:shadow-lg transition-all duration-300">
-                    <Button
-                      variant="ghost"
-                      className="w-full h-full p-6 text-lg font-medium text-[#963E56] hover:bg-[#963E56]/5 flex items-center justify-center gap-3"
-                      onClick={() => setView('imam')}
-                    >
-                      <FaPray className="h-5 w-5" />
-                      Imam
-                    </Button>
-                  </Card>
-                  <Card className="overflow-hidden bg-white hover:shadow-lg transition-all duration-300">
-                    <Button
-                      variant="ghost"
-                      className="w-full h-full p-6 text-lg font-medium text-[#963E56] hover:bg-[#963E56]/5 flex items-center justify-center gap-3"
-                      onClick={() => setView('volunteer')}
-                    >
-                      <User className="h-5 w-5" />
-                      Vrijwilliger
-                    </Button>
-                  </Card>
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-3">
+                    <House className="h-5 w-5 text-[#963E56]" />
+                    <span className="font-medium text-[#963E56]">{room.title}</span>
+                  </div>
                 </div>
+                {selectedRoom === room.id && (
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between p-3 bg-white rounded-lg shadow-sm border border-gray-100">
+                      <div className="flex items-center gap-3">
+                        <Check className={`w-5 h-5 ${okChecked ? 'text-green-500' : 'text-gray-300'}`} />
+                        <span className="font-medium text-[#963E56]">OK</span>
+                      </div>
+                      <label className="relative inline-block w-12 h-6">
+                        <input
+                          type="checkbox"
+                          className="opacity-0 w-0 h-0"
+                          checked={okChecked}
+                          onChange={handleOkChange}
+                        />
+                        <span className={`
+                          absolute cursor-pointer inset-0 rounded-full transition-all duration-300
+                          ${okChecked ? 'bg-green-500' : 'bg-gray-200'}
+                        `} />
+                        <span className={`
+                          absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-transform duration-300
+                          ${okChecked ? 'transform translate-x-6' : ''}
+                        `} />
+                      </label>
+                    </div>
+                    <div className="flex items-center justify-between p-3 bg-white rounded-lg shadow-sm border border-gray-100">
+                      <div className="flex items-center gap-3">
+                        <X className={`w-5 h-5 ${nokChecked ? 'text-red-500' : 'text-gray-300'}`} />
+                        <span className="font-medium text-[#963E56]">NOK</span>
+                      </div>
+                      <label className="relative inline-block w-12 h-6">
+                        <input
+                          type="checkbox"
+                          className="opacity-0 w-0 h-0"
+                          checked={nokChecked}
+                          onChange={handleNokChange}
+                        />
+                        <span className={`
+                          absolute cursor-pointer inset-0 rounded-full transition-all duration-300
+                          ${nokChecked ? 'bg-red-500' : 'bg-gray-200'}
+                        `} />
+                        <span className={`
+                          absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-transform duration-300
+                          ${nokChecked ? 'transform translate-x-6' : ''}
+                        `} />
+                      </label>
+                    </div>
+                    {(okChecked || nokChecked) && (
+                      <div className={`mt-4 p-3 rounded-lg border ${
+                        okChecked ? 'bg-green-50 border-green-100' : 'bg-red-50 border-red-100'
+                      }`}>
+                        <p className={`text-sm ${okChecked ? 'text-green-700' : 'text-red-700'}`}>
+                          Doorgegeven aan imam
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                )}
               </CardContent>
             </Card>
-          </div>
-        ) : (
-          <div className="container mx-auto px-4 py-6 space-y-6">
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-              <div className="flex items-center gap-4">
-                {view === 'imam' ? (
-                  <FaPray className="h-8 w-8 text-[#963E56]" />
-                ) : (
-                  <User className="h-8 w-8 text-[#963E56]" />
-                )}
-                <h1 className="text-2xl md:text-3xl font-bold text-[#963E56]">
-                  {view === 'imam' ? 'Imam Dashboard' : 'Vrijwilliger Dashboard'}
-                </h1>
-              </div>
-              <Button
-                variant="outline"
-                size="sm"
-                className="flex items-center gap-2 hover:bg-[#963E56]/5 border-[#963E56]/20"
-                onClick={() => setView('select')}
-              >
-                <ChevronLeft className="h-4 w-4" />
-                <span>Terug</span>
-              </Button>
-            </div>
-            <HadiethCard />
-            {view === 'imam' ? <ImamView /> : <VolunteerView />}
-          </div>
-        )}
-      </Route>
-      <Route path="/sufuf/boven">
-        <div className="container mx-auto px-4 py-6">
-          <RoomStatusToggle roomId="first-floor" title="Moskee +1" />
+          ))}
         </div>
-      </Route>
-      <Route path="/sufuf/beneden">
-        <div className="container mx-auto px-4 py-6">
-          <RoomStatusToggle roomId="beneden" title="Moskee +0" />
-        </div>
-      </Route>
-      <Route path="/sufuf/garage">
-        <div className="container mx-auto px-4 py-6">
-          <RoomStatusToggle roomId="garage" title="Garage" />
-        </div>
-      </Route>
-    </Switch>
+      </div>
+    </div>
   );
 }
