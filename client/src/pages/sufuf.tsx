@@ -1,13 +1,13 @@
 import React, { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
-import { Check, X } from "lucide-react";
+import { Check, X, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useSocket } from "@/hooks/use-socket";
 import { Route, Switch, useLocation } from "wouter";
 import { FaMosque } from "react-icons/fa";
-import { PiUsersThree, PiPersonSimpleBold } from "react-icons/pi";
-import { RiUserSmileLine } from "react-icons/ri"; // Changed to Remix Icons for imam representation
+import { PiUsersThree } from "react-icons/pi";
+import { RiPrayingFill } from "react-icons/ri"; // Changed to correct icon name
 
 // Hadieth Component
 const HadiethCard = () => (
@@ -136,7 +136,7 @@ const VolunteerView = () => {
             <CardContent className="p-8">
               <Button
                 variant="ghost"
-                className="w-full h-full text-xl font-medium text-[#963E56] hover:bg-[#963E56]/10 py-8"
+                className="w-full h-full text-xl font-medium text-[#963E56] hover:bg-[#963E56]/10"
                 onClick={() => setLocation(room.path)}
               >
                 <room.icon className="w-6 h-6 mr-2" />
@@ -296,7 +296,7 @@ export default function SufufPage() {
                         className="w-full h-full text-xl font-medium text-[#963E56] hover:bg-[#963E56]/10 py-8"
                         onClick={() => setView('imam')}
                       >
-                        <RiUserSmileLine className="w-6 h-6 mr-2" />
+                        <RiPrayingFill className="w-6 h-6 mr-2" />
                         Imam
                       </Button>
                     </CardContent>
@@ -308,7 +308,7 @@ export default function SufufPage() {
                         className="w-full h-full text-xl font-medium text-[#963E56] hover:bg-[#963E56]/10 py-8"
                         onClick={() => setView('volunteer')}
                       >
-                        <PiPersonSimpleBold className="w-6 h-6 mr-2" />
+                        <User className="w-6 h-6 mr-2" />
                         Vrijwilliger
                       </Button>
                     </CardContent>
@@ -322,9 +322,9 @@ export default function SufufPage() {
             <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 mb-4">
               <div className="flex items-center gap-4">
                 {view === 'imam' ? (
-                  <RiUserSmileLine className="h-8 w-8 text-[#963E56]" />
+                  <RiPrayingFill className="h-8 w-8 text-[#963E56]" />
                 ) : (
-                  <PiPersonSimpleBold className="h-8 w-8 text-[#963E56]" />
+                  <User className="h-8 w-8 text-[#963E56]" />
                 )}
                 <h1 className="text-2xl md:text-3xl font-bold text-[#963E56]">
                   {view === 'imam' ? 'Imam Dashboard' : 'Vrijwilliger Dashboard'}
