@@ -202,7 +202,7 @@ const RoomStatusToggle = ({ roomId, title }: { roomId: string; title: string }) 
           </div>
         </CardHeader>
         <CardContent className="p-6 space-y-6">
-          <div className="grid gap-6 sm:grid-cols-2">
+          <div className="grid gap-4 sm:grid-cols-2">
             <Card className={`
               relative overflow-hidden transition-all duration-300
               ${okChecked ? 'ring-2 ring-green-500 shadow-lg' : 'hover:shadow-md'}
@@ -216,10 +216,7 @@ const RoomStatusToggle = ({ roomId, title }: { roomId: string; title: string }) 
                     `}>
                       <Check className={`w-6 h-6 ${okChecked ? 'text-white' : 'text-gray-400'}`} />
                     </div>
-                    <div>
-                      <div className="font-medium text-[#963E56]">Rijen OK</div>
-                      <div className="text-sm text-gray-500">Alles in orde</div>
-                    </div>
+                    <span className="font-medium text-[#963E56]">OK</span>
                   </div>
                   <label className="relative inline-block w-14 h-7">
                     <input
@@ -240,9 +237,7 @@ const RoomStatusToggle = ({ roomId, title }: { roomId: string; title: string }) 
                 </div>
                 {okChecked && (
                   <div className="mt-4 p-3 bg-green-50 rounded-lg border border-green-100">
-                    <p className="text-sm text-green-700">
-                      Status doorgegeven aan de imam
-                    </p>
+                    <p className="text-sm text-green-700">Doorgegeven aan imam</p>
                   </div>
                 )}
               </CardContent>
@@ -261,10 +256,7 @@ const RoomStatusToggle = ({ roomId, title }: { roomId: string; title: string }) 
                     `}>
                       <X className={`w-6 h-6 ${nokChecked ? 'text-white' : 'text-gray-400'}`} />
                     </div>
-                    <div>
-                      <div className="font-medium text-[#963E56]">Rijen NOK</div>
-                      <div className="text-sm text-gray-500">Aanpassing nodig</div>
-                    </div>
+                    <span className="font-medium text-[#963E56]">NOK</span>
                   </div>
                   <label className="relative inline-block w-14 h-7">
                     <input
@@ -285,17 +277,11 @@ const RoomStatusToggle = ({ roomId, title }: { roomId: string; title: string }) 
                 </div>
                 {nokChecked && (
                   <div className="mt-4 p-3 bg-red-50 rounded-lg border border-red-100">
-                    <p className="text-sm text-red-700">
-                      Status doorgegeven aan de imam
-                    </p>
+                    <p className="text-sm text-red-700">Doorgegeven aan imam</p>
                   </div>
                 )}
               </CardContent>
             </Card>
-          </div>
-
-          <div className="mt-6 text-center text-sm text-gray-500">
-            Selecteer de status van de gebedsrijen
           </div>
         </CardContent>
       </Card>
