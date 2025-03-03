@@ -16,7 +16,8 @@ import PublicCalendar from "@/pages/public-calendar";
 import ImportExport from "@/pages/import-export";
 import Mosque from "@/pages/mosque";
 import Settings from "@/pages/settings";
-import Communication from "@/pages/communication"; // Added import
+import Communication from "@/pages/communication";
+import Sufuf from "@/pages/sufuf";
 import { Sidebar } from "@/components/layout/sidebar";
 import { auth } from "./lib/firebase";
 import { useAuthState } from "react-firebase-hooks/auth";
@@ -85,7 +86,8 @@ function Router() {
       <Route path="/import-export" component={() => <PrivateRoute component={ImportExport} />} />
       <Route path="/mosque" component={() => <PrivateRoute component={Mosque} />} />
       <Route path="/settings" component={() => <PrivateRoute component={Settings} />} />
-      <Route path="/communication" component={() => <PrivateRoute component={Communication} />} /> {/* Added route */}
+      <Route path="/communication" component={() => <PrivateRoute component={Communication} />} />
+      <Route path="/sufuf" component={() => <PrivateRoute component={Sufuf} />} />
       <Route path="/calendar/public" component={PublicCalendar} />
       <Route component={NotFound} />
     </Switch>

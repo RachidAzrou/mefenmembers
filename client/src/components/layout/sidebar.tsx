@@ -6,7 +6,7 @@ import { Link, useLocation } from "wouter";
 import {
   LayoutDashboard, Users, Calendar,
   Package2, LogOut, Menu, ChevronLeft, ChevronRight,
-  Settings, FileJson, User, House, Radio
+  Settings, FileJson, User, House, Radio, Grid
 } from "lucide-react";
 import { PiMosqueLight } from "react-icons/pi";
 import { useState, useEffect } from "react";
@@ -69,7 +69,8 @@ export function Sidebar() {
       href: "/import-export",
       notificationCount: unreadCount
     },
-    { icon: PiMosqueLight, label: "Mijn Moskee", href: "/mosque" }
+    { icon: PiMosqueLight, label: "Mijn Moskee", href: "/mosque" },
+    { icon: Grid, label: "Sufuf", href: "/sufuf" } // Added menu item
   ].filter(item => !item.adminOnly || isAdmin);
 
   return (
