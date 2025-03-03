@@ -1,42 +1,41 @@
-import { createContext, useContext, useEffect, useState } from 'react';
-import { io, Socket } from 'socket.io-client';
+import { createContext, useContext, useEffect, useRef, useState } from 'react';
 
 interface SocketContextType {
-  socket: Socket | null;
+  socket: WebSocket | null;
   connected: boolean;
 }
 
 const SocketContext = createContext<SocketContextType>({ socket: null, connected: false });
 
 export function SocketProvider({ children }: { children: React.ReactNode }) {
-  const [socket, setSocket] = useState<Socket | null>(null);
   const [connected, setConnected] = useState(false);
+  const socketRef = useRef<WebSocket | null>(null);
 
   useEffect(() => {
-    const socketIo = io('https://sufuf-socketio-server.onrender.com', {
-      transports: ['websocket'],
-      autoConnect: true
-    });
+    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    const wsUrl = `${protocol}//${window.location.host}/ws`;
 
-    socketIo.on('connect', () => {
+    socketRef.current = new WebSocket(wsUrl);
+
+    socketRef.current.onopen = () => {
       console.log('Socket connected');
       setConnected(true);
-    });
+    };
 
-    socketIo.on('disconnect', () => {
+    socketRef.current.onclose = () => {
       console.log('Socket disconnected');
       setConnected(false);
-    });
-
-    setSocket(socketIo);
+    };
 
     return () => {
-      socketIo.disconnect();
+      if (socketRef.current) {
+        socketRef.current.close();
+      }
     };
   }, []);
 
   return (
-    <SocketContext.Provider value={{ socket, connected }}>
+    <SocketContext.Provider value={{ socket: socketRef.current, connected }}>
       {children}
     </SocketContext.Provider>
   );
