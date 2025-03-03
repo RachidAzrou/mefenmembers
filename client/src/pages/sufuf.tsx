@@ -6,14 +6,14 @@ import { useSocket } from "@/hooks/use-socket";
 import { FaPray } from "react-icons/fa";
 import { PiUsersThree } from "react-icons/pi";
 
-// Room type definitie
+// Room type definition
 type Room = {
   id: string;
   title: string;
   status: 'green' | 'red' | 'grey';
 };
 
-// Hadieth Component - Smaller version
+// Hadieth Component
 const HadiethCard = () => (
   <Card className="bg-gradient-to-br from-[#963E56]/5 to-transparent border border-[#963E56]/10">
     <CardContent className="p-4">
@@ -29,9 +29,8 @@ const HadiethCard = () => (
   </Card>
 );
 
-// Main Component
 export default function SufufPage() {
-  const { socket } = useSocket();
+  const { socket, connected } = useSocket();
   const [rooms, setRooms] = useState<Record<string, Room>>({
     'beneden': { id: 'beneden', title: 'Moskee +0', status: 'grey' },
     'first-floor': { id: 'first-floor', title: 'Moskee +1', status: 'grey' },
@@ -43,12 +42,12 @@ export default function SufufPage() {
   const [isVolunteerSectionOpen, setIsVolunteerSectionOpen] = useState(true);
 
   useEffect(() => {
-    if (!socket) return;
+    if (!socket || !connected) return;
 
-    const handleMessage = (event: MessageEvent) => {
+    socket.onmessage = (event) => {
       try {
         const data = JSON.parse(event.data);
-        console.log('Received message:', data); // Debug log
+        console.log('Received message:', data);
 
         if (data.type === 'initialStatus') {
           setRooms(prev => ({ ...prev, ...data.data }));
@@ -65,24 +64,16 @@ export default function SufufPage() {
         console.error('Error handling message:', error);
       }
     };
-
-    socket.addEventListener('message', handleMessage);
-
-    return () => {
-      socket.removeEventListener('message', handleMessage);
-    };
-  }, [socket]);
+  }, [socket, connected]);
 
   useEffect(() => {
-    if (!socket || !selectedRoom) return;
-
+    if (!selectedRoom || !rooms[selectedRoom]) return;
     setOkChecked(rooms[selectedRoom].status === 'green');
     setNokChecked(rooms[selectedRoom].status === 'red');
   }, [selectedRoom, rooms]);
 
   const handleOkChange = () => {
-    if (!socket || !selectedRoom) return;
-
+    if (!socket || !connected || !selectedRoom) return;
     const newChecked = !okChecked;
     setOkChecked(newChecked);
     setNokChecked(false);
@@ -92,13 +83,12 @@ export default function SufufPage() {
       room: selectedRoom,
       status: newChecked ? 'OK' : 'OFF'
     };
-    console.log('Sending message:', message); // Debug log
+    console.log('Sending message:', message);
     socket.send(JSON.stringify(message));
   };
 
   const handleNokChange = () => {
-    if (!socket || !selectedRoom) return;
-
+    if (!socket || !connected || !selectedRoom) return;
     const newChecked = !nokChecked;
     setNokChecked(newChecked);
     setOkChecked(false);
@@ -108,13 +98,12 @@ export default function SufufPage() {
       room: selectedRoom,
       status: newChecked ? 'NOK' : 'OFF'
     };
-    console.log('Sending message:', message); // Debug log
+    console.log('Sending message:', message);
     socket.send(JSON.stringify(message));
   };
 
   return (
     <div className="container mx-auto px-4 py-6 space-y-6">
-      {/* Header */}
       <div className="flex items-center gap-4">
         <PiUsersThree className="h-8 w-8 text-[#963E56]" />
         <h1 className="text-2xl md:text-3xl font-bold text-[#963E56]">
@@ -124,7 +113,6 @@ export default function SufufPage() {
 
       <HadiethCard />
 
-      {/* Imam Dashboard */}
       <div className="space-y-4">
         <h2 className="text-xl font-semibold text-[#963E56] flex items-center gap-2">
           <FaPray className="h-5 w-5" />
@@ -132,10 +120,7 @@ export default function SufufPage() {
         </h2>
         <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
           {Object.values(rooms).map((room) => (
-            <Card
-              key={room.id}
-              className="overflow-hidden bg-white hover:shadow-lg transition-all duration-300"
-            >
+            <Card key={room.id} className="overflow-hidden">
               <CardHeader className="p-6 pb-4 flex flex-row items-center justify-between space-y-0">
                 <CardTitle className="flex items-center gap-3 text-lg font-semibold text-[#963E56]">
                   <House className="h-5 w-5" />
@@ -155,7 +140,7 @@ export default function SufufPage() {
               <CardContent className="p-6 pt-2">
                 <div className="mt-4 h-2 w-full bg-gray-100 rounded-full overflow-hidden">
                   <div
-                    className={`h-full transition-all duration-300 ${
+                    className={`h-full ${
                       room.status === 'green' ? 'w-full bg-green-500' :
                       room.status === 'red' ? 'w-full bg-red-500' :
                       'w-0'
@@ -168,7 +153,6 @@ export default function SufufPage() {
         </div>
       </div>
 
-      {/* Vrijwilligers Sectie */}
       <div className="space-y-4">
         <Button
           variant="ghost"
