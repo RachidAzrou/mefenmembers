@@ -5,9 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useSocket } from "@/hooks/use-socket";
 import { Route, Switch, useLocation } from "wouter";
-import { FaMosque } from "react-icons/fa";
+import { FaMosque, FaPray } from "react-icons/fa";
 import { PiUsersThree } from "react-icons/pi";
-import { RiPrayingFill } from "react-icons/ri"; // Changed to correct icon name
 
 // Hadieth Component
 const HadiethCard = () => (
@@ -296,7 +295,7 @@ export default function SufufPage() {
                         className="w-full h-full text-xl font-medium text-[#963E56] hover:bg-[#963E56]/10 py-8"
                         onClick={() => setView('imam')}
                       >
-                        <RiPrayingFill className="w-6 h-6 mr-2" />
+                        <FaPray className="w-6 h-6 mr-2" />
                         Imam
                       </Button>
                     </CardContent>
@@ -322,7 +321,7 @@ export default function SufufPage() {
             <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 mb-4">
               <div className="flex items-center gap-4">
                 {view === 'imam' ? (
-                  <RiPrayingFill className="h-8 w-8 text-[#963E56]" />
+                  <FaPray className="h-8 w-8 text-[#963E56]" />
                 ) : (
                   <User className="h-8 w-8 text-[#963E56]" />
                 )}
