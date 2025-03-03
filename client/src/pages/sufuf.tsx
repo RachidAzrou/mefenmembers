@@ -1,6 +1,6 @@
 import React from "react";
 import { Card, CardContent } from "@/components/ui/card";
-import { GridPattern } from "lucide-react";
+import { Grid } from "lucide-react";
 
 export default function SufufPage() {
   const sufufRows = [
@@ -35,7 +35,7 @@ export default function SufufPage() {
     <div className="space-y-4 sm:space-y-6 p-3 sm:p-6">
       {/* Header */}
       <div className="flex items-center gap-3">
-        <GridPattern className="h-6 w-6 sm:h-8 sm:w-8 text-[#963E56]" />
+        <Grid className="h-6 w-6 sm:h-8 sm:w-8 text-[#963E56]" />
         <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-[#963E56]">
           Sufuf (Gebedsrijen)
         </h1>
