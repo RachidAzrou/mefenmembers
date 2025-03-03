@@ -100,7 +100,7 @@ export default function SufufPage() {
   };
 
   return (
-    <div className="container mx-auto px-4 py-6 space-y-6 bg-gradient-to-br from-[#963E56]/5 to-transparent"> {/* Added gradient here */}
+    <div className="container mx-auto px-4 py-6 space-y-6">
       {/* Header - Changed FaPray to PiUsersThree */}
       <div className="flex items-center gap-4">
         <PiUsersThree className="h-8 w-8 text-[#963E56]" />
