@@ -52,13 +52,13 @@ const ImamView = () => {
   return (
     <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-2">
       {Object.values(rooms).map((room) => (
-        <Card key={room.id} className="relative overflow-hidden">
+        <Card key={room.id} className="relative overflow-hidden hover:shadow-lg transition-all duration-300">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
-              <h3 className="text-lg font-semibold">{room.title}</h3>
-              <div className={`h-4 w-4 rounded-full ${
-                room.status === 'green' ? 'bg-green-500' :
-                room.status === 'red' ? 'bg-red-500' :
+              <h3 className="text-lg font-semibold text-[#963E56]">{room.title}</h3>
+              <div className={`h-4 w-4 rounded-full transition-all duration-300 ${
+                room.status === 'green' ? 'bg-green-500 animate-pulse' :
+                room.status === 'red' ? 'bg-red-500 animate-pulse' :
                 'bg-gray-300'
               }`} />
             </div>
@@ -116,51 +116,55 @@ const RoomStatusToggle = ({ roomId, title }: { roomId: string; title: string }) 
   };
 
   return (
-    <div className="space-y-6 p-6">
-      <div className="flex items-center gap-3 mb-6">
-        <Grid className="h-6 w-6 sm:h-8 sm:w-8 text-[#963E56]" />
-        <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-[#963E56]">
-          {title}
-        </h1>
-        <Button
-          variant="ghost"
-          className="ml-auto"
-          onClick={() => setLocation('/sufuf')}
-        >
-          Terug
-        </Button>
-      </div>
-      <div className="flex flex-col items-center gap-4">
-        <div className="flex items-center gap-4">
-          <label className="text-sm font-medium">OK</label>
-          <label className="relative inline-block w-12 h-6">
-            <input
-              type="checkbox"
-              className="opacity-0 w-0 h-0"
-              checked={okChecked}
-              onChange={handleOkChange}
-            />
-            <span className={`absolute cursor-pointer inset-0 rounded-full transition-colors ${
-              okChecked ? 'bg-green-500' : 'bg-gray-200'
-            }`} />
-          </label>
+    <Card className="w-full max-w-2xl mx-auto">
+      <CardContent className="p-6">
+        <div className="flex items-center gap-3 mb-6">
+          <Grid className="h-6 w-6 sm:h-8 sm:w-8 text-[#963E56]" />
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-[#963E56]">
+            {title}
+          </h1>
+          <Button
+            variant="ghost"
+            className="ml-auto hover:bg-[#963E56]/10"
+            onClick={() => setLocation('/sufuf')}
+          >
+            Terug
+          </Button>
         </div>
-        <div className="flex items-center gap-4">
-          <label className="text-sm font-medium">NOK</label>
-          <label className="relative inline-block w-12 h-6">
-            <input
-              type="checkbox"
-              className="opacity-0 w-0 h-0"
-              checked={nokChecked}
-              onChange={handleNokChange}
-            />
-            <span className={`absolute cursor-pointer inset-0 rounded-full transition-colors ${
-              nokChecked ? 'bg-red-500' : 'bg-gray-200'
-            }`} />
-          </label>
+        <div className="flex flex-col items-center gap-6 mt-8">
+          <div className="w-full max-w-md space-y-4">
+            <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+              <label className="text-sm font-medium">OK</label>
+              <label className="relative inline-block w-12 h-6">
+                <input
+                  type="checkbox"
+                  className="opacity-0 w-0 h-0"
+                  checked={okChecked}
+                  onChange={handleOkChange}
+                />
+                <span className={`absolute cursor-pointer inset-0 rounded-full transition-colors ${
+                  okChecked ? 'bg-green-500' : 'bg-gray-200'
+                }`} />
+              </label>
+            </div>
+            <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+              <label className="text-sm font-medium">NOK</label>
+              <label className="relative inline-block w-12 h-6">
+                <input
+                  type="checkbox"
+                  className="opacity-0 w-0 h-0"
+                  checked={nokChecked}
+                  onChange={handleNokChange}
+                />
+                <span className={`absolute cursor-pointer inset-0 rounded-full transition-colors ${
+                  nokChecked ? 'bg-red-500' : 'bg-gray-200'
+                }`} />
+              </label>
+            </div>
+          </div>
         </div>
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   );
 };
 
@@ -182,18 +186,24 @@ const VolunteerView = () => {
   if (!loggedIn) {
     return (
       <Card className="max-w-md mx-auto">
-        <CardContent className="pt-6">
+        <CardContent className="p-6">
           <form onSubmit={handleLogin} className="space-y-4">
             <div>
-              <h2 className="text-lg font-semibold mb-4">Login</h2>
+              <h2 className="text-lg font-semibold mb-4 text-[#963E56]">Login</h2>
               <Input
                 type="password"
                 placeholder="Wachtwoord"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                className="border-[#963E56]/20 focus:border-[#963E56]"
               />
             </div>
-            <Button type="submit" className="w-full">Inloggen</Button>
+            <Button 
+              type="submit" 
+              className="w-full bg-[#963E56] hover:bg-[#963E56]/90"
+            >
+              Inloggen
+            </Button>
           </form>
         </CardContent>
       </Card>
@@ -201,35 +211,28 @@ const VolunteerView = () => {
   }
 
   return (
-    <div className="grid gap-4 grid-cols-1 sm:grid-cols-2">
-      <Button
-        variant="outline"
-        className="p-6 h-auto"
-        onClick={() => setLocation('/sufuf/boven')}
-      >
-        Boven
-      </Button>
-      <Button
-        variant="outline"
-        className="p-6 h-auto"
-        onClick={() => setLocation('/sufuf/beneden')}
-      >
-        Beneden
-      </Button>
-      <Button
-        variant="outline"
-        className="p-6 h-auto"
-        onClick={() => setLocation('/sufuf/garage')}
-      >
-        Garage
-      </Button>
-      <Button
-        variant="outline"
-        className="p-6 h-auto"
-        onClick={() => setLocation('/sufuf/vrouwen')}
-      >
-        Vrouwen
-      </Button>
+    <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 max-w-2xl mx-auto">
+      {[
+        { title: 'Boven', path: '/sufuf/boven' },
+        { title: 'Beneden', path: '/sufuf/beneden' },
+        { title: 'Garage', path: '/sufuf/garage' },
+        { title: 'Vrouwen', path: '/sufuf/vrouwen' }
+      ].map((room) => (
+        <Card 
+          key={room.title}
+          className="hover:shadow-lg transition-all duration-300"
+        >
+          <CardContent className="p-6">
+            <Button
+              variant="ghost"
+              className="w-full h-full text-lg font-medium text-[#963E56] hover:bg-[#963E56]/10"
+              onClick={() => setLocation(room.path)}
+            >
+              {room.title}
+            </Button>
+          </CardContent>
+        </Card>
+      ))}
     </div>
   );
 };
@@ -242,32 +245,36 @@ export default function SufufPage() {
     <Switch>
       <Route path="/sufuf">
         {view === 'select' ? (
-          <div className="space-y-6 p-6">
+          <div className="space-y-6">
             <div className="flex items-center gap-3 mb-6">
               <Grid className="h-6 w-6 sm:h-8 sm:w-8 text-[#963E56]" />
               <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-[#963E56]">
                 Sufuf (Gebedsrijen)
               </h1>
             </div>
-            <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 max-w-md mx-auto">
-              <Button
-                variant="outline"
-                className="p-6 h-auto"
-                onClick={() => setView('imam')}
-              >
-                Imam
-              </Button>
-              <Button
-                variant="outline"
-                className="p-6 h-auto"
-                onClick={() => setView('volunteer')}
-              >
-                Vrijwilliger
-              </Button>
-            </div>
+            <Card className="max-w-2xl mx-auto">
+              <CardContent className="p-6">
+                <div className="grid gap-4 grid-cols-1 sm:grid-cols-2">
+                  <Button
+                    variant="outline"
+                    className="p-6 h-auto text-lg font-medium text-[#963E56] hover:bg-[#963E56]/10 hover:text-[#963E56]"
+                    onClick={() => setView('imam')}
+                  >
+                    Imam
+                  </Button>
+                  <Button
+                    variant="outline"
+                    className="p-6 h-auto text-lg font-medium text-[#963E56] hover:bg-[#963E56]/10 hover:text-[#963E56]"
+                    onClick={() => setView('volunteer')}
+                  >
+                    Vrijwilliger
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
           </div>
         ) : (
-          <div className="space-y-6 p-6">
+          <div className="space-y-6">
             <div className="flex items-center gap-3 mb-6">
               <Grid className="h-6 w-6 sm:h-8 sm:w-8 text-[#963E56]" />
               <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-[#963E56]">
@@ -275,7 +282,7 @@ export default function SufufPage() {
               </h1>
               <Button
                 variant="ghost"
-                className="ml-auto"
+                className="ml-auto hover:bg-[#963E56]/10"
                 onClick={() => setView('select')}
               >
                 Terug
