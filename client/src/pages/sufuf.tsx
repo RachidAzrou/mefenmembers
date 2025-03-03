@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
-import { Grid, Check, X } from "lucide-react";
+import { Users, UserCog, User, LayoutDashboard } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useSocket } from "@/hooks/use-socket";
@@ -33,8 +33,8 @@ type Room = {
 const ImamView = () => {
   const { socket } = useSocket();
   const [rooms, setRooms] = useState<Record<string, Room>>({
-    'first-floor': { id: 'first-floor', title: 'Boven', status: 'grey' },
-    'beneden': { id: 'beneden', title: 'Beneden', status: 'grey' },
+    'first-floor': { id: 'first-floor', title: 'Moskee +1', status: 'grey' },
+    'beneden': { id: 'beneden', title: 'Moskee +0', status: 'grey' },
     'garage': { id: 'garage', title: 'Garage', status: 'grey' },
     'vrouwen': { id: 'vrouwen', title: 'Vrouwen', status: 'grey' }
   });
@@ -118,10 +118,10 @@ const VolunteerView = () => {
       <HadiethCard />
       <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 max-w-3xl mx-auto">
         {[
-          { title: 'Boven', path: '/sufuf/boven' },
-          { title: 'Beneden', path: '/sufuf/beneden' },
-          { title: 'Garage', path: '/sufuf/garage' },
-          { title: 'Vrouwen', path: '/sufuf/vrouwen' }
+          { title: 'Moskee +1', path: '/sufuf/boven', icon: LayoutDashboard },
+          { title: 'Moskee +0', path: '/sufuf/beneden', icon: LayoutDashboard },
+          { title: 'Garage', path: '/sufuf/garage', icon: LayoutDashboard },
+          { title: 'Vrouwen', path: '/sufuf/vrouwen', icon: LayoutDashboard }
         ].map((room) => (
           <Card
             key={room.title}
@@ -133,6 +133,7 @@ const VolunteerView = () => {
                 className="w-full h-full text-xl font-medium text-[#963E56] hover:bg-[#963E56]/10 py-8"
                 onClick={() => setLocation(room.path)}
               >
+                <room.icon className="w-6 h-6 mr-2" />
                 {room.title}
               </Button>
             </CardContent>
@@ -272,14 +273,14 @@ export default function SufufPage() {
       <Route path="/sufuf">
         {view === 'select' ? (
           <div className="space-y-8">
-            <HadiethCard />
-            <div className="flex items-center gap-4 mb-8">
-              <Grid className="h-8 w-8 text-[#963E56]" />
+            <div className="flex items-center gap-4 mb-4">
+              <Users className="h-8 w-8 text-[#963E56]" />
               <h1 className="text-2xl md:text-3xl font-bold text-[#963E56]">
                 Sufuf (Gebedsrijen)
               </h1>
             </div>
-            <Card className="max-w-3xl mx-auto bg-gradient-to-br from-white to-gray-50/50">
+            <HadiethCard />
+            <Card className="max-w-3xl mx-auto">
               <CardContent className="p-8">
                 <div className="grid gap-6 grid-cols-1 sm:grid-cols-2">
                   <Card className="hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 border border-gray-200">
@@ -289,6 +290,7 @@ export default function SufufPage() {
                         className="w-full h-full text-xl font-medium text-[#963E56] hover:bg-[#963E56]/10 py-8"
                         onClick={() => setView('imam')}
                       >
+                        <UserCog className="w-6 h-6 mr-2" />
                         Imam
                       </Button>
                     </CardContent>
@@ -300,6 +302,7 @@ export default function SufufPage() {
                         className="w-full h-full text-xl font-medium text-[#963E56] hover:bg-[#963E56]/10 py-8"
                         onClick={() => setView('volunteer')}
                       >
+                        <User className="w-6 h-6 mr-2" />
                         Vrijwilliger
                       </Button>
                     </CardContent>
@@ -310,9 +313,13 @@ export default function SufufPage() {
           </div>
         ) : (
           <div className="space-y-8">
-            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 mb-8">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 mb-4">
               <div className="flex items-center gap-4">
-                <Grid className="h-8 w-8 text-[#963E56]" />
+                {view === 'imam' ? (
+                  <UserCog className="h-8 w-8 text-[#963E56]" />
+                ) : (
+                  <User className="h-8 w-8 text-[#963E56]" />
+                )}
                 <h1 className="text-2xl md:text-3xl font-bold text-[#963E56]">
                   {view === 'imam' ? 'Imam Dashboard' : 'Vrijwilliger Dashboard'}
                 </h1>
@@ -325,15 +332,16 @@ export default function SufufPage() {
                 Terug
               </Button>
             </div>
+            <HadiethCard />
             {view === 'imam' ? <ImamView /> : <VolunteerView />}
           </div>
         )}
       </Route>
-      <Route path="/sufuf/boven">
-        <RoomStatusToggle roomId="first-floor" title="Boven" />
+      <Route path="/sufuf/:room">
+        <RoomStatusToggle roomId="first-floor" title="Moskee +1" />
       </Route>
       <Route path="/sufuf/beneden">
-        <RoomStatusToggle roomId="beneden" title="Beneden" />
+        <RoomStatusToggle roomId="beneden" title="Moskee +0" />
       </Route>
       <Route path="/sufuf/garage">
         <RoomStatusToggle roomId="garage" title="Garage" />
