@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Check, X, User, House, ChevronDown } from "lucide-react";
+import { Check, X, User, House, ChevronDown, CircleCheck, CircleX } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useSocket } from "@/hooks/use-socket";
 import { FaPray } from "react-icons/fa";
@@ -33,8 +33,8 @@ type Room = {
 export default function SufufPage() {
   const { socket } = useSocket();
   const [rooms, setRooms] = useState<Record<string, Room>>({
-    'first-floor': { id: 'first-floor', title: 'Moskee +1', status: 'grey' },
     'beneden': { id: 'beneden', title: 'Moskee +0', status: 'grey' },
+    'first-floor': { id: 'first-floor', title: 'Moskee +1', status: 'grey' },
     'garage': { id: 'garage', title: 'Garage', status: 'grey' }
   });
   const [selectedRoom, setSelectedRoom] = useState<string | null>(null);
@@ -71,7 +71,6 @@ export default function SufufPage() {
   useEffect(() => {
     if (!socket || !selectedRoom) return;
 
-    // Reset toggles when room changes
     setOkChecked(rooms[selectedRoom].status === 'green');
     setNokChecked(rooms[selectedRoom].status === 'red');
   }, [selectedRoom, rooms]);
@@ -130,9 +129,9 @@ export default function SufufPage() {
                   {room.title}
                 </CardTitle>
                 <div className={`
-                  relative w-10 h-10 rounded-full flex items-center justify-center transition-all duration-500
-                  ${room.status === 'green' ? 'bg-green-500 animate-pulse shadow-lg shadow-green-500/50' :
-                    room.status === 'red' ? 'bg-red-500 animate-pulse shadow-lg shadow-red-500/50' :
+                  relative w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300
+                  ${room.status === 'green' ? 'bg-green-500 shadow-lg shadow-green-500/50' :
+                    room.status === 'red' ? 'bg-red-500 shadow-lg shadow-red-500/50' :
                     'bg-gray-300'
                   }
                 `}>
@@ -143,7 +142,7 @@ export default function SufufPage() {
               <CardContent className="p-6 pt-2">
                 <div className="mt-4 h-2 w-full bg-gray-100 rounded-full overflow-hidden">
                   <div
-                    className={`h-full transition-all duration-500 ${
+                    className={`h-full transition-all duration-300 ${
                       room.status === 'green' ? 'w-full bg-green-500' :
                       room.status === 'red' ? 'w-full bg-red-500' :
                       'w-0'
@@ -156,7 +155,7 @@ export default function SufufPage() {
         </div>
       </div>
 
-      {/* Vrijwilligers Sectie - Now Collapsible */}
+      {/* Vrijwilligers Sectie */}
       <div className="space-y-4">
         <Button
           variant="ghost"
@@ -190,50 +189,32 @@ export default function SufufPage() {
                   </div>
                   {selectedRoom === room.id && (
                     <div className="space-y-4">
-                      <div className="flex items-center justify-between p-3 bg-white rounded-lg shadow-sm border border-gray-100">
+                      <Button
+                        variant="outline"
+                        className={`w-full flex items-center justify-between p-4 ${
+                          okChecked ? 'bg-green-50 border-green-200 text-green-700' : 'text-gray-500'
+                        }`}
+                        onClick={() => handleOkChange({ target: { checked: !okChecked }} as any)}
+                      >
                         <div className="flex items-center gap-3">
-                          <Check className={`w-5 h-5 ${okChecked ? 'text-green-500' : 'text-gray-300'}`} />
-                          <span className="font-medium text-[#963E56]">OK</span>
+                          <CircleCheck className={`w-5 h-5 ${okChecked ? 'text-green-500' : 'text-gray-300'}`} />
+                          <span className="font-medium">Rijen in orde</span>
                         </div>
-                        <label className="relative inline-block w-12 h-6">
-                          <input
-                            type="checkbox"
-                            className="opacity-0 w-0 h-0"
-                            checked={okChecked}
-                            onChange={handleOkChange}
-                          />
-                          <span className={`
-                            absolute cursor-pointer inset-0 rounded-full transition-all duration-300
-                            ${okChecked ? 'bg-green-500' : 'bg-gray-200'}
-                          `} />
-                          <span className={`
-                            absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-transform duration-300
-                            ${okChecked ? 'transform translate-x-6' : ''}
-                          `} />
-                        </label>
-                      </div>
-                      <div className="flex items-center justify-between p-3 bg-white rounded-lg shadow-sm border border-gray-100">
+                      </Button>
+
+                      <Button
+                        variant="outline"
+                        className={`w-full flex items-center justify-between p-4 ${
+                          nokChecked ? 'bg-red-50 border-red-200 text-red-700' : 'text-gray-500'
+                        }`}
+                        onClick={() => handleNokChange({ target: { checked: !nokChecked }} as any)}
+                      >
                         <div className="flex items-center gap-3">
-                          <X className={`w-5 h-5 ${nokChecked ? 'text-red-500' : 'text-gray-300'}`} />
-                          <span className="font-medium text-[#963E56]">NOK</span>
+                          <CircleX className={`w-5 h-5 ${nokChecked ? 'text-red-500' : 'text-gray-300'}`} />
+                          <span className="font-medium">Rijen niet in orde</span>
                         </div>
-                        <label className="relative inline-block w-12 h-6">
-                          <input
-                            type="checkbox"
-                            className="opacity-0 w-0 h-0"
-                            checked={nokChecked}
-                            onChange={handleNokChange}
-                          />
-                          <span className={`
-                            absolute cursor-pointer inset-0 rounded-full transition-all duration-300
-                            ${nokChecked ? 'bg-red-500' : 'bg-gray-200'}
-                          `} />
-                          <span className={`
-                            absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-transform duration-300
-                            ${nokChecked ? 'transform translate-x-6' : ''}
-                          `} />
-                        </label>
-                      </div>
+                      </Button>
+
                       {(okChecked || nokChecked) && (
                         <div className={`mt-4 p-3 rounded-lg border ${
                           okChecked ? 'bg-green-50 border-green-100' : 'bg-red-50 border-red-100'
