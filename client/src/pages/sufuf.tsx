@@ -8,6 +8,7 @@ import { Route, Switch, useLocation } from "wouter";
 import { IoMdPeople } from "react-icons/io";
 import { FaUserTie, FaMosque } from "react-icons/fa";
 import { Grid } from "lucide-react";
+import { SufufIcon } from "@/components/icons/sufuf-icon";
 
 // Hadieth Component
 const HadiethCard = () => (
@@ -280,7 +281,7 @@ export default function SufufPage() {
         {view === 'select' ? (
           <div className="space-y-8">
             <div className="flex items-center gap-4 mb-4">
-              <IoMdPeople className="h-8 w-8 text-[#963E56]" />
+              <SufufIcon className="h-8 w-8 text-[#963E56]" />
               <h1 className="text-2xl md:text-3xl font-bold text-[#963E56]">
                 Sufuf (Gebedsrijen)
               </h1>
