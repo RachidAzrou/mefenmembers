@@ -5,8 +5,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useSocket } from "@/hooks/use-socket";
 import { Route, Switch, useLocation } from "wouter";
-import { FaUserTie, FaMosque } from "react-icons/fa";
-import { PiUsersThree } from "react-icons/pi"; // Changed to three users icon
+import { FaMosque } from "react-icons/fa";
+import { PiUsersThree } from "react-icons/pi";
+import { TbUserCircle } from "react-icons/tb"; // Changed to use TbUserCircle for imam
 
 // Hadieth Component
 const HadiethCard = () => (
@@ -295,7 +296,7 @@ export default function SufufPage() {
                         className="w-full h-full text-xl font-medium text-[#963E56] hover:bg-[#963E56]/10 py-8"
                         onClick={() => setView('imam')}
                       >
-                        <FaUserTie className="w-6 h-6 mr-2" />
+                        <TbUserCircle className="w-6 h-6 mr-2" />
                         Imam
                       </Button>
                     </CardContent>
@@ -321,7 +322,7 @@ export default function SufufPage() {
             <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 mb-4">
               <div className="flex items-center gap-4">
                 {view === 'imam' ? (
-                  <FaUserTie className="h-8 w-8 text-[#963E56]" />
+                  <TbUserCircle className="h-8 w-8 text-[#963E56]" />
                 ) : (
                   <PiUsersThree className="h-8 w-8 text-[#963E56]" />
                 )}
