@@ -52,8 +52,8 @@ const ImamView = () => {
   return (
     <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 max-w-5xl mx-auto">
       {Object.values(rooms).map((room) => (
-        <Card 
-          key={room.id} 
+        <Card
+          key={room.id}
           className="relative overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 bg-gradient-to-br from-white to-gray-50/50 border border-gray-200"
         >
           <CardContent className="p-8">
@@ -75,7 +75,7 @@ const ImamView = () => {
               </div>
             </div>
             <div className="mt-6 h-2 w-full bg-gray-100 rounded-full overflow-hidden">
-              <div 
+              <div
                 className={`h-full transition-all duration-500 ${
                   room.status === 'green' ? 'w-full bg-green-500' :
                   room.status === 'red' ? 'w-full bg-red-500' :
@@ -155,8 +155,11 @@ const RoomStatusToggle = ({ roomId, title }: { roomId: string; title: string }) 
         <div className="flex flex-col items-center gap-8 mt-8">
           <div className="w-full max-w-md space-y-6">
             <div className="flex items-center justify-between p-6 bg-white rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-all duration-300">
-              <label className="text-lg font-medium text-[#963E56]">OK</label>
-              <label className="relative inline-block w-14 h-7">
+              <div className="flex items-center gap-3">
+                <Check className={`w-6 h-6 ${okChecked ? 'text-green-500' : 'text-gray-300'}`} />
+                <label className="text-lg font-medium text-[#963E56]">OK</label>
+              </div>
+              <label className="relative inline-block w-16 h-8">
                 <input
                   type="checkbox"
                   className="opacity-0 w-0 h-0"
@@ -168,14 +171,17 @@ const RoomStatusToggle = ({ roomId, title }: { roomId: string; title: string }) 
                   ${okChecked ? 'bg-green-500 shadow-lg shadow-green-500/50' : 'bg-gray-200'}
                 `} />
                 <span className={`
-                  absolute left-1 top-1 bg-white w-5 h-5 rounded-full transition-transform duration-300
-                  ${okChecked ? 'transform translate-x-7' : ''}
+                  absolute left-1 top-1 bg-white w-6 h-6 rounded-full transition-transform duration-300
+                  ${okChecked ? 'transform translate-x-8' : ''}
                 `} />
               </label>
             </div>
             <div className="flex items-center justify-between p-6 bg-white rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-all duration-300">
-              <label className="text-lg font-medium text-[#963E56]">NOK</label>
-              <label className="relative inline-block w-14 h-7">
+              <div className="flex items-center gap-3">
+                <X className={`w-6 h-6 ${nokChecked ? 'text-red-500' : 'text-gray-300'}`} />
+                <label className="text-lg font-medium text-[#963E56]">NOK</label>
+              </div>
+              <label className="relative inline-block w-16 h-8">
                 <input
                   type="checkbox"
                   className="opacity-0 w-0 h-0"
@@ -187,8 +193,8 @@ const RoomStatusToggle = ({ roomId, title }: { roomId: string; title: string }) 
                   ${nokChecked ? 'bg-red-500 shadow-lg shadow-red-500/50' : 'bg-gray-200'}
                 `} />
                 <span className={`
-                  absolute left-1 top-1 bg-white w-5 h-5 rounded-full transition-transform duration-300
-                  ${nokChecked ? 'transform translate-x-7' : ''}
+                  absolute left-1 top-1 bg-white w-6 h-6 rounded-full transition-transform duration-300
+                  ${nokChecked ? 'transform translate-x-8' : ''}
                 `} />
               </label>
             </div>
@@ -229,8 +235,8 @@ const VolunteerView = () => {
                 className="border-[#963E56]/20 focus:border-[#963E56] text-lg py-6"
               />
             </div>
-            <Button 
-              type="submit" 
+            <Button
+              type="submit"
               className="w-full bg-[#963E56] hover:bg-[#963E56]/90 text-lg py-6"
             >
               Inloggen
@@ -249,7 +255,7 @@ const VolunteerView = () => {
         { title: 'Garage', path: '/sufuf/garage' },
         { title: 'Vrouwen', path: '/sufuf/vrouwen' }
       ].map((room) => (
-        <Card 
+        <Card
           key={room.title}
           className="hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 bg-gradient-to-br from-white to-gray-50/50 border border-gray-200"
         >
