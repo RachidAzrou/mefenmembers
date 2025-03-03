@@ -184,67 +184,118 @@ const RoomStatusToggle = ({ roomId, title }: { roomId: string; title: string }) 
   return (
     <div className="max-w-2xl mx-auto px-4">
       <Card className="overflow-hidden bg-white">
-        <CardHeader className="p-6 flex flex-row items-center justify-between space-y-0">
-          <CardTitle className="flex items-center gap-3 text-xl font-semibold text-[#963E56]">
-            <House className="h-6 w-6" />
-            {title}
-          </CardTitle>
-          <Button
-            variant="outline"
-            size="sm"
-            className="flex items-center gap-2 hover:bg-[#963E56]/5 border-[#963E56]/20"
-            onClick={() => setLocation('/sufuf')}
-          >
-            <ChevronLeft className="h-4 w-4" />
-            <span>Terug</span>
-          </Button>
+        <CardHeader className="p-6 pb-4 border-b">
+          <div className="flex items-center justify-between">
+            <CardTitle className="flex items-center gap-3 text-xl font-semibold text-[#963E56]">
+              <House className="h-6 w-6" />
+              {title}
+            </CardTitle>
+            <Button
+              variant="outline"
+              size="sm"
+              className="flex items-center gap-2 hover:bg-[#963E56]/5 border-[#963E56]/20"
+              onClick={() => setLocation('/sufuf')}
+            >
+              <ChevronLeft className="h-4 w-4" />
+              <span>Terug</span>
+            </Button>
+          </div>
         </CardHeader>
         <CardContent className="p-6 space-y-6">
-          <div className="space-y-4">
-            <div className="flex items-center justify-between p-4 bg-white rounded-lg shadow-sm border border-gray-100 hover:shadow-md transition-all duration-300">
-              <div className="flex items-center gap-3">
-                <Check className={`w-6 h-6 ${okChecked ? 'text-green-500' : 'text-gray-300'}`} />
-                <span className="text-lg font-medium text-[#963E56]">OK</span>
-              </div>
-              <label className="relative inline-block w-16 h-8">
-                <input
-                  type="checkbox"
-                  className="opacity-0 w-0 h-0"
-                  checked={okChecked}
-                  onChange={handleOkChange}
-                />
-                <span className={`
-                  absolute cursor-pointer inset-0 rounded-full transition-all duration-300
-                  ${okChecked ? 'bg-green-500 shadow-lg shadow-green-500/50' : 'bg-gray-200'}
-                `} />
-                <span className={`
-                  absolute left-1 top-1 bg-white w-6 h-6 rounded-full transition-transform duration-300
-                  ${okChecked ? 'transform translate-x-8' : ''}
-                `} />
-              </label>
-            </div>
-            <div className="flex items-center justify-between p-4 bg-white rounded-lg shadow-sm border border-gray-100 hover:shadow-md transition-all duration-300">
-              <div className="flex items-center gap-3">
-                <X className={`w-6 h-6 ${nokChecked ? 'text-red-500' : 'text-gray-300'}`} />
-                <span className="text-lg font-medium text-[#963E56]">NOK</span>
-              </div>
-              <label className="relative inline-block w-16 h-8">
-                <input
-                  type="checkbox"
-                  className="opacity-0 w-0 h-0"
-                  checked={nokChecked}
-                  onChange={handleNokChange}
-                />
-                <span className={`
-                  absolute cursor-pointer inset-0 rounded-full transition-all duration-300
-                  ${nokChecked ? 'bg-red-500 shadow-lg shadow-red-500/50' : 'bg-gray-200'}
-                `} />
-                <span className={`
-                  absolute left-1 top-1 bg-white w-6 h-6 rounded-full transition-transform duration-300
-                  ${nokChecked ? 'transform translate-x-8' : ''}
-                `} />
-              </label>
-            </div>
+          <div className="grid gap-6 sm:grid-cols-2">
+            <Card className={`
+              relative overflow-hidden transition-all duration-300
+              ${okChecked ? 'ring-2 ring-green-500 shadow-lg' : 'hover:shadow-md'}
+            `}>
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className={`
+                      w-10 h-10 rounded-full flex items-center justify-center
+                      ${okChecked ? 'bg-green-500' : 'bg-gray-100'}
+                    `}>
+                      <Check className={`w-6 h-6 ${okChecked ? 'text-white' : 'text-gray-400'}`} />
+                    </div>
+                    <div>
+                      <div className="font-medium text-[#963E56]">Rijen OK</div>
+                      <div className="text-sm text-gray-500">Alles in orde</div>
+                    </div>
+                  </div>
+                  <label className="relative inline-block w-14 h-7">
+                    <input
+                      type="checkbox"
+                      className="opacity-0 w-0 h-0"
+                      checked={okChecked}
+                      onChange={handleOkChange}
+                    />
+                    <span className={`
+                      absolute cursor-pointer inset-0 rounded-full transition-all duration-300
+                      ${okChecked ? 'bg-green-500' : 'bg-gray-200'}
+                    `} />
+                    <span className={`
+                      absolute left-1 top-1 bg-white w-5 h-5 rounded-full transition-transform duration-300
+                      ${okChecked ? 'transform translate-x-7' : ''}
+                    `} />
+                  </label>
+                </div>
+                {okChecked && (
+                  <div className="mt-4 p-3 bg-green-50 rounded-lg border border-green-100">
+                    <p className="text-sm text-green-700">
+                      Status doorgegeven aan de imam
+                    </p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            <Card className={`
+              relative overflow-hidden transition-all duration-300
+              ${nokChecked ? 'ring-2 ring-red-500 shadow-lg' : 'hover:shadow-md'}
+            `}>
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className={`
+                      w-10 h-10 rounded-full flex items-center justify-center
+                      ${nokChecked ? 'bg-red-500' : 'bg-gray-100'}
+                    `}>
+                      <X className={`w-6 h-6 ${nokChecked ? 'text-white' : 'text-gray-400'}`} />
+                    </div>
+                    <div>
+                      <div className="font-medium text-[#963E56]">Rijen NOK</div>
+                      <div className="text-sm text-gray-500">Aanpassing nodig</div>
+                    </div>
+                  </div>
+                  <label className="relative inline-block w-14 h-7">
+                    <input
+                      type="checkbox"
+                      className="opacity-0 w-0 h-0"
+                      checked={nokChecked}
+                      onChange={handleNokChange}
+                    />
+                    <span className={`
+                      absolute cursor-pointer inset-0 rounded-full transition-all duration-300
+                      ${nokChecked ? 'bg-red-500' : 'bg-gray-200'}
+                    `} />
+                    <span className={`
+                      absolute left-1 top-1 bg-white w-5 h-5 rounded-full transition-transform duration-300
+                      ${nokChecked ? 'transform translate-x-7' : ''}
+                    `} />
+                  </label>
+                </div>
+                {nokChecked && (
+                  <div className="mt-4 p-3 bg-red-50 rounded-lg border border-red-100">
+                    <p className="text-sm text-red-700">
+                      Status doorgegeven aan de imam
+                    </p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+
+          <div className="mt-6 text-center text-sm text-gray-500">
+            Selecteer de status van de gebedsrijen
           </div>
         </CardContent>
       </Card>
