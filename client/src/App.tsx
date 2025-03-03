@@ -22,6 +22,7 @@ import { Sidebar } from "@/components/layout/sidebar";
 import { auth } from "./lib/firebase";
 import { useAuthState } from "react-firebase-hooks/auth";
 import { useNotifications } from "@/hooks/use-notifications";
+import { SocketProvider } from "@/hooks/use-socket";
 import React from 'react';
 
 function AuthenticatedLayout({ children }: { children: React.ReactNode }) {
@@ -87,7 +88,7 @@ function Router() {
       <Route path="/mosque" component={() => <PrivateRoute component={Mosque} />} />
       <Route path="/settings" component={() => <PrivateRoute component={Settings} />} />
       <Route path="/communication" component={() => <PrivateRoute component={Communication} />} />
-      <Route path="/sufuf" component={() => <PrivateRoute component={Sufuf} />} />
+      <Route path="/sufuf/*" component={() => <PrivateRoute component={Sufuf} />} />
       <Route path="/calendar/public" component={PublicCalendar} />
       <Route component={NotFound} />
     </Switch>
@@ -97,8 +98,10 @@ function Router() {
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <Router />
-      <Toaster />
+      <SocketProvider>
+        <Router />
+        <Toaster />
+      </SocketProvider>
     </QueryClientProvider>
   );
 }

@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vrijwilliger - Sufuf</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    /* Media query voor mobiele schermen */
+    @media (max-width: 767px) {
+      .bottom-buttons {
+        display: flex;
+        flex-direction: column; /* Zet de knoppen onder elkaar */
+        align-items: center; /* Centreer de knoppen */
+        gap: 10px; /* Voeg wat ruimte tussen de knoppen toe */
+      }
+
+      .logout-button, .back-button {
+        width: 100%; /* Maak de knoppen even breed */
+        max-width: 300px; /* Max breedte voor knoppen */
+        padding: 10px 20px; /* Meer padding voor grotere knoppen */
+        font-size: 1rem; /* Vergroot de tekst */
+      }
+    }
+
+    /* Voor grotere schermen, zoals desktops, blijven de knoppen horizontaal en groot */
+    @media (min-width: 768px) {
+      .bottom-buttons {
+        flex-direction: row; /* Zet de knoppen naast elkaar */
+        justify-content: center; /* Centreer de knoppen horizontaal */
+      }
+
+      .logout-button, .back-button {
+        width: auto; /* Terug naar de standaard breedte */
+        max-width: none; /* Verwijder de max breedte */
+        padding: 10px 20px; /* Terug naar kleinere padding voor desktop */
+        font-size: 1rem; /* Standaard tekstgrootte */
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <img src="images/logo.png" alt="Sufuf Logo" class="logo">
+    <h1>Vrijwilliger</h1>
+    <h2>Kies je ruimte</h2>
+    <div class="buttons">
+      <button onclick="window.location.href='/vrijwilliger-1ste-verdieping.html'">Boven</button>
+      <button onclick="window.location.href='/vrijwilliger-beneden.html'">Beneden</button>
+      <button onclick="window.location.href='/vrijwilliger-garage.html'">Garage</button>
+    </div>
+    <!-- Terugknop en Afmelden knop -->
+    <div class="bottom-buttons">
+      <a href="/" class="back-button">Terug</a>
+      <button onclick="logout()" class="logout-button">Afmelden</button>
+    </div>
+  </div>
+
+  <script>
+    // Controleer of de gebruiker is ingelogd
+    if (sessionStorage.getItem('loggedIn') !== 'true') {
+      window.location.href = '/login.html'; // Redirect naar login als niet ingelogd
+    }
+
+    // Controleer of het versienummer overeenkomt
+    const currentPasswordVersion = '4'; // Huidige versienummer
+    const storedPasswordVersion = sessionStorage.getItem('passwordVersion');
+
+    if (storedPasswordVersion !== currentPasswordVersion) {
+      // Als het versienummer niet overeenkomt, log de gebruiker uit
+      sessionStorage.removeItem('loggedIn');
+      sessionStorage.removeItem('passwordVersion');
+      window.location.href = '/login.html'; // Stuur de gebruiker naar de login-pagina
+    }
+
+    // Logout functie
+    function logout() {
+      // Clear the login state from sessionStorage
+      sessionStorage.removeItem('loggedIn');
+      sessionStorage.removeItem('passwordVersion');
+      // Redirect to the login page
+      window.location.href = '/login.html';
+    }
+  </script>
+</body>
+</html>
