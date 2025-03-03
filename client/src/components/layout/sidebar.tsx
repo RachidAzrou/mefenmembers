@@ -6,9 +6,9 @@ import { Link, useLocation } from "wouter";
 import {
   LayoutDashboard, Users, Calendar,
   Package2, LogOut, Menu, ChevronLeft, ChevronRight,
-  Settings, FileJson, User, House, Radio, Grid
+  Settings, FileJson, User, House, Radio
 } from "lucide-react";
-import { PiMosqueLight } from "react-icons/pi";
+import { PiMosqueLight, PiUsersThree } from "react-icons/pi";
 import { useState, useEffect } from "react";
 import { auth } from "@/lib/firebase";
 import { signOut } from "firebase/auth";
@@ -70,7 +70,7 @@ export function Sidebar() {
       notificationCount: unreadCount
     },
     { icon: PiMosqueLight, label: "Mijn Moskee", href: "/mosque" },
-    { icon: Grid, label: "Sufuf", href: "/sufuf" } // Added menu item
+    { icon: PiUsersThree, label: "Sufuf", href: "/sufuf" } 
   ].filter(item => !item.adminOnly || isAdmin);
 
   return (
