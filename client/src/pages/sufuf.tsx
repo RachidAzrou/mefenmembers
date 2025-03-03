@@ -6,6 +6,13 @@ import { useSocket } from "@/hooks/use-socket";
 import { FaPray } from "react-icons/fa";
 import { PiUsersThree } from "react-icons/pi";
 
+// Room type definitie
+type Room = {
+  id: string;
+  title: string;
+  status: 'green' | 'red' | 'grey';
+};
+
 // Hadieth Component - Smaller version
 const HadiethCard = () => (
   <Card className="bg-gradient-to-br from-[#963E56]/5 to-transparent border border-[#963E56]/10">
@@ -21,13 +28,6 @@ const HadiethCard = () => (
     </CardContent>
   </Card>
 );
-
-// Room type definitie
-type Room = {
-  id: string;
-  title: string;
-  status: 'green' | 'red' | 'grey';
-};
 
 // Main Component
 export default function SufufPage() {
@@ -45,26 +45,29 @@ export default function SufufPage() {
   useEffect(() => {
     if (!socket) return;
 
-    socket.on('initialStatus', (data: any) => {
-      const updatedRooms = { ...rooms };
-      Object.entries(data).forEach(([key, value]) => {
-        if (updatedRooms[key]) {
-          updatedRooms[key].status = value as 'green' | 'red' | 'grey';
-        }
-      });
-      setRooms(updatedRooms);
-    });
+    const handleInitialStatus = (event: MessageEvent) => {
+      const data = JSON.parse(event.data);
+      if (data.type === 'initialStatus') {
+        setRooms(prev => ({ ...prev, ...data.data }));
+      }
+    };
 
-    socket.on('statusUpdated', (data: { room: string; status: 'green' | 'red' | 'grey' }) => {
-      setRooms(prev => ({
-        ...prev,
-        [data.room]: { ...prev[data.room], status: data.status }
-      }));
-    });
+    const handleStatusUpdate = (event: MessageEvent) => {
+      const data = JSON.parse(event.data);
+      if (data.type === 'statusUpdated') {
+        setRooms(prev => ({
+          ...prev,
+          [data.data.room]: { ...prev[data.data.room], status: data.data.status }
+        }));
+      }
+    };
+
+    socket.addEventListener('message', handleInitialStatus);
+    socket.addEventListener('message', handleStatusUpdate);
 
     return () => {
-      socket.off('initialStatus');
-      socket.off('statusUpdated');
+      socket.removeEventListener('message', handleInitialStatus);
+      socket.removeEventListener('message', handleStatusUpdate);
     };
   }, [socket]);
 
@@ -75,28 +78,34 @@ export default function SufufPage() {
     setNokChecked(rooms[selectedRoom].status === 'red');
   }, [selectedRoom, rooms]);
 
-  const handleOkChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleOkChange = () => {
     if (!socket || !selectedRoom) return;
 
-    if (e.target.checked) {
-      setNokChecked(false);
-      socket.emit('updateStatus', { room: selectedRoom, status: 'OK' });
-    } else if (!nokChecked) {
-      socket.emit('updateStatus', { room: selectedRoom, status: 'OFF' });
-    }
-    setOkChecked(e.target.checked);
+    const newChecked = !okChecked;
+    setOkChecked(newChecked);
+    setNokChecked(false);
+
+    const message = {
+      type: 'updateStatus',
+      room: selectedRoom,
+      status: newChecked ? 'OK' : 'OFF'
+    };
+    socket.send(JSON.stringify(message));
   };
 
-  const handleNokChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleNokChange = () => {
     if (!socket || !selectedRoom) return;
 
-    if (e.target.checked) {
-      setOkChecked(false);
-      socket.emit('updateStatus', { room: selectedRoom, status: 'NOK' });
-    } else if (!okChecked) {
-      socket.emit('updateStatus', { room: selectedRoom, status: 'OFF' });
-    }
-    setNokChecked(e.target.checked);
+    const newChecked = !nokChecked;
+    setNokChecked(newChecked);
+    setOkChecked(false);
+
+    const message = {
+      type: 'updateStatus',
+      room: selectedRoom,
+      status: newChecked ? 'NOK' : 'OFF'
+    };
+    socket.send(JSON.stringify(message));
   };
 
   return (
@@ -194,7 +203,7 @@ export default function SufufPage() {
                         className={`w-full flex items-center justify-between p-4 ${
                           okChecked ? 'bg-green-50 border-green-200 text-green-700' : 'text-gray-500'
                         }`}
-                        onClick={() => handleOkChange({ target: { checked: !okChecked }} as any)}
+                        onClick={handleOkChange}
                       >
                         <div className="flex items-center gap-3">
                           <CircleCheck className={`w-5 h-5 ${okChecked ? 'text-green-500' : 'text-gray-300'}`} />
@@ -207,7 +216,7 @@ export default function SufufPage() {
                         className={`w-full flex items-center justify-between p-4 ${
                           nokChecked ? 'bg-red-50 border-red-200 text-red-700' : 'text-gray-500'
                         }`}
-                        onClick={() => handleNokChange({ target: { checked: !nokChecked }} as any)}
+                        onClick={handleNokChange}
                       >
                         <div className="flex items-center gap-3">
                           <CircleX className={`w-5 h-5 ${nokChecked ? 'text-red-500' : 'text-gray-300'}`} />
