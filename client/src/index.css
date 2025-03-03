@@ -10,7 +10,7 @@
   body {
     @apply font-sans antialiased text-foreground;
     background: url('/pattern.jpg') center/cover fixed no-repeat,
-                linear-gradient(135deg, rgba(255, 255, 255, 0.92), rgba(255, 255, 255, 0.88));
+                linear-gradient(135deg, rgba(245, 247, 250, 0.7), rgba(195, 207, 226, 0.7));
     background-blend-mode: overlay;
     min-height: 100vh;
     position: relative;

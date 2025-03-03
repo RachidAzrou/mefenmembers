@@ -4,6 +4,7 @@ import { Check, X, User, House } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useSocket } from "@/hooks/use-socket";
 import { FaPray } from "react-icons/fa";
+import { PiUsersThree } from "react-icons/pi";
 
 // Hadieth Component
 const HadiethCard = () => (
@@ -99,10 +100,10 @@ export default function SufufPage() {
   };
 
   return (
-    <div className="container mx-auto px-4 py-6 space-y-6">
-      {/* Header */}
+    <div className="container mx-auto px-4 py-6 space-y-6 bg-gradient-to-br from-[#963E56]/5 to-transparent"> {/* Added gradient here */}
+      {/* Header - Changed FaPray to PiUsersThree */}
       <div className="flex items-center gap-4">
-        <FaPray className="h-8 w-8 text-[#963E56]" />
+        <PiUsersThree className="h-8 w-8 text-[#963E56]" />
         <h1 className="text-2xl md:text-3xl font-bold text-[#963E56]">
           Sufuf (Gebedsrijen)
         </h1>
