@@ -17,7 +17,7 @@ import ImportExport from "@/pages/import-export";
 import Mosque from "@/pages/mosque";
 import Settings from "@/pages/settings";
 import Communication from "@/pages/communication";
-import Sufuf from "@/pages/sufuf";
+import Sufuf from "@/pages/sufuf"; // Import Sufuf component
 import { Sidebar } from "@/components/layout/sidebar";
 import { auth } from "./lib/firebase";
 import { useAuthState } from "react-firebase-hooks/auth";
@@ -88,7 +88,8 @@ function Router() {
       <Route path="/mosque" component={() => <PrivateRoute component={Mosque} />} />
       <Route path="/settings" component={() => <PrivateRoute component={Settings} />} />
       <Route path="/communication" component={() => <PrivateRoute component={Communication} />} />
-      <Route path="/sufuf/*" component={() => <PrivateRoute component={Sufuf} />} />
+      <Route path="/sufuf" component={() => <PrivateRoute component={Sufuf} />} />
+      <Route path="/sufuf/:room" component={() => <PrivateRoute component={Sufuf} />} />
       <Route path="/calendar/public" component={PublicCalendar} />
       <Route component={NotFound} />
     </Switch>
