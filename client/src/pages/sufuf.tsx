@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Check, X, User, House, ChevronDown, CircleCheck, CircleX } from "lucide-react";
+import { Check, X, User, House, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useSocket } from "@/hooks/use-socket";
 import { FaPray } from "react-icons/fa";
@@ -45,26 +45,20 @@ export default function SufufPage() {
   useEffect(() => {
     if (!socket) return;
 
-    socket.on('initialStatus', (data: any) => {
-      const updatedRooms = { ...rooms };
-      Object.entries(data).forEach(([key, value]) => {
-        if (updatedRooms[key]) {
-          updatedRooms[key].status = value as 'green' | 'red' | 'grey';
-        }
-      });
-      setRooms(updatedRooms);
-    });
+    socket.onmessage = (event) => {
+      const data = JSON.parse(event.data);
 
-    socket.on('statusUpdated', (data: { room: string; status: 'green' | 'red' | 'grey' }) => {
-      setRooms(prev => ({
-        ...prev,
-        [data.room]: { ...prev[data.room], status: data.status }
-      }));
-    });
-
-    return () => {
-      socket.off('initialStatus');
-      socket.off('statusUpdated');
+      if (data.type === 'initialStatus') {
+        setRooms(data.data);
+      } else if (data.type === 'statusUpdated') {
+        setRooms(prev => ({
+          ...prev,
+          [data.data.room]: { 
+            ...prev[data.data.room], 
+            status: data.data.status 
+          }
+        }));
+      }
     };
   }, [socket]);
 
@@ -80,9 +74,17 @@ export default function SufufPage() {
 
     if (e.target.checked) {
       setNokChecked(false);
-      socket.emit('updateStatus', { room: selectedRoom, status: 'OK' });
+      socket.send(JSON.stringify({
+        type: 'updateStatus',
+        room: selectedRoom,
+        status: 'OK'
+      }));
     } else if (!nokChecked) {
-      socket.emit('updateStatus', { room: selectedRoom, status: 'OFF' });
+      socket.send(JSON.stringify({
+        type: 'updateStatus',
+        room: selectedRoom,
+        status: 'OFF'
+      }));
     }
     setOkChecked(e.target.checked);
   };
@@ -92,9 +94,17 @@ export default function SufufPage() {
 
     if (e.target.checked) {
       setOkChecked(false);
-      socket.emit('updateStatus', { room: selectedRoom, status: 'NOK' });
+      socket.send(JSON.stringify({
+        type: 'updateStatus',
+        room: selectedRoom,
+        status: 'NOK'
+      }));
     } else if (!okChecked) {
-      socket.emit('updateStatus', { room: selectedRoom, status: 'OFF' });
+      socket.send(JSON.stringify({
+        type: 'updateStatus',
+        room: selectedRoom,
+        status: 'OFF'
+      }));
     }
     setNokChecked(e.target.checked);
   };
