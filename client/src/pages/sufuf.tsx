@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { useSocket } from "@/hooks/use-socket";
 import { Route, Switch, useLocation } from "wouter";
 import { FaUserTie, FaMosque } from "react-icons/fa";
-import { PiUsers } from "react-icons/pi"; // Changed to Phosphor icons users
+import { PiUsersThree } from "react-icons/pi"; // Changed to three users icon
 
 // Hadieth Component
 const HadiethCard = () => (
@@ -126,7 +126,7 @@ const VolunteerView = () => {
           { title: 'Moskee +1', path: '/sufuf/boven', icon: FaMosque },
           { title: 'Moskee +0', path: '/sufuf/beneden', icon: FaMosque },
           { title: 'Garage', path: '/sufuf/garage', icon: FaMosque },
-          { title: 'Vrouwen', path: '/sufuf/vrouwen', icon: PiUsers } 
+          { title: 'Vrouwen', path: '/sufuf/vrouwen', icon: PiUsersThree }
         ].map((room) => (
           <Card
             key={room.title}
@@ -279,7 +279,7 @@ export default function SufufPage() {
         {view === 'select' ? (
           <div className="space-y-8">
             <div className="flex items-center gap-4 mb-4">
-              <PiUsers className="h-8 w-8 text-[#963E56]" /> 
+              <PiUsersThree className="h-8 w-8 text-[#963E56]" />
               <h1 className="text-2xl md:text-3xl font-bold text-[#963E56]">
                 Sufuf (Gebedsrijen)
               </h1>
@@ -307,7 +307,7 @@ export default function SufufPage() {
                         className="w-full h-full text-xl font-medium text-[#963E56] hover:bg-[#963E56]/10 py-8"
                         onClick={() => setView('volunteer')}
                       >
-                        <PiUsers className="w-6 h-6 mr-2" /> 
+                        <PiUsersThree className="w-6 h-6 mr-2" />
                         Vrijwilliger
                       </Button>
                     </CardContent>
@@ -323,7 +323,7 @@ export default function SufufPage() {
                 {view === 'imam' ? (
                   <FaUserTie className="h-8 w-8 text-[#963E56]" />
                 ) : (
-                  <PiUsers className="h-8 w-8 text-[#963E56]" /> 
+                  <PiUsersThree className="h-8 w-8 text-[#963E56]" />
                 )}
                 <h1 className="text-2xl md:text-3xl font-bold text-[#963E56]">
                   {view === 'imam' ? 'Imam Dashboard' : 'Vrijwilliger Dashboard'}
