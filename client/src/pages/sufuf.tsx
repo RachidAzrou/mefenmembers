@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
-import { Grid } from "lucide-react";
+import { Grid, Check, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useSocket } from "@/hooks/use-socket";
@@ -60,14 +60,21 @@ const ImamView = () => {
             <div className="flex items-center justify-between">
               <h3 className="text-xl font-semibold text-[#963E56]">{room.title}</h3>
               <div className={`
-                h-5 w-5 rounded-full transition-all duration-500
+                relative w-12 h-12 rounded-full flex items-center justify-center transition-all duration-500
                 ${room.status === 'green' ? 'bg-green-500 animate-pulse shadow-lg shadow-green-500/50' :
                   room.status === 'red' ? 'bg-red-500 animate-pulse shadow-lg shadow-red-500/50' :
                   'bg-gray-300'
                 }
-              `} />
+              `}>
+                {room.status === 'green' && (
+                  <Check className="w-8 h-8 text-white animate-fade-in" />
+                )}
+                {room.status === 'red' && (
+                  <X className="w-8 h-8 text-white animate-fade-in" />
+                )}
+              </div>
             </div>
-            <div className="mt-4 h-1 w-full bg-gray-100 rounded-full overflow-hidden">
+            <div className="mt-6 h-2 w-full bg-gray-100 rounded-full overflow-hidden">
               <div 
                 className={`h-full transition-all duration-500 ${
                   room.status === 'green' ? 'w-full bg-green-500' :
