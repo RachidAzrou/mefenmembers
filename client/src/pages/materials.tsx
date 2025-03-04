@@ -182,6 +182,7 @@ const Materials = () => {
   const [volunteerSearchTerm, setVolunteerSearchTerm] = useState("");
   const [materialNumber, setMaterialNumber] = useState<string>("");
   const [formError, setFormError] = useState<string | null>(null);
+  const [selectedMaterialType, setSelectedMaterialType] = useState<string | null>(null);
 
   const form = useForm<z.infer<typeof materialSchema>>({
     resolver: zodResolver(materialSchema),
@@ -495,6 +496,13 @@ const Materials = () => {
 
   const filteredMaterials = materials.filter((material) => {
     if (!material.isCheckedOut) return false;
+
+    // Filter op geselecteerd materiaaltype
+    if (selectedMaterialType) {
+      const type = materialTypes.find((t) => t.id === material.typeId);
+      if (type?.id !== selectedMaterialType) return false;
+    }
+
     if (!searchTerm.trim()) return true;
 
     const type = materialTypes.find((t) => t.id === material.typeId);
@@ -654,10 +662,29 @@ const Materials = () => {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-4">
         {checkedOutByType.map((stat) => (
-          <Card key={stat.name} className="p-2 sm:p-4">
+          <Card 
+            key={stat.name} 
+            className={cn(
+              "p-2 sm:p-4 cursor-pointer transition-all hover:shadow-md",
+              selectedMaterialType === materialTypes.find(t => t.name === stat.name)?.id 
+                ? "bg-[#963E56]/5 border-[#963E56]" 
+                : "hover:bg-[#963E56]/5"
+            )}
+            onClick={() => {
+              const type = materialTypes.find(t => t.name === stat.name);
+              if (type) {
+                setSelectedMaterialType(
+                  selectedMaterialType === type.id ? null : type.id
+                );
+              }
+            }}
+          >
             <CardHeader className="pb-2">
-              <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground">
+              <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground flex items-center justify-between">
                 {stat.name}
+                {selectedMaterialType === materialTypes.find(t => t.name === stat.name)?.id && (
+                  <Check className="h-4 w-4 text-[#963E56]" />
+                )}
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -920,7 +947,7 @@ const Materials = () => {
                             );
                             // Get available numbers (not checked out)
                             const availableNumbers = Array.from(
-                              { length: materialType?.maxCount || 0 }, 
+                              { length: materialType?.maxCount ||0 }, 
                               (_, i) => i + 1
                             ).filter(number => 
                               !materials.some(m => 
