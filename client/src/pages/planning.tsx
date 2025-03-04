@@ -587,21 +587,21 @@ const Planning = () => {
     }).filter((p): p is Planning => p !== null);
   }, [plannings]);
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6 p-3 sm:p-6">
       <div className="flex items-center gap-3">
-        <Calendar className="h-8 w-8" />
-        <h1 className="text-3xl font-bold">Planning</h1>
+        <Calendar className="h-6 w-6 sm:h-8 sm:w-8 text-[#963E56]" />
+        <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-[#963E56]">Planning</h1>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
         <Card>
           <CardContent className="pt-4 sm:pt-6">
             <div className="flex items-center">
-              <div className="bg-muted rounded-full p-2 mr-2 sm:mr-3">
-                <Calendar className="h-4 w-4 sm:h-5 sm:w-5" />
+              <div className="bg-[#963E56]/10 rounded-full p-2 mr-2 sm:mr-3">
+                <Calendar className="h-4 w-4 sm:h-5 sm:w-5 text-[#963E56]" />
               </div>
               <div>
-                <div className="text-sm font-medium">Actieve Planningen</div>
+                <div className="text-sm font-medium text-[#963E56]">Actieve Planningen</div>
                 <div className="text-lg sm:text-2xl font-bold">{activePlannings.length}</div>
               </div>
             </div>
@@ -611,11 +611,11 @@ const Planning = () => {
         <Card>
           <CardContent className="pt-4 sm:pt-6">
             <div className="flex items-center">
-              <div className="bg-muted rounded-full p-2 mr-2 sm:mr-3">
-                <Calendar className="h-4 w-4 sm:h-5 sm:w-5" />
+              <div className="bg-[#963E56]/10 rounded-full p-2 mr-2 sm:mr-3">
+                <Calendar className="h-4 w-4 sm:h-5 sm:w-5 text-[#963E56]" />
               </div>
               <div>
-                <div className="text-sm font-medium">Toekomstige Planningen</div>
+                <div className="text-sm font-medium text-[#963E56]">Toekomstige Planningen</div>
                 <div className="text-lg sm:text-2xl font-bold">{upcomingPlannings.length}</div>
               </div>
             </div>
@@ -625,11 +625,11 @@ const Planning = () => {
         <Card>
           <CardContent className="pt-4 sm:pt-6">
             <div className="flex items-center">
-              <div className="bg-muted rounded-full p-2 mr-2 sm:mr-3">
-                <Calendar className="h-4 w-4 sm:h-5 sm:w-5" />
+              <div className="bg-[#963E56]/10 rounded-full p-2 mr-2 sm:mr-3">
+                <Calendar className="h-4 w-4 sm:h-5 sm:w-5 text-[#963E56]" />
               </div>
               <div>
-                <div className="text-sm font-medium">Afgelopen Planningen</div>
+                <div className="text-sm font-medium text-[#963E56]">Afgelopen Planningen</div>
                 <div className="text-lg sm:text-2xl font-bold">{pastPlannings.length}</div>
               </div>
             </div>
@@ -642,14 +642,14 @@ const Planning = () => {
           <DialogTrigger asChild>
             <Button onClick={() => {
               logUserAction(UserActionTypes.MODAL_OPEN, "Planning modal geopend");
-            }} className="gap-2">
+            }} className="gap-2 bg-[#963E56] hover:bg-[#963E56]/90 text-white">
               <Plus className="h-4 w-4" />
               <span>Inplannen</span>
             </Button>
           </DialogTrigger>
           <DialogContent className="max-w-[95vw] sm:max-w-[450px] p-4 sm:p-6">
             <DialogHeader className="mb-4">
-              <DialogTitle className="text-xl font-semibold">
+              <DialogTitle className="text-xl font-semibold text-[#963E56]">
                 {editingPlanning ? "Planning Bewerken" : "Planning"}
               </DialogTitle>
             </DialogHeader>
@@ -673,11 +673,11 @@ const Planning = () => {
       <div className="space-y-4 sm:space-y-6">
         <PlanningSection
           title="Actieve Planningen"
-          icon={<Calendar className="h-5 w-5" />}
+          icon={<Calendar className="h-5 w-5 text-[#963E56]" />}
           defaultOpen={true}
         >
-          <div className="mb-4 p-4 rounded-lg border bg-muted/5">
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <div className="mb-4 p-4 rounded-lg border border-muted bg-muted/5">
+            <div className="flex items-center gap-2 text-sm text-[#963E56]">
               <Calendar className="h-4 w-4" />
               <span>Planningen voor vandaag</span>
             </div>
@@ -697,11 +697,11 @@ const Planning = () => {
 
         <PlanningSection
           title="Toekomstige Planningen"
-          icon={<Calendar className="h-5 w-5" />}
+          icon={<Calendar className="h-5 w-5 text-[#963E56]" />}
           defaultOpen={true}
         >
-          <div className="mb-4 p-4 rounded-lg border bg-muted/5">
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <div className="mb-4 p-4 rounded-lg border border-muted bg-muted/5">
+            <div className="flex items-center gap-2 text-sm text-[#963E56]">
               <Calendar className="h-4 w-4" />
               <span>Geplande toekomstige activiteiten</span>
             </div>
@@ -721,11 +721,11 @@ const Planning = () => {
 
         <PlanningSection
           title="Afgelopen Planningen"
-          icon={<Calendar className="h-5 w-5" />}
+          icon={<Calendar className="h-5 w-5 text-[#963E56]" />}
           defaultOpen={false}
         >
-          <div className="mb-4 p-4 rounded-lg border bg-muted/5">
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <div className="mb-4 p-4 rounded-lg border border-muted bg-muted/5">
+            <div className="flex items-center gap-2 text-sm text-[#963E56]">
               <Calendar className="h-4 w-4" />
               <span>Historisch overzicht van afgelopen planningen</span>
             </div>
