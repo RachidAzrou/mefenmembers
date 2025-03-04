@@ -347,19 +347,32 @@ const PlanningTable = ({
     </div>
   );
 };
-const PlanningSection = ({ title, icon, defaultOpen, children }: {
+const PlanningSection = ({ title, icon, defaultOpen, children, variant = "default" }: {
   title: string;
   icon: React.ReactNode;
   defaultOpen: boolean;
   children: React.ReactNode;
+  variant?: "active" | "upcoming" | "past" | "default";
 }) => {
   const [isEditing, setIsEditing] = useState(false);
+
+  const variantStyles = {
+    active: "border-green-500/20 bg-green-50/50",
+    upcoming: "border-blue-500/20 bg-blue-50/50",
+    past: "border-gray-200 bg-gray-50/50",
+    default: "border-border bg-background"
+  };
+
   return (
     <CollapsibleSection
       title={title}
       icon={icon}
       defaultOpen={defaultOpen}
       titleClassName="text-[#963E56]"
+      className={cn(
+        "rounded-lg border",
+        variantStyles[variant]
+      )}
       action={
         <Button
           variant="ghost"
@@ -649,6 +662,7 @@ const Planning = () => {
         <Calendar className="h-6 w-6 sm:h-8 sm:w-8 text-[#963E56]" />
         <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-[#963E56]">Planning</h1>
       </div>
+
       <CollapsibleSection
         title="Planning Overzicht"
         icon={<Calendar className="h-5 w-5" />}
@@ -656,41 +670,43 @@ const Planning = () => {
         titleClassName="text-[#963E56]"
       >
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
-          <Card>
+          <Card className="bg-green-50/50 border-green-500/20">
             <CardContent className="pt-4 sm:pt-6">
               <div className="flex items-center">
-                <div className="bg-[#963E56]/10 rounded-full p-2 mr-2 sm:mr-3">
-                  <Calendar className="h-4 w-4 sm:h-5 sm:w-5 text-[#963E56]" />
+                <div className="bg-green-500/10 rounded-full p-2 mr-2 sm:mr-3">
+                  <Calendar className="h-4 w-4 sm:h-5 sm:w-5 text-green-600" />
                 </div>
                 <div>
-                  <div className="text-sm font-medium">Actieve Planningen</div>
-                  <div className="text-lg sm:text-2xl font-bold">{activePlannings.length}</div>
+                  <div className="text-sm font-medium text-green-700">Actieve Planningen</div>
+                  <div className="text-lg sm:text-2xl font-bold text-green-800">{activePlannings.length}</div>
                 </div>
               </div>
             </CardContent>
           </Card>
-          <Card>
+
+          <Card className="bg-blue-50/50 border-blue-500/20">
             <CardContent className="pt-4 sm:pt-6">
               <div className="flex items-center">
-                <div className="bg-[#963E56]/10 rounded-full p-2 mr-2 sm:mr-3">
-                  <Calendar className="h-4 w-4 sm:h-5 sm:w-5 text-[#963E56]" />
+                <div className="bg-blue-500/10 rounded-full p-2 mr-2 sm:mr-3">
+                  <Calendar className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600" />
                 </div>
                 <div>
-                  <div className="text-sm font-medium">Toekomstige Planningen</div>
-                  <div className="text-lg sm:text-2xl font-bold">{upcomingPlannings.length}</div>
+                  <div className="text-sm font-medium text-blue-700">Toekomstige Planningen</div>
+                  <div className="text-lg sm:text-2xl font-bold text-blue-800">{upcomingPlannings.length}</div>
                 </div>
               </div>
             </CardContent>
           </Card>
-          <Card>
+
+          <Card className="bg-gray-50 border-gray-200">
             <CardContent className="pt-4 sm:pt-6">
               <div className="flex items-center">
-                <div className="bg-[#963E56]/10 rounded-full p-2 mr-2 sm:mr-3">
-                  <Calendar className="h-4 w-4 sm:h-5 sm:w-5 text-[#963E56]" />
+                <div className="bg-gray-200 rounded-full p-2 mr-2 sm:mr-3">
+                  <Calendar className="h-4 w-4 sm:h-5 sm:w-5 text-gray-600" />
                 </div>
                 <div>
-                  <div className="text-sm font-medium">Afgelopen Planningen</div>
-                  <div className="text-lg sm:text-2xl font-bold">{pastPlannings.length}</div>
+                  <div className="text-sm font-medium text-gray-600">Afgelopen Planningen</div>
+                  <div className="text-lg sm:text-2xl font-bold text-gray-700">{pastPlannings.length}</div>
                 </div>
               </div>
             </CardContent>
@@ -729,12 +745,20 @@ const Planning = () => {
           </Dialog>
         </div>
       </CollapsibleSection>
-      <div className="space-y-4 sm:space-y-6 bg-background rounded-lg border p-3 sm:p-6">
+
+      <div className="space-y-4 sm:space-y-6">
         <PlanningSection
           title="Actieve Planningen"
           icon={<Calendar className="h-5 w-5" />}
           defaultOpen={true}
+          variant="active"
         >
+          <div className="mb-4 p-4 bg-white/50 rounded-lg border border-green-500/20">
+            <div className="flex items-center gap-2 text-sm text-green-700">
+              <Calendar className="h-4 w-4" />
+              <span>Planningen voor vandaag</span>
+            </div>
+          </div>
           <PlanningTable
             plannings={activePlannings}
             emptyMessage="Er zijn geen actieve planningen voor vandaag"
@@ -747,11 +771,19 @@ const Planning = () => {
             showActions={true}
           />
         </PlanningSection>
+
         <PlanningSection
           title="Toekomstige Planningen"
           icon={<Calendar className="h-5 w-5" />}
           defaultOpen={true}
+          variant="upcoming"
         >
+          <div className="mb-4 p-4 bg-white/50 rounded-lg border border-blue-500/20">
+            <div className="flex items-center gap-2 text-sm text-blue-700">
+              <Calendar className="h-4 w-4" />
+              <span>Geplande toekomstige activiteiten</span>
+            </div>
+          </div>
           <PlanningTable
             plannings={upcomingPlannings}
             emptyMessage="Geen toekomstige planningen gevonden"
@@ -764,11 +796,19 @@ const Planning = () => {
             showActions={true}
           />
         </PlanningSection>
+
         <PlanningSection
           title="Afgelopen Planningen"
           icon={<Calendar className="h-5 w-5" />}
           defaultOpen={false}
+          variant="past"
         >
+          <div className="mb-4 p-4 bg-white/50 rounded-lg border border-gray-200">
+            <div className="flex items-center gap-2 text-sm text-gray-600">
+              <Calendar className="h-4 w-4" />
+              <span>Historisch overzicht van afgelopen planningen</span>
+            </div>
+          </div>
           <PlanningTable
             plannings={pastPlannings}
             emptyMessage="Geen afgelopen planningen gevonden"
