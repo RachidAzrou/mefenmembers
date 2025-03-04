@@ -126,8 +126,8 @@ export default function SufufPage() {
                 </CardTitle>
                 <div className={`
                   relative w-10 h-10 rounded-full flex items-center justify-center
-                  ${room.status === 'green' ? 'bg-green-500 shadow-lg shadow-green-500/50' :
-                    room.status === 'red' ? 'bg-red-500 shadow-lg shadow-red-500/50' :
+                  ${room.status === 'green' ? 'bg-green-500' :
+                    room.status === 'red' ? 'bg-red-500' :
                     'bg-gray-300'
                   }
                 `}>
