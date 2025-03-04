@@ -10,7 +10,7 @@ import { CollapsibleSection } from "@/components/ui/collapsible-section";
 import { useRole } from "@/hooks/use-role";
 import { cn } from "@/lib/utils";
 import { db } from "@/lib/firebase";
-import { ref, onValue, remove, push, get } from "firebase/database";
+import { ref, onValue, remove, push, get, update } from "firebase/database";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { PlanningForm } from "@/components/planning/planning-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -514,19 +514,18 @@ const Planning = () => {
           }
         }
       } else {
-        if (data.isResponsible) {
-          const roomPlannings = plannings.filter(
-            p => p.roomId === data.roomId && p.isResponsible
-          );
-          if (roomPlannings.length > 0) {
-            for (const planning of roomPlannings) {
-              await remove(ref(db, `plannings/${planning.id}`));
-            }
-          }
-        }
         if (data.volunteerId && checkForDuplicates(data.volunteerId, planningData.startDate, planningData.endDate)) {
           const volunteer = volunteers.find(v => v.id === data.volunteerId);
           throw new Error(`${volunteer?.firstName} ${volunteer?.lastName} is al ingepland op deze datum(s)`);
+        }
+        if (data.isResponsible) {
+          const existingResponsible = plannings.find(
+            p => p.roomId === data.roomId && p.isResponsible
+          );
+          if (existingResponsible) {
+            const prevRef = ref(db, `plannings/${existingResponsible.id}`);
+            await update(prevRef, { isResponsible: false });
+          }
         }
         const result = await push(ref(db, "plannings"), {
           volunteerId: data.volunteerId,
@@ -724,6 +723,7 @@ const Planning = () => {
                 }}
                 form={form}
                 editingPlanning={editingPlanning}
+                plannings={plannings}
               />
             </DialogContent>
           </Dialog>

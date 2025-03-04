@@ -276,10 +276,7 @@ export function WeekView() {
                                 <div className="font-medium text-[#963E56]/90 overflow-hidden whitespace-nowrap flex items-center gap-1">
                                   <span>{name}</span>
                                   {planning.isResponsible && (
-                                    <div className="flex items-center gap-0.5 text-[10px] rounded-full px-1.5 py-0.5 bg-[#963E56]/10 text-[#963E56]">
-                                      <UserCircle2 className="w-2.5 h-2.5" />
-                                      <span className="hidden sm:inline">Verantwoordelijk</span>
-                                    </div>
+                                    <UserCircle2 className="w-3 h-3 text-[#963E56]" />
                                   )}
                                 </div>
                               </div>

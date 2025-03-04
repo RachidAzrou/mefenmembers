@@ -14,6 +14,16 @@ import { cn } from "@/lib/utils";
 import { z } from "zod";
 import { UseFormReturn } from "react-hook-form";
 import { useToast } from "@/hooks/use-toast";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 const planningSchema = z.object({
   volunteerId: z.string().min(1, "Vrijwilliger is verplicht").optional(),
@@ -33,6 +43,7 @@ interface PlanningFormProps {
   onClose: () => void;
   form: UseFormReturn<z.infer<typeof planningSchema>>;
   editingPlanning: any | null;
+  plannings: any[];
 }
 
 export function PlanningForm({
@@ -41,32 +52,50 @@ export function PlanningForm({
   onSubmit,
   onClose,
   form,
-  editingPlanning
+  editingPlanning,
+  plannings
 }: PlanningFormProps) {
   const { toast } = useToast();
   const isBulkPlanning = form.watch("isBulkPlanning");
   const [searchTerm, setSearchTerm] = useState("");
   const [searchTermBulk, setSearchTermBulk] = useState("");
   const selectedRoomId = form.watch("roomId");
+  const isResponsible = form.watch("isResponsible");
+  const [showResponsibleAlert, setShowResponsibleAlert] = useState(false);
+  const [currentResponsible, setCurrentResponsible] = useState<any>(null);
 
-  // Check if room already has a responsible person
   useEffect(() => {
-    if (selectedRoomId) {
-      const room = rooms.find(r => r.id === selectedRoomId);
-      if (room?.responsible && form.getValues("isResponsible")) {
-        toast({
-          variant: "destructive",
-          title: "Fout",
-          description: "Deze ruimte heeft al een verantwoordelijke"
-        });
-        form.setValue("isResponsible", false);
+    if (selectedRoomId && isResponsible) {
+      const currentResponsiblePlanning = plannings.find(
+        p => p.roomId === selectedRoomId && p.isResponsible
+      );
+
+      if (currentResponsiblePlanning) {
+        const responsible = volunteers.find(v => v.id === currentResponsiblePlanning.volunteerId);
+        if (responsible) {
+          setCurrentResponsible(responsible);
+          setShowResponsibleAlert(true);
+          return;
+        }
       }
     }
-  }, [selectedRoomId, form, rooms, toast]);
+  }, [selectedRoomId, isResponsible, plannings, volunteers]);
+
+  const handleFormSubmit = async (data: z.infer<typeof planningSchema>) => {
+    try {
+      await onSubmit(data);
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Fout",
+        description: error.message
+      });
+    }
+  };
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+      <form onSubmit={form.handleSubmit(handleFormSubmit)} className="space-y-4">
         {!editingPlanning && (
           <div className="flex items-center space-x-2 pb-4 mb-4 border-b border-border">
             <Switch
@@ -202,9 +231,7 @@ export function PlanningForm({
                     onValueChange={(value) => {
                       // Check if room already has a responsible volunteer
                       const room = rooms.find(r => r.id === value);
-                      if (room?.responsible) {
-                        form.setValue("isResponsible", false);
-                      }
+                      
                       field.onChange(value);
                     }}
                   >
@@ -454,12 +481,6 @@ export function PlanningForm({
                         if (date) {
                           const utcDate = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
                           const dateStr = format(utcDate, 'yyyy-MM-dd');
-                          console.log('Selected date:', {
-                            original: date,
-                            utc: utcDate,
-                            formatted: dateStr,
-                            type: typeof dateStr
-                          });
                           field.onChange(dateStr);
                         }
                       }}
@@ -506,12 +527,6 @@ export function PlanningForm({
                         if (date) {
                           const utcDate = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
                           const dateStr = format(utcDate, 'yyyy-MM-dd');
-                          console.log('Selected date:', {
-                            original: date,
-                            utc: utcDate,
-                            formatted: dateStr,
-                            type: typeof dateStr
-                          });
                           field.onChange(dateStr);
                         }
                       }}
@@ -530,6 +545,36 @@ export function PlanningForm({
             )}
           />
         </div>
+
+        <AlertDialog open={showResponsibleAlert} onOpenChange={setShowResponsibleAlert}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Verantwoordelijke wijzigen</AlertDialogTitle>
+              <AlertDialogDescription>
+                {currentResponsible && (
+                  <>
+                    Deze ruimte heeft al een verantwoordelijke: 
+                    <span className="font-medium text-[#963E56]">
+                      {` ${currentResponsible.firstName} ${currentResponsible.lastName}`}
+                    </span>
+                    . Wil je deze vervangen?
+                  </>
+                )}
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel onClick={() => {
+                form.setValue("isResponsible", false);
+                setShowResponsibleAlert(false);
+              }}>
+                Annuleren
+              </AlertDialogCancel>
+              <AlertDialogAction onClick={() => setShowResponsibleAlert(false)}>
+                Doorgaan
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
 
         <div className="flex justify-end gap-3 pt-6">
           <Button
