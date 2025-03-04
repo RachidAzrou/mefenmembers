@@ -1,30 +1,16 @@
 import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Check, X, User, House, ChevronDown, CircleCheck, CircleX, UserCircle2, UserPlus } from "lucide-react";
+import { House, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useSocket } from "@/hooks/use-socket";
 import { FaPray } from "react-icons/fa";
 import { PiUsersThree } from "react-icons/pi";
 
-type Responsible = {
-  id: string;
-  name: string;
-  color: string;
-};
-
 type Room = {
   id: string;
   title: string;
   status: 'green' | 'red' | 'grey';
-  responsible?: Responsible;
 };
-
-// Voorbeelddata voor verantwoordelijken
-const responsibles: Responsible[] = [
-  { id: '1', name: 'Ahmed', color: '#4CAF50' },
-  { id: '2', name: 'Yusuf', color: '#2196F3' },
-  { id: '3', name: 'Ibrahim', color: '#9C27B0' },
-];
 
 const HadiethCard = () => (
   <Card className="bg-gradient-to-br from-[#963E56]/5 to-transparent border border-[#963E56]/10">
@@ -41,49 +27,12 @@ const HadiethCard = () => (
   </Card>
 );
 
-const ResponsibleBadge = ({ responsible }: { responsible?: Responsible }) => {
-  if (!responsible) return null;
-  return (
-    <div
-      className="absolute top-2 right-2 flex items-center gap-2 px-2.5 py-1 rounded-full text-xs font-medium bg-white/90 backdrop-blur-sm shadow-sm border"
-      style={{ borderColor: `${responsible.color}40`, color: responsible.color }}
-    >
-      <UserCircle2 className="w-4 h-4" />
-      <span>{responsible.name}</span>
-    </div>
-  );
-};
-
-const ResponsibleSelector = ({ room, onSelect }: { room: Room; onSelect: (responsible: Responsible | undefined) => void }) => {
-  return (
-    <div className="mt-4 flex items-center gap-2">
-      <UserPlus className="w-4 h-4 text-gray-500" />
-      <select
-        className="flex-1 rounded-md border border-gray-200 bg-white px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-[#963E56]"
-        value={room.responsible?.id || ""}
-        onChange={(e) => {
-          const selectedId = e.target.value;
-          const responsible = responsibles.find(r => r.id === selectedId);
-          onSelect(responsible);
-        }}
-      >
-        <option value="">Selecteer verantwoordelijke</option>
-        {responsibles.map(person => (
-          <option key={person.id} value={person.id}>
-            {person.name}
-          </option>
-        ))}
-      </select>
-    </div>
-  );
-};
-
 export default function SufufPage() {
   const { socket, connected } = useSocket();
   const [rooms, setRooms] = useState<Record<string, Room>>({
-    'beneden': { id: 'beneden', title: 'Moskee +0', status: 'grey', responsible: responsibles[0] },
-    'first-floor': { id: 'first-floor', title: 'Moskee +1', status: 'grey', responsible: responsibles[1] },
-    'garage': { id: 'garage', title: 'Garage', status: 'grey', responsible: responsibles[2] }
+    'beneden': { id: 'beneden', title: 'Moskee +0', status: 'grey' },
+    'first-floor': { id: 'first-floor', title: 'Moskee +1', status: 'grey' },
+    'garage': { id: 'garage', title: 'Garage', status: 'grey' }
   });
   const [selectedRoom, setSelectedRoom] = useState<string | null>(null);
   const [okChecked, setOkChecked] = useState(false);
@@ -151,16 +100,6 @@ export default function SufufPage() {
     socket.send(JSON.stringify(message));
   };
 
-  const assignResponsible = (roomId: string, responsible: Responsible | undefined) => {
-    setRooms(prev => ({
-      ...prev,
-      [roomId]: {
-        ...prev[roomId],
-        responsible
-      }
-    }));
-  };
-
   return (
     <div className="container mx-auto px-4 py-6 space-y-6">
       <div className="flex items-center gap-4">
@@ -179,8 +118,7 @@ export default function SufufPage() {
         </h2>
         <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
           {Object.values(rooms).map((room) => (
-            <Card key={room.id} className="overflow-hidden relative">
-              <ResponsibleBadge responsible={room.responsible} />
+            <Card key={room.id} className="overflow-hidden">
               <CardHeader className="p-6 pb-4 flex flex-row items-center justify-between space-y-0">
                 <CardTitle className="flex items-center gap-3 text-lg font-semibold text-[#963E56]">
                   <House className="h-5 w-5" />
@@ -193,8 +131,8 @@ export default function SufufPage() {
                     'bg-gray-300'
                   }
                 `}>
-                  {room.status === 'green' && <Check className="w-6 h-6 text-white" />}
-                  {room.status === 'red' && <X className="w-6 h-6 text-white" />}
+                  {room.status === 'green' && <div className="w-6 h-6 text-white">✓</div>}
+                  {room.status === 'red' && <div className="w-6 h-6 text-white">✗</div>}
                 </div>
               </CardHeader>
               <CardContent className="p-6 pt-2">
@@ -207,10 +145,6 @@ export default function SufufPage() {
                     }`}
                   />
                 </div>
-                <ResponsibleSelector 
-                  room={room} 
-                  onSelect={(responsible) => assignResponsible(room.id, responsible)} 
-                />
               </CardContent>
             </Card>
           ))}
@@ -224,7 +158,6 @@ export default function SufufPage() {
           onClick={() => setIsVolunteerSectionOpen(!isVolunteerSectionOpen)}
         >
           <div className="flex items-center gap-2">
-            <User className="h-5 w-5" />
             <span>Vrijwilliger Dashboard</span>
           </div>
           <ChevronDown className={`h-5 w-5 transition-transform duration-200 ${isVolunteerSectionOpen ? 'transform rotate-180' : ''}`} />
@@ -241,7 +174,6 @@ export default function SufufPage() {
                 `}
                 onClick={() => setSelectedRoom(room.id)}
               >
-                <ResponsibleBadge responsible={room.responsible} />
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-3">
@@ -259,7 +191,6 @@ export default function SufufPage() {
                         onClick={handleOkChange}
                       >
                         <div className="flex items-center gap-3">
-                          <CircleCheck className={`w-5 h-5 ${okChecked ? 'text-green-500' : 'text-gray-300'}`} />
                           <span className="font-medium">Rijen in orde</span>
                         </div>
                       </Button>
@@ -272,7 +203,6 @@ export default function SufufPage() {
                         onClick={handleNokChange}
                       >
                         <div className="flex items-center gap-3">
-                          <CircleX className={`w-5 h-5 ${nokChecked ? 'text-red-500' : 'text-gray-300'}`} />
                           <span className="font-medium">Rijen niet in orde</span>
                         </div>
                       </Button>
