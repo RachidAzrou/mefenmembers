@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Calendar, Search, Plus, Settings2, Trash2, Edit2, ChevronRight, UserCircle2, House } from "lucide-react";
-import { format, parseISO, startOfDay, endOfDay, startOfWeek, isBefore, isAfter } from "date-fns";
+import { format, parseISO, startOfDay, endOfDay, startOfWeek } from "date-fns";
 import { nl } from "date-fns/locale";
 import { Card, CardContent } from "@/components/ui/card";
 import { CollapsibleSection } from "@/components/ui/collapsible-section";
@@ -60,10 +60,10 @@ const PlanningTable = ({
   onSearchChange: (value: string) => void;
   showActions?: boolean;
 }) => {
-  const [dateFilter, setDateFilter] = useState<Date | undefined>();
+  const [dateFilter, setDateFilter] = useState(undefined);
   const [sortByDate, setSortByDate] = useState(false);
-  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
-  const [expandedRooms, setExpandedRooms] = useState<Record<string, boolean>>({});
+  const [sortDirection, setSortDirection] = useState('asc');
+  const [expandedRooms, setExpandedRooms] = useState({});
 
   const planningsByRoom = plannings.reduce((acc, planning) => {
     const room = rooms.find(r => r.id === planning.roomId);
@@ -132,17 +132,17 @@ const PlanningTable = ({
   return (
     <div className="space-y-4">
       {showActions && (
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center mb-6">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
-            <Input
-              placeholder="Zoek op vrijwilliger of ruimte..."
-              value={searchValue}
-              onChange={(e) => onSearchChange(e.target.value)}
-              className="pl-9"
-            />
-          </div>
-          <div className="flex gap-2">
+        <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
+          <div className="flex flex-col sm:flex-row gap-4 flex-1 w-full">
+            <div className="relative flex-1 w-full">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Zoek op vrijwilliger of ruimte..."
+                value={searchValue}
+                onChange={(e) => onSearchChange(e.target.value)}
+                className="pl-9 w-full"
+              />
+            </div>
             <Button
               variant="outline"
               onClick={() => {
@@ -151,7 +151,7 @@ const PlanningTable = ({
                   setSortDirection(prev => prev === 'asc' ? 'desc' : 'asc');
                 }
               }}
-              className={cn("gap-2", sortByDate && "bg-accent/5 text-accent-foreground")}
+              className={cn("gap-2", sortByDate && "bg-accent/5")}
             >
               <Calendar className="h-4 w-4" />
               <span>Sorteren op datum</span>
@@ -226,10 +226,7 @@ const PlanningTable = ({
                                 {volunteer ? `${volunteer.firstName} ${volunteer.lastName}` : "-"}
                               </span>
                               {planning.isResponsible && (
-                                <span className="inline-flex items-center gap-1 text-xs rounded-full px-2 py-0.5 bg-accent/10">
-                                  <UserCircle2 className="w-3 h-3" />
-                                  <span>Verantwoordelijk</span>
-                                </span>
+                                <UserCircle2 className="w-4 h-4" />
                               )}
                             </div>
                             <div className="flex items-center gap-3 text-sm text-muted-foreground">
@@ -305,8 +302,7 @@ const PlanningSection = ({ title, icon, defaultOpen, children }: {
       title={title}
       icon={icon}
       defaultOpen={defaultOpen}
-      titleClassName="text-accent-foreground"
-      className="rounded-lg border border-border bg-background"
+      className="rounded-lg border bg-card"
       action={
         <Button
           variant="ghost"
@@ -316,8 +312,8 @@ const PlanningSection = ({ title, icon, defaultOpen, children }: {
             setIsEditing(!isEditing);
           }}
           className={cn(
-            "h-8 w-8 text-accent-foreground",
-            isEditing && "bg-accent/10"
+            "h-8 w-8",
+            isEditing && "bg-accent/5"
           )}
         >
           <Settings2 className="h-5 w-5" />
@@ -326,7 +322,7 @@ const PlanningSection = ({ title, icon, defaultOpen, children }: {
     >
       {React.Children.map(children, child => {
         if (React.isValidElement(child)) {
-          return React.cloneElement(child as React.ReactElement, {
+          return React.cloneElement(child, {
             showActions: isEditing
           });
         }
@@ -591,94 +587,88 @@ const Planning = () => {
     }).filter((p): p is Planning => p !== null);
   }, [plannings]);
   return (
-    <div className="space-y-4 sm:space-y-6 p-3 sm:p-6">
+    <div className="space-y-6">
       <div className="flex items-center gap-3">
-        <Calendar className="h-6 w-6 sm:h-8 sm:w-8 text-accent-foreground" />
-        <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-accent-foreground">Planning</h1>
+        <Calendar className="h-8 w-8" />
+        <h1 className="text-3xl font-bold">Planning</h1>
       </div>
 
-      <CollapsibleSection
-        title="Planning Overzicht"
-        icon={<Calendar className="h-5 w-5" />}
-        defaultOpen={true}
-        titleClassName="text-accent-foreground"
-      >
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
-          <Card className="bg-green-50/50 border-green-500/20">
-            <CardContent className="pt-4 sm:pt-6">
-              <div className="flex items-center">
-                <div className="bg-green-500/10 rounded-full p-2 mr-2 sm:mr-3">
-                  <Calendar className="h-4 w-4 sm:h-5 sm:w-5 text-green-600" />
-                </div>
-                <div>
-                  <div className="text-sm font-medium text-green-700">Actieve Planningen</div>
-                  <div className="text-lg sm:text-2xl font-bold text-green-800">{activePlannings.length}</div>
-                </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+        <Card>
+          <CardContent className="pt-4 sm:pt-6">
+            <div className="flex items-center">
+              <div className="bg-muted rounded-full p-2 mr-2 sm:mr-3">
+                <Calendar className="h-4 w-4 sm:h-5 sm:w-5" />
               </div>
-            </CardContent>
-          </Card>
+              <div>
+                <div className="text-sm font-medium">Actieve Planningen</div>
+                <div className="text-lg sm:text-2xl font-bold">{activePlannings.length}</div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
-          <Card className="bg-blue-50/50 border-blue-500/20">
-            <CardContent className="pt-4 sm:pt-6">
-              <div className="flex items-center">
-                <div className="bg-blue-500/10 rounded-full p-2 mr-2 sm:mr-3">
-                  <Calendar className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600" />
-                </div>
-                <div>
-                  <div className="text-sm font-medium text-blue-700">Toekomstige Planningen</div>
-                  <div className="text-lg sm:text-2xl font-bold text-blue-800">{upcomingPlannings.length}</div>
-                </div>
+        <Card>
+          <CardContent className="pt-4 sm:pt-6">
+            <div className="flex items-center">
+              <div className="bg-muted rounded-full p-2 mr-2 sm:mr-3">
+                <Calendar className="h-4 w-4 sm:h-5 sm:w-5" />
               </div>
-            </CardContent>
-          </Card>
+              <div>
+                <div className="text-sm font-medium">Toekomstige Planningen</div>
+                <div className="text-lg sm:text-2xl font-bold">{upcomingPlannings.length}</div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
-          <Card className="bg-gray-50 border-gray-200">
-            <CardContent className="pt-4 sm:pt-6">
-              <div className="flex items-center">
-                <div className="bg-gray-200 rounded-full p-2 mr-2 sm:mr-3">
-                  <Calendar className="h-4 w-4 sm:h-5 sm:w-5 text-gray-600" />
-                </div>
-                <div>
-                  <div className="text-sm font-medium text-gray-600">Afgelopen Planningen</div>
-                  <div className="text-lg sm:text-2xl font-bold text-gray-700">{pastPlannings.length}</div>
-                </div>
+        <Card>
+          <CardContent className="pt-4 sm:pt-6">
+            <div className="flex items-center">
+              <div className="bg-muted rounded-full p-2 mr-2 sm:mr-3">
+                <Calendar className="h-4 w-4 sm:h-5 sm:w-5" />
               </div>
-            </CardContent>
-          </Card>
-        </div>
-        <div className="mt-4 sm:mt-6 flex justify-end">
-          <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-            <DialogTrigger asChild>
-              <Button onClick={() => {
-                logUserAction(UserActionTypes.MODAL_OPEN, "Planning modal geopend");
-              }} className="w-full sm:w-auto gap-2 bg-accent hover:bg-accent/90">
-                <Plus className="h-4 w-4" />
-                <span>Inplannen</span>
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-[95vw] sm:max-w-[450px] p-4 sm:p-6 bg-white border-none shadow-lg mx-4">
-              <DialogHeader className="mb-4">
-                <DialogTitle className="text-xl font-semibold text-accent-foreground">
-                  {editingPlanning ? "Planning Bewerken" : "Planning"}
-                </DialogTitle>
-              </DialogHeader>
-              <PlanningForm
-                volunteers={volunteers}
-                rooms={rooms}
-                onSubmit={onSubmit}
-                onClose={() => {
-                  setDialogOpen(false);
-                  setEditingPlanning(null);
-                  form.reset();
-                }}
-                form={form}
-                editingPlanning={editingPlanning}
-                plannings={plannings}
-              />
-            </DialogContent>
-          </Dialog>
-        </div>
-      </CollapsibleSection>
+              <div>
+                <div className="text-sm font-medium">Afgelopen Planningen</div>
+                <div className="text-lg sm:text-2xl font-bold">{pastPlannings.length}</div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="mt-4 sm:mt-6 flex justify-end">
+        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+          <DialogTrigger asChild>
+            <Button onClick={() => {
+              logUserAction(UserActionTypes.MODAL_OPEN, "Planning modal geopend");
+            }} className="gap-2">
+              <Plus className="h-4 w-4" />
+              <span>Inplannen</span>
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="max-w-[95vw] sm:max-w-[450px] p-4 sm:p-6">
+            <DialogHeader className="mb-4">
+              <DialogTitle className="text-xl font-semibold">
+                {editingPlanning ? "Planning Bewerken" : "Planning"}
+              </DialogTitle>
+            </DialogHeader>
+            <PlanningForm
+              volunteers={volunteers}
+              rooms={rooms}
+              onSubmit={onSubmit}
+              onClose={() => {
+                setDialogOpen(false);
+                setEditingPlanning(null);
+                form.reset();
+              }}
+              form={form}
+              editingPlanning={editingPlanning}
+              plannings={plannings}
+            />
+          </DialogContent>
+        </Dialog>
+      </div>
 
       <div className="space-y-4 sm:space-y-6">
         <PlanningSection
@@ -686,8 +676,8 @@ const Planning = () => {
           icon={<Calendar className="h-5 w-5" />}
           defaultOpen={true}
         >
-          <div className="mb-4 p-4 bg-white/50 rounded-lg border border-green-500/20">
-            <div className="flex items-center gap-2 text-sm text-green-700">
+          <div className="mb-4 p-4 rounded-lg border bg-muted/5">
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <Calendar className="h-4 w-4" />
               <span>Planningen voor vandaag</span>
             </div>
@@ -710,8 +700,8 @@ const Planning = () => {
           icon={<Calendar className="h-5 w-5" />}
           defaultOpen={true}
         >
-          <div className="mb-4 p-4 bg-white/50 rounded-lg border border-blue-500/20">
-            <div className="flex items-center gap-2 text-sm text-blue-700">
+          <div className="mb-4 p-4 rounded-lg border bg-muted/5">
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <Calendar className="h-4 w-4" />
               <span>Geplande toekomstige activiteiten</span>
             </div>
@@ -734,8 +724,8 @@ const Planning = () => {
           icon={<Calendar className="h-5 w-5" />}
           defaultOpen={false}
         >
-          <div className="mb-4 p-4 bg-white/50 rounded-lg border border-gray-200">
-            <div className="flex items-center gap-2 text-sm text-gray-600">
+          <div className="mb-4 p-4 rounded-lg border bg-muted/5">
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <Calendar className="h-4 w-4" />
               <span>Historisch overzicht van afgelopen planningen</span>
             </div>
