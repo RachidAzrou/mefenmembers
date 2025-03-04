@@ -36,4 +36,47 @@
     background-color: rgba(255, 255, 255, 0.95) !important;
     transition: all 0.2s ease-in-out;
   }
+
+  /* Switch styling */
+  .switch-container {
+    position: relative;
+    display: inline-block;
+  }
+
+  .switch-checkbox {
+    display: none;
+  }
+
+  .switch {
+    width: 60px;
+    height: 30px;
+    background-color: #ddd;
+    border-radius: 15px;
+    position: relative;
+    cursor: pointer;
+    transition: background-color 0.3s;
+  }
+
+  .switch-handle {
+    width: 26px;
+    height: 26px;
+    background-color: white;
+    border-radius: 50%;
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    transition: transform 0.3s;
+  }
+
+  .switch.switch-on {
+    background-color: #4CAF50;
+  }
+
+  .switch.switch-on .switch-handle {
+    transform: translateX(30px);
+  }
+
+  .switch.switch-on.nok {
+    background-color: #f44336;
+  }
 }

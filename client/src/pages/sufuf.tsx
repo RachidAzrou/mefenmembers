@@ -70,8 +70,6 @@ export default function SufufPage() {
 
   useEffect(() => {
     if (!socket || !selectedRoom) return;
-
-    // Reset toggles when room changes
     setOkChecked(rooms[selectedRoom].status === 'green');
     setNokChecked(rooms[selectedRoom].status === 'red');
   }, [selectedRoom, rooms]);
@@ -183,48 +181,38 @@ export default function SufufPage() {
                   </div>
                   {selectedRoom === room.id && (
                     <div className="space-y-4">
-                      <div className="flex items-center justify-between p-3 bg-white rounded-lg shadow-sm border border-gray-100">
+                      <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
                           <span className="font-medium text-[#963E56]">OK</span>
                         </div>
-                        <label className="relative inline-block w-12 h-6">
+                        <div className="switch-container">
                           <input
                             type="checkbox"
-                            className="opacity-0 w-0 h-0"
                             checked={okChecked}
                             onChange={handleOkChange}
+                            className="switch-checkbox"
                           />
-                          <span className={`
-                            absolute cursor-pointer inset-0 rounded-full transition-all duration-300
-                            ${okChecked ? 'bg-green-500' : 'bg-gray-200'}
-                          `} />
-                          <span className={`
-                            absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-transform duration-300
-                            ${okChecked ? 'transform translate-x-6' : ''}
-                          `} />
-                        </label>
+                          <div className={`switch ${okChecked ? 'switch-on' : ''}`}>
+                            <div className="switch-handle"></div>
+                          </div>
+                        </div>
                       </div>
 
-                      <div className="flex items-center justify-between p-3 bg-white rounded-lg shadow-sm border border-gray-100">
+                      <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
                           <span className="font-medium text-[#963E56]">NOK</span>
                         </div>
-                        <label className="relative inline-block w-12 h-6">
+                        <div className="switch-container">
                           <input
                             type="checkbox"
-                            className="opacity-0 w-0 h-0"
                             checked={nokChecked}
                             onChange={handleNokChange}
+                            className="switch-checkbox"
                           />
-                          <span className={`
-                            absolute cursor-pointer inset-0 rounded-full transition-all duration-300
-                            ${nokChecked ? 'bg-red-500' : 'bg-gray-200'}
-                          `} />
-                          <span className={`
-                            absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-transform duration-300
-                            ${nokChecked ? 'transform translate-x-6' : ''}
-                          `} />
-                        </label>
+                          <div className={`switch ${nokChecked ? 'switch-on nok' : ''}`}>
+                            <div className="switch-handle"></div>
+                          </div>
+                        </div>
                       </div>
 
                       {(okChecked || nokChecked) && (
