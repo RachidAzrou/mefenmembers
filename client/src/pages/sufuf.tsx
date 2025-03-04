@@ -6,12 +6,7 @@ import { useSocket } from "@/hooks/use-socket";
 import { FaPray } from "react-icons/fa";
 import { PiUsersThree } from "react-icons/pi";
 
-type Room = {
-  id: string;
-  title: string;
-  status: 'green' | 'red' | 'grey';
-};
-
+// Hadieth Component - Smaller version
 const HadiethCard = () => (
   <Card className="bg-gradient-to-br from-[#963E56]/5 to-transparent border border-[#963E56]/10">
     <CardContent className="p-4">
@@ -26,6 +21,12 @@ const HadiethCard = () => (
     </CardContent>
   </Card>
 );
+
+type Room = {
+  id: string;
+  title: string;
+  status: 'green' | 'red' | 'grey';
+};
 
 export default function SufufPage() {
   const { socket } = useSocket();
@@ -74,32 +75,35 @@ export default function SufufPage() {
     setNokChecked(rooms[selectedRoom].status === 'red');
   }, [selectedRoom, rooms]);
 
-  const handleOkChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleOkChange = () => {
     if (!socket || !selectedRoom) return;
+    const newChecked = !okChecked;
 
-    if (e.target.checked) {
+    if (newChecked) {
       setNokChecked(false);
       socket.emit('updateStatus', { room: selectedRoom, status: 'OK' });
-    } else if (!nokChecked) {
+    } else {
       socket.emit('updateStatus', { room: selectedRoom, status: 'OFF' });
     }
-    setOkChecked(e.target.checked);
+    setOkChecked(newChecked);
   };
 
-  const handleNokChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleNokChange = () => {
     if (!socket || !selectedRoom) return;
+    const newChecked = !nokChecked;
 
-    if (e.target.checked) {
+    if (newChecked) {
       setOkChecked(false);
       socket.emit('updateStatus', { room: selectedRoom, status: 'NOK' });
-    } else if (!okChecked) {
+    } else {
       socket.emit('updateStatus', { room: selectedRoom, status: 'OFF' });
     }
-    setNokChecked(e.target.checked);
+    setNokChecked(newChecked);
   };
 
   return (
     <div className="container mx-auto px-4 py-6 space-y-6">
+      {/* Header */}
       <div className="flex items-center gap-4">
         <PiUsersThree className="h-8 w-8 text-[#963E56]" />
         <h1 className="text-2xl md:text-3xl font-bold text-[#963E56]">
@@ -109,6 +113,7 @@ export default function SufufPage() {
 
       <HadiethCard />
 
+      {/* Imam Dashboard */}
       <div className="space-y-4">
         <h2 className="text-xl font-semibold text-[#963E56] flex items-center gap-2">
           <FaPray className="h-5 w-5" />
@@ -149,6 +154,7 @@ export default function SufufPage() {
         </div>
       </div>
 
+      {/* Vrijwilligers Sectie */}
       <div className="space-y-4">
         <Button
           variant="ghost"
@@ -185,11 +191,11 @@ export default function SufufPage() {
                         <div className="flex items-center gap-3">
                           <span className="font-medium text-[#963E56]">OK</span>
                         </div>
-                        <div className="switch-container">
+                        <div className="switch-container" onClick={handleOkChange}>
                           <input
                             type="checkbox"
                             checked={okChecked}
-                            onChange={handleOkChange}
+                            readOnly
                             className="switch-checkbox"
                           />
                           <div className={`switch ${okChecked ? 'switch-on' : ''}`}>
@@ -202,11 +208,11 @@ export default function SufufPage() {
                         <div className="flex items-center gap-3">
                           <span className="font-medium text-[#963E56]">NOK</span>
                         </div>
-                        <div className="switch-container">
+                        <div className="switch-container" onClick={handleNokChange}>
                           <input
                             type="checkbox"
                             checked={nokChecked}
-                            onChange={handleNokChange}
+                            readOnly
                             className="switch-checkbox"
                           />
                           <div className={`switch ${nokChecked ? 'switch-on nok' : ''}`}>
