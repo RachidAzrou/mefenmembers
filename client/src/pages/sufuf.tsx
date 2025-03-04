@@ -75,7 +75,7 @@ export default function SufufPage() {
     setNokChecked(rooms[selectedRoom].status === 'red');
   }, [selectedRoom, rooms]);
 
-  const handleOkChange = () => {
+  const handleOkClick = () => {
     if (!socket || !selectedRoom) return;
     const newChecked = !okChecked;
 
@@ -88,7 +88,7 @@ export default function SufufPage() {
     setOkChecked(newChecked);
   };
 
-  const handleNokChange = () => {
+  const handleNokClick = () => {
     if (!socket || !selectedRoom) return;
     const newChecked = !nokChecked;
 
@@ -103,7 +103,6 @@ export default function SufufPage() {
 
   return (
     <div className="container mx-auto px-4 py-6 space-y-6">
-      {/* Header */}
       <div className="flex items-center gap-4">
         <PiUsersThree className="h-8 w-8 text-[#963E56]" />
         <h1 className="text-2xl md:text-3xl font-bold text-[#963E56]">
@@ -113,7 +112,6 @@ export default function SufufPage() {
 
       <HadiethCard />
 
-      {/* Imam Dashboard */}
       <div className="space-y-4">
         <h2 className="text-xl font-semibold text-[#963E56] flex items-center gap-2">
           <FaPray className="h-5 w-5" />
@@ -154,7 +152,6 @@ export default function SufufPage() {
         </div>
       </div>
 
-      {/* Vrijwilligers Sectie */}
       <div className="space-y-4">
         <Button
           variant="ghost"
@@ -187,39 +184,55 @@ export default function SufufPage() {
                   </div>
                   {selectedRoom === room.id && (
                     <div className="space-y-4">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <span className="font-medium text-[#963E56]">OK</span>
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleOkClick();
+                        }}
+                        className={`
+                          w-full relative h-[60px] rounded-lg border-2 transition-all duration-300
+                          flex items-center justify-between px-4
+                          ${okChecked ? 'bg-green-50 border-green-500' : 'border-gray-200 hover:border-green-500/50'}
+                        `}
+                      >
+                        <span className="font-medium text-[#963E56]">OK</span>
+                        <div className={`
+                          w-12 h-6 rounded-full transition-all duration-300
+                          ${okChecked ? 'bg-green-500' : 'bg-gray-200'}
+                        `}>
+                          <div className={`
+                            w-5 h-5 bg-white rounded-full transform transition-all duration-300
+                            translate-y-0.5 
+                            ${okChecked ? 'translate-x-6' : 'translate-x-0.5'}
+                          `} />
                         </div>
-                        <div className="switch-container" onClick={handleOkChange}>
-                          <input
-                            type="checkbox"
-                            checked={okChecked}
-                            readOnly
-                            className="switch-checkbox"
-                          />
-                          <div className={`switch ${okChecked ? 'switch-on' : ''}`}>
-                            <div className="switch-handle"></div>
-                          </div>
-                        </div>
-                      </div>
+                      </button>
 
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <span className="font-medium text-[#963E56]">NOK</span>
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleNokClick();
+                        }}
+                        className={`
+                          w-full relative h-[60px] rounded-lg border-2 transition-all duration-300
+                          flex items-center justify-between px-4
+                          ${nokChecked ? 'bg-red-50 border-red-500' : 'border-gray-200 hover:border-red-500/50'}
+                        `}
+                      >
+                        <span className="font-medium text-[#963E56]">NOK</span>
+                        <div className={`
+                          w-12 h-6 rounded-full transition-all duration-300
+                          ${nokChecked ? 'bg-red-500' : 'bg-gray-200'}
+                        `}>
+                          <div className={`
+                            w-5 h-5 bg-white rounded-full transform transition-all duration-300
+                            translate-y-0.5
+                            ${nokChecked ? 'translate-x-6' : 'translate-x-0.5'}
+                          `} />
                         </div>
-                        <div className="switch-container" onClick={handleNokChange}>
-                          <input
-                            type="checkbox"
-                            checked={nokChecked}
-                            readOnly
-                            className="switch-checkbox"
-                          />
-                          <div className={`switch ${nokChecked ? 'switch-on nok' : ''}`}>
-                            <div className="switch-handle"></div>
-                          </div>
-                        </div>
-                      </div>
+                      </button>
 
                       {(okChecked || nokChecked) && (
                         <div className={`mt-4 p-3 rounded-lg border ${
