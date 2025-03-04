@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
-import { Calendar, Search, Plus, Settings2, Trash2, Edit2, ChevronRight, UserCircle2 } from "lucide-react";
+import { Calendar, Search, Plus, Settings2, Trash2, Edit2, ChevronRight, UserCircle2, House } from "lucide-react";
 import { format, parseISO, startOfDay, endOfDay, startOfWeek, isBefore, isAfter } from "date-fns";
 import { nl } from "date-fns/locale";
 import { Card, CardContent } from "@/components/ui/card";
@@ -66,6 +66,7 @@ const PlanningTable = ({
   const [sortByDate, setSortByDate] = useState(false);
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
   const [expandedRooms, setExpandedRooms] = useState<Record<string, boolean>>({});
+
   const planningsByRoom = plannings.reduce((acc, planning) => {
     const room = rooms.find(r => r.id === planning.roomId);
     if (!acc[planning.roomId]) {
@@ -77,6 +78,7 @@ const PlanningTable = ({
     acc[planning.roomId].plannings.push(planning);
     return acc;
   }, {} as Record<string, { room: typeof rooms[0], plannings: Planning[] }>);
+
   const filteredPlanningsByRoom = Object.entries(planningsByRoom)
     .reduce((acc, [roomId, { room, plannings }]) => {
       const filteredPlannings = plannings.filter(planning => {
@@ -87,44 +89,52 @@ const PlanningTable = ({
           return volunteerName.includes(searchValue.toLowerCase()) ||
             roomName.includes(searchValue.toLowerCase());
         })();
+
         const matchesDate = !dateFilter || (() => {
           const filterDate = startOfDay(dateFilter);
           const planningStart = startOfDay(parseISO(planning.startDate));
           const planningEnd = startOfDay(parseISO(planning.endDate));
           return filterDate.getTime() === planningStart.getTime() || filterDate.getTime() === planningEnd.getTime();
         })();
+
         return matchesSearch && matchesDate;
       });
+
       if (filteredPlannings.length > 0) {
         acc[roomId] = { room, plannings: filteredPlannings };
       }
       return acc;
     }, {} as Record<string, { room: typeof rooms[0], plannings: Planning[] }>);
-  const sortedPlanningsByRoom = Object.entries(filteredPlanningsByRoom).reduce((acc, [roomId, { room, plannings }]) => {
-    const sortedPlannings = [...plannings].sort((a, b) => {
-      if (sortByDate) {
-        const startDateComparison = parseISO(a.startDate).getTime() - parseISO(b.startDate).getTime();
-        if (startDateComparison !== 0) {
-          return sortDirection === 'asc' ? startDateComparison : -startDateComparison;
+
+  const sortedPlanningsByRoom = Object.entries(filteredPlanningsByRoom)
+    .reduce((acc, [roomId, { room, plannings }]) => {
+      const sortedPlannings = [...plannings].sort((a, b) => {
+        if (sortByDate) {
+          const startDateComparison = parseISO(a.startDate).getTime() - parseISO(b.startDate).getTime();
+          if (startDateComparison !== 0) {
+            return sortDirection === 'asc' ? startDateComparison : -startDateComparison;
+          }
+          const endDateComparison = parseISO(a.endDate).getTime() - parseISO(b.endDate).getTime();
+          return sortDirection === 'asc' ? endDateComparison : -endDateComparison;
         }
-        const endDateComparison = parseISO(a.endDate).getTime() - parseISO(b.endDate).getTime();
-        return sortDirection === 'asc' ? endDateComparison : -endDateComparison;
-      }
-      return 0;
-    });
-    acc[roomId] = { room, plannings: sortedPlannings };
-    return acc;
-  }, {} as Record<string, { room: typeof rooms[0], plannings: Planning[] }>);
+        return 0;
+      });
+
+      acc[roomId] = { room, plannings: sortedPlannings };
+      return acc;
+    }, {} as Record<string, { room: typeof rooms[0], plannings: Planning[] }>);
+
   const toggleRoom = (roomId: string) => {
     setExpandedRooms(prev => ({
       ...prev,
       [roomId]: !prev[roomId]
     }));
   };
+
   return (
-    <div className="space-y-3 sm:space-y-4">
+    <div className="space-y-4">
       {showActions && (
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center mb-6">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
             <Input
@@ -134,7 +144,7 @@ const PlanningTable = ({
               className="pl-9"
             />
           </div>
-          <div className="flex flex-wrap gap-2">
+          <div className="flex gap-2">
             <Button
               variant="outline"
               onClick={() => {
@@ -143,7 +153,7 @@ const PlanningTable = ({
                   setSortDirection(prev => prev === 'asc' ? 'desc' : 'asc');
                 }
               }}
-              className={cn("w-full sm:w-auto gap-2", sortByDate && "bg-primary/10 text-primary")}
+              className={cn("gap-2", sortByDate && "bg-[#963E56]/10 text-[#963E56]")}
             >
               <Calendar className="h-4 w-4" />
               <span>Sorteren op datum</span>
@@ -151,7 +161,7 @@ const PlanningTable = ({
             </Button>
             <Popover>
               <PopoverTrigger asChild>
-                <Button variant="outline" className="gap-2 flex-shrink-0">
+                <Button variant="outline" className="gap-2">
                   <Calendar className="h-4 w-4" />
                   <span className="hidden sm:inline">
                     {dateFilter ? format(dateFilter, 'd MMM yyyy', { locale: nl }) : 'Filter op datum'}
@@ -176,7 +186,7 @@ const PlanningTable = ({
                 variant="ghost"
                 size="icon"
                 onClick={() => setDateFilter(undefined)}
-                className="px-2 flex-shrink-0"
+                className="px-2"
               >
                 <Trash2 className="h-4 w-4" />
               </Button>
@@ -184,116 +194,44 @@ const PlanningTable = ({
           </div>
         </div>
       )}
-      <div className="space-y-6">
+
+      <div className="space-y-4">
         {Object.entries(sortedPlanningsByRoom).length === 0 ? (
-          <div className="rounded-lg border">
-            <div className="p-4 text-center text-muted-foreground">
-              {emptyMessage}
-            </div>
+          <div className="rounded-lg border p-8 text-center text-muted-foreground">
+            {emptyMessage}
           </div>
         ) : (
           Object.entries(sortedPlanningsByRoom).map(([roomId, { room, plannings }]) => (
-            <div key={roomId} className="rounded-lg border overflow-hidden">
+            <Card key={roomId} className="overflow-hidden">
               <button
-                className="w-full bg-muted/50 px-4 py-2 border-b flex items-center justify-between hover:bg-muted/70 transition-colors"
+                className="w-full px-6 py-4 border-b flex items-center justify-between hover:bg-accent/5 transition-colors"
                 onClick={() => toggleRoom(roomId)}
               >
-                <h3 className="font-medium text-sm">{room.name}</h3>
+                <div className="flex items-center gap-3">
+                  <House className="h-5 w-5 text-[#963E56]" />
+                  <h3 className="font-medium">{room.name}</h3>
+                  <div className="text-sm text-muted-foreground">
+                    ({plannings.length} planning{plannings.length !== 1 ? 'en' : ''})
+                  </div>
+                </div>
                 <ChevronRight className={cn(
-                  "h-4 w-4 transition-transform",
+                  "h-5 w-5 text-muted-foreground transition-transform",
                   expandedRooms[roomId] && "transform rotate-90"
                 )} />
               </button>
+
               {expandedRooms[roomId] && (
-                <>
-                  <div className="hidden sm:block">
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>Vrijwilliger</TableHead>
-                          <TableHead>Periode</TableHead>
-                          {showActions && <TableHead className="w-[150px]">Acties</TableHead>}
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {plannings.map((planning) => {
-                          const volunteer = volunteers.find((v) => v.id === planning.volunteerId);
-                          return (
-                            <TableRow key={planning.id}>
-                              <TableCell className="font-medium">
-                                <div className="flex items-center gap-2">
-                                  {volunteer ? `${volunteer.firstName} ${volunteer.lastName}` : "-"}
-                                  {planning.isResponsible && (
-                                    <span className="inline-flex items-center gap-1 text-xs rounded-full px-2 py-0.5 bg-[#963E56]/10 text-[#963E56]">
-                                      <UserCircle2 className="w-3 h-3" />
-                                      <span>Verantwoordelijk</span>
-                                    </span>
-                                  )}
-                                </div>
-                              </TableCell>
-                              <TableCell>
-                                <div className="flex flex-col gap-1 text-sm">
-                                  <div className="whitespace-nowrap">
-                                    {format(parseISO(planning.startDate), "EEEE d MMM yyyy", {
-                                      locale: nl,
-                                    })}
-                                  </div>
-                                  <div className="whitespace-nowrap text-muted-foreground">
-                                    {format(parseISO(planning.endDate), "EEEE d MMM yyyy", {
-                                      locale: nl,
-                                    })}
-                                  </div>
-                                </div>
-                              </TableCell>
-                              {showActions && (
-                                <TableCell>
-                                  <div className="flex items-center gap-2">
-                                    {onEdit && (
-                                      <TooltipProvider>
-                                        <Tooltip>
-                                          <TooltipTrigger asChild>
-                                            <Button
-                                              variant="ghost"
-                                              size="icon"
-                                              onClick={() => onEdit(planning)}
-                                              className="text-[#963E56] hover:text-[#963E56]/90 hover:bg-[#963E56]/10"
-                                            >
-                                              <Edit2 className="h-4 w-4" />
-                                            </Button>
-                                          </TooltipTrigger>
-                                          <TooltipContent>
-                                            Bewerken
-                                          </TooltipContent>
-                                        </Tooltip>
-                                      </TooltipProvider>
-                                    )}
-                                    <Button
-                                      variant="ghost"
-                                      size="icon"
-                                      onClick={() => onDelete(planning.id)}
-                                      className="text-[#963E56] hover:text-[#963E56]/90 hover:bg-[#963E56]/10"
-                                    >
-                                      <Trash2 className="h-4 w-4" />
-                                    </Button>
-                                  </div>
-                                </TableCell>
-                              )}
-                            </TableRow>
-                          );
-                        })}
-                      </TableBody>
-                    </Table>
-                  </div>
-                  <div className="block sm:hidden">
-                    {plannings.map((planning) => {
-                      const volunteer = volunteers.find((v) => v.id === planning.volunteerId);
-                      return (
-                        <div key={planning.id} className="p-3 space-y-2 border-b last:border-b-0">
-                          <div className="flex items-center justify-between">
-                            <div className="space-y-1">
-                              <div className="font-medium text-sm">
+                <div className="divide-y divide-border">
+                  {plannings.map((planning) => {
+                    const volunteer = volunteers.find((v) => v.id === planning.volunteerId);
+                    return (
+                      <div key={planning.id} className="p-4 sm:p-6">
+                        <div className="flex items-start justify-between gap-4">
+                          <div className="space-y-1.5">
+                            <div className="flex items-center gap-2">
+                              <span className="font-medium">
                                 {volunteer ? `${volunteer.firstName} ${volunteer.lastName}` : "-"}
-                              </div>
+                              </span>
                               {planning.isResponsible && (
                                 <span className="inline-flex items-center gap-1 text-xs rounded-full px-2 py-0.5 bg-[#963E56]/10 text-[#963E56]">
                                   <UserCircle2 className="w-3 h-3" />
@@ -301,67 +239,75 @@ const PlanningTable = ({
                                 </span>
                               )}
                             </div>
-                            {showActions && (
-                              <div className="flex items-center gap-2">
-                                {onEdit && (
-                                  <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    onClick={() => onEdit(planning)}
-                                    className="text-[#963E56] hover:text-[#963E56]/90 hover:bg-[#963E56]/10"
-                                  >
-                                    <Edit2 className="h-4 w-4" />
-                                  </Button>
-                                )}
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  onClick={() => onDelete(planning.id)}
-                                  className="text-[#963E56] hover:text-[#963E56]/90 hover:bg-[#963E56]/10"
-                                >
-                                  <Trash2 className="h-4 w-4" />
-                                </Button>
+                            <div className="flex items-center gap-3 text-sm text-muted-foreground">
+                              <div className="flex items-center gap-1.5">
+                                <Calendar className="h-4 w-4" />
+                                <span>
+                                  {format(parseISO(planning.startDate), "EEEE d MMM yyyy", { locale: nl })}
+                                </span>
                               </div>
-                            )}
-                          </div>
-                          <div className="text-xs space-y-1 text-muted-foreground">
-                            <div className="flex items-center gap-1">
-                              <Calendar className="h-3 w-3" />
-                              <span>Start: {format(parseISO(planning.startDate), "d MMM yyyy", { locale: nl })}</span>
-                            </div>
-                            <div className="flex items-center gap-1">
-                              <Calendar className="h-3 w-3" />
-                              <span>Eind: {format(parseISO(planning.endDate), "d MMM yyyy", { locale: nl })}</span>
+                              <span>→</span>
+                              <div className="flex items-center gap-1.5">
+                                <Calendar className="h-4 w-4" />
+                                <span>
+                                  {format(parseISO(planning.endDate), "EEEE d MMM yyyy", { locale: nl })}
+                                </span>
+                              </div>
                             </div>
                           </div>
+
+                          {showActions && (
+                            <div className="flex items-center gap-2">
+                              {onEdit && (
+                                <TooltipProvider>
+                                  <Tooltip>
+                                    <TooltipTrigger asChild>
+                                      <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        onClick={() => onEdit(planning)}
+                                        className="text-[#963E56] hover:text-[#963E56]/90 hover:bg-[#963E56]/10"
+                                      >
+                                        <Edit2 className="h-4 w-4" />
+                                      </Button>
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                      Bewerken
+                                    </TooltipContent>
+                                  </Tooltip>
+                                </TooltipProvider>
+                              )}
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => onDelete(planning.id)}
+                                className="text-[#963E56] hover:text-[#963E56]/90 hover:bg-[#963E56]/10"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          )}
                         </div>
-                      );
-                    })}
-                  </div>
-                </>
+                      </div>
+                    );
+                  })}
+                </div>
               )}
-            </div>
+            </Card>
           ))
         )}
       </div>
     </div>
   );
 };
-const PlanningSection = ({ title, icon, defaultOpen, children, variant = "default" }: {
+
+const PlanningSection = ({ title, icon, defaultOpen, children }: {
   title: string;
   icon: React.ReactNode;
   defaultOpen: boolean;
   children: React.ReactNode;
-  variant?: "active" | "upcoming" | "past" | "default";
 }) => {
   const [isEditing, setIsEditing] = useState(false);
-
-  const variantStyles = {
-    active: "border-green-500/20 bg-green-50/50",
-    upcoming: "border-blue-500/20 bg-blue-50/50",
-    past: "border-gray-200 bg-gray-50/50",
-    default: "border-border bg-background"
-  };
 
   return (
     <CollapsibleSection
@@ -369,10 +315,7 @@ const PlanningSection = ({ title, icon, defaultOpen, children, variant = "defaul
       icon={icon}
       defaultOpen={defaultOpen}
       titleClassName="text-[#963E56]"
-      className={cn(
-        "rounded-lg border",
-        variantStyles[variant]
-      )}
+      className="rounded-lg border border-border bg-background"
       action={
         <Button
           variant="ghost"
@@ -751,7 +694,6 @@ const Planning = () => {
           title="Actieve Planningen"
           icon={<Calendar className="h-5 w-5" />}
           defaultOpen={true}
-          variant="active"
         >
           <div className="mb-4 p-4 bg-white/50 rounded-lg border border-green-500/20">
             <div className="flex items-center gap-2 text-sm text-green-700">
@@ -776,7 +718,6 @@ const Planning = () => {
           title="Toekomstige Planningen"
           icon={<Calendar className="h-5 w-5" />}
           defaultOpen={true}
-          variant="upcoming"
         >
           <div className="mb-4 p-4 bg-white/50 rounded-lg border border-blue-500/20">
             <div className="flex items-center gap-2 text-sm text-blue-700">
@@ -801,7 +742,6 @@ const Planning = () => {
           title="Afgelopen Planningen"
           icon={<Calendar className="h-5 w-5" />}
           defaultOpen={false}
-          variant="past"
         >
           <div className="mb-4 p-4 bg-white/50 rounded-lg border border-gray-200">
             <div className="flex items-center gap-2 text-sm text-gray-600">
