@@ -1,6 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, ChevronRight, Download, Share2 } from "lucide-react";
+import { ChevronLeft, ChevronRight, Download, Share2, UserCircle2 } from "lucide-react";
 import { format, startOfWeek, addDays, isWithinInterval, isSameDay, parseISO, addWeeks } from "date-fns";
 import { nl } from "date-fns/locale";
 import { useState, useEffect } from "react";
@@ -35,6 +35,7 @@ type Planning = {
   roomId: string;
   startDate: string;
   endDate: string;
+  isResponsible?: boolean;
 };
 
 export function WeekView() {
@@ -272,8 +273,14 @@ export function WeekView() {
                                 key={planning.id}
                                 className="text-[11px] leading-tight p-1.5 rounded bg-[#963E56]/5 border border-[#963E56]/10"
                               >
-                                <div className="font-medium text-[#963E56]/90 overflow-hidden whitespace-nowrap">
-                                  {name}
+                                <div className="font-medium text-[#963E56]/90 overflow-hidden whitespace-nowrap flex items-center gap-1">
+                                  <span>{name}</span>
+                                  {planning.isResponsible && (
+                                    <div className="flex items-center gap-0.5 text-[10px] rounded-full px-1.5 py-0.5 bg-[#963E56]/10 text-[#963E56]">
+                                      <UserCircle2 className="w-2.5 h-2.5" />
+                                      <span className="hidden sm:inline">Verantwoordelijk</span>
+                                    </div>
+                                  )}
                                 </div>
                               </div>
                             );

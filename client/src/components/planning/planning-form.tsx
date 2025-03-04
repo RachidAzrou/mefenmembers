@@ -13,6 +13,7 @@ import { nl } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { z } from "zod";
 import { UseFormReturn } from "react-hook-form";
+import { useToast } from "@/hooks/use-toast";
 
 const planningSchema = z.object({
   volunteerId: z.string().min(1, "Vrijwilliger is verplicht").optional(),
@@ -22,12 +23,12 @@ const planningSchema = z.object({
   isBulkPlanning: z.boolean().default(false),
   selectedVolunteers: z.array(z.string()).default([]),
   selectedRooms: z.array(z.string()).default([]),
-  isResponsible: z.boolean().default(false) // Added isResponsible field
+  isResponsible: z.boolean().default(false)
 });
 
 interface PlanningFormProps {
   volunteers: { id: string; firstName: string; lastName: string; }[];
-  rooms: { id: string; name: string; responsible?: string; }[]; // Added responsible to room
+  rooms: { id: string; name: string; responsible?: string; }[];
   onSubmit: (data: z.infer<typeof planningSchema>) => Promise<void>;
   onClose: () => void;
   form: UseFormReturn<z.infer<typeof planningSchema>>;
@@ -42,23 +43,26 @@ export function PlanningForm({
   form,
   editingPlanning
 }: PlanningFormProps) {
+  const { toast } = useToast();
   const isBulkPlanning = form.watch("isBulkPlanning");
   const [searchTerm, setSearchTerm] = useState("");
   const [searchTermBulk, setSearchTermBulk] = useState("");
-  const [volunteerOpen, setVolunteerOpen] = useState(false);
+  const selectedRoomId = form.watch("roomId");
 
+  // Check if room already has a responsible person
   useEffect(() => {
-    const subscription = form.watch((value, { name }) => {
-      if (name === "startDate" || name === "endDate") {
-        console.log(`Date changed - ${name}:`, {
-          value,
-          formattedValue: typeof value === 'string' ? format(new Date(value), 'yyyy-MM-dd') : null
+    if (selectedRoomId) {
+      const room = rooms.find(r => r.id === selectedRoomId);
+      if (room?.responsible && form.getValues("isResponsible")) {
+        toast({
+          variant: "destructive",
+          title: "Fout",
+          description: "Deze ruimte heeft al een verantwoordelijke"
         });
+        form.setValue("isResponsible", false);
       }
-    });
-
-    return () => subscription.unsubscribe();
-  }, [form]);
+    }
+  }, [selectedRoomId, form, rooms, toast]);
 
   return (
     <Form {...form}>
