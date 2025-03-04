@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
-import { Calendar, Search, Plus, Settings2, Trash2, Edit2, ChevronRight } from "lucide-react";
+import { Calendar, Search, Plus, Settings2, Trash2, Edit2, ChevronRight, UserCircle2 } from "lucide-react";
 import { format, parseISO, startOfDay, endOfDay, startOfWeek, isBefore, isAfter } from "date-fns";
 import { nl } from "date-fns/locale";
 import { Card, CardContent } from "@/components/ui/card";
@@ -23,8 +23,6 @@ import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "
 import { Check } from "lucide-react";
 import { FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { logUserAction, UserActionTypes } from "@/lib/activity-logger";
-
-
 const planningSchema = z.object({
   volunteerId: z.string().min(1, "Vrijwilliger is verplicht").optional(),
   roomId: z.string().min(1, "Ruimte is verplicht").optional(),
@@ -33,18 +31,16 @@ const planningSchema = z.object({
   isBulkPlanning: z.boolean().default(false),
   selectedVolunteers: z.array(z.string()).default([]),
   selectedRooms: z.array(z.string()).default([]),
-  isResponsible: z.boolean().default(false) 
+  isResponsible: z.boolean().default(false)
 });
-
 interface Planning {
   id: string;
   volunteerId: string;
   roomId: string;
   startDate: string;
   endDate: string;
-  isResponsible?: boolean; // Added isResponsible field
+  isResponsible?: boolean;
 }
-
 const PlanningTable = ({
   plannings,
   emptyMessage,
@@ -70,8 +66,6 @@ const PlanningTable = ({
   const [sortByDate, setSortByDate] = useState(false);
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
   const [expandedRooms, setExpandedRooms] = useState<Record<string, boolean>>({});
-
-  // Group plannings by room
   const planningsByRoom = plannings.reduce((acc, planning) => {
     const room = rooms.find(r => r.id === planning.roomId);
     if (!acc[planning.roomId]) {
@@ -83,7 +77,6 @@ const PlanningTable = ({
     acc[planning.roomId].plannings.push(planning);
     return acc;
   }, {} as Record<string, { room: typeof rooms[0], plannings: Planning[] }>);
-
   const filteredPlanningsByRoom = Object.entries(planningsByRoom)
     .reduce((acc, [roomId, { room, plannings }]) => {
       const filteredPlannings = plannings.filter(planning => {
@@ -92,25 +85,21 @@ const PlanningTable = ({
           const volunteerName = volunteer ? `${volunteer.firstName} ${volunteer.lastName}`.toLowerCase() : '';
           const roomName = room.name.toLowerCase();
           return volunteerName.includes(searchValue.toLowerCase()) ||
-                 roomName.includes(searchValue.toLowerCase());
+            roomName.includes(searchValue.toLowerCase());
         })();
-
         const matchesDate = !dateFilter || (() => {
           const filterDate = startOfDay(dateFilter);
           const planningStart = startOfDay(parseISO(planning.startDate));
           const planningEnd = startOfDay(parseISO(planning.endDate));
           return filterDate.getTime() === planningStart.getTime() || filterDate.getTime() === planningEnd.getTime();
         })();
-
         return matchesSearch && matchesDate;
       });
-
       if (filteredPlannings.length > 0) {
         acc[roomId] = { room, plannings: filteredPlannings };
       }
       return acc;
     }, {} as Record<string, { room: typeof rooms[0], plannings: Planning[] }>);
-
   const sortedPlanningsByRoom = Object.entries(filteredPlanningsByRoom).reduce((acc, [roomId, { room, plannings }]) => {
     const sortedPlannings = [...plannings].sort((a, b) => {
       if (sortByDate) {
@@ -126,14 +115,12 @@ const PlanningTable = ({
     acc[roomId] = { room, plannings: sortedPlannings };
     return acc;
   }, {} as Record<string, { room: typeof rooms[0], plannings: Planning[] }>);
-
   const toggleRoom = (roomId: string) => {
     setExpandedRooms(prev => ({
       ...prev,
       [roomId]: !prev[roomId]
     }));
   };
-
   return (
     <div className="space-y-3 sm:space-y-4">
       {showActions && (
@@ -197,7 +184,6 @@ const PlanningTable = ({
           </div>
         </div>
       )}
-
       <div className="space-y-6">
         {Object.entries(sortedPlanningsByRoom).length === 0 ? (
           <div className="rounded-lg border">
@@ -232,11 +218,18 @@ const PlanningTable = ({
                       <TableBody>
                         {plannings.map((planning) => {
                           const volunteer = volunteers.find((v) => v.id === planning.volunteerId);
-
                           return (
                             <TableRow key={planning.id}>
                               <TableCell className="font-medium">
-                                {volunteer ? `${volunteer.firstName} ${volunteer.lastName}` : "-"}
+                                <div className="flex items-center gap-2">
+                                  {volunteer ? `${volunteer.firstName} ${volunteer.lastName}` : "-"}
+                                  {planning.isResponsible && (
+                                    <span className="inline-flex items-center gap-1 text-xs rounded-full px-2 py-0.5 bg-[#963E56]/10 text-[#963E56]">
+                                      <UserCircle2 className="w-3 h-3" />
+                                      <span>Verantwoordelijk</span>
+                                    </span>
+                                  )}
+                                </div>
                               </TableCell>
                               <TableCell>
                                 <div className="flex flex-col gap-1 text-sm">
@@ -291,16 +284,22 @@ const PlanningTable = ({
                       </TableBody>
                     </Table>
                   </div>
-
                   <div className="block sm:hidden">
                     {plannings.map((planning) => {
                       const volunteer = volunteers.find((v) => v.id === planning.volunteerId);
-
                       return (
                         <div key={planning.id} className="p-3 space-y-2 border-b last:border-b-0">
                           <div className="flex items-center justify-between">
-                            <div className="font-medium text-sm">
-                              {volunteer ? `${volunteer.firstName} ${volunteer.lastName}` : "-"}
+                            <div className="space-y-1">
+                              <div className="font-medium text-sm">
+                                {volunteer ? `${volunteer.firstName} ${volunteer.lastName}` : "-"}
+                              </div>
+                              {planning.isResponsible && (
+                                <span className="inline-flex items-center gap-1 text-xs rounded-full px-2 py-0.5 bg-[#963E56]/10 text-[#963E56]">
+                                  <UserCircle2 className="w-3 h-3" />
+                                  <span>Verantwoordelijk</span>
+                                </span>
+                              )}
                             </div>
                             {showActions && (
                               <div className="flex items-center gap-2">
@@ -348,7 +347,6 @@ const PlanningTable = ({
     </div>
   );
 };
-
 const PlanningSection = ({ title, icon, defaultOpen, children }: {
   title: string;
   icon: React.ReactNode;
@@ -356,7 +354,6 @@ const PlanningSection = ({ title, icon, defaultOpen, children }: {
   children: React.ReactNode;
 }) => {
   const [isEditing, setIsEditing] = useState(false);
-
   return (
     <CollapsibleSection
       title={title}
@@ -391,7 +388,6 @@ const PlanningSection = ({ title, icon, defaultOpen, children }: {
     </CollapsibleSection>
   );
 };
-
 const Planning = () => {
   const [plannings, setPlannings] = useState<Planning[]>([]);
   const [volunteers, setVolunteers] = useState<{ id: string; firstName: string; lastName: string; }[]>([]);
@@ -405,7 +401,6 @@ const Planning = () => {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingPlanning, setEditingPlanning] = useState<Planning | null>(null);
   const { isAdmin } = useRole();
-
   const form = useForm<z.infer<typeof planningSchema>>({
     resolver: zodResolver(planningSchema),
     defaultValues: {
@@ -414,37 +409,31 @@ const Planning = () => {
       selectedRooms: [],
     }
   });
-
   useEffect(() => {
     const planningsRef = ref(db, "plannings");
     const volunteersRef = ref(db, "volunteers");
     const roomsRef = ref(db, "rooms");
-
     const unsubPlannings = onValue(planningsRef, (snapshot) => {
       const data = snapshot.val();
       const planningsList = data ? Object.entries(data).map(([id, planning]: [string, any]) => ({ id, ...planning })) : [];
       setPlannings(planningsList);
     });
-
     const unsubVolunteers = onValue(volunteersRef, (snapshot) => {
       const data = snapshot.val();
       const volunteersList = data ? Object.entries(data).map(([id, volunteer]: [string, any]) => ({ id, ...volunteer })) : [];
       setVolunteers(volunteersList);
     });
-
     const unsubRooms = onValue(roomsRef, (snapshot) => {
       const data = snapshot.val();
       const roomsList = data ? Object.entries(data).map(([id, room]: [string, any]) => ({ id, ...room })) : [];
       setRooms(roomsList);
     });
-
     return () => {
       unsubPlannings();
       unsubVolunteers();
       unsubRooms();
     };
   }, []);
-
   const handleEdit = (planning: Planning) => {
     setEditingPlanning(planning);
     form.reset({
@@ -455,22 +444,18 @@ const Planning = () => {
       isBulkPlanning: false,
       selectedVolunteers: [],
       selectedRooms: [],
-      isResponsible: planning.isResponsible || false // Include isResponsible
+      isResponsible: planning.isResponsible || false
     });
     setDialogOpen(true);
   };
-
   const handleDelete = async (id: string) => {
     try {
       const planningRef = ref(db, `plannings/${id}`);
       const snapshot = await get(planningRef);
       const planningData = snapshot.val();
-
       const volunteer = volunteers.find(v => v.id === planningData.volunteerId);
       const room = rooms.find(r => r.id === planningData.roomId);
-
       await remove(planningRef);
-
       await logUserAction(
         UserActionTypes.PLANNING_DELETE,
         `Planning verwijderd voor ${volunteer?.firstName} ${volunteer?.lastName}`,
@@ -484,18 +469,32 @@ const Planning = () => {
       console.error("Error deleting planning:", error);
     }
   };
-
   const onSubmit = async (data: z.infer<typeof planningSchema>) => {
     try {
       const planningData = {
         startDate: format(new Date(data.startDate), 'yyyy-MM-dd'),
         endDate: format(new Date(data.endDate), 'yyyy-MM-dd')
       };
-
+      const checkForDuplicates = (volunteerId: string, startDate: string, endDate: string) => {
+        return plannings.some(planning =>
+          planning.volunteerId === volunteerId &&
+          ((planning.startDate >= startDate && planning.startDate <= endDate) ||
+            (planning.endDate >= startDate && planning.endDate <= endDate))
+        );
+      };
       if (data.isBulkPlanning) {
         const volunteers = data.selectedVolunteers || [];
         const rooms = data.selectedRooms || [];
-
+        const duplicateVolunteers = volunteers.filter(volunteerId =>
+          checkForDuplicates(volunteerId, planningData.startDate, planningData.endDate)
+        );
+        if (duplicateVolunteers.length > 0) {
+          const duplicateNames = duplicateVolunteers.map(id => {
+            const volunteer = volunteers.find(v => v.id === id);
+            return volunteer ? `${volunteer.firstName} ${volunteer.lastName}` : 'Onbekend';
+          }).join(', ');
+          throw new Error(`De volgende vrijwilligers zijn al ingepland op deze datum(s): ${duplicateNames}`);
+        }
         await logUserAction(
           UserActionTypes.PLANNING_BULK_CREATE,
           `Bulk planning aangemaakt voor ${volunteers.length} vrijwilligers en ${rooms.length} ruimtes`,
@@ -504,41 +503,39 @@ const Planning = () => {
             details: `Periode: ${planningData.startDate} tot ${planningData.endDate}`
           }
         );
-
         for (const volunteerId of volunteers) {
           for (const roomId of rooms) {
             await push(ref(db, "plannings"), {
               volunteerId,
               roomId,
               ...planningData,
-              isResponsible: false 
+              isResponsible: false
             });
           }
         }
       } else {
-        
         if (data.isResponsible) {
           const roomPlannings = plannings.filter(
             p => p.roomId === data.roomId && p.isResponsible
           );
           if (roomPlannings.length > 0) {
-            
             for (const planning of roomPlannings) {
               await remove(ref(db, `plannings/${planning.id}`));
             }
           }
         }
-
+        if (data.volunteerId && checkForDuplicates(data.volunteerId, planningData.startDate, planningData.endDate)) {
+          const volunteer = volunteers.find(v => v.id === data.volunteerId);
+          throw new Error(`${volunteer?.firstName} ${volunteer?.lastName} is al ingepland op deze datum(s)`);
+        }
         const result = await push(ref(db, "plannings"), {
           volunteerId: data.volunteerId,
           roomId: data.roomId,
           isResponsible: data.isResponsible,
           ...planningData
         });
-
         const volunteer = volunteers.find(v => v.id === data.volunteerId);
         const room = rooms.find(r => r.id === data.roomId);
-
         await logUserAction(
           UserActionTypes.PLANNING_CREATE,
           data.isResponsible ? "Verantwoordelijke toegewezen" : "Planning toegevoegd",
@@ -550,22 +547,20 @@ const Planning = () => {
           }
         );
       }
-
       setDialogOpen(false);
       setEditingPlanning(null);
       form.reset();
     } catch (error) {
       console.error("Submit error:", error);
+      throw error;
     }
   };
-
   const handleSearchChange = async (value: string, type: 'active' | 'upcoming' | 'past') => {
     await logUserAction(
       UserActionTypes.PLANNING_SEARCH,
       `Planning gezocht in ${type} planningen`,
       { type: 'planning', details: `Zoekterm: ${value}` }
     );
-
     switch (type) {
       case 'active':
         setSearchActive(value);
@@ -578,7 +573,6 @@ const Planning = () => {
         break;
     }
   };
-
   const handleDateFilter = async (date: Date | undefined, type: 'active' | 'upcoming' | 'past') => {
     if (date) {
       await logUserAction(
@@ -602,8 +596,6 @@ const Planning = () => {
         break;
     }
   };
-
-
   const handleExportPDF = async () => {
     await logUserAction(
       UserActionTypes.GENERATE_PLANNING_PDF,
@@ -612,10 +604,8 @@ const Planning = () => {
     );
     console.log("Generating PDF...");
   };
-
   const now = new Date();
   now.setHours(0, 0, 0, 0);
-
   const activePlannings = plannings.filter((planning) => {
     const start = parseISO(planning.startDate);
     const end = parseISO(planning.endDate);
@@ -624,37 +614,27 @@ const Planning = () => {
     now.setHours(0, 0, 0, 0);
     return start <= now && end >= now;
   });
-
   const upcomingPlannings = plannings.filter((planning) => {
     const start = parseISO(planning.startDate);
     start.setHours(0, 0, 0, 0);
     now.setHours(0, 0, 0, 0);
     return start > now;
   });
-
   const pastPlannings = useMemo(() => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-
-    // Get start of current week
     const weekStart = startOfWeek(today, { locale: nl });
-
     return plannings.map(planning => {
       const planningStart = parseISO(planning.startDate);
       const planningEnd = parseISO(planning.endDate);
       planningStart.setHours(0, 0, 0, 0);
       planningEnd.setHours(0, 0, 0, 0);
-
-      // If planning starts before today and after week start, include it
-      // but adjust the end date to today if it extends beyond today
       if (planningStart < today && planningStart >= weekStart) {
         return {
           ...planning,
           endDate: planningEnd > today ? format(today, 'yyyy-MM-dd') : planning.endDate
         };
-      }
-      // If planning started before week start but extends into this week
-      else if (planningStart < weekStart && planningEnd >= weekStart && planningEnd < today) {
+      } else if (planningStart < weekStart && planningEnd >= weekStart && planningEnd < today) {
         return {
           ...planning,
           startDate: format(weekStart, 'yyyy-MM-dd'),
@@ -664,14 +644,12 @@ const Planning = () => {
       return null;
     }).filter((p): p is Planning => p !== null);
   }, [plannings]);
-
   return (
     <div className="space-y-4 sm:space-y-6 p-3 sm:p-6">
       <div className="flex items-center gap-3">
         <Calendar className="h-6 w-6 sm:h-8 sm:w-8 text-[#963E56]" />
         <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-[#963E56]">Planning</h1>
       </div>
-
       <CollapsibleSection
         title="Planning Overzicht"
         icon={<Calendar className="h-5 w-5" />}
@@ -719,7 +697,6 @@ const Planning = () => {
             </CardContent>
           </Card>
         </div>
-
         <div className="mt-4 sm:mt-6 flex justify-end">
           <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
             <DialogTrigger asChild>
@@ -752,7 +729,6 @@ const Planning = () => {
           </Dialog>
         </div>
       </CollapsibleSection>
-
       <div className="space-y-4 sm:space-y-6 bg-background rounded-lg border p-3 sm:p-6">
         <PlanningSection
           title="Actieve Planningen"
