@@ -1,19 +1,31 @@
 import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Check, X, User, House, ChevronDown, CircleCheck, CircleX } from "lucide-react";
+import { Check, X, User, House, ChevronDown, CircleCheck, CircleX, UserCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useSocket } from "@/hooks/use-socket";
 import { FaPray } from "react-icons/fa";
 import { PiUsersThree } from "react-icons/pi";
 
-// Room type definition
+type Responsible = {
+  id: string;
+  name: string;
+  color: string;
+};
+
 type Room = {
   id: string;
   title: string;
   status: 'green' | 'red' | 'grey';
+  responsible?: Responsible;
 };
 
-// Hadieth Component
+// Voorbeelddata voor verantwoordelijken
+const responsibles: Responsible[] = [
+  { id: '1', name: 'Ahmed', color: '#4CAF50' },
+  { id: '2', name: 'Yusuf', color: '#2196F3' },
+  { id: '3', name: 'Ibrahim', color: '#9C27B0' },
+];
+
 const HadiethCard = () => (
   <Card className="bg-gradient-to-br from-[#963E56]/5 to-transparent border border-[#963E56]/10">
     <CardContent className="p-4">
@@ -29,12 +41,25 @@ const HadiethCard = () => (
   </Card>
 );
 
+const ResponsibleBadge = ({ responsible }: { responsible?: Responsible }) => {
+  if (!responsible) return null;
+  return (
+    <div
+      className="absolute top-2 right-2 flex items-center gap-2 px-2.5 py-1 rounded-full text-xs font-medium bg-white/90 backdrop-blur-sm shadow-sm border"
+      style={{ borderColor: `${responsible.color}40`, color: responsible.color }}
+    >
+      <UserCircle2 className="w-4 h-4" />
+      <span>{responsible.name}</span>
+    </div>
+  );
+};
+
 export default function SufufPage() {
   const { socket, connected } = useSocket();
   const [rooms, setRooms] = useState<Record<string, Room>>({
-    'beneden': { id: 'beneden', title: 'Moskee +0', status: 'grey' },
-    'first-floor': { id: 'first-floor', title: 'Moskee +1', status: 'grey' },
-    'garage': { id: 'garage', title: 'Garage', status: 'grey' }
+    'beneden': { id: 'beneden', title: 'Moskee +0', status: 'grey', responsible: responsibles[0] },
+    'first-floor': { id: 'first-floor', title: 'Moskee +1', status: 'grey', responsible: responsibles[1] },
+    'garage': { id: 'garage', title: 'Garage', status: 'grey', responsible: responsibles[2] }
   });
   const [selectedRoom, setSelectedRoom] = useState<string | null>(null);
   const [okChecked, setOkChecked] = useState(false);
@@ -54,9 +79,9 @@ export default function SufufPage() {
         } else if (data.type === 'statusUpdated') {
           setRooms(prev => ({
             ...prev,
-            [data.data.room]: { 
-              ...prev[data.data.room], 
-              status: data.data.status 
+            [data.data.room]: {
+              ...prev[data.data.room],
+              status: data.data.status
             }
           }));
         }
@@ -102,6 +127,16 @@ export default function SufufPage() {
     socket.send(JSON.stringify(message));
   };
 
+  const assignResponsible = (roomId: string, responsible: Responsible) => {
+    setRooms(prev => ({
+      ...prev,
+      [roomId]: {
+        ...prev[roomId],
+        responsible
+      }
+    }));
+  };
+
   return (
     <div className="container mx-auto px-4 py-6 space-y-6">
       <div className="flex items-center gap-4">
@@ -120,7 +155,8 @@ export default function SufufPage() {
         </h2>
         <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
           {Object.values(rooms).map((room) => (
-            <Card key={room.id} className="overflow-hidden">
+            <Card key={room.id} className="overflow-hidden relative">
+              <ResponsibleBadge responsible={room.responsible} />
               <CardHeader className="p-6 pb-4 flex flex-row items-center justify-between space-y-0">
                 <CardTitle className="flex items-center gap-3 text-lg font-semibold text-[#963E56]">
                   <House className="h-5 w-5" />
@@ -142,8 +178,8 @@ export default function SufufPage() {
                   <div
                     className={`h-full ${
                       room.status === 'green' ? 'w-full bg-green-500' :
-                      room.status === 'red' ? 'w-full bg-red-500' :
-                      'w-0'
+                        room.status === 'red' ? 'w-full bg-red-500' :
+                        'w-0'
                     }`}
                   />
                 </div>
@@ -172,11 +208,12 @@ export default function SufufPage() {
               <Card
                 key={room.id}
                 className={`
-                  overflow-hidden bg-white hover:shadow-lg transition-all duration-300
+                  overflow-hidden bg-white hover:shadow-lg transition-all duration-300 relative
                   ${selectedRoom === room.id ? 'ring-2 ring-[#963E56] ring-offset-2' : ''}
                 `}
                 onClick={() => setSelectedRoom(room.id)}
               >
+                <ResponsibleBadge responsible={room.responsible} />
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-3">
