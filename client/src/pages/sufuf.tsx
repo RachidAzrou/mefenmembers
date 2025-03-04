@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Check, X, User, House, ChevronDown, CircleCheck, CircleX, UserCircle2 } from "lucide-react";
+import { Check, X, User, House, ChevronDown, CircleCheck, CircleX, UserCircle2, UserPlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useSocket } from "@/hooks/use-socket";
 import { FaPray } from "react-icons/fa";
@@ -50,6 +50,30 @@ const ResponsibleBadge = ({ responsible }: { responsible?: Responsible }) => {
     >
       <UserCircle2 className="w-4 h-4" />
       <span>{responsible.name}</span>
+    </div>
+  );
+};
+
+const ResponsibleSelector = ({ room, onSelect }: { room: Room; onSelect: (responsible: Responsible | undefined) => void }) => {
+  return (
+    <div className="mt-4 flex items-center gap-2">
+      <UserPlus className="w-4 h-4 text-gray-500" />
+      <select
+        className="flex-1 rounded-md border border-gray-200 bg-white px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-[#963E56]"
+        value={room.responsible?.id || ""}
+        onChange={(e) => {
+          const selectedId = e.target.value;
+          const responsible = responsibles.find(r => r.id === selectedId);
+          onSelect(responsible);
+        }}
+      >
+        <option value="">Selecteer verantwoordelijke</option>
+        {responsibles.map(person => (
+          <option key={person.id} value={person.id}>
+            {person.name}
+          </option>
+        ))}
+      </select>
     </div>
   );
 };
@@ -127,7 +151,7 @@ export default function SufufPage() {
     socket.send(JSON.stringify(message));
   };
 
-  const assignResponsible = (roomId: string, responsible: Responsible) => {
+  const assignResponsible = (roomId: string, responsible: Responsible | undefined) => {
     setRooms(prev => ({
       ...prev,
       [roomId]: {
@@ -183,6 +207,10 @@ export default function SufufPage() {
                     }`}
                   />
                 </div>
+                <ResponsibleSelector 
+                  room={room} 
+                  onSelect={(responsible) => assignResponsible(room.id, responsible)} 
+                />
               </CardContent>
             </Card>
           ))}
