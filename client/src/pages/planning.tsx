@@ -32,7 +32,8 @@ const planningSchema = z.object({
   endDate: z.string().min(1, "Einddatum is verplicht"),
   isBulkPlanning: z.boolean().default(false),
   selectedVolunteers: z.array(z.string()).default([]),
-  selectedRooms: z.array(z.string()).default([])
+  selectedRooms: z.array(z.string()).default([]),
+  isResponsible: z.boolean().default(false) 
 });
 
 interface Planning {
@@ -41,6 +42,7 @@ interface Planning {
   roomId: string;
   startDate: string;
   endDate: string;
+  isResponsible?: boolean; // Added isResponsible field
 }
 
 const PlanningTable = ({
@@ -452,7 +454,8 @@ const Planning = () => {
       endDate: planning.endDate,
       isBulkPlanning: false,
       selectedVolunteers: [],
-      selectedRooms: []
+      selectedRooms: [],
+      isResponsible: planning.isResponsible || false // Include isResponsible
     });
     setDialogOpen(true);
   };
@@ -507,14 +510,29 @@ const Planning = () => {
             await push(ref(db, "plannings"), {
               volunteerId,
               roomId,
-              ...planningData
+              ...planningData,
+              isResponsible: false 
             });
           }
         }
       } else {
+        
+        if (data.isResponsible) {
+          const roomPlannings = plannings.filter(
+            p => p.roomId === data.roomId && p.isResponsible
+          );
+          if (roomPlannings.length > 0) {
+            
+            for (const planning of roomPlannings) {
+              await remove(ref(db, `plannings/${planning.id}`));
+            }
+          }
+        }
+
         const result = await push(ref(db, "plannings"), {
           volunteerId: data.volunteerId,
           roomId: data.roomId,
+          isResponsible: data.isResponsible,
           ...planningData
         });
 
@@ -523,11 +541,11 @@ const Planning = () => {
 
         await logUserAction(
           UserActionTypes.PLANNING_CREATE,
-          "Planning toegevoegd",
+          data.isResponsible ? "Verantwoordelijke toegewezen" : "Planning toegevoegd",
           {
             type: 'planning',
             id: result.key,
-            details: `${volunteer?.firstName} ${volunteer?.lastName} ingepland voor ${room?.name}`,
+            details: `${volunteer?.firstName} ${volunteer?.lastName} ${data.isResponsible ? 'als verantwoordelijke ' : ''}ingepland voor ${room?.name}`,
             targetName: `${room?.name} (${planningData.startDate} - ${planningData.endDate})`
           }
         );

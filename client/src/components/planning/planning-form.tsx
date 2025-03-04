@@ -6,7 +6,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { CalendarIcon, Check, Search, X } from "lucide-react";
+import { CalendarIcon, Check, Search, X, UserCircle2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { format } from "date-fns";
 import { nl } from "date-fns/locale";
@@ -21,12 +21,13 @@ const planningSchema = z.object({
   endDate: z.string().min(1, "Einddatum is verplicht"),
   isBulkPlanning: z.boolean().default(false),
   selectedVolunteers: z.array(z.string()).default([]),
-  selectedRooms: z.array(z.string()).default([])
+  selectedRooms: z.array(z.string()).default([]),
+  isResponsible: z.boolean().default(false) // Added isResponsible field
 });
 
 interface PlanningFormProps {
-  volunteers: { id: string; firstName: string; lastName: string }[];
-  rooms: { id: string; name: string }[];
+  volunteers: { id: string; firstName: string; lastName: string; }[];
+  rooms: { id: string; name: string; responsible?: string; }[]; // Added responsible to room
   onSubmit: (data: z.infer<typeof planningSchema>) => Promise<void>;
   onClose: () => void;
   form: UseFormReturn<z.infer<typeof planningSchema>>;
@@ -74,6 +75,7 @@ export function PlanningForm({
                 }
                 form.setValue("volunteerId", undefined);
                 form.setValue("roomId", undefined);
+                form.setValue("isResponsible", false);
               }}
               className="data-[state=checked]:bg-[#963E56]"
             />
@@ -140,23 +142,42 @@ export function PlanningForm({
                     </SelectContent>
                   </Select>
                   {field.value && (
-                    <div className="mt-2">
+                    <div className="mt-2 space-y-2">
                       {(() => {
                         const volunteer = volunteers.find(v => v.id === field.value);
                         if (volunteer) {
                           return (
-                            <div className="bg-[#963E56]/10 text-[#963E56] text-sm rounded-full px-3 py-1 flex items-center gap-2 w-fit">
-                              <span>{volunteer.firstName} {volunteer.lastName}</span>
-                              <Button
-                                type="button"
-                                variant="ghost"
-                                size="icon"
-                                className="h-4 w-4 p-0 hover:bg-transparent"
-                                onClick={() => field.onChange(undefined)}
-                              >
-                                <X className="h-3 w-3" />
-                              </Button>
-                            </div>
+                            <>
+                              <div className="bg-[#963E56]/10 text-[#963E56] text-sm rounded-full px-3 py-1 flex items-center gap-2 w-fit">
+                                <span>{volunteer.firstName} {volunteer.lastName}</span>
+                                <Button
+                                  type="button"
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-4 w-4 p-0 hover:bg-transparent"
+                                  onClick={() => field.onChange(undefined)}
+                                >
+                                  <X className="h-3 w-3" />
+                                </Button>
+                              </div>
+                              <FormField
+                                control={form.control}
+                                name="isResponsible"
+                                render={({ field: responsibleField }) => (
+                                  <div className="flex items-center gap-2">
+                                    <Switch
+                                      checked={responsibleField.value}
+                                      onCheckedChange={responsibleField.onChange}
+                                      className="data-[state=checked]:bg-[#963E56]"
+                                    />
+                                    <Label className="text-sm flex items-center gap-1">
+                                      <UserCircle2 className="h-4 w-4" />
+                                      Verantwoordelijke
+                                    </Label>
+                                  </div>
+                                )}
+                              />
+                            </>
                           );
                         }
                       })()}
@@ -174,7 +195,14 @@ export function PlanningForm({
                   <FormLabel className="text-sm">Ruimte</FormLabel>
                   <Select
                     value={field.value}
-                    onValueChange={field.onChange}
+                    onValueChange={(value) => {
+                      // Check if room already has a responsible volunteer
+                      const room = rooms.find(r => r.id === value);
+                      if (room?.responsible) {
+                        form.setValue("isResponsible", false);
+                      }
+                      field.onChange(value);
+                    }}
                   >
                     <SelectTrigger className="w-full">
                       <SelectValue placeholder="Selecteer een ruimte" />
@@ -194,6 +222,11 @@ export function PlanningForm({
                               )}
                             />
                             <span className="flex-grow">{room.name}</span>
+                            {room.responsible && (
+                              <div className="text-xs text-muted-foreground">
+                                (Heeft al een verantwoordelijke)
+                              </div>
+                            )}
                           </div>
                         </SelectItem>
                       ))}
