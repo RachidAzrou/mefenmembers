@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { Button } from "@/components/ui/button";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
 import { Calendar, Search, Plus, Settings2, Trash2, Edit2, ChevronRight, UserCircle2, House } from "lucide-react";
 import { format, parseISO, startOfDay, endOfDay, startOfWeek, isBefore, isAfter } from "date-fns";
@@ -14,15 +13,13 @@ import { ref, onValue, remove, push, get, update } from "firebase/database";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { PlanningForm } from "@/components/planning/planning-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm, UseFormReturn } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar as CustomCalendar } from "@/components/ui/calendar";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "@/components/ui/command";
-import { Check } from "lucide-react";
-import { FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { logUserAction, UserActionTypes } from "@/lib/activity-logger";
+
 const planningSchema = z.object({
   volunteerId: z.string().min(1, "Vrijwilliger is verplicht").optional(),
   roomId: z.string().min(1, "Ruimte is verplicht").optional(),
@@ -33,6 +30,7 @@ const planningSchema = z.object({
   selectedRooms: z.array(z.string()).default([]),
   isResponsible: z.boolean().default(false)
 });
+
 interface Planning {
   id: string;
   volunteerId: string;
@@ -153,7 +151,7 @@ const PlanningTable = ({
                   setSortDirection(prev => prev === 'asc' ? 'desc' : 'asc');
                 }
               }}
-              className={cn("gap-2", sortByDate && "bg-[#963E56]/10 text-[#963E56]")}
+              className={cn("gap-2", sortByDate && "bg-accent/5 text-accent-foreground")}
             >
               <Calendar className="h-4 w-4" />
               <span>Sorteren op datum</span>
@@ -163,12 +161,7 @@ const PlanningTable = ({
               <PopoverTrigger asChild>
                 <Button variant="outline" className="gap-2">
                   <Calendar className="h-4 w-4" />
-                  <span className="hidden sm:inline">
-                    {dateFilter ? format(dateFilter, 'd MMM yyyy', { locale: nl }) : 'Filter op datum'}
-                  </span>
-                  <span className="sm:hidden">
-                    {dateFilter ? format(dateFilter, 'dd/MM', { locale: nl }) : 'Datum'}
-                  </span>
+                  <span>Filter op datum</span>
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0" align="end">
@@ -208,7 +201,7 @@ const PlanningTable = ({
                 onClick={() => toggleRoom(roomId)}
               >
                 <div className="flex items-center gap-3">
-                  <House className="h-5 w-5 text-[#963E56]" />
+                  <House className="h-5 w-5" />
                   <h3 className="font-medium">{room.name}</h3>
                   <div className="text-sm text-muted-foreground">
                     ({plannings.length} planning{plannings.length !== 1 ? 'en' : ''})
@@ -233,7 +226,7 @@ const PlanningTable = ({
                                 {volunteer ? `${volunteer.firstName} ${volunteer.lastName}` : "-"}
                               </span>
                               {planning.isResponsible && (
-                                <span className="inline-flex items-center gap-1 text-xs rounded-full px-2 py-0.5 bg-[#963E56]/10 text-[#963E56]">
+                                <span className="inline-flex items-center gap-1 text-xs rounded-full px-2 py-0.5 bg-accent/10">
                                   <UserCircle2 className="w-3 h-3" />
                                   <span>Verantwoordelijk</span>
                                 </span>
@@ -266,7 +259,6 @@ const PlanningTable = ({
                                         variant="ghost"
                                         size="icon"
                                         onClick={() => onEdit(planning)}
-                                        className="text-[#963E56] hover:text-[#963E56]/90 hover:bg-[#963E56]/10"
                                       >
                                         <Edit2 className="h-4 w-4" />
                                       </Button>
@@ -281,7 +273,6 @@ const PlanningTable = ({
                                 variant="ghost"
                                 size="icon"
                                 onClick={() => onDelete(planning.id)}
-                                className="text-[#963E56] hover:text-[#963E56]/90 hover:bg-[#963E56]/10"
                               >
                                 <Trash2 className="h-4 w-4" />
                               </Button>
@@ -314,7 +305,7 @@ const PlanningSection = ({ title, icon, defaultOpen, children }: {
       title={title}
       icon={icon}
       defaultOpen={defaultOpen}
-      titleClassName="text-[#963E56]"
+      titleClassName="text-accent-foreground"
       className="rounded-lg border border-border bg-background"
       action={
         <Button
@@ -325,8 +316,8 @@ const PlanningSection = ({ title, icon, defaultOpen, children }: {
             setIsEditing(!isEditing);
           }}
           className={cn(
-            "h-8 w-8 text-[#963E56]",
-            isEditing && "bg-[#963E56]/10"
+            "h-8 w-8 text-accent-foreground",
+            isEditing && "bg-accent/10"
           )}
         >
           <Settings2 className="h-5 w-5" />
@@ -602,15 +593,15 @@ const Planning = () => {
   return (
     <div className="space-y-4 sm:space-y-6 p-3 sm:p-6">
       <div className="flex items-center gap-3">
-        <Calendar className="h-6 w-6 sm:h-8 sm:w-8 text-[#963E56]" />
-        <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-[#963E56]">Planning</h1>
+        <Calendar className="h-6 w-6 sm:h-8 sm:w-8 text-accent-foreground" />
+        <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-accent-foreground">Planning</h1>
       </div>
 
       <CollapsibleSection
         title="Planning Overzicht"
         icon={<Calendar className="h-5 w-5" />}
         defaultOpen={true}
-        titleClassName="text-[#963E56]"
+        titleClassName="text-accent-foreground"
       >
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
           <Card className="bg-green-50/50 border-green-500/20">
@@ -660,14 +651,14 @@ const Planning = () => {
             <DialogTrigger asChild>
               <Button onClick={() => {
                 logUserAction(UserActionTypes.MODAL_OPEN, "Planning modal geopend");
-              }} className="w-full sm:w-auto gap-2 bg-[#963E56] hover:bg-[#963E56]/90">
+              }} className="w-full sm:w-auto gap-2 bg-accent hover:bg-accent/90">
                 <Plus className="h-4 w-4" />
                 <span>Inplannen</span>
               </Button>
             </DialogTrigger>
             <DialogContent className="max-w-[95vw] sm:max-w-[450px] p-4 sm:p-6 bg-white border-none shadow-lg mx-4">
               <DialogHeader className="mb-4">
-                <DialogTitle className="text-xl font-semibold text-[#963E56]">
+                <DialogTitle className="text-xl font-semibold text-accent-foreground">
                   {editingPlanning ? "Planning Bewerken" : "Planning"}
                 </DialogTitle>
               </DialogHeader>
