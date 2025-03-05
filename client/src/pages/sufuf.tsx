@@ -56,10 +56,7 @@ export default function SufufPage() {
     socket.on('statusUpdated', (data: { room: string; status: 'green' | 'red' | 'grey' }) => {
       setRooms(prev => ({
         ...prev,
-        [data.room]: {
-          ...prev[data.room],
-          status: data.status
-        }
+        [data.room]: { ...prev[data.room], status: data.status }
       }));
     });
 
