@@ -134,30 +134,6 @@ export const WeekView = ({ checkedOutMaterials }: { checkedOutMaterials?: number
     return volunteers.find(v => v.id === responsiblePlanning.volunteerId);
   };
 
-  // Add getPlanningsForPDF function back
-  const getPlanningsForPDF = () => {
-    const pdfPlannings = [];
-    for (const day of weekDays) {
-      const dayPlannings = getPlanningsForDay(day);
-      for (const planning of dayPlannings) {
-        const volunteer = volunteers.find(v => v.id === planning.volunteerId);
-        const room = rooms.find(r => r.id === planning.roomId);
-        pdfPlannings.push({
-          volunteer: {
-            firstName: volunteer?.firstName || 'Onbekend',
-            lastName: volunteer?.lastName || 'Vrijwilliger'
-          },
-          room: {
-            name: room?.name || 'Onbekende ruimte',
-            channel: room?.channel
-          },
-          date: day
-        });
-      }
-    }
-    return pdfPlannings;
-  };
-
   return (
     <div className="space-y-4 md:space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-3 sm:p-4 rounded-xl shadow-sm border">
