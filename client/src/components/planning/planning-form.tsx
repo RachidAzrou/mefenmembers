@@ -14,16 +14,6 @@ import { cn } from "@/lib/utils";
 import { z } from "zod";
 import { UseFormReturn } from "react-hook-form";
 import { useToast } from "@/hooks/use-toast";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
 
 const planningSchema = z.object({
   volunteerId: z.string().min(1, "Vrijwilliger is verplicht").optional(),
@@ -117,61 +107,142 @@ const PlanningForm = ({
           </div>
         )}
 
-        {!isBulkPlanning && (
-          <>
-            <FormField
-              control={form.control}
-              name="roomId"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="text-sm">Ruimte</FormLabel>
-                  <Select
-                    value={field.value}
-                    onValueChange={(value) => {
-                      field.onChange(value);
-                      form.setValue("isResponsible", false);
-                    }}
-                  >
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Selecteer een ruimte" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {rooms.map((room) => {
-                        const responsible = plannings.find(p => p.roomId === room.id && p.isResponsible);
-                        const responsibleVolunteer = responsible
-                          ? volunteers.find(v => v.id === responsible.volunteerId)
-                          : null;
-
-                        return (
+        <div className="grid grid-cols-1 gap-6">
+          {!isBulkPlanning && (
+            <>
+              <FormField
+                control={form.control}
+                name="roomId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-sm">Ruimte</FormLabel>
+                    <Select
+                      value={field.value}
+                      onValueChange={(value) => {
+                        field.onChange(value);
+                        form.setValue("isResponsible", false);
+                      }}
+                    >
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Selecteer een ruimte" />
+                      </SelectTrigger>
+                      <SelectContent className="z-50">
+                        {rooms.map((room) => (
                           <SelectItem
                             key={room.id}
                             value={room.id}
-                            className="cursor-pointer py-2.5 px-3 hover:bg-accent hover:text-accent-foreground"
+                            className="cursor-pointer py-2.5 px-3"
                           >
                             <div className="flex items-center gap-2">
-                              <Check
-                                className={cn(
-                                  "h-4 w-4 flex-shrink-0",
-                                  field.value === room.id ? "opacity-100" : "opacity-0"
-                                )}
-                              />
                               <div className="flex-grow">
                                 <div>{room.name}</div>
-                                {responsibleVolunteer && (
-                                  <div className="text-xs text-muted-foreground flex items-center gap-1">
-                                    <UserCircle2 className="h-3 w-3" />
-                                    <span>
-                                      Verantwoordelijke: {responsibleVolunteer.firstName} {responsibleVolunteer.lastName}
-                                    </span>
-                                  </div>
-                                )}
                               </div>
                             </div>
                           </SelectItem>
-                        );
-                      })}
-                    </SelectContent>
-                  </Select>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="volunteerId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-sm">Vrijwilliger</FormLabel>
+                    <Select
+                      value={field.value}
+                      onValueChange={field.onChange}
+                    >
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Selecteer vrijwilliger" />
+                      </SelectTrigger>
+                      <SelectContent className="z-50 max-h-[300px]">
+                        <div className="sticky top-0 p-2 bg-white border-b">
+                          <div className="relative">
+                            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+                            <Input
+                              type="text"
+                              placeholder="Zoek vrijwilliger..."
+                              value={searchTerm}
+                              onKeyDown={(e) => e.stopPropagation()}
+                              onChange={(e) => setSearchTerm(e.target.value)}
+                              className="pl-9 h-9"
+                            />
+                          </div>
+                        </div>
+                        <div className="pt-1">
+                          {volunteers
+                            .filter(volunteer => {
+                              const fullName = `${volunteer.firstName} ${volunteer.lastName}`.toLowerCase();
+                              return fullName.includes(searchTerm.toLowerCase());
+                            })
+                            .map((volunteer) => (
+                              <SelectItem
+                                key={volunteer.id}
+                                value={volunteer.id}
+                                className="cursor-pointer py-2.5 px-3"
+                              >
+                                <div className="flex items-center gap-2">
+                                  <div className="flex-grow">
+                                    <div>{volunteer.firstName} {volunteer.lastName}</div>
+                                  </div>
+                                </div>
+                              </SelectItem>
+                            ))}
+                        </div>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </>
+          )}
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <FormField
+              control={form.control}
+              name="startDate"
+              render={({ field }) => (
+                <FormItem className="flex flex-col">
+                  <FormLabel>Startdatum</FormLabel>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <FormControl>
+                        <Button
+                          variant={"outline"}
+                          className={cn(
+                            "w-full pl-3 text-left font-normal",
+                            !field.value && "text-muted-foreground"
+                          )}
+                        >
+                          {field.value ? (
+                            format(new Date(field.value), "d MMM yyyy", { locale: nl })
+                          ) : (
+                            <span>Kies een datum</span>
+                          )}
+                          <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                        </Button>
+                      </FormControl>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0 z-[100]" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={field.value ? new Date(field.value) : undefined}
+                        onSelect={(date) => {
+                          if (date) {
+                            field.onChange(format(date, 'yyyy-MM-dd'));
+                          }
+                        }}
+                        initialFocus
+                        locale={nl}
+                      />
+                    </PopoverContent>
+                  </Popover>
                   <FormMessage />
                 </FormItem>
               )}
@@ -179,384 +250,230 @@ const PlanningForm = ({
 
             <FormField
               control={form.control}
-              name="volunteerId"
+              name="endDate"
               render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="text-sm">Vrijwilliger</FormLabel>
-                  <Select
-                    value={field.value}
-                    onValueChange={field.onChange}
-                  >
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Selecteer vrijwilliger" />
-                    </SelectTrigger>
-                    <SelectContent className="max-h-[300px]">
-                      <div className="sticky top-0 p-2 bg-white border-b">
-                        <div className="relative">
-                          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
-                          <Input
-                            type="text"
-                            placeholder="Zoek vrijwilliger..."
-                            value={searchTerm}
-                            onKeyDown={(e) => e.stopPropagation()}
-                            onChange={(e) => {
-                              e.preventDefault();
-                              setSearchTerm(e.target.value);
-                            }}
-                            className="pl-9 h-9"
-                          />
+                <FormItem className="flex flex-col">
+                  <FormLabel>Einddatum</FormLabel>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <FormControl>
+                        <Button
+                          variant={"outline"}
+                          className={cn(
+                            "w-full pl-3 text-left font-normal",
+                            !field.value && "text-muted-foreground"
+                          )}
+                        >
+                          {field.value ? (
+                            format(new Date(field.value), "d MMM yyyy", { locale: nl })
+                          ) : (
+                            <span>Kies een datum</span>
+                          )}
+                          <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                        </Button>
+                      </FormControl>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0 z-[100]" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={field.value ? new Date(field.value) : undefined}
+                        onSelect={(date) => {
+                          if (date) {
+                            field.onChange(format(date, 'yyyy-MM-dd'));
+                          }
+                        }}
+                        disabled={(date) => {
+                          const startDate = form.getValues("startDate");
+                          if (!startDate) return true;
+                          return date < new Date(startDate);
+                        }}
+                        initialFocus
+                        locale={nl}
+                      />
+                    </PopoverContent>
+                  </Popover>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+          {isBulkPlanning && (
+            <>
+              <FormField
+                control={form.control}
+                name="selectedVolunteers"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-sm">Vrijwilligers</FormLabel>
+                    <Select
+                      value={field.value?.[0] || ""}
+                      onValueChange={(value) => {
+                        const current = field.value || [];
+                        const updated = current.includes(value)
+                          ? current.filter(id => id !== value)
+                          : [...current, value];
+                        field.onChange(updated);
+                      }}
+                    >
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Selecteer vrijwilligers">
+                          {field.value?.length
+                            ? `${field.value.length} vrijwilliger(s) geselecteerd`
+                            : "Selecteer vrijwilligers"}
+                        </SelectValue>
+                      </SelectTrigger>
+                      <SelectContent className="max-h-[300px]">
+                        <div className="sticky top-0 p-2 bg-white border-b">
+                          <div className="relative">
+                            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+                            <Input
+                              type="text"
+                              placeholder="Zoek vrijwilliger..."
+                              value={searchTermBulk}
+                              onKeyDown={(e) => e.stopPropagation()}
+                              onChange={(e) => {
+                                e.preventDefault();
+                                setSearchTermBulk(e.target.value);
+                              }}
+                              className="pl-9 h-9"
+                            />
+                          </div>
                         </div>
-                      </div>
-                      <div className="pt-1">
-                        {volunteers
-                          .filter(volunteer => {
-                            const fullName = `${volunteer.firstName} ${volunteer.lastName}`.toLowerCase();
-                            return fullName.includes(searchTerm.toLowerCase());
-                          })
-                          .map((volunteer) => (
-                            <SelectItem
-                              key={volunteer.id}
-                              value={volunteer.id}
-                              className="flex items-center py-2 px-3 cursor-pointer hover:bg-accent hover:text-accent-foreground"
+                        <div className="pt-1">
+                          {volunteers
+                            .filter(volunteer => {
+                              const fullName = `${volunteer.firstName} ${volunteer.lastName}`.toLowerCase();
+                              return fullName.includes(searchTermBulk.toLowerCase());
+                            })
+                            .map((volunteer) => (
+                              <SelectItem
+                                key={volunteer.id}
+                                value={volunteer.id}
+                                className="flex items-center py-2 px-3 cursor-pointer hover:bg-accent hover:text-accent-foreground"
+                              >
+                                <div className="flex items-center gap-2 w-full">
+                                  <Check
+                                    className={cn(
+                                      "h-4 w-4 flex-shrink-0",
+                                      field.value?.includes(volunteer.id) ? "opacity-100" : "opacity-0"
+                                    )}
+                                  />
+                                  <span className="flex-grow truncate">{volunteer.firstName} {volunteer.lastName}</span>
+                                </div>
+                              </SelectItem>
+                            ))}
+                        </div>
+                      </SelectContent>
+                    </Select>
+                    {field.value?.length > 0 && (
+                      <div className="mt-2 flex flex-wrap gap-2">
+                        {field.value.map(id => {
+                          const volunteer = volunteers.find(v => v.id === id);
+                          return volunteer && (
+                            <div
+                              key={id}
+                              className="bg-[#963E56]/10 text-[#963E56] text-sm rounded-full px-3 py-1 flex items-center gap-2"
                             >
-                              <div className="flex items-center gap-2 w-full">
-                                <Check
-                                  className={cn(
-                                    "h-4 w-4 flex-shrink-0",
-                                    field.value === volunteer.id ? "opacity-100" : "opacity-0"
-                                  )}
-                                />
-                                <span className="flex-grow truncate">{volunteer.firstName} {volunteer.lastName}</span>
-                              </div>
-                            </SelectItem>
-                          ))}
+                              <span>{volunteer.firstName} {volunteer.lastName}</span>
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="icon"
+                                className="h-4 w-4 p-0 hover:bg-transparent"
+                                onClick={() => {
+                                  field.onChange(field.value?.filter(v => v !== id));
+                                }}
+                              >
+                                <X className="h-3 w-3" />
+                              </Button>
+                            </div>
+                          );
+                        })}
                       </div>
-                    </SelectContent>
-                  </Select>
-                  {field.value && (
-                    <div className="mt-2 space-y-2">
-                      {(() => {
-                        const volunteer = volunteers.find(v => v.id === field.value);
-                        if (volunteer) {
-                          return (
-                            <>
-                              <div className="bg-[#963E56]/10 text-[#963E56] text-sm rounded-full px-3 py-1 flex items-center gap-2 w-fit">
-                                <span>{volunteer.firstName} {volunteer.lastName}</span>
-                                <Button
-                                  type="button"
-                                  variant="ghost"
-                                  size="icon"
-                                  className="h-4 w-4 p-0 hover:bg-transparent"
-                                  onClick={() => field.onChange(undefined)}
-                                >
-                                  <X className="h-3 w-3" />
-                                </Button>
-                              </div>
-                              <FormField
-                                control={form.control}
-                                name="isResponsible"
-                                render={({ field: responsibleField }) => (
-                                  <div className="flex items-center gap-2">
-                                    <Switch
-                                      checked={responsibleField.value}
-                                      onCheckedChange={responsibleField.onChange}
-                                      className="data-[state=checked]:bg-[#963E56]"
-                                    />
-                                    <Label className="text-sm flex items-center gap-1">
-                                      <UserCircle2 className="h-4 w-4" />
-                                      Verantwoordelijke
-                                    </Label>
-                                  </div>
+                    )}
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="selectedRooms"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-sm">Ruimtes</FormLabel>
+                    <Select
+                      value={field.value?.[0] || ""}
+                      onValueChange={(value) => {
+                        const current = field.value || [];
+                        const updated = current.includes(value)
+                          ? current.filter(id => id !== value)
+                          : [...current, value];
+                        field.onChange(updated);
+                      }}
+                    >
+                      <SelectTrigger className="w-full">
+                        <SelectValue
+                          placeholder="Selecteer ruimtes"
+                        >
+                          {field.value?.length
+                            ? `${field.value.length} ruimte(s) geselecteerd`
+                            : "Selecteer ruimtes"}
+                        </SelectValue>
+                      </SelectTrigger>
+                      <SelectContent>
+                        {rooms.map((room) => (
+                          <SelectItem
+                            key={room.id}
+                            value={room.id}
+                            className="flex items-center py-2 px-3 cursor-pointer hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
+                          >
+                            <div className="flex items-center gap-2 w-full">
+                              <Check
+                                className={cn(
+                                  "h-4 w-4 flex-shrink-0",
+                                  field.value?.includes(room.id) ? "opacity-100" : "opacity-0"
                                 )}
                               />
-                            </>
+                              <span className="flex-grow truncate">{room.name}</span>
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    {field.value?.length > 0 && (
+                      <div className="mt-2 flex flex-wrap gap-2">
+                        {field.value.map(id => {
+                          const room = rooms.find(r => r.id === id);
+                          return room && (
+                            <div
+                              key={id}
+                              className="bg-[#963E56]/10 text-[#963E56] text-sm rounded-full px-3 py-1 flex items-center gap-2"
+                            >
+                              <span>{room.name}</span>
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="icon"
+                                className="h-4 w-4 p-0 hover:bg-transparent"
+                                onClick={() => {
+                                  field.onChange(field.value?.filter(r => r !== id));
+                                }}
+                              >
+                                <X className="h-3 w-3" />
+                              </Button>
+                            </div>
                           );
-                        }
-                      })()}
-                    </div>
-                  )}
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </>
-        )}
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <FormField
-            control={form.control}
-            name="startDate"
-            render={({ field }) => (
-              <FormItem className="flex flex-col">
-                <FormLabel>Startdatum</FormLabel>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <FormControl>
-                      <Button
-                        variant={"outline"}
-                        className={cn(
-                          "w-full pl-3 text-left font-normal",
-                          !field.value && "text-muted-foreground"
-                        )}
-                      >
-                        {field.value ? (
-                          format(new Date(field.value), "d MMM yyyy", { locale: nl })
-                        ) : (
-                          <span>Kies een datum</span>
-                        )}
-                        <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                      </Button>
-                    </FormControl>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar
-                      mode="single"
-                      selected={field.value ? new Date(field.value) : undefined}
-                      onSelect={(date) => {
-                        if (date) {
-                          const utcDate = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
-                          const dateStr = format(utcDate, 'yyyy-MM-dd');
-                          field.onChange(dateStr);
-                        }
-                      }}
-                      initialFocus
-                      locale={nl}
-                    />
-                  </PopoverContent>
-                </Popover>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="endDate"
-            render={({ field }) => (
-              <FormItem className="flex flex-col">
-                <FormLabel>Einddatum</FormLabel>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <FormControl>
-                      <Button
-                        variant={"outline"}
-                        className={cn(
-                          "w-full pl-3 text-left font-normal",
-                          !field.value && "text-muted-foreground"
-                        )}
-                      >
-                        {field.value ? (
-                          format(new Date(field.value), "d MMM yyyy", { locale: nl })
-                        ) : (
-                          <span>Kies een datum</span>
-                        )}
-                        <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                      </Button>
-                    </FormControl>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar
-                      mode="single"
-                      selected={field.value ? new Date(field.value) : undefined}
-                      onSelect={(date) => {
-                        if (date) {
-                          const utcDate = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
-                          const dateStr = format(utcDate, 'yyyy-MM-dd');
-                          field.onChange(dateStr);
-                        }
-                      }}
-                      disabled={(date) => {
-                        const startDate = form.getValues("startDate");
-                        if (!startDate) return true;
-                        return date < new Date(startDate);
-                      }}
-                      initialFocus
-                      locale={nl}
-                    />
-                  </PopoverContent>
-                </Popover>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+                        })}
+                      </div>
+                    )}
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </>
+          )}
         </div>
-
-        {isBulkPlanning && (
-          <>
-            <FormField
-              control={form.control}
-              name="selectedVolunteers"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="text-sm">Vrijwilligers</FormLabel>
-                  <Select
-                    value={field.value?.[0] || ""}
-                    onValueChange={(value) => {
-                      const current = field.value || [];
-                      const updated = current.includes(value)
-                        ? current.filter(id => id !== value)
-                        : [...current, value];
-                      field.onChange(updated);
-                    }}
-                  >
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Selecteer vrijwilligers">
-                        {field.value?.length
-                          ? `${field.value.length} vrijwilliger(s) geselecteerd`
-                          : "Selecteer vrijwilligers"}
-                      </SelectValue>
-                    </SelectTrigger>
-                    <SelectContent className="max-h-[300px]">
-                      <div className="sticky top-0 p-2 bg-white border-b">
-                        <div className="relative">
-                          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
-                          <Input
-                            type="text"
-                            placeholder="Zoek vrijwilliger..."
-                            value={searchTermBulk}
-                            onKeyDown={(e) => e.stopPropagation()}
-                            onChange={(e) => {
-                              e.preventDefault();
-                              setSearchTermBulk(e.target.value);
-                            }}
-                            className="pl-9 h-9"
-                          />
-                        </div>
-                      </div>
-                      <div className="pt-1">
-                        {volunteers
-                          .filter(volunteer => {
-                            const fullName = `${volunteer.firstName} ${volunteer.lastName}`.toLowerCase();
-                            return fullName.includes(searchTermBulk.toLowerCase());
-                          })
-                          .map((volunteer) => (
-                            <SelectItem
-                              key={volunteer.id}
-                              value={volunteer.id}
-                              className="flex items-center py-2 px-3 cursor-pointer hover:bg-accent hover:text-accent-foreground"
-                            >
-                              <div className="flex items-center gap-2 w-full">
-                                <Check
-                                  className={cn(
-                                    "h-4 w-4 flex-shrink-0",
-                                    field.value?.includes(volunteer.id) ? "opacity-100" : "opacity-0"
-                                  )}
-                                />
-                                <span className="flex-grow truncate">{volunteer.firstName} {volunteer.lastName}</span>
-                              </div>
-                            </SelectItem>
-                          ))}
-                      </div>
-                    </SelectContent>
-                  </Select>
-                  {field.value?.length > 0 && (
-                    <div className="mt-2 flex flex-wrap gap-2">
-                      {field.value.map(id => {
-                        const volunteer = volunteers.find(v => v.id === id);
-                        return volunteer && (
-                          <div
-                            key={id}
-                            className="bg-[#963E56]/10 text-[#963E56] text-sm rounded-full px-3 py-1 flex items-center gap-2"
-                          >
-                            <span>{volunteer.firstName} {volunteer.lastName}</span>
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="icon"
-                              className="h-4 w-4 p-0 hover:bg-transparent"
-                              onClick={() => {
-                                field.onChange(field.value?.filter(v => v !== id));
-                              }}
-                            >
-                              <X className="h-3 w-3" />
-                            </Button>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  )}
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="selectedRooms"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="text-sm">Ruimtes</FormLabel>
-                  <Select
-                    value={field.value?.[0] || ""}
-                    onValueChange={(value) => {
-                      const current = field.value || [];
-                      const updated = current.includes(value)
-                        ? current.filter(id => id !== value)
-                        : [...current, value];
-                      field.onChange(updated);
-                    }}
-                  >
-                    <SelectTrigger className="w-full">
-                      <SelectValue
-                        placeholder="Selecteer ruimtes"
-                      >
-                        {field.value?.length
-                          ? `${field.value.length} ruimte(s) geselecteerd`
-                          : "Selecteer ruimtes"}
-                      </SelectValue>
-                    </SelectTrigger>
-                    <SelectContent>
-                      {rooms.map((room) => (
-                        <SelectItem
-                          key={room.id}
-                          value={room.id}
-                          className="flex items-center py-2 px-3 cursor-pointer hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
-                        >
-                          <div className="flex items-center gap-2 w-full">
-                            <Check
-                              className={cn(
-                                "h-4 w-4 flex-shrink-0",
-                                field.value?.includes(room.id) ? "opacity-100" : "opacity-0"
-                              )}
-                            />
-                            <span className="flex-grow truncate">{room.name}</span>
-                          </div>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  {field.value?.length > 0 && (
-                    <div className="mt-2 flex flex-wrap gap-2">
-                      {field.value.map(id => {
-                        const room = rooms.find(r => r.id === id);
-                        return room && (
-                          <div
-                            key={id}
-                            className="bg-[#963E56]/10 text-[#963E56] text-sm rounded-full px-3 py-1 flex items-center gap-2"
-                          >
-                            <span>{room.name}</span>
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="icon"
-                              className="h-4 w-4 p-0 hover:bg-transparent"
-                              onClick={() => {
-                                field.onChange(field.value?.filter(r => r !== id));
-                              }}
-                            >
-                              <X className="h-3 w-3" />
-                            </Button>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  )}
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </>
-        )}
 
         <AlertDialog open={showResponsibleAlert} onOpenChange={setShowResponsibleAlert}>
           <AlertDialogContent>

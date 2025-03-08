@@ -62,10 +62,10 @@ const PlanningTable = ({
   onSearchChange: (value: string) => void;
   showActions?: boolean;
 }) => {
-  const [dateFilter, setDateFilter] = useState(undefined);
+  const [dateFilter, setDateFilter] = useState<Date | undefined>(undefined);
   const [sortByDate, setSortByDate] = useState(false);
   const [sortDirection, setSortDirection] = useState('asc');
-  const [expandedRooms, setExpandedRooms] = useState({});
+  const [expandedRooms, setExpandedRooms] = useState<Record<string, boolean>>({});
 
   const planningsByRoom = plannings.reduce((acc, planning) => {
     const room = rooms.find(r => r.id === planning.roomId);
@@ -155,18 +155,18 @@ const PlanningTable = ({
               }}
               className={cn("gap-2", sortByDate && "bg-accent/5")}
             >
-              <Calendar className="h-4 w-4" />
+              <CalendarIcon className="h-4 w-4" />
               <span>Sorteren op datum</span>
               {sortByDate && (sortDirection === 'asc' ? '↑' : '↓')}
             </Button>
             <Popover>
               <PopoverTrigger asChild>
                 <Button variant="outline" className="gap-2">
-                  <Calendar className="h-4 w-4" />
+                  <CalendarIcon className="h-4 w-4" />
                   <span>Filter op datum</span>
                 </Button>
               </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="end">
+              <PopoverContent className="w-auto p-0 z-50" align="end">
                 <Calendar
                   mode="single"
                   selected={dateFilter}
@@ -198,7 +198,7 @@ const PlanningTable = ({
         ) : (
           Object.entries(sortedPlanningsByRoom).map(([roomId, { room, plannings }]) => (
             <div key={roomId} className="space-y-4">
-              <Card key={roomId} className="overflow-hidden">
+              <Card className="overflow-hidden">
                 <button
                   className="w-full px-6 py-4 border-b flex items-center justify-between hover:bg-[#963E56]/5 transition-colors"
                   onClick={() => toggleRoom(roomId)}
@@ -237,14 +237,14 @@ const PlanningTable = ({
                               </div>
                               <div className="flex items-center gap-3 text-sm text-muted-foreground">
                                 <div className="flex items-center gap-1.5">
-                                  <Calendar className="h-4 w-4" />
+                                  <CalendarIcon className="h-4 w-4" />
                                   <span>
                                     {format(parseISO(planning.startDate), "EEEE d MMM yyyy", { locale: nl })}
                                   </span>
                                 </div>
                                 <span>→</span>
                                 <div className="flex items-center gap-1.5">
-                                  <Calendar className="h-4 w-4" />
+                                  <CalendarIcon className="h-4 w-4" />
                                   <span>
                                     {format(parseISO(planning.endDate), "EEEE d MMM yyyy", { locale: nl })}
                                   </span>
@@ -672,8 +672,8 @@ const Planning = () => {
       </div>
 
       <div className="flex justify-end">
-        <Dialog 
-          open={dialogOpen} 
+        <Dialog
+          open={dialogOpen}
           onOpenChange={(open) => {
             if (!open) {
               setEditingPlanning(null);
@@ -692,7 +692,7 @@ const Planning = () => {
           }}
         >
           <DialogTrigger asChild>
-            <Button 
+            <Button
               onClick={() => {
                 setEditingPlanning(null);
                 form.reset({
@@ -706,7 +706,7 @@ const Planning = () => {
                   isResponsible: false
                 });
                 logUserAction(UserActionTypes.MODAL_OPEN, "Planning modal geopend");
-              }} 
+              }}
               className="gap-2 bg-[#963E56] hover:bg-[#963E56]/90 text-white"
             >
               <Plus className="h-4 w-4" />
@@ -796,7 +796,7 @@ const Planning = () => {
         >
           <div className="p-4">
             <div className="mb-4 rounded-lg border border-muted bg-muted/5 p-4">
-              <div className="flex itemscenter gap-2 text-sm text-[#963E56]">
+              <div className="flex items-center gap-2 text-sm text-[#963E56]">
                 <CalendarIcon className="h-4 w-4" />
                 <span>Historisch overzicht van afgelopen planningen</span>
               </div>
