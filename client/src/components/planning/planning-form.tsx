@@ -6,7 +6,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { CalendarIcon, Check, Search, X, UserCircle2 } from "lucide-react";
+import { Check, Search, X, UserCircle2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { format } from "date-fns";
 import { nl } from "date-fns/locale";
@@ -75,7 +75,6 @@ export function PlanningForm({
         if (responsible) {
           setCurrentResponsible(responsible);
           setShowResponsibleAlert(true);
-          return;
         }
       }
     }
@@ -84,11 +83,11 @@ export function PlanningForm({
   const handleFormSubmit = async (data: z.infer<typeof planningSchema>) => {
     try {
       await onSubmit(data);
-    } catch (error) {
+    } catch (error: unknown) {
       toast({
         variant: "destructive",
         title: "Fout",
-        description: error.message
+        description: error instanceof Error ? error.message : "Er is een fout opgetreden"
       });
     }
   };
@@ -118,6 +117,65 @@ export function PlanningForm({
 
         {!isBulkPlanning && (
           <>
+            <FormField
+              control={form.control}
+              name="roomId"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-sm">Ruimte</FormLabel>
+                  <Select
+                    value={field.value}
+                    onValueChange={(value) => {
+                      field.onChange(value);
+                      // Reset isResponsible when changing rooms
+                      form.setValue("isResponsible", false);
+                    }}
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Selecteer een ruimte" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {rooms.map((room) => {
+                        const responsible = plannings.find(p => p.roomId === room.id && p.isResponsible);
+                        const responsibleVolunteer = responsible
+                          ? volunteers.find(v => v.id === responsible.volunteerId)
+                          : null;
+
+                        return (
+                          <SelectItem
+                            key={room.id}
+                            value={room.id}
+                            className="cursor-pointer py-2.5 px-3 hover:bg-accent hover:text-accent-foreground"
+                          >
+                            <div className="flex items-center gap-2">
+                              <Check
+                                className={cn(
+                                  "h-4 w-4 flex-shrink-0",
+                                  field.value === room.id ? "opacity-100" : "opacity-0"
+                                )}
+                              />
+                              <div className="flex-grow">
+                                <div>{room.name}</div>
+                                {responsibleVolunteer && (
+                                  <div className="text-xs text-muted-foreground flex items-center gap-1">
+                                    <UserCircle2 className="h-3 w-3" />
+                                    <span>
+                                      Verantwoordelijke: {responsibleVolunteer.firstName} {responsibleVolunteer.lastName}
+                                    </span>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          </SelectItem>
+                        );
+                      })}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
             <FormField
               control={form.control}
               name="volunteerId"
@@ -216,64 +274,6 @@ export function PlanningForm({
                       })()}
                     </div>
                   )}
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="roomId"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="text-sm">Ruimte</FormLabel>
-                  <Select
-                    value={field.value}
-                    onValueChange={(value) => {
-                      field.onChange(value);
-                      // Reset isResponsible when changing rooms
-                      form.setValue("isResponsible", false);
-                    }}
-                  >
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Selecteer een ruimte" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {rooms.map((room) => {
-                        const responsible = plannings.find(p => p.roomId === room.id && p.isResponsible);
-                        const responsibleVolunteer = responsible
-                          ? volunteers.find(v => v.id === responsible.volunteerId)
-                          : null;
-
-                        return (
-                          <SelectItem
-                            key={room.id}
-                            value={room.id}
-                            className="cursor-pointer py-2.5 px-3 hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
-                          >
-                            <div className="flex items-center gap-2">
-                              <Check
-                                className={cn(
-                                  "h-4 w-4 flex-shrink-0",
-                                  field.value === room.id ? "opacity-100" : "opacity-0"
-                                )}
-                              />
-                              <div className="flex-grow">
-                                <div>{room.name}</div>
-                                {responsibleVolunteer && (
-                                  <div className="text-xs text-muted-foreground flex items-center gap-1">
-                                    <UserCircle2 className="h-3 w-3" />
-                                    <span>
-                                      Verantwoordelijke: {responsibleVolunteer.firstName} {responsibleVolunteer.lastName}
-                                    </span>
-                                  </div>
-                                )}
-                              </div>
-                            </div>
-                          </SelectItem>
-                        );
-                      })}
-                    </SelectContent>
-                  </Select>
                   <FormMessage />
                 </FormItem>
               )}

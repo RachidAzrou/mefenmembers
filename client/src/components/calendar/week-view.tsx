@@ -237,10 +237,18 @@ export const WeekView = ({ checkedOutMaterials }: { checkedOutMaterials?: number
                     const responsible = getResponsibleForRoom(room.id, roomPlannings);
 
                     return (
-                      <div key={room.id} className="space-y-1 rounded-lg bg-[#963E56]/5 p-2">
-                        <div className="font-medium text-xs text-[#963E56] border-b border-[#963E56]/10 pb-1">
+                      <div key={room.id} className="space-y-2 rounded-lg bg-[#963E56]/5 p-2">
+                        <div className="font-medium text-sm text-[#963E56] border-b border-[#963E56]/10 pb-1">
                           <div className="flex items-center justify-between mb-1">
-                            <span>{room.name}</span>
+                            <div className="flex items-center gap-2">
+                              <span>{room.name}</span>
+                              {responsible && (
+                                <div className="flex items-center gap-1.5 text-[11px] text-[#963E56] bg-[#963E56]/10 p-1 rounded">
+                                  <UserCircle2 className="h-3 w-3" />
+                                  <span>{responsible.firstName} {responsible.lastName}</span>
+                                </div>
+                              )}
+                            </div>
                             {room.channel && (
                               <div className="flex items-center gap-1 text-[10px] text-[#963E56]">
                                 <GiWalkieTalkie className="h-3 w-3" />
@@ -248,19 +256,13 @@ export const WeekView = ({ checkedOutMaterials }: { checkedOutMaterials?: number
                               </div>
                             )}
                           </div>
-                          {responsible && (
-                            <div className="flex items-center gap-1 text-[11px] text-[#963E56] bg-[#963E56]/10 p-1 rounded">
-                              <UserCircle2 className="h-3 w-3" />
-                              <span>Verantwoordelijke: {responsible.firstName} {responsible.lastName}</span>
-                            </div>
-                          )}
                         </div>
-                        <div className="space-y-1 pl-1">
+                        <div className="space-y-2 pl-2">
                           {roomPlannings.map(planning => {
-                            const volunteer = volunteers.find(v => v.id === planning.volunteerId);
                             if (planning.isResponsible) return null;
+                            const volunteer = volunteers.find(v => v.id === planning.volunteerId);
                             const name = volunteer
-                              ? `${volunteer.firstName}${volunteer.lastName ? ' ' + volunteer.lastName[0] + '.' : ''}`
+                              ? `${volunteer.firstName} ${volunteer.lastName[0]}.`
                               : 'Niet toegewezen';
                             return (
                               <div
