@@ -93,15 +93,6 @@ export const WeekView = ({ checkedOutMaterials }: { checkedOutMaterials?: number
     });
   }, []);
 
-  const goToPreviousWeek = () => setCurrentWeek(addWeeks(currentWeek, -1));
-  const goToNextWeek = () => setCurrentWeek(addWeeks(currentWeek, 1));
-  const goToToday = () => setCurrentWeek(new Date());
-
-  const publishSchedule = () => {
-    const publicUrl = `${window.location.origin}/calendar/public`;
-    window.open(publicUrl, '_blank');
-  };
-
   const getPlanningsForDay = (day: Date) => {
     return plannings.filter(planning => {
       const planningStart = parseISO(planning.startDate);
@@ -158,6 +149,15 @@ export const WeekView = ({ checkedOutMaterials }: { checkedOutMaterials?: number
     });
 
     return planningsByRoom;
+  };
+
+  const goToPreviousWeek = () => setCurrentWeek(addWeeks(currentWeek, -1));
+  const goToNextWeek = () => setCurrentWeek(addWeeks(currentWeek, 1));
+  const goToToday = () => setCurrentWeek(new Date());
+
+  const publishSchedule = () => {
+    const publicUrl = `${window.location.origin}/calendar/public`;
+    window.open(publicUrl, '_blank');
   };
 
   return (
@@ -282,7 +282,10 @@ export const WeekView = ({ checkedOutMaterials }: { checkedOutMaterials?: number
                             return (
                               <div
                                 key={planning.id}
-                                className="text-[11px] leading-tight p-1.5 rounded bg-white/50 border border-[#963E56]/10"
+                                className={cn(
+                                  "text-[11px] leading-tight p-1.5 rounded border border-[#963E56]/10",
+                                  planning.isResponsible ? "bg-[#963E56]/10" : "bg-white/50"
+                                )}
                               >
                                 <div className="font-medium text-[#963E56]/90 overflow-hidden whitespace-nowrap flex items-center gap-1.5">
                                   <span>{name}</span>
