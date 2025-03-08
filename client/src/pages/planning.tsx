@@ -195,93 +195,95 @@ const PlanningTable = ({
           </div>
         ) : (
           Object.entries(sortedPlanningsByRoom).map(([roomId, { room, plannings }]) => (
-            <Card key={roomId} className="overflow-hidden">
-              <button
-                className="w-full px-6 py-4 border-b flex items-center justify-between hover:bg-accent/5 transition-colors"
-                onClick={() => toggleRoom(roomId)}
-              >
-                <div className="flex items-center gap-3">
-                  <House className="h-5 w-5" />
-                  <h3 className="font-medium">{room.name}</h3>
-                  <div className="text-sm text-muted-foreground">
-                    ({plannings.length} planning{plannings.length !== 1 ? 'en' : ''})
+            <div key={roomId} className="space-y-4">
+              <Card key={roomId} className="overflow-hidden">
+                <button
+                  className="w-full px-6 py-4 border-b flex items-center justify-between hover:bg-[#963E56]/5 transition-colors"
+                  onClick={() => toggleRoom(roomId)}
+                >
+                  <div className="flex items-center gap-3">
+                    <House className="h-5 w-5 text-[#963E56]" />
+                    <h3 className="font-medium text-[#963E56]">{room.name}</h3>
+                    <div className="text-sm text-[#963E56]/70">
+                      ({plannings.length} planning{plannings.length !== 1 ? 'en' : ''})
+                    </div>
                   </div>
-                </div>
-                <ChevronRight className={cn(
-                  "h-5 w-5 text-muted-foreground transition-transform",
-                  expandedRooms[roomId] && "transform rotate-90"
-                )} />
-              </button>
+                  <ChevronRight className={cn(
+                    "h-5 w-5 text-[#963E56]/70 transition-transform",
+                    expandedRooms[roomId] && "transform rotate-90"
+                  )} />
+                </button>
 
-              {expandedRooms[roomId] && (
-                <div className="divide-y divide-border">
-                  {plannings.map((planning) => {
-                    const volunteer = volunteers.find((v) => v.id === planning.volunteerId);
-                    return (
-                      <div key={planning.id} className="p-4 sm:p-6">
-                        <div className="flex items-start justify-between gap-4">
-                          <div className="space-y-1.5">
-                            <div className="flex items-center gap-2">
-                              <span className="font-medium">
-                                {volunteer ? `${volunteer.firstName} ${volunteer.lastName}` : "-"}
-                              </span>
-                              {planning.isResponsible && (
-                                <UserCircle2 className="w-4 h-4" />
-                              )}
-                            </div>
-                            <div className="flex items-center gap-3 text-sm text-muted-foreground">
-                              <div className="flex items-center gap-1.5">
-                                <Calendar className="h-4 w-4" />
-                                <span>
-                                  {format(parseISO(planning.startDate), "EEEE d MMM yyyy", { locale: nl })}
+                {expandedRooms[roomId] && (
+                  <div className="divide-y divide-[#963E56]/10 bg-[#963E56]/5">
+                    {plannings.map((planning) => {
+                      const volunteer = volunteers.find((v) => v.id === planning.volunteerId);
+                      return (
+                        <div key={planning.id} className="p-4 sm:p-6">
+                          <div className="flex items-start justify-between gap-4">
+                            <div className="space-y-1.5">
+                              <div className="flex items-center gap-2">
+                                <span className="font-medium text-[#963E56]">
+                                  {volunteer ? `${volunteer.firstName} ${volunteer.lastName}` : "-"}
                                 </span>
+                                {planning.isResponsible && (
+                                  <UserCircle2 className="w-4 h-4 text-[#963E56]" />
+                                )}
                               </div>
-                              <span>→</span>
-                              <div className="flex items-center gap-1.5">
-                                <Calendar className="h-4 w-4" />
-                                <span>
-                                  {format(parseISO(planning.endDate), "EEEE d MMM yyyy", { locale: nl })}
-                                </span>
+                              <div className="flex items-center gap-3 text-sm text-[#963E56]/70">
+                                <div className="flex items-center gap-1.5">
+                                  <Calendar className="h-4 w-4" />
+                                  <span>
+                                    {format(parseISO(planning.startDate), "EEEE d MMM yyyy", { locale: nl })}
+                                  </span>
+                                </div>
+                                <span>→</span>
+                                <div className="flex items-center gap-1.5">
+                                  <Calendar className="h-4 w-4" />
+                                  <span>
+                                    {format(parseISO(planning.endDate), "EEEE d MMM yyyy", { locale: nl })}
+                                  </span>
+                                </div>
                               </div>
                             </div>
+
+                            {showActions && (
+                              <div className="flex items-center gap-2">
+                                {onEdit && (
+                                  <TooltipProvider>
+                                    <Tooltip>
+                                      <TooltipTrigger asChild>
+                                        <Button
+                                          variant="ghost"
+                                          size="icon"
+                                          onClick={() => onEdit(planning)}
+                                        >
+                                          <Edit2 className="h-4 w-4" />
+                                        </Button>
+                                      </TooltipTrigger>
+                                      <TooltipContent>
+                                        Bewerken
+                                      </TooltipContent>
+                                    </Tooltip>
+                                  </TooltipProvider>
+                                )}
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  onClick={() => onDelete(planning.id)}
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            )}
                           </div>
-
-                          {showActions && (
-                            <div className="flex items-center gap-2">
-                              {onEdit && (
-                                <TooltipProvider>
-                                  <Tooltip>
-                                    <TooltipTrigger asChild>
-                                      <Button
-                                        variant="ghost"
-                                        size="icon"
-                                        onClick={() => onEdit(planning)}
-                                      >
-                                        <Edit2 className="h-4 w-4" />
-                                      </Button>
-                                    </TooltipTrigger>
-                                    <TooltipContent>
-                                      Bewerken
-                                    </TooltipContent>
-                                  </Tooltip>
-                                </TooltipProvider>
-                              )}
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={() => onDelete(planning.id)}
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                            </div>
-                          )}
                         </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-            </Card>
+                      );
+                    })}
+                  </div>
+                )}
+              </Card>
+            </div>
           ))
         )}
       </div>
