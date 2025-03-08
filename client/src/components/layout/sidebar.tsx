@@ -26,8 +26,9 @@ export function Sidebar() {
 
   useEffect(() => {
     const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768);
-      if (window.innerWidth < 768) {
+      const isMobileView = window.innerWidth < 768;
+      setIsMobile(isMobileView);
+      if (isMobileView) {
         setCollapsed(true);
       }
     };
@@ -71,6 +72,18 @@ export function Sidebar() {
     { icon: PiMosqueLight, label: "Mijn Moskee", href: "/mosque" },
     { icon: House, label: "Ruimtes", href: "/rooms", adminOnly: true },
   ].filter(item => !item.adminOnly || isAdmin);
+
+  const handleNavigation = (href: string) => {
+    // Only collapse on mobile and when sidebar is expanded
+    if (isMobile && !collapsed) {
+      setCollapsed(true);
+    }
+
+    // Clear notifications if needed
+    if (href === '/import-export') {
+      clearUnreadCount();
+    }
+  };
 
   return (
     <>
@@ -126,7 +139,7 @@ export function Sidebar() {
         </div>
 
         {/* Profile section */}
-        <Link href="/profile">
+        <Link href="/profile" onClick={() => handleNavigation('/profile')}>
           <div className={cn(
             "border-b p-4 cursor-pointer hover:bg-gray-50/80 transition-all duration-200",
             collapsed ? "text-center" : ""
@@ -156,14 +169,7 @@ export function Sidebar() {
               <Link
                 key={item.href}
                 href={item.href}
-                onClick={() => {
-                  if (item.href === '/import-export') {
-                    clearUnreadCount();
-                  }
-                  if (isMobile) {
-                    setCollapsed(true);
-                  }
-                }}
+                onClick={() => handleNavigation(item.href)}
               >
                 <Button
                   variant={location === item.href ? "secondary" : "ghost"}
@@ -207,7 +213,7 @@ export function Sidebar() {
         {/* Footer section */}
         <div className="p-2 border-t space-y-2">
           {isAdmin && (
-            <Link href="/settings">
+            <Link href="/settings" onClick={() => handleNavigation('/settings')}>
               <Button
                 variant={location === "/settings" ? "secondary" : "ghost"}
                 className={cn(
