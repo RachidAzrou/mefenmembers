@@ -6,7 +6,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Check, Search, X, UserCircle2 } from "lucide-react";
+import { Check, Search, X, UserCircle2, CalendarIcon } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { format, parseISO } from "date-fns";
 import { nl } from "date-fns/locale";
@@ -46,7 +46,7 @@ interface PlanningFormProps {
   plannings: any[];
 }
 
-export function PlanningForm({
+const PlanningForm = ({
   volunteers,
   rooms,
   onSubmit,
@@ -54,7 +54,7 @@ export function PlanningForm({
   form,
   editingPlanning,
   plannings
-}: PlanningFormProps) {
+}: PlanningFormProps) => {
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState("");
   const [searchTermBulk, setSearchTermBulk] = useState("");
@@ -64,21 +64,6 @@ export function PlanningForm({
   const isBulkPlanning = form.watch("isBulkPlanning");
   const selectedRoomId = form.watch("roomId");
   const isResponsible = form.watch("isResponsible");
-
-  useEffect(() => {
-    if (editingPlanning) {
-      form.reset({
-        volunteerId: editingPlanning.volunteerId,
-        roomId: editingPlanning.roomId,
-        startDate: format(parseISO(editingPlanning.startDate), 'yyyy-MM-dd'),
-        endDate: format(parseISO(editingPlanning.endDate), 'yyyy-MM-dd'),
-        isBulkPlanning: false,
-        selectedVolunteers: [],
-        selectedRooms: [],
-        isResponsible: editingPlanning.isResponsible || false
-      });
-    }
-  }, [editingPlanning, form]);
 
   useEffect(() => {
     if (selectedRoomId && isResponsible) {
@@ -99,6 +84,7 @@ export function PlanningForm({
   const handleFormSubmit = async (data: z.infer<typeof planningSchema>) => {
     try {
       await onSubmit(data);
+      onClose();
     } catch (error: unknown) {
       toast({
         variant: "destructive",
@@ -621,4 +607,6 @@ export function PlanningForm({
       </form>
     </Form>
   );
-}
+};
+
+export default PlanningForm;

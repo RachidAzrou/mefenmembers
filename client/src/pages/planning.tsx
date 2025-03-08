@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Calendar, Search, Plus, Settings2, Trash2, Edit2, ChevronRight, UserCircle2, House } from "lucide-react";
+import { Calendar as CalendarIcon, Search, Plus, Settings2, Trash2, Edit2, ChevronRight, UserCircle2, House } from "lucide-react";
 import { format, parseISO, startOfDay, endOfDay, startOfWeek } from "date-fns";
 import { nl } from "date-fns/locale";
 import { Card, CardContent } from "@/components/ui/card";
@@ -11,12 +11,12 @@ import { cn } from "@/lib/utils";
 import { db } from "@/lib/firebase";
 import { ref, onValue, remove, push, get, update } from "firebase/database";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { PlanningForm } from "@/components/planning/planning-form";
+import PlanningForm from "@/components/planning/planning-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Calendar as CustomCalendar } from "@/components/ui/calendar";
+import { Calendar } from "@/components/ui/calendar";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { logUserAction, UserActionTypes } from "@/lib/activity-logger";
 
@@ -165,7 +165,7 @@ const PlanningTable = ({
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0" align="end">
-                <CustomCalendar
+                <Calendar
                   mode="single"
                   selected={dateFilter}
                   onSelect={setDateFilter}
@@ -384,6 +384,7 @@ const Planning = () => {
   }, []);
   const handleEdit = (planning: Planning) => {
     setEditingPlanning(planning);
+
     form.reset({
       volunteerId: planning.volunteerId,
       roomId: planning.roomId,
@@ -394,6 +395,7 @@ const Planning = () => {
       selectedRooms: [],
       isResponsible: planning.isResponsible || false
     });
+
     setDialogOpen(true);
   };
   const handleDelete = async (id: string) => {
@@ -420,7 +422,6 @@ const Planning = () => {
   const onSubmit = async (data: z.infer<typeof planningSchema>) => {
     try {
       if (editingPlanning) {
-        // Update existing planning
         const planningData = {
           volunteerId: data.volunteerId,
           roomId: data.roomId,
@@ -671,9 +672,35 @@ const Planning = () => {
       </div>
 
       <div className="mt-4 sm:mt-6 flex justify-end">
-        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <Dialog open={dialogOpen} onOpenChange={(open) => {
+          if (!open) {
+            setEditingPlanning(null);
+            form.reset({
+              volunteerId: undefined,
+              roomId: undefined,
+              startDate: '',
+              endDate: '',
+              isBulkPlanning: false,
+              selectedVolunteers: [],
+              selectedRooms: [],
+              isResponsible: false
+            });
+          }
+          setDialogOpen(open);
+        }}>
           <DialogTrigger asChild>
             <Button onClick={() => {
+              setEditingPlanning(null);
+              form.reset({
+                volunteerId: undefined,
+                roomId: undefined,
+                startDate: '',
+                endDate: '',
+                isBulkPlanning: false,
+                selectedVolunteers: [],
+                selectedRooms: [],
+                isResponsible: false
+              });
               logUserAction(UserActionTypes.MODAL_OPEN, "Planning modal geopend");
             }} className="gap-2 bg-[#963E56] hover:bg-[#963E56]/90 text-white">
               <Plus className="h-4 w-4" />
