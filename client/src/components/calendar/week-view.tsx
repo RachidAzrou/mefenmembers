@@ -114,6 +114,31 @@ export const WeekView = ({ checkedOutMaterials }: { checkedOutMaterials?: number
     });
   };
 
+  const getPlanningsForPDF = () => {
+    const pdfPlannings = [];
+    for (const day of weekDays) {
+      const dayPlannings = getPlanningsForDay(day);
+      for (const planning of dayPlannings) {
+        const volunteer = volunteers.find(v => v.id === planning.volunteerId);
+        const room = rooms.find(r => r.id === planning.roomId);
+        if (volunteer && room) {
+          pdfPlannings.push({
+            volunteer: {
+              firstName: volunteer.firstName,
+              lastName: volunteer.lastName
+            },
+            room: {
+              name: room.name,
+              channel: room.channel
+            },
+            date: day
+          });
+        }
+      }
+    }
+    return pdfPlannings;
+  };
+
   const getPlanningsByRoom = (day: Date) => {
     const dayPlannings = getPlanningsForDay(day);
     const planningsByRoom = new Map<string, Planning[]>();
