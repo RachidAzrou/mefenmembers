@@ -131,7 +131,8 @@ export const WeekView = ({ checkedOutMaterials }: { checkedOutMaterials?: number
               name: room.name,
               channel: room.channel
             },
-            date: day
+            date: day,
+            isResponsible: planning.isResponsible
           });
         }
       }
@@ -229,7 +230,7 @@ export const WeekView = ({ checkedOutMaterials }: { checkedOutMaterials?: number
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-7 gap-3 md:gap-4">
-        {weekDays.map((day, index) => { // Corrected: Added index
+        {weekDays.map((day, index) => {
           const isToday = format(day, 'yyyy-MM-dd') === format(new Date(), 'yyyy-MM-dd');
           const planningsByRoom = getPlanningsByRoom(day);
           const shouldHide = !showFullWeek && index > 2;

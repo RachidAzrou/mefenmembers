@@ -102,6 +102,15 @@ const styles = StyleSheet.create({
     color: '#111827',
     fontWeight: 'bold',
   },
+  responsibleIcon: {
+    width: 8,
+    height: 8,
+    marginLeft: 2,
+  },
+  volunteerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
   noPlanning: {
     fontSize: 7,
     fontStyle: 'italic',
@@ -136,6 +145,7 @@ type Planning = {
   };
   volunteer: { firstName: string; lastName: string };
   date: Date;
+  isResponsible?: boolean;
 };
 
 type CalendarPDFProps = {
@@ -193,9 +203,13 @@ export function CalendarPDF({ weekStart, plannings, logoUrl }: CalendarPDFProps)
               <View style={styles.weekGrid}>
                 {weekDays.map((day) => {
                   const isToday = format(day, 'yyyy-MM-dd') === format(new Date(), 'yyyy-MM-dd');
-                  const dayPlannings = room.plannings.filter(p => 
-                    format(p.date, 'yyyy-MM-dd') === format(day, 'yyyy-MM-dd')
-                  );
+                  const dayPlannings = room.plannings
+                    .filter(p => format(p.date, 'yyyy-MM-dd') === format(day, 'yyyy-MM-dd'))
+                    .sort((a, b) => {
+                      if (a.isResponsible) return -1;
+                      if (b.isResponsible) return 1;
+                      return 0;
+                    });
 
                   return (
                     <View key={day.toISOString()} style={[
@@ -216,9 +230,17 @@ export function CalendarPDF({ weekStart, plannings, logoUrl }: CalendarPDFProps)
 
                       {dayPlannings.map((planning, index) => (
                         <View key={index} style={styles.planningCard}>
-                          <Text style={styles.volunteerName}>
-                            {`${planning.volunteer.firstName} ${planning.volunteer.lastName[0]}.`}
-                          </Text>
+                          <View style={styles.volunteerRow}>
+                            <Text style={styles.volunteerName}>
+                              {`${planning.volunteer.firstName} ${planning.volunteer.lastName[0]}.`}
+                            </Text>
+                            {planning.isResponsible && (
+                              <Image
+                                src="/static/user-circle.png"
+                                style={styles.responsibleIcon}
+                              />
+                            )}
+                          </View>
                         </View>
                       ))}
 
