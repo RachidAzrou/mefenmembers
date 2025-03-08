@@ -38,6 +38,9 @@ export default function PublicCalendar() {
 
   useEffect(() => {
     const planningsRef = ref(db, "plannings");
+    const roomsRef = ref(db, "rooms");
+    const volunteersRef = ref(db, "volunteers");
+
     onValue(planningsRef, (snapshot) => {
       const data = snapshot.val();
       const planningsList = data ? Object.entries(data).map(([id, planning]) => ({
@@ -47,7 +50,6 @@ export default function PublicCalendar() {
       setPlannings(planningsList);
     });
 
-    const roomsRef = ref(db, "rooms");
     onValue(roomsRef, (snapshot) => {
       const data = snapshot.val();
       const roomsList = data ? Object.entries(data).map(([id, room]) => ({
@@ -57,7 +59,6 @@ export default function PublicCalendar() {
       setRooms(roomsList);
     });
 
-    const volunteersRef = ref(db, "volunteers");
     onValue(volunteersRef, (snapshot) => {
       const data = snapshot.val();
       const volunteersList = data ? Object.entries(data).map(([id, volunteer]) => ({
@@ -72,7 +73,6 @@ export default function PublicCalendar() {
     return plannings.filter(planning => {
       const planningStart = parseISO(planning.startDate);
       const planningEnd = parseISO(planning.endDate);
-
       const startDate = new Date(planningStart.setHours(0, 0, 0, 0));
       const endDate = new Date(planningEnd.setHours(0, 0, 0, 0));
       const checkDate = new Date(day.setHours(0, 0, 0, 0));
@@ -98,6 +98,41 @@ export default function PublicCalendar() {
 
     return planningsByRoom;
   };
+
+  const renderPlanning = (planning: Planning, volunteer: Volunteer | undefined) => (
+    <div key={planning.id} className="bg-primary/5 border border-primary/10 rounded-lg p-3">
+      <div className="flex items-center justify-between">
+        <span className="text-sm font-medium">
+          {volunteer ? `${volunteer.firstName} ${volunteer.lastName}` : 'Niet toegewezen'}
+        </span>
+        {planning.isResponsible && (
+          <div className="ml-2 inline-block">
+            <BiSolidUser size={20} className="text-[#963E56]" />
+          </div>
+        )}
+      </div>
+    </div>
+  );
+
+  const renderRoom = (room: Room, plannings: Planning[]) => (
+    <div key={room.id} className="space-y-2">
+      <div className="font-medium text-sm text-primary/80 border-b pb-1 flex items-center justify-between">
+        <span>{room.name}</span>
+        {room.channel && (
+          <div className="flex items-center gap-1 text-xs text-[#963E56]/70">
+            <GiWalkieTalkie className="h-3 w-3" />
+            <span>{room.channel}</span>
+          </div>
+        )}
+      </div>
+      <div className="space-y-2">
+        {plannings.map(planning => {
+          const volunteer = volunteers.find(v => v.id === planning.volunteerId);
+          return renderPlanning(planning, volunteer);
+        })}
+      </div>
+    </div>
+  );
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -136,43 +171,7 @@ export default function PublicCalendar() {
                   {rooms.map(room => {
                     const roomPlannings = planningsByRoom.get(room.id);
                     if (!roomPlannings) return null;
-
-                    return (
-                      <div key={room.id} className="space-y-2">
-                        <div className="font-medium text-sm text-primary/80 border-b pb-1 flex items-center justify-between">
-                          <span>{room.name}</span>
-                          {room.channel && (
-                            <div className="flex items-center gap-1 text-[10px] text-[#963E56]/70">
-                              <GiWalkieTalkie className="h-3 w-3" />
-                              <span>{room.channel}</span>
-                            </div>
-                          )}
-                        </div>
-                        <div className="space-y-2 pl-2">
-                          {roomPlannings.map(planning => {
-                            const volunteer = volunteers.find(v => v.id === planning.volunteerId);
-                            return (
-                              <div
-                                key={planning.id}
-                                className="text-sm p-3 rounded bg-primary/5 border border-primary/10"
-                              >
-                                <div className="font-medium flex items-center justify-between">
-                                  <span>
-                                    {volunteer
-                                      ? `${volunteer.firstName} ${volunteer.lastName}`
-                                      : 'Niet toegewezen'
-                                    }
-                                  </span>
-                                  {planning.isResponsible && (
-                                    <BiSolidUser className="h-6 w-6 text-[#963E56] ml-2" />
-                                  )}
-                                </div>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      </div>
-                    );
+                    return renderRoom(room, roomPlannings);
                   })}
                   {planningsByRoom.size === 0 && (
                     <p className="text-sm text-muted-foreground italic text-center py-4">
@@ -210,45 +209,7 @@ export default function PublicCalendar() {
                   {rooms.map(room => {
                     const roomPlannings = planningsByRoom.get(room.id);
                     if (!roomPlannings) return null;
-
-                    return (
-                      <div key={room.id} className="space-y-2">
-                        <div className="font-medium text-sm text-primary/80 border-b pb-1 flex items-center justify-between">
-                          <span>{room.name}</span>
-                          {room.channel && (
-                            <div className="flex items-center gap-1 text-xs text-[#963E56]/70">
-                              <GiWalkieTalkie className="h-3 w-3" />
-                              <span>{room.channel}</span>
-                            </div>
-                          )}
-                        </div>
-                        <div className="space-y-2">
-                          {roomPlannings.map(planning => {
-                            const volunteer = volunteers.find(v => v.id === planning.volunteerId);
-                            return (
-                              <div
-                                key={planning.id}
-                                className="p-3 rounded-lg bg-primary/5 border border-primary/10"
-                              >
-                                <div className="flex items-center justify-between">
-                                  <div className="font-medium text-sm">
-                                    {volunteer
-                                      ? `${volunteer.firstName} ${volunteer.lastName}`
-                                      : 'Niet toegewezen'
-                                    }
-                                  </div>
-                                  {planning.isResponsible && (
-                                    <div className="flex-shrink-0">
-                                      <BiSolidUser size={24} className="text-[#963E56]" />
-                                    </div>
-                                  )}
-                                </div>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      </div>
-                    );
+                    return renderRoom(room, roomPlannings);
                   })}
                   {planningsByRoom.size === 0 && (
                     <p className="text-sm text-muted-foreground italic text-center py-4">
