@@ -114,35 +114,20 @@ export function WeekView() {
     });
   };
 
-  const getPlanningsForPDF = () => {
-    let planningsForPDF = [];
-    for (const day of weekDays) {
-      const dayPlannings = getPlanningsForDay(day);
-      for (const planning of dayPlannings) {
-        const volunteer = volunteers.find(v => v.id === planning.volunteerId);
-        const room = rooms.find(r => r.id === planning.roomId);
-        planningsForPDF.push({
-          volunteer: {
-            firstName: volunteer?.firstName || 'Onbekend',
-            lastName: volunteer?.lastName || 'Vrijwilliger'
-          },
-          room: {
-            name: room?.name || 'Onbekende ruimte',
-            channel: room?.channel
-          },
-          date: day
-        });
-      }
-    }
-    return planningsForPDF;
-  };
-
   const getPlanningsByRoom = (day: Date) => {
     const dayPlannings = getPlanningsForDay(day);
     const planningsByRoom = new Map<string, Planning[]>();
 
     rooms.forEach(room => {
-      const roomPlannings = dayPlannings.filter(p => p.roomId === room.id);
+      const roomPlannings = dayPlannings
+        .filter(p => p.roomId === room.id)
+        .sort((a, b) => {
+          // Sorteer verantwoordelijken naar boven
+          if (a.isResponsible && !b.isResponsible) return -1;
+          if (!a.isResponsible && b.isResponsible) return 1;
+          return 0;
+        });
+
       if (roomPlannings.length > 0) {
         planningsByRoom.set(room.id, roomPlannings);
       }
@@ -262,7 +247,7 @@ export function WeekView() {
                             </div>
                           )}
                         </div>
-                        <div className="space-y-1 pl-1">
+                        <div className="space-y-1">
                           {roomPlannings.map(planning => {
                             const volunteer = volunteers.find(v => v.id === planning.volunteerId);
                             const name = volunteer
@@ -271,12 +256,16 @@ export function WeekView() {
                             return (
                               <div
                                 key={planning.id}
-                                className="text-[11px] leading-tight p-1.5 rounded bg-[#963E56]/5 border border-[#963E56]/10"
+                                className={`text-[11px] leading-tight p-1.5 rounded ${
+                                  planning.isResponsible 
+                                    ? 'bg-[#963E56]/10 border border-[#963E56]/20' 
+                                    : 'bg-[#963E56]/5 border border-[#963E56]/10'
+                                }`}
                               >
                                 <div className="font-medium text-[#963E56]/90 overflow-hidden whitespace-nowrap flex items-center gap-1">
                                   <span>{name}</span>
                                   {planning.isResponsible && (
-                                    <UserCircle2 className="w-3 h-3 text-[#963E56]" />
+                                    <UserCircle2 className="h-4 w-4 text-[#963E56] shrink-0" />
                                   )}
                                 </div>
                               </div>

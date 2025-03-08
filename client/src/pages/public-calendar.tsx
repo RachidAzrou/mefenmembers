@@ -90,7 +90,15 @@ export default function PublicCalendar() {
     const planningsByRoom = new Map<string, Planning[]>();
 
     rooms.forEach(room => {
-      const roomPlannings = dayPlannings.filter(p => p.roomId === room.id);
+      const roomPlannings = dayPlannings
+        .filter(p => p.roomId === room.id)
+        .sort((a, b) => {
+          // Sorteer verantwoordelijken naar boven
+          if (a.isResponsible && !b.isResponsible) return -1;
+          if (!a.isResponsible && b.isResponsible) return 1;
+          return 0;
+        });
+
       if (roomPlannings.length > 0) {
         planningsByRoom.set(room.id, roomPlannings);
       }
@@ -100,13 +108,18 @@ export default function PublicCalendar() {
   };
 
   const renderPlanning = (planning: Planning, volunteer: Volunteer | undefined) => (
-    <div key={planning.id} className="bg-primary/5 border border-primary/10 rounded-lg p-3">
+    <div 
+      key={planning.id} 
+      className={`bg-primary/5 border border-primary/10 rounded-lg p-3 ${
+        planning.isResponsible ? 'border-[#963E56] bg-[#963E56]/5' : ''
+      }`}
+    >
       <div className="flex items-center justify-between">
-        <span className="text-sm font-medium">
+        <span className={`text-sm font-medium ${planning.isResponsible ? 'text-[#963E56]' : ''}`}>
           {volunteer ? `${volunteer.firstName} ${volunteer.lastName}` : 'Niet toegewezen'}
         </span>
         {planning.isResponsible && (
-          <div className="ml-2 inline-block">
+          <div className="ml-2 inline-flex items-center">
             <Star className="h-5 w-5 fill-[#963E56] text-[#963E56]" />
           </div>
         )}
