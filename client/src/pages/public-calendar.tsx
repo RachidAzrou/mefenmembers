@@ -4,7 +4,7 @@ import { nl } from "date-fns/locale";
 import { db } from "@/lib/firebase";
 import { ref, onValue } from "firebase/database";
 import { GiWalkieTalkie } from "react-icons/gi";
-import { Star } from "lucide-react"; 
+import { UserCircle2 } from "lucide-react"; 
 
 type Planning = {
   id: string;
@@ -38,9 +38,6 @@ export default function PublicCalendar() {
 
   useEffect(() => {
     const planningsRef = ref(db, "plannings");
-    const roomsRef = ref(db, "rooms");
-    const volunteersRef = ref(db, "volunteers");
-
     onValue(planningsRef, (snapshot) => {
       const data = snapshot.val();
       const planningsList = data ? Object.entries(data).map(([id, planning]) => ({
@@ -50,6 +47,7 @@ export default function PublicCalendar() {
       setPlannings(planningsList);
     });
 
+    const roomsRef = ref(db, "rooms");
     onValue(roomsRef, (snapshot) => {
       const data = snapshot.val();
       const roomsList = data ? Object.entries(data).map(([id, room]) => ({
@@ -59,6 +57,7 @@ export default function PublicCalendar() {
       setRooms(roomsList);
     });
 
+    const volunteersRef = ref(db, "volunteers");
     onValue(volunteersRef, (snapshot) => {
       const data = snapshot.val();
       const volunteersList = data ? Object.entries(data).map(([id, volunteer]) => ({
@@ -73,6 +72,7 @@ export default function PublicCalendar() {
     return plannings.filter(planning => {
       const planningStart = parseISO(planning.startDate);
       const planningEnd = parseISO(planning.endDate);
+
       const startDate = new Date(planningStart.setHours(0, 0, 0, 0));
       const endDate = new Date(planningEnd.setHours(0, 0, 0, 0));
       const checkDate = new Date(day.setHours(0, 0, 0, 0));
@@ -90,15 +90,7 @@ export default function PublicCalendar() {
     const planningsByRoom = new Map<string, Planning[]>();
 
     rooms.forEach(room => {
-      const roomPlannings = dayPlannings
-        .filter(p => p.roomId === room.id)
-        .sort((a, b) => {
-          // Sorteer verantwoordelijken naar boven
-          if (a.isResponsible && !b.isResponsible) return -1;
-          if (!a.isResponsible && b.isResponsible) return 1;
-          return 0;
-        });
-
+      const roomPlannings = dayPlannings.filter(p => p.roomId === room.id);
       if (roomPlannings.length > 0) {
         planningsByRoom.set(room.id, roomPlannings);
       }
@@ -106,46 +98,6 @@ export default function PublicCalendar() {
 
     return planningsByRoom;
   };
-
-  const renderPlanning = (planning: Planning, volunteer: Volunteer | undefined) => (
-    <div 
-      key={planning.id} 
-      className={`bg-primary/5 border border-primary/10 rounded-lg p-3 ${
-        planning.isResponsible ? 'border-[#963E56] bg-[#963E56]/5' : ''
-      }`}
-    >
-      <div className="flex items-center justify-between">
-        <span className={`text-sm font-medium ${planning.isResponsible ? 'text-[#963E56]' : ''}`}>
-          {volunteer ? `${volunteer.firstName} ${volunteer.lastName}` : 'Niet toegewezen'}
-        </span>
-        {planning.isResponsible && (
-          <div className="ml-2 inline-flex items-center">
-            <Star className="h-5 w-5 fill-[#963E56] text-[#963E56]" />
-          </div>
-        )}
-      </div>
-    </div>
-  );
-
-  const renderRoom = (room: Room, plannings: Planning[]) => (
-    <div key={room.id} className="space-y-2">
-      <div className="font-medium text-sm text-primary/80 border-b pb-1 flex items-center justify-between">
-        <span>{room.name}</span>
-        {room.channel && (
-          <div className="flex items-center gap-1 text-xs text-[#963E56]/70">
-            <GiWalkieTalkie className="h-3 w-3" />
-            <span>{room.channel}</span>
-          </div>
-        )}
-      </div>
-      <div className="space-y-2">
-        {plannings.map(planning => {
-          const volunteer = volunteers.find(v => v.id === planning.volunteerId);
-          return renderPlanning(planning, volunteer);
-        })}
-      </div>
-    </div>
-  );
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -159,6 +111,7 @@ export default function PublicCalendar() {
       </header>
 
       <main className="container mx-auto px-4 py-8">
+        {/* Desktop View */}
         <div className="hidden md:grid grid-cols-7 gap-4">
           {weekDays.map((day) => {
             const isToday = format(day, 'yyyy-MM-dd') === format(new Date(), 'yyyy-MM-dd');
@@ -184,7 +137,43 @@ export default function PublicCalendar() {
                   {rooms.map(room => {
                     const roomPlannings = planningsByRoom.get(room.id);
                     if (!roomPlannings) return null;
-                    return renderRoom(room, roomPlannings);
+
+                    return (
+                      <div key={room.id} className="space-y-2">
+                        <div className="font-medium text-sm text-primary/80 border-b pb-1 flex items-center justify-between">
+                          <span>{room.name}</span>
+                          {room.channel && (
+                            <div className="flex items-center gap-1 text-[10px] text-[#963E56]/70">
+                              <GiWalkieTalkie className="h-3 w-3" />
+                              <span>{room.channel}</span>
+                            </div>
+                          )}
+                        </div>
+                        <div className="space-y-2 pl-2">
+                          {roomPlannings.map(planning => {
+                            const volunteer = volunteers.find(v => v.id === planning.volunteerId);
+                            return (
+                              <div
+                                key={planning.id}
+                                className="text-sm p-2 rounded bg-primary/5 border border-primary/10"
+                              >
+                                <div className="font-medium flex items-center gap-1.5">
+                                  <span>
+                                    {volunteer
+                                      ? `${volunteer.firstName} ${volunteer.lastName}`
+                                      : 'Niet toegewezen'
+                                    }
+                                  </span>
+                                  {planning.isResponsible && (
+                                    <UserCircle2 className="h-4 w-4 shrink-0 text-primary/70" />
+                                  )}
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    );
                   })}
                   {planningsByRoom.size === 0 && (
                     <p className="text-sm text-muted-foreground italic text-center py-4">
@@ -197,6 +186,7 @@ export default function PublicCalendar() {
           })}
         </div>
 
+        {/* Mobile View */}
         <div className="md:hidden space-y-6">
           {weekDays.map((day) => {
             const isToday = format(day, 'yyyy-MM-dd') === format(new Date(), 'yyyy-MM-dd');
@@ -222,7 +212,43 @@ export default function PublicCalendar() {
                   {rooms.map(room => {
                     const roomPlannings = planningsByRoom.get(room.id);
                     if (!roomPlannings) return null;
-                    return renderRoom(room, roomPlannings);
+
+                    return (
+                      <div key={room.id} className="space-y-2">
+                        <div className="font-medium text-sm text-primary/80 border-b pb-1 flex items-center justify-between">
+                          <span>{room.name}</span>
+                          {room.channel && (
+                            <div className="flex items-center gap-1 text-[10px] text-[#963E56]/70">
+                              <GiWalkieTalkie className="h-3 w-3" />
+                              <span>{room.channel}</span>
+                            </div>
+                          )}
+                        </div>
+                        <div className="space-y-2 pl-2">
+                          {roomPlannings.map(planning => {
+                            const volunteer = volunteers.find(v => v.id === planning.volunteerId);
+                            return (
+                              <div
+                                key={planning.id}
+                                className="text-sm p-2 rounded bg-primary/5 border border-primary/10"
+                              >
+                                <div className="font-medium flex items-center gap-1.5">
+                                  <span>
+                                    {volunteer
+                                      ? `${volunteer.firstName} ${volunteer.lastName}`
+                                      : 'Niet toegewezen'
+                                    }
+                                  </span>
+                                  {planning.isResponsible && (
+                                    <UserCircle2 className="h-4 w-4 shrink-0 text-primary/70" />
+                                  )}
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    );
                   })}
                   {planningsByRoom.size === 0 && (
                     <p className="text-sm text-muted-foreground italic text-center py-4">

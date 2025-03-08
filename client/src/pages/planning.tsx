@@ -418,7 +418,6 @@ const Planning = () => {
         startDate: format(new Date(data.startDate), 'yyyy-MM-dd'),
         endDate: format(new Date(data.endDate), 'yyyy-MM-dd')
       };
-
       const checkForDuplicates = (volunteerId: string, startDate: string, endDate: string) => {
         return plannings.some(planning =>
           planning.volunteerId === volunteerId &&
@@ -426,14 +425,12 @@ const Planning = () => {
             (planning.endDate >= startDate && planning.endDate <= endDate))
         );
       };
-
       if (data.isBulkPlanning) {
         const volunteers = data.selectedVolunteers || [];
         const rooms = data.selectedRooms || [];
         const duplicateVolunteers = volunteers.filter(volunteerId =>
           checkForDuplicates(volunteerId, planningData.startDate, planningData.endDate)
         );
-
         if (duplicateVolunteers.length > 0) {
           const duplicateNames = duplicateVolunteers.map(id => {
             const volunteer = volunteers.find(v => v.id === id);
@@ -441,7 +438,6 @@ const Planning = () => {
           }).join(', ');
           throw new Error(`De volgende vrijwilligers zijn al ingepland op deze datum(s): ${duplicateNames}`);
         }
-
         await logUserAction(
           UserActionTypes.PLANNING_BULK_CREATE,
           `Bulk planning aangemaakt voor ${volunteers.length} vrijwilligers en ${rooms.length} ruimtes`,
@@ -450,7 +446,6 @@ const Planning = () => {
             details: `Periode: ${planningData.startDate} tot ${planningData.endDate}`
           }
         );
-
         for (const volunteerId of volunteers) {
           for (const roomId of rooms) {
             await push(ref(db, "plannings"), {
@@ -462,59 +457,38 @@ const Planning = () => {
           }
         }
       } else {
-        // Controleer op dubbele planning alleen als het geen bewerking van een bestaande planning is
-        // OF als het een nieuwe planning is voor dezelfde vrijwilliger in een andere ruimte
-        if (!editingPlanning && data.volunteerId && 
-            checkForDuplicates(data.volunteerId, planningData.startDate, planningData.endDate) &&
-            (!editingPlanning || editingPlanning.roomId !== data.roomId)) {
+        if (data.volunteerId && checkForDuplicates(data.volunteerId, planningData.startDate, planningData.endDate)) {
           const volunteer = volunteers.find(v => v.id === data.volunteerId);
           throw new Error(`${volunteer?.firstName} ${volunteer?.lastName} is al ingepland op deze datum(s)`);
         }
-
-        // Update verantwoordelijke status
         if (data.isResponsible) {
           const existingResponsible = plannings.find(
-            p => p.roomId === data.roomId && p.isResponsible && p.id !== editingPlanning?.id
+            p => p.roomId === data.roomId && p.isResponsible
           );
           if (existingResponsible) {
             const prevRef = ref(db, `plannings/${existingResponsible.id}`);
             await update(prevRef, { isResponsible: false });
           }
         }
-
-        if (editingPlanning) {
-          // Update bestaande planning
-          const planningRef = ref(db, `plannings/${editingPlanning.id}`);
-          await update(planningRef, {
-            volunteerId: data.volunteerId,
-            roomId: data.roomId,
-            isResponsible: data.isResponsible,
-            ...planningData
-          });
-        } else {
-          // Maak nieuwe planning
-          const result = await push(ref(db, "plannings"), {
-            volunteerId: data.volunteerId,
-            roomId: data.roomId,
-            isResponsible: data.isResponsible,
-            ...planningData
-          });
-        }
-
+        const result = await push(ref(db, "plannings"), {
+          volunteerId: data.volunteerId,
+          roomId: data.roomId,
+          isResponsible: data.isResponsible,
+          ...planningData
+        });
         const volunteer = volunteers.find(v => v.id === data.volunteerId);
         const room = rooms.find(r => r.id === data.roomId);
         await logUserAction(
-          editingPlanning ? UserActionTypes.PLANNING_UPDATE : UserActionTypes.PLANNING_CREATE,
+          UserActionTypes.PLANNING_CREATE,
           data.isResponsible ? "Verantwoordelijke toegewezen" : "Planning toegevoegd",
           {
             type: 'planning',
-            id: editingPlanning?.id || null,
+            id: result.key,
             details: `${volunteer?.firstName} ${volunteer?.lastName} ${data.isResponsible ? 'als verantwoordelijke ' : ''}ingepland voor ${room?.name}`,
             targetName: `${room?.name} (${planningData.startDate} - ${planningData.endDate})`
           }
         );
       }
-
       setDialogOpen(false);
       setEditingPlanning(null);
       form.reset();
