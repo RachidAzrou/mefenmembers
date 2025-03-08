@@ -157,7 +157,7 @@ export default function PublicCalendar() {
                                 key={planning.id}
                                 className="text-sm p-2 rounded bg-primary/5 border border-primary/10"
                               >
-                                <div className="font-medium flex items-center gap-1.5 flex-wrap">
+                                <div className="font-medium flex items-center gap-1.5">
                                   <span>
                                     {volunteer
                                       ? `${volunteer.firstName} ${volunteer.lastName}`
@@ -165,10 +165,7 @@ export default function PublicCalendar() {
                                     }
                                   </span>
                                   {planning.isResponsible && (
-                                    <div className="flex items-center text-primary/70">
-                                      <UserCircle2 className="h-4 w-4 shrink-0" />
-                                      <span className="text-xs ml-1">(Verantwoordelijke)</span>
-                                    </div>
+                                    <UserCircle2 className="h-4 w-4 shrink-0 text-primary/70" />
                                   )}
                                 </div>
                               </div>
@@ -235,7 +232,7 @@ export default function PublicCalendar() {
                                 key={planning.id}
                                 className="text-sm p-2 rounded bg-primary/5 border border-primary/10"
                               >
-                                <div className="font-medium flex items-center gap-1.5 flex-wrap">
+                                <div className="font-medium flex items-center gap-1.5">
                                   <span>
                                     {volunteer
                                       ? `${volunteer.firstName} ${volunteer.lastName}`
@@ -243,10 +240,7 @@ export default function PublicCalendar() {
                                     }
                                   </span>
                                   {planning.isResponsible && (
-                                    <div className="flex items-center text-primary/70">
-                                      <UserCircle2 className="h-4 w-4 shrink-0" />
-                                      <span className="text-xs ml-1">(Verantwoordelijke)</span>
-                                    </div>
+                                    <UserCircle2 className="h-4 w-4 shrink-0 text-primary/70" />
                                   )}
                                 </div>
                               </div>
