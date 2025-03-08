@@ -96,9 +96,9 @@ const PlanningForm = ({
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(handleFormSubmit)} className="space-y-4">
+      <form onSubmit={form.handleSubmit(handleFormSubmit)} className="space-y-6">
         {!editingPlanning && (
-          <div className="flex items-center space-x-2 pb-4 mb-4 border-b border-border">
+          <div className="flex items-center space-x-2 pb-4">
             <Switch
               checked={isBulkPlanning}
               onCheckedChange={(checked) => {
@@ -588,7 +588,7 @@ const PlanningForm = ({
           </AlertDialogContent>
         </AlertDialog>
 
-        <div className="flex justify-end gap-3 pt-6">
+        <div className="flex justify-end gap-3 pt-6 border-t">
           <Button
             type="button"
             variant="ghost"
@@ -599,7 +599,7 @@ const PlanningForm = ({
           </Button>
           <Button
             type="submit"
-            className="bg-[#963E56] hover:bg-[#963E56]/90 text-sm"
+            className="bg-[#963E56] hover:bg-[#963E56]/90 text-white text-sm"
           >
             {editingPlanning ? "Planning Bijwerken" : "Planning Opslaan"}
           </Button>

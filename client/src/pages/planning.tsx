@@ -20,6 +20,8 @@ import { Calendar } from "@/components/ui/calendar";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { logUserAction, UserActionTypes } from "@/lib/activity-logger";
 
+// Schema en interface definities blijven hetzelfde...
+
 const planningSchema = z.object({
   volunteerId: z.string().min(1, "Vrijwilliger is verplicht").optional(),
   roomId: z.string().min(1, "Ruimte is verplicht").optional(),
@@ -384,7 +386,6 @@ const Planning = () => {
   }, []);
   const handleEdit = (planning: Planning) => {
     setEditingPlanning(planning);
-
     form.reset({
       volunteerId: planning.volunteerId,
       roomId: planning.roomId,
@@ -395,7 +396,6 @@ const Planning = () => {
       selectedRooms: [],
       isResponsible: planning.isResponsible || false
     });
-
     setDialogOpen(true);
   };
   const handleDelete = async (id: string) => {
@@ -621,75 +621,61 @@ const Planning = () => {
     }).filter((p): p is Planning => p !== null);
   }, [plannings]);
   return (
-    <div className="space-y-4 sm:space-y-6 p-3 sm:p-6">
+    <div className="space-y-6 p-6">
       <div className="flex items-center gap-3">
-        <Calendar className="h-6 w-6 sm:h-8 sm:w-8 text-[#963E56]" />
-        <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-[#963E56]">Planning</h1>
+        <CalendarIcon className="h-8 w-8 text-[#963E56]" />
+        <h1 className="text-3xl font-bold text-[#963E56]">Planning</h1>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         <Card>
-          <CardContent className="pt-4 sm:pt-6">
+          <CardContent className="pt-6">
             <div className="flex items-center">
-              <div className="bg-[#963E56]/10 rounded-full p-2 mr-2 sm:mr-3">
-                <Calendar className="h-4 w-4 sm:h-5 sm:w-5 text-[#963E56]" />
+              <div className="bg-[#963E56]/10 rounded-full p-2 mr-3">
+                <CalendarIcon className="h-5 w-5 text-[#963E56]" />
               </div>
               <div>
                 <div className="text-sm font-medium text-[#963E56]">Actieve Planningen</div>
-                <div className="text-lg sm:text-2xl font-bold">{activePlannings.length}</div>
+                <div className="text-2xl font-bold">{activePlannings.length}</div>
               </div>
             </div>
           </CardContent>
         </Card>
 
         <Card>
-          <CardContent className="pt-4 sm:pt-6">
+          <CardContent className="pt-6">
             <div className="flex items-center">
-              <div className="bg-[#963E56]/10 rounded-full p-2 mr-2 sm:mr-3">
-                <Calendar className="h-4 w-4 sm:h-5 sm:w-5 text-[#963E56]" />
+              <div className="bg-[#963E56]/10 rounded-full p-2 mr-3">
+                <CalendarIcon className="h-5 w-5 text-[#963E56]" />
               </div>
               <div>
                 <div className="text-sm font-medium text-[#963E56]">Toekomstige Planningen</div>
-                <div className="text-lg sm:text-2xl font-bold">{upcomingPlannings.length}</div>
+                <div className="text-2xl font-bold">{upcomingPlannings.length}</div>
               </div>
             </div>
           </CardContent>
         </Card>
 
         <Card>
-          <CardContent className="pt-4 sm:pt-6">
+          <CardContent className="pt-6">
             <div className="flex items-center">
-              <div className="bg-[#963E56]/10 rounded-full p-2 mr-2 sm:mr-3">
-                <Calendar className="h-4 w-4 sm:h-5 sm:w-5 text-[#963E56]" />
+              <div className="bg-[#963E56]/10 rounded-full p-2 mr-3">
+                <CalendarIcon className="h-5 w-5 text-[#963E56]" />
               </div>
               <div>
                 <div className="text-sm font-medium text-[#963E56]">Afgelopen Planningen</div>
-                <div className="text-lg sm:text-2xl font-bold">{pastPlannings.length}</div>
+                <div className="text-2xl font-bold">{pastPlannings.length}</div>
               </div>
             </div>
           </CardContent>
         </Card>
       </div>
 
-      <div className="mt-4 sm:mt-6 flex justify-end">
-        <Dialog open={dialogOpen} onOpenChange={(open) => {
-          if (!open) {
-            setEditingPlanning(null);
-            form.reset({
-              volunteerId: undefined,
-              roomId: undefined,
-              startDate: '',
-              endDate: '',
-              isBulkPlanning: false,
-              selectedVolunteers: [],
-              selectedRooms: [],
-              isResponsible: false
-            });
-          }
-          setDialogOpen(open);
-        }}>
-          <DialogTrigger asChild>
-            <Button onClick={() => {
+      <div className="flex justify-end">
+        <Dialog 
+          open={dialogOpen} 
+          onOpenChange={(open) => {
+            if (!open) {
               setEditingPlanning(null);
               form.reset({
                 volunteerId: undefined,
@@ -701,14 +687,34 @@ const Planning = () => {
                 selectedRooms: [],
                 isResponsible: false
               });
-              logUserAction(UserActionTypes.MODAL_OPEN, "Planning modal geopend");
-            }} className="gap-2 bg-[#963E56] hover:bg-[#963E56]/90 text-white">
+            }
+            setDialogOpen(open);
+          }}
+        >
+          <DialogTrigger asChild>
+            <Button 
+              onClick={() => {
+                setEditingPlanning(null);
+                form.reset({
+                  volunteerId: undefined,
+                  roomId: undefined,
+                  startDate: '',
+                  endDate: '',
+                  isBulkPlanning: false,
+                  selectedVolunteers: [],
+                  selectedRooms: [],
+                  isResponsible: false
+                });
+                logUserAction(UserActionTypes.MODAL_OPEN, "Planning modal geopend");
+              }} 
+              className="gap-2 bg-[#963E56] hover:bg-[#963E56]/90 text-white"
+            >
               <Plus className="h-4 w-4" />
               <span>Inplannen</span>
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-[95vw] sm:max-w-[450px] p-4 sm:p-6">
-            <DialogHeader className="mb-4">
+          <DialogContent className="max-w-[95vw] sm:max-w-[450px]">
+            <DialogHeader>
               <DialogTitle className="text-xl font-semibold text-[#963E56]">
                 {editingPlanning ? "Planning Bewerken" : "Planning"}
               </DialogTitle>
@@ -730,77 +736,83 @@ const Planning = () => {
         </Dialog>
       </div>
 
-      <div className="space-y-4 sm:space-y-6">
+      <div className="space-y-6">
         <PlanningSection
           title="Actieve Planningen"
-          icon={<Calendar className="h-5 w-5 text-[#963E56]" />}
+          icon={<CalendarIcon className="h-5 w-5 text-[#963E56]" />}
           defaultOpen={true}
         >
-          <div className="mb-4 p-4 rounded-lg border border-muted bg-muted/5">
-            <div className="flex items-center gap-2 text-sm text-[#963E56]">
-              <Calendar className="h-4 w-4" />
-              <span>Planningen voor vandaag</span>
+          <div className="p-4">
+            <div className="mb-4 rounded-lg border border-muted bg-muted/5 p-4">
+              <div className="flex items-center gap-2 text-sm text-[#963E56]">
+                <CalendarIcon className="h-4 w-4" />
+                <span>Planningen voor vandaag</span>
+              </div>
             </div>
+            <PlanningTable
+              plannings={activePlannings}
+              emptyMessage="Er zijn geen actieve planningen voor vandaag"
+              volunteers={volunteers}
+              rooms={rooms}
+              onDelete={handleDelete}
+              onEdit={handleEdit}
+              searchValue={searchActive}
+              onSearchChange={(value) => handleSearchChange(value, 'active')}
+              showActions={true}
+            />
           </div>
-          <PlanningTable
-            plannings={activePlannings}
-            emptyMessage="Er zijn geen actieve planningen voor vandaag"
-            volunteers={volunteers}
-            rooms={rooms}
-            onDelete={handleDelete}
-            onEdit={handleEdit}
-            searchValue={searchActive}
-            onSearchChange={(value) => handleSearchChange(value, 'active')}
-            showActions={true}
-          />
         </PlanningSection>
 
         <PlanningSection
           title="Toekomstige Planningen"
-          icon={<Calendar className="h-5 w-5 text-[#963E56]" />}
+          icon={<CalendarIcon className="h-5 w-5 text-[#963E56]" />}
           defaultOpen={true}
         >
-          <div className="mb-4 p-4 rounded-lg border border-muted bg-muted/5">
-            <div className="flex items-center gap-2 text-sm text-[#963E56]">
-              <Calendar className="h-4 w-4" />
-              <span>Geplande toekomstige activiteiten</span>
+          <div className="p-4">
+            <div className="mb-4 rounded-lg border border-muted bg-muted/5 p-4">
+              <div className="flex items-center gap-2 text-sm text-[#963E56]">
+                <CalendarIcon className="h-4 w-4" />
+                <span>Geplande toekomstige activiteiten</span>
+              </div>
             </div>
+            <PlanningTable
+              plannings={upcomingPlannings}
+              emptyMessage="Geen toekomstige planningen gevonden"
+              volunteers={volunteers}
+              rooms={rooms}
+              onDelete={handleDelete}
+              onEdit={handleEdit}
+              searchValue={searchUpcoming}
+              onSearchChange={(value) => handleSearchChange(value, 'upcoming')}
+              showActions={true}
+            />
           </div>
-          <PlanningTable
-            plannings={upcomingPlannings}
-            emptyMessage="Geen toekomstige planningen gevonden"
-            volunteers={volunteers}
-            rooms={rooms}
-            onDelete={handleDelete}
-            onEdit={handleEdit}
-            searchValue={searchUpcoming}
-            onSearchChange={(value) => handleSearchChange(value, 'upcoming')}
-            showActions={true}
-          />
         </PlanningSection>
 
         <PlanningSection
           title="Afgelopen Planningen"
-          icon={<Calendar className="h-5 w-5 text-[#963E56]" />}
+          icon={<CalendarIcon className="h-5 w-5 text-[#963E56]" />}
           defaultOpen={false}
         >
-          <div className="mb-4 p-4 rounded-lg border border-muted bg-muted/5">
-            <div className="flex items-center gap-2 text-sm text-[#963E56]">
-              <Calendar className="h-4 w-4" />
-              <span>Historisch overzicht van afgelopen planningen</span>
+          <div className="p-4">
+            <div className="mb-4 rounded-lg border border-muted bg-muted/5 p-4">
+              <div className="flex itemscenter gap-2 text-sm text-[#963E56]">
+                <CalendarIcon className="h-4 w-4" />
+                <span>Historisch overzicht van afgelopen planningen</span>
+              </div>
             </div>
+            <PlanningTable
+              plannings={pastPlannings}
+              emptyMessage="Geen afgelopen planningen gevonden"
+              volunteers={volunteers}
+              rooms={rooms}
+              onDelete={handleDelete}
+              onEdit={handleEdit}
+              searchValue={searchPast}
+              onSearchChange={(value) => handleSearchChange(value, 'past')}
+              showActions={true}
+            />
           </div>
-          <PlanningTable
-            plannings={pastPlannings}
-            emptyMessage="Geen afgelopen planningen gevonden"
-            volunteers={volunteers}
-            rooms={rooms}
-            onDelete={handleDelete}
-            onEdit={handleEdit}
-            searchValue={searchPast}
-            onSearchChange={(value) => handleSearchChange(value, 'past')}
-            showActions={true}
-          />
         </PlanningSection>
       </div>
     </div>
