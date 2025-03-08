@@ -4,7 +4,7 @@ import { nl } from "date-fns/locale";
 import { db } from "@/lib/firebase";
 import { ref, onValue } from "firebase/database";
 import { GiWalkieTalkie } from "react-icons/gi";
-import { UserCircle2 } from "lucide-react"; 
+import { UserCircle2 } from "lucide-react";
 
 type Planning = {
   id: string;
@@ -154,9 +154,9 @@ export default function PublicCalendar() {
                             return (
                               <div
                                 key={planning.id}
-                                className="text-sm p-2 rounded bg-primary/5 border border-primary/10"
+                                className="text-sm p-3 rounded bg-primary/5 border border-primary/10"
                               >
-                                <div className="font-medium flex items-center gap-1.5">
+                                <div className="font-medium flex items-center justify-between">
                                   <span>
                                     {volunteer
                                       ? `${volunteer.firstName} ${volunteer.lastName}`
@@ -164,7 +164,7 @@ export default function PublicCalendar() {
                                     }
                                   </span>
                                   {planning.isResponsible && (
-                                    <UserCircle2 className="h-5 w-5 shrink-0 text-primary" />
+                                    <UserCircle2 className="h-6 w-6 text-[#963E56] ml-2" />
                                   )}
                                 </div>
                               </div>
@@ -228,9 +228,9 @@ export default function PublicCalendar() {
                             return (
                               <div
                                 key={planning.id}
-                                className="text-sm p-2 rounded bg-primary/5 border border-primary/10"
+                                className="text-sm p-3 rounded bg-primary/5 border border-primary/10"
                               >
-                                <div className="font-medium flex items-center gap-1.5">
+                                <div className="font-medium flex items-center justify-between">
                                   <span>
                                     {volunteer
                                       ? `${volunteer.firstName} ${volunteer.lastName}`
@@ -238,7 +238,7 @@ export default function PublicCalendar() {
                                     }
                                   </span>
                                   {planning.isResponsible && (
-                                    <UserCircle2 className="h-6 w-6 shrink-0 text-primary" />
+                                    <UserCircle2 className="h-6 w-6 text-[#963E56] ml-2" />
                                   )}
                                 </div>
                               </div>
