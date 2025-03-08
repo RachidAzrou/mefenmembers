@@ -111,7 +111,6 @@ export default function PublicCalendar() {
       </header>
 
       <main className="container mx-auto px-4 py-8">
-        {/* Desktop View */}
         <div className="hidden md:grid grid-cols-7 gap-4">
           {weekDays.map((day) => {
             const isToday = format(day, 'yyyy-MM-dd') === format(new Date(), 'yyyy-MM-dd');
@@ -165,7 +164,7 @@ export default function PublicCalendar() {
                                     }
                                   </span>
                                   {planning.isResponsible && (
-                                    <UserCircle2 className="h-4 w-4 shrink-0 text-primary/70" />
+                                    <UserCircle2 className="h-5 w-5 shrink-0 text-primary" />
                                   )}
                                 </div>
                               </div>
@@ -186,7 +185,6 @@ export default function PublicCalendar() {
           })}
         </div>
 
-        {/* Mobile View */}
         <div className="md:hidden space-y-6">
           {weekDays.map((day) => {
             const isToday = format(day, 'yyyy-MM-dd') === format(new Date(), 'yyyy-MM-dd');
@@ -240,7 +238,7 @@ export default function PublicCalendar() {
                                     }
                                   </span>
                                   {planning.isResponsible && (
-                                    <UserCircle2 className="h-4 w-4 shrink-0 text-primary/70" />
+                                    <UserCircle2 className="h-6 w-6 shrink-0 text-primary" />
                                   )}
                                 </div>
                               </div>
