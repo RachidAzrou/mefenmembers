@@ -387,8 +387,8 @@ const Planning = () => {
     form.reset({
       volunteerId: planning.volunteerId,
       roomId: planning.roomId,
-      startDate: planning.startDate,
-      endDate: planning.endDate,
+      startDate: format(parseISO(planning.startDate), 'yyyy-MM-dd'),
+      endDate: format(parseISO(planning.endDate), 'yyyy-MM-dd'),
       isBulkPlanning: false,
       selectedVolunteers: [],
       selectedRooms: [],
@@ -419,80 +419,108 @@ const Planning = () => {
   };
   const onSubmit = async (data: z.infer<typeof planningSchema>) => {
     try {
-      const planningData = {
-        startDate: format(new Date(data.startDate), 'yyyy-MM-dd'),
-        endDate: format(new Date(data.endDate), 'yyyy-MM-dd')
-      };
-      const checkForDuplicates = (volunteerId: string, startDate: string, endDate: string) => {
-        return plannings.some(planning =>
-          planning.volunteerId === volunteerId &&
-          ((planning.startDate >= startDate && planning.startDate <= endDate) ||
-            (planning.endDate >= startDate && planning.endDate <= endDate))
-        );
-      };
-      if (data.isBulkPlanning) {
-        const volunteers = data.selectedVolunteers || [];
-        const rooms = data.selectedRooms || [];
-        const duplicateVolunteers = volunteers.filter(volunteerId =>
-          checkForDuplicates(volunteerId, planningData.startDate, planningData.endDate)
-        );
-        if (duplicateVolunteers.length > 0) {
-          const duplicateNames = duplicateVolunteers.map(id => {
-            const volunteer = volunteers.find(v => v.id === id);
-            return volunteer ? `${volunteer.firstName} ${volunteer.lastName}` : 'Onbekend';
-          }).join(', ');
-          throw new Error(`De volgende vrijwilligers zijn al ingepland op deze datum(s): ${duplicateNames}`);
-        }
-        await logUserAction(
-          UserActionTypes.PLANNING_BULK_CREATE,
-          `Bulk planning aangemaakt voor ${volunteers.length} vrijwilligers en ${rooms.length} ruimtes`,
-          {
-            type: 'planning',
-            details: `Periode: ${planningData.startDate} tot ${planningData.endDate}`
-          }
-        );
-        for (const volunteerId of volunteers) {
-          for (const roomId of rooms) {
-            await push(ref(db, "plannings"), {
-              volunteerId,
-              roomId,
-              ...planningData,
-              isResponsible: false
-            });
-          }
-        }
-      } else {
-        if (data.volunteerId && checkForDuplicates(data.volunteerId, planningData.startDate, planningData.endDate)) {
-          const volunteer = volunteers.find(v => v.id === data.volunteerId);
-          throw new Error(`${volunteer?.firstName} ${volunteer?.lastName} is al ingepland op deze datum(s)`);
-        }
-        if (data.isResponsible) {
-          const existingResponsible = plannings.find(
-            p => p.roomId === data.roomId && p.isResponsible
-          );
-          if (existingResponsible) {
-            const prevRef = ref(db, `plannings/${existingResponsible.id}`);
-            await update(prevRef, { isResponsible: false });
-          }
-        }
-        const result = await push(ref(db, "plannings"), {
+      if (editingPlanning) {
+        // Update existing planning
+        const planningData = {
           volunteerId: data.volunteerId,
           roomId: data.roomId,
-          isResponsible: data.isResponsible,
-          ...planningData
-        });
+          startDate: format(new Date(data.startDate), 'yyyy-MM-dd'),
+          endDate: format(new Date(data.endDate), 'yyyy-MM-dd'),
+          isResponsible: data.isResponsible
+        };
+
+        const planningRef = ref(db, `plannings/${editingPlanning.id}`);
+        await update(planningRef, planningData);
+
         const volunteer = volunteers.find(v => v.id === data.volunteerId);
         const room = rooms.find(r => r.id === data.roomId);
+
         await logUserAction(
-          UserActionTypes.PLANNING_CREATE,
-          data.isResponsible ? "Verantwoordelijke toegewezen" : "Planning toegevoegd",
+          UserActionTypes.PLANNING_UPDATE,
+          "Planning bijgewerkt",
           {
             type: 'planning',
-            id: result.key,
-            details: `${volunteer?.firstName} ${volunteer?.lastName} ${data.isResponsible ? 'als verantwoordelijke ' : ''}ingepland voor ${room?.name}`,
+            id: editingPlanning.id,
+            details: `${volunteer?.firstName} ${volunteer?.lastName} bijgewerkt voor ${room?.name}`,
             targetName: `${room?.name} (${planningData.startDate} - ${planningData.endDate})`
           }
         );
+      } else {
+        const planningData = {
+          startDate: format(new Date(data.startDate), 'yyyy-MM-dd'),
+          endDate: format(new Date(data.endDate), 'yyyy-MM-dd')
+        };
+        const checkForDuplicates = (volunteerId: string, startDate: string, endDate: string) => {
+          return plannings.some(planning =>
+            planning.volunteerId === volunteerId &&
+            ((planning.startDate >= startDate && planning.startDate <= endDate) ||
+              (planning.endDate >= startDate && planning.endDate <= endDate))
+          );
+        };
+        if (data.isBulkPlanning) {
+          const volunteers = data.selectedVolunteers || [];
+          const rooms = data.selectedRooms || [];
+          const duplicateVolunteers = volunteers.filter(volunteerId =>
+            checkForDuplicates(volunteerId, planningData.startDate, planningData.endDate)
+          );
+          if (duplicateVolunteers.length > 0) {
+            const duplicateNames = duplicateVolunteers.map(id => {
+              const volunteer = volunteers.find(v => v.id === id);
+              return volunteer ? `${volunteer.firstName} ${volunteer.lastName}` : 'Onbekend';
+            }).join(', ');
+            throw new Error(`De volgende vrijwilligers zijn al ingepland op deze datum(s): ${duplicateNames}`);
+          }
+          await logUserAction(
+            UserActionTypes.PLANNING_BULK_CREATE,
+            `Bulk planning aangemaakt voor ${volunteers.length} vrijwilligers en ${rooms.length} ruimtes`,
+            {
+              type: 'planning',
+              details: `Periode: ${planningData.startDate} tot ${planningData.endDate}`
+            }
+          );
+          for (const volunteerId of volunteers) {
+            for (const roomId of rooms) {
+              await push(ref(db, "plannings"), {
+                volunteerId,
+                roomId,
+                ...planningData,
+                isResponsible: false
+              });
+            }
+          }
+        } else {
+          if (data.volunteerId && checkForDuplicates(data.volunteerId, planningData.startDate, planningData.endDate)) {
+            const volunteer = volunteers.find(v => v.id === data.volunteerId);
+            throw new Error(`${volunteer?.firstName} ${volunteer?.lastName} is al ingepland op deze datum(s)`);
+          }
+          if (data.isResponsible) {
+            const existingResponsible = plannings.find(
+              p => p.roomId === data.roomId && p.isResponsible
+            );
+            if (existingResponsible) {
+              const prevRef = ref(db, `plannings/${existingResponsible.id}`);
+              await update(prevRef, { isResponsible: false });
+            }
+          }
+          const result = await push(ref(db, "plannings"), {
+            volunteerId: data.volunteerId,
+            roomId: data.roomId,
+            isResponsible: data.isResponsible,
+            ...planningData
+          });
+          const volunteer = volunteers.find(v => v.id === data.volunteerId);
+          const room = rooms.find(r => r.id === data.roomId);
+          await logUserAction(
+            UserActionTypes.PLANNING_CREATE,
+            data.isResponsible ? "Verantwoordelijke toegewezen" : "Planning toegevoegd",
+            {
+              type: 'planning',
+              id: result.key,
+              details: `${volunteer?.firstName} ${volunteer?.lastName} ${data.isResponsible ? 'als verantwoordelijke ' : ''}ingepland voor ${room?.name}`,
+              targetName: `${room?.name} (${planningData.startDate} - ${planningData.endDate})`
+            }
+          );
+        }
       }
       setDialogOpen(false);
       setEditingPlanning(null);

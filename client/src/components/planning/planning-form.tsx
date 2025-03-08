@@ -8,7 +8,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Check, Search, X, UserCircle2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { format } from "date-fns";
+import { format, parseISO } from "date-fns";
 import { nl } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { z } from "zod";
@@ -56,18 +56,34 @@ export function PlanningForm({
   plannings
 }: PlanningFormProps) {
   const { toast } = useToast();
-  const isBulkPlanning = form.watch("isBulkPlanning");
   const [searchTerm, setSearchTerm] = useState("");
   const [searchTermBulk, setSearchTermBulk] = useState("");
-  const selectedRoomId = form.watch("roomId");
-  const isResponsible = form.watch("isResponsible");
   const [showResponsibleAlert, setShowResponsibleAlert] = useState(false);
   const [currentResponsible, setCurrentResponsible] = useState<any>(null);
+
+  const isBulkPlanning = form.watch("isBulkPlanning");
+  const selectedRoomId = form.watch("roomId");
+  const isResponsible = form.watch("isResponsible");
+
+  useEffect(() => {
+    if (editingPlanning) {
+      form.reset({
+        volunteerId: editingPlanning.volunteerId,
+        roomId: editingPlanning.roomId,
+        startDate: format(parseISO(editingPlanning.startDate), 'yyyy-MM-dd'),
+        endDate: format(parseISO(editingPlanning.endDate), 'yyyy-MM-dd'),
+        isBulkPlanning: false,
+        selectedVolunteers: [],
+        selectedRooms: [],
+        isResponsible: editingPlanning.isResponsible || false
+      });
+    }
+  }, [editingPlanning, form]);
 
   useEffect(() => {
     if (selectedRoomId && isResponsible) {
       const currentResponsiblePlanning = plannings.find(
-        p => p.roomId === selectedRoomId && p.isResponsible
+        p => p.roomId === selectedRoomId && p.isResponsible && (!editingPlanning || p.id !== editingPlanning.id)
       );
 
       if (currentResponsiblePlanning) {
@@ -78,7 +94,7 @@ export function PlanningForm({
         }
       }
     }
-  }, [selectedRoomId, isResponsible, plannings, volunteers]);
+  }, [selectedRoomId, isResponsible, plannings, volunteers, editingPlanning]);
 
   const handleFormSubmit = async (data: z.infer<typeof planningSchema>) => {
     try {
@@ -127,7 +143,6 @@ export function PlanningForm({
                     value={field.value}
                     onValueChange={(value) => {
                       field.onChange(value);
-                      // Reset isResponsible when changing rooms
                       form.setValue("isResponsible", false);
                     }}
                   >
