@@ -8,7 +8,7 @@ import {
   Package2, LogOut, Menu, ChevronLeft, ChevronRight,
   Settings, FileJson, User, House, Radio
 } from "lucide-react";
-import { PiMosqueLight, PiUsersThree } from "react-icons/pi";
+import { PiMosqueLight } from "react-icons/pi";
 import { useState, useEffect } from "react";
 import { auth } from "@/lib/firebase";
 import { signOut } from "firebase/auth";
@@ -168,11 +168,11 @@ export function Sidebar() {
                 <Button
                   variant={location === item.href ? "secondary" : "ghost"}
                   className={cn(
-                    "w-full justify-start h-14 md:h-12 relative transition-all duration-200",
+                    "w-full h-14 md:h-12 relative transition-all duration-200",
                     location === item.href
                       ? "bg-primary/10 text-primary hover:bg-primary/15"
                       : "hover:bg-primary/5 hover:text-primary",
-                    collapsed && "justify-center",
+                    collapsed ? "justify-center" : "justify-start",
                     isMobile && !collapsed && "text-base"
                   )}
                 >
@@ -211,13 +211,12 @@ export function Sidebar() {
               <Button
                 variant={location === "/settings" ? "secondary" : "ghost"}
                 className={cn(
-                  "w-full justify-start h-14 md:h-12 transition-all duration-200",
+                  "w-full h-14 md:h-12 transition-all duration-200",
                   location === "/settings"
                     ? "bg-primary/10 text-primary hover:bg-primary/15"
                     : "hover:bg-primary/5 hover:text-primary",
-                  collapsed && "justify-center"
+                  collapsed ? "justify-center" : "justify-start"
                 )}
-                onClick={() => isMobile && setCollapsed(true)}
               >
                 <Settings className="h-6 w-6 md:h-5 md:w-5" />
                 {!collapsed && (
@@ -230,8 +229,8 @@ export function Sidebar() {
           <Button
             variant="ghost"
             className={cn(
-              "w-full justify-start h-14 md:h-12 text-red-600 hover:text-red-700 hover:bg-red-50 transition-all duration-200",
-              collapsed && "justify-center"
+              "w-full h-14 md:h-12 text-red-600 hover:text-red-700 hover:bg-red-50 transition-all duration-200",
+              collapsed ? "justify-center" : "justify-start"
             )}
             onClick={handleLogout}
           >

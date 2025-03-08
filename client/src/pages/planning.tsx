@@ -215,22 +215,25 @@ const PlanningTable = ({
                 </button>
 
                 {expandedRooms[roomId] && (
-                  <div className="divide-y divide-[#963E56]/10 bg-[#963E56]/5">
+                  <div className="divide-y divide-[#963E56]/10">
                     {plannings.map((planning) => {
                       const volunteer = volunteers.find((v) => v.id === planning.volunteerId);
                       return (
-                        <div key={planning.id} className="p-4 sm:p-6">
+                        <div key={planning.id} className="p-4 sm:p-6 bg-white">
                           <div className="flex items-start justify-between gap-4">
                             <div className="space-y-1.5">
                               <div className="flex items-center gap-2">
-                                <span className="font-medium text-[#963E56]">
+                                <span className={cn(
+                                  "font-medium",
+                                  planning.isResponsible ? "text-[#963E56]" : "text-gray-900"
+                                )}>
                                   {volunteer ? `${volunteer.firstName} ${volunteer.lastName}` : "-"}
                                 </span>
                                 {planning.isResponsible && (
                                   <UserCircle2 className="w-4 h-4 text-[#963E56]" />
                                 )}
                               </div>
-                              <div className="flex items-center gap-3 text-sm text-[#963E56]/70">
+                              <div className="flex items-center gap-3 text-sm text-muted-foreground">
                                 <div className="flex items-center gap-1.5">
                                   <Calendar className="h-4 w-4" />
                                   <span>
