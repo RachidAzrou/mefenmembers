@@ -146,17 +146,17 @@ export const WeekView = ({ checkedOutMaterials }: { checkedOutMaterials?: number
     rooms.forEach(room => {
       const roomPlannings = dayPlannings.filter(p => p.roomId === room.id);
       if (roomPlannings.length > 0) {
-        planningsByRoom.set(room.id, roomPlannings);
+        // Sort plannings to put responsible volunteer first
+        const sortedPlannings = [...roomPlannings].sort((a, b) => {
+          if (a.isResponsible) return -1;
+          if (b.isResponsible) return 1;
+          return 0;
+        });
+        planningsByRoom.set(room.id, sortedPlannings);
       }
     });
 
     return planningsByRoom;
-  };
-
-  const getResponsibleForRoom = (roomId: string, plannings: Planning[]) => {
-    const responsiblePlanning = plannings.find(p => p.roomId === roomId && p.isResponsible);
-    if (!responsiblePlanning) return null;
-    return volunteers.find(v => v.id === responsiblePlanning.volunteerId);
   };
 
   return (
@@ -229,7 +229,7 @@ export const WeekView = ({ checkedOutMaterials }: { checkedOutMaterials?: number
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-7 gap-3 md:gap-4">
-        {weekDays.map((day, index) => {
+        {weekDays.map((day, index) => { // Corrected: Added index
           const isToday = format(day, 'yyyy-MM-dd') === format(new Date(), 'yyyy-MM-dd');
           const planningsByRoom = getPlanningsByRoom(day);
           const shouldHide = !showFullWeek && index > 2;
@@ -259,21 +259,11 @@ export const WeekView = ({ checkedOutMaterials }: { checkedOutMaterials?: number
                     const roomPlannings = planningsByRoom.get(room.id);
                     if (!roomPlannings) return null;
 
-                    const responsible = getResponsibleForRoom(room.id, roomPlannings);
-
                     return (
                       <div key={room.id} className="space-y-2 rounded-lg bg-[#963E56]/5 p-2">
                         <div className="font-medium text-sm text-[#963E56] border-b border-[#963E56]/10 pb-1">
                           <div className="flex items-center justify-between mb-1">
-                            <div className="flex items-center gap-2">
-                              <span>{room.name}</span>
-                              {responsible && (
-                                <div className="flex items-center gap-1.5 text-[11px] text-[#963E56] bg-[#963E56]/10 p-1 rounded">
-                                  <UserCircle2 className="h-3 w-3" />
-                                  <span>{responsible.firstName} {responsible.lastName}</span>
-                                </div>
-                              )}
-                            </div>
+                            <span>{room.name}</span>
                             {room.channel && (
                               <div className="flex items-center gap-1 text-[10px] text-[#963E56]">
                                 <GiWalkieTalkie className="h-3 w-3" />
@@ -284,7 +274,6 @@ export const WeekView = ({ checkedOutMaterials }: { checkedOutMaterials?: number
                         </div>
                         <div className="space-y-2 pl-2">
                           {roomPlannings.map(planning => {
-                            if (planning.isResponsible) return null;
                             const volunteer = volunteers.find(v => v.id === planning.volunteerId);
                             const name = volunteer
                               ? `${volunteer.firstName} ${volunteer.lastName[0]}.`
@@ -294,8 +283,11 @@ export const WeekView = ({ checkedOutMaterials }: { checkedOutMaterials?: number
                                 key={planning.id}
                                 className="text-[11px] leading-tight p-1.5 rounded bg-white/50 border border-[#963E56]/10"
                               >
-                                <div className="font-medium text-[#963E56]/90 overflow-hidden whitespace-nowrap">
+                                <div className="font-medium text-[#963E56]/90 overflow-hidden whitespace-nowrap flex items-center gap-1.5">
                                   <span>{name}</span>
+                                  {planning.isResponsible && (
+                                    <UserCircle2 className="h-3 w-3 shrink-0 text-[#963E56]" />
+                                  )}
                                 </div>
                               </div>
                             );
@@ -305,7 +297,7 @@ export const WeekView = ({ checkedOutMaterials }: { checkedOutMaterials?: number
                     );
                   })}
                   {planningsByRoom.size === 0 && (
-                    <p className="text-xs sm:text-sm text-muted-foreground italic text-center py-3 sm:py-4">
+                    <p className="text-sm text-muted-foreground italic text-center py-4">
                       Geen toewijzingen
                     </p>
                   )}
