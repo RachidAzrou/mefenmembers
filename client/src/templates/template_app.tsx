@@ -2,7 +2,7 @@ import React from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TemplateLayout } from "./template_layout";
-import { Home, Calendar, Users, Box, Radio, Grid } from "lucide-react";
+import { Home, Calendar, Users, Box, Radio } from "lucide-react";
 
 // Initialiseer de query client
 const queryClient = new QueryClient({
@@ -40,11 +40,6 @@ const navigation = [
     title: "Communicatie",
     href: "/communication",
     icon: <Radio className="h-4 w-4" />,
-  },
-  {
-    title: "Sufuf",
-    href: "/sufuf",
-    icon: <Grid className="h-4 w-4" />,
   }
 ];
 
