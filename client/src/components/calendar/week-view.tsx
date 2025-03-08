@@ -114,6 +114,37 @@ export function WeekView() {
     });
   };
 
+  const getPlanningsForPDF = () => {
+    let planningsForPDF = [];
+    for (const day of weekDays) {
+      const dayPlannings = getPlanningsForDay(day);
+      const sortedPlannings = dayPlannings.sort((a, b) => {
+        // Sorteer verantwoordelijken naar boven
+        if (a.isResponsible && !b.isResponsible) return -1;
+        if (!a.isResponsible && b.isResponsible) return 1;
+        return 0;
+      });
+
+      for (const planning of sortedPlannings) {
+        const volunteer = volunteers.find(v => v.id === planning.volunteerId);
+        const room = rooms.find(r => r.id === planning.roomId);
+        planningsForPDF.push({
+          volunteer: {
+            firstName: volunteer?.firstName || 'Onbekend',
+            lastName: volunteer?.lastName || 'Vrijwilliger',
+            isResponsible: planning.isResponsible
+          },
+          room: {
+            name: room?.name || 'Onbekende ruimte',
+            channel: room?.channel
+          },
+          date: day
+        });
+      }
+    }
+    return planningsForPDF;
+  };
+
   const getPlanningsByRoom = (day: Date) => {
     const dayPlannings = getPlanningsForDay(day);
     const planningsByRoom = new Map<string, Planning[]>();
