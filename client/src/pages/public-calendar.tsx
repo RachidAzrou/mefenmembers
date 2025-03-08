@@ -4,7 +4,7 @@ import { nl } from "date-fns/locale";
 import { db } from "@/lib/firebase";
 import { ref, onValue } from "firebase/database";
 import { GiWalkieTalkie } from "react-icons/gi";
-import { UserCircle2 } from "lucide-react";
+import { BiSolidUser } from "react-icons/bi"; 
 
 type Planning = {
   id: string;
@@ -164,7 +164,7 @@ export default function PublicCalendar() {
                                     }
                                   </span>
                                   {planning.isResponsible && (
-                                    <UserCircle2 className="h-6 w-6 text-[#963E56] ml-2" />
+                                    <BiSolidUser className="h-6 w-6 text-[#963E56] ml-2" />
                                   )}
                                 </div>
                               </div>
@@ -238,7 +238,7 @@ export default function PublicCalendar() {
                                     }
                                   </span>
                                   {planning.isResponsible && (
-                                    <UserCircle2 className="h-6 w-6 text-[#963E56] ml-2" />
+                                    <BiSolidUser className="h-6 w-6 text-[#963E56] ml-2" />
                                   )}
                                 </div>
                               </div>
