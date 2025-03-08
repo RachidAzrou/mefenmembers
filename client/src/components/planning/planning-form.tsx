@@ -229,38 +229,49 @@ export function PlanningForm({
                   <Select
                     value={field.value}
                     onValueChange={(value) => {
-                      // Check if room already has a responsible volunteer
-                      const room = rooms.find(r => r.id === value);
-                      
                       field.onChange(value);
+                      // Reset isResponsible when changing rooms
+                      form.setValue("isResponsible", false);
                     }}
                   >
                     <SelectTrigger className="w-full">
                       <SelectValue placeholder="Selecteer een ruimte" />
                     </SelectTrigger>
                     <SelectContent>
-                      {rooms.map((room) => (
-                        <SelectItem
-                          key={room.id}
-                          value={room.id}
-                          className="cursor-pointer py-2.5 px-3 hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
-                        >
-                          <div className="flex items-center gap-2">
-                            <Check
-                              className={cn(
-                                "h-4 w-4 flex-shrink-0",
-                                field.value === room.id ? "opacity-100" : "opacity-0"
-                              )}
-                            />
-                            <span className="flex-grow">{room.name}</span>
-                            {room.responsible && (
-                              <div className="text-xs text-muted-foreground">
-                                (Heeft al een verantwoordelijke)
+                      {rooms.map((room) => {
+                        const responsible = plannings.find(p => p.roomId === room.id && p.isResponsible);
+                        const responsibleVolunteer = responsible
+                          ? volunteers.find(v => v.id === responsible.volunteerId)
+                          : null;
+
+                        return (
+                          <SelectItem
+                            key={room.id}
+                            value={room.id}
+                            className="cursor-pointer py-2.5 px-3 hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
+                          >
+                            <div className="flex items-center gap-2">
+                              <Check
+                                className={cn(
+                                  "h-4 w-4 flex-shrink-0",
+                                  field.value === room.id ? "opacity-100" : "opacity-0"
+                                )}
+                              />
+                              <div className="flex-grow">
+                                <div>{room.name}</div>
+                                {responsibleVolunteer && (
+                                  <div className="text-xs text-muted-foreground flex items-center gap-1">
+                                    <UserCircle2 className="h-3 w-3" />
+                                    <span>
+                                      Verantwoordelijke: {responsibleVolunteer.firstName} {responsibleVolunteer.lastName}
+                                    </span>
+                                  </div>
+                                )}
                               </div>
-                            )}
-                          </div>
-                        </SelectItem>
-                      ))}
+                            </div>
+                          </SelectItem>
+                        );
+                      })}
                     </SelectContent>
                   </Select>
                   <FormMessage />
@@ -269,6 +280,105 @@ export function PlanningForm({
             />
           </>
         )}
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <FormField
+            control={form.control}
+            name="startDate"
+            render={({ field }) => (
+              <FormItem className="flex flex-col">
+                <FormLabel>Startdatum</FormLabel>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <FormControl>
+                      <Button
+                        variant={"outline"}
+                        className={cn(
+                          "w-full pl-3 text-left font-normal",
+                          !field.value && "text-muted-foreground"
+                        )}
+                      >
+                        {field.value ? (
+                          format(new Date(field.value), "d MMM yyyy", { locale: nl })
+                        ) : (
+                          <span>Kies een datum</span>
+                        )}
+                        <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                      </Button>
+                    </FormControl>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={field.value ? new Date(field.value) : undefined}
+                      onSelect={(date) => {
+                        if (date) {
+                          const utcDate = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+                          const dateStr = format(utcDate, 'yyyy-MM-dd');
+                          field.onChange(dateStr);
+                        }
+                      }}
+                      initialFocus
+                      locale={nl}
+                    />
+                  </PopoverContent>
+                </Popover>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="endDate"
+            render={({ field }) => (
+              <FormItem className="flex flex-col">
+                <FormLabel>Einddatum</FormLabel>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <FormControl>
+                      <Button
+                        variant={"outline"}
+                        className={cn(
+                          "w-full pl-3 text-left font-normal",
+                          !field.value && "text-muted-foreground"
+                        )}
+                      >
+                        {field.value ? (
+                          format(new Date(field.value), "d MMM yyyy", { locale: nl })
+                        ) : (
+                          <span>Kies een datum</span>
+                        )}
+                        <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                      </Button>
+                    </FormControl>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={field.value ? new Date(field.value) : undefined}
+                      onSelect={(date) => {
+                        if (date) {
+                          const utcDate = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+                          const dateStr = format(utcDate, 'yyyy-MM-dd');
+                          field.onChange(dateStr);
+                        }
+                      }}
+                      disabled={(date) => {
+                        const startDate = form.getValues("startDate");
+                        if (!startDate) return true;
+                        return date < new Date(startDate);
+                      }}
+                      initialFocus
+                      locale={nl}
+                    />
+                  </PopoverContent>
+                </Popover>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
 
         {isBulkPlanning && (
           <>
@@ -447,105 +557,6 @@ export function PlanningForm({
           </>
         )}
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <FormField
-            control={form.control}
-            name="startDate"
-            render={({ field }) => (
-              <FormItem className="flex flex-col">
-                <FormLabel>Startdatum</FormLabel>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <FormControl>
-                      <Button
-                        variant={"outline"}
-                        className={cn(
-                          "w-full pl-3 text-left font-normal",
-                          !field.value && "text-muted-foreground"
-                        )}
-                      >
-                        {field.value ? (
-                          format(new Date(field.value), "d MMM yyyy", { locale: nl })
-                        ) : (
-                          <span>Kies een datum</span>
-                        )}
-                        <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                      </Button>
-                    </FormControl>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar
-                      mode="single"
-                      selected={field.value ? new Date(field.value) : undefined}
-                      onSelect={(date) => {
-                        if (date) {
-                          const utcDate = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
-                          const dateStr = format(utcDate, 'yyyy-MM-dd');
-                          field.onChange(dateStr);
-                        }
-                      }}
-                      initialFocus
-                      locale={nl}
-                    />
-                  </PopoverContent>
-                </Popover>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="endDate"
-            render={({ field }) => (
-              <FormItem className="flex flex-col">
-                <FormLabel>Einddatum</FormLabel>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <FormControl>
-                      <Button
-                        variant={"outline"}
-                        className={cn(
-                          "w-full pl-3 text-left font-normal",
-                          !field.value && "text-muted-foreground"
-                        )}
-                      >
-                        {field.value ? (
-                          format(new Date(field.value), "d MMM yyyy", { locale: nl })
-                        ) : (
-                          <span>Kies een datum</span>
-                        )}
-                        <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                      </Button>
-                    </FormControl>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar
-                      mode="single"
-                      selected={field.value ? new Date(field.value) : undefined}
-                      onSelect={(date) => {
-                        if (date) {
-                          const utcDate = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
-                          const dateStr = format(utcDate, 'yyyy-MM-dd');
-                          field.onChange(dateStr);
-                        }
-                      }}
-                      disabled={(date) => {
-                        const startDate = form.getValues("startDate");
-                        if (!startDate) return true;
-                        return date < new Date(startDate);
-                      }}
-                      initialFocus
-                      locale={nl}
-                    />
-                  </PopoverContent>
-                </Popover>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
-
         <AlertDialog open={showResponsibleAlert} onOpenChange={setShowResponsibleAlert}>
           <AlertDialogContent>
             <AlertDialogHeader>
@@ -553,7 +564,7 @@ export function PlanningForm({
               <AlertDialogDescription>
                 {currentResponsible && (
                   <>
-                    Deze ruimte heeft al een verantwoordelijke: 
+                    Deze ruimte heeft al een verantwoordelijke:
                     <span className="font-medium text-[#963E56]">
                       {` ${currentResponsible.firstName} ${currentResponsible.lastName}`}
                     </span>
