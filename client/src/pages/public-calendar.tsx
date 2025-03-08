@@ -4,7 +4,7 @@ import { nl } from "date-fns/locale";
 import { db } from "@/lib/firebase";
 import { ref, onValue } from "firebase/database";
 import { GiWalkieTalkie } from "react-icons/gi";
-import { BiSolidUser } from "react-icons/bi"; 
+import { Star } from "lucide-react"; 
 
 type Planning = {
   id: string;
@@ -107,7 +107,7 @@ export default function PublicCalendar() {
         </span>
         {planning.isResponsible && (
           <div className="ml-2 inline-block">
-            <BiSolidUser size={20} className="text-[#963E56]" />
+            <Star className="h-5 w-5 fill-[#963E56] text-[#963E56]" />
           </div>
         )}
       </div>
