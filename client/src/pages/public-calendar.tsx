@@ -216,29 +216,31 @@ export default function PublicCalendar() {
                         <div className="font-medium text-sm text-primary/80 border-b pb-1 flex items-center justify-between">
                           <span>{room.name}</span>
                           {room.channel && (
-                            <div className="flex items-center gap-1 text-[10px] text-[#963E56]/70">
+                            <div className="flex items-center gap-1 text-xs text-[#963E56]/70">
                               <GiWalkieTalkie className="h-3 w-3" />
                               <span>{room.channel}</span>
                             </div>
                           )}
                         </div>
-                        <div className="space-y-2 pl-2">
+                        <div className="space-y-2">
                           {roomPlannings.map(planning => {
                             const volunteer = volunteers.find(v => v.id === planning.volunteerId);
                             return (
                               <div
                                 key={planning.id}
-                                className="text-sm p-3 rounded bg-primary/5 border border-primary/10"
+                                className="p-3 rounded-lg bg-primary/5 border border-primary/10"
                               >
-                                <div className="font-medium flex items-center justify-between">
-                                  <span>
+                                <div className="flex items-center justify-between">
+                                  <div className="font-medium text-sm">
                                     {volunteer
                                       ? `${volunteer.firstName} ${volunteer.lastName}`
                                       : 'Niet toegewezen'
                                     }
-                                  </span>
+                                  </div>
                                   {planning.isResponsible && (
-                                    <BiSolidUser className="h-6 w-6 text-[#963E56] ml-2" />
+                                    <div className="flex-shrink-0">
+                                      <BiSolidUser size={24} className="text-[#963E56]" />
+                                    </div>
                                   )}
                                 </div>
                               </div>
