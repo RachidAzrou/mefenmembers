@@ -17,10 +17,13 @@ import { CalendarPDF } from "../pdf/calendar-pdf";
 import { PDFDownloadLink } from "@react-pdf/renderer";
 import { cn } from "@/lib/utils";
 
-type Volunteer = {
+type Planning = {
   id: string;
-  firstName: string;
-  lastName: string;
+  volunteerId: string;
+  roomId: string;
+  startDate: string;
+  endDate: string;
+  isResponsible?: boolean;
 };
 
 type Room = {
@@ -29,13 +32,10 @@ type Room = {
   channel?: string;
 };
 
-type Planning = {
+type Volunteer = {
   id: string;
-  volunteerId: string;
-  roomId: string;
-  startDate: string;
-  endDate: string;
-  isResponsible?: boolean;
+  firstName: string;
+  lastName: string;
 };
 
 export const WeekView = ({ checkedOutMaterials }: { checkedOutMaterials?: number }) => {
@@ -112,29 +112,6 @@ export const WeekView = ({ checkedOutMaterials }: { checkedOutMaterials?: number
         end: planningEnd
       }) || isSameDay(day, planningStart) || isSameDay(day, planningEnd);
     });
-  };
-
-  const getPlanningsForPDF = () => {
-    let planningsForPDF = [];
-    for (const day of weekDays) {
-      const dayPlannings = getPlanningsForDay(day);
-      for (const planning of dayPlannings) {
-        const volunteer = volunteers.find(v => v.id === planning.volunteerId);
-        const room = rooms.find(r => r.id === planning.roomId);
-        planningsForPDF.push({
-          volunteer: {
-            firstName: volunteer?.firstName || 'Onbekend',
-            lastName: volunteer?.lastName || 'Vrijwilliger'
-          },
-          room: {
-            name: room?.name || 'Onbekende ruimte',
-            channel: room?.channel
-          },
-          date: day
-        });
-      }
-    }
-    return planningsForPDF;
   };
 
   const getPlanningsByRoom = (day: Date) => {
@@ -260,19 +237,19 @@ export const WeekView = ({ checkedOutMaterials }: { checkedOutMaterials?: number
                     const responsible = getResponsibleForRoom(room.id, roomPlannings);
 
                     return (
-                      <div key={room.id} className="space-y-1">
-                        <div className="font-medium text-xs text-[#963E56]/80 border-b pb-1">
+                      <div key={room.id} className="space-y-1 rounded-lg bg-[#963E56]/5 p-2">
+                        <div className="font-medium text-xs text-[#963E56] border-b border-[#963E56]/10 pb-1">
                           <div className="flex items-center justify-between mb-1">
                             <span>{room.name}</span>
                             {room.channel && (
-                              <div className="flex items-center gap-1 text-[10px] text-[#963E56]/70">
+                              <div className="flex items-center gap-1 text-[10px] text-[#963E56]">
                                 <GiWalkieTalkie className="h-3 w-3" />
                                 <span>{room.channel}</span>
                               </div>
                             )}
                           </div>
                           {responsible && (
-                            <div className="flex items-center gap-1 text-[11px] text-[#963E56]/90 bg-[#963E56]/5 p-1 rounded">
+                            <div className="flex items-center gap-1 text-[11px] text-[#963E56] bg-[#963E56]/10 p-1 rounded">
                               <UserCircle2 className="h-3 w-3" />
                               <span>Verantwoordelijke: {responsible.firstName} {responsible.lastName}</span>
                             </div>
@@ -288,7 +265,7 @@ export const WeekView = ({ checkedOutMaterials }: { checkedOutMaterials?: number
                             return (
                               <div
                                 key={planning.id}
-                                className="text-[11px] leading-tight p-1.5 rounded bg-[#963E56]/5 border border-[#963E56]/10"
+                                className="text-[11px] leading-tight p-1.5 rounded bg-white/50 border border-[#963E56]/10"
                               >
                                 <div className="font-medium text-[#963E56]/90 overflow-hidden whitespace-nowrap">
                                   <span>{name}</span>

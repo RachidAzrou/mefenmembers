@@ -4,7 +4,7 @@ import { nl } from "date-fns/locale";
 import { db } from "@/lib/firebase";
 import { ref, onValue } from "firebase/database";
 import { GiWalkieTalkie } from "react-icons/gi";
-import { UserCircle2 } from "lucide-react"; 
+import { UserCircle2 } from "lucide-react";
 
 type Planning = {
   id: string;
@@ -125,7 +125,7 @@ export default function PublicCalendar() {
                 }`}
               >
                 <div className={`text-lg font-semibold ${
-                  isToday ? 'text-[#D9A347]' : 'text-primary'
+                  isToday ? 'text-[#D9A347]' : 'text-[#963E56]'
                 }`}>
                   {format(day, "EEEE", { locale: nl })}
                 </div>
@@ -139,15 +139,17 @@ export default function PublicCalendar() {
                     if (!roomPlannings) return null;
 
                     return (
-                      <div key={room.id} className="space-y-2">
-                        <div className="font-medium text-sm text-primary/80 border-b pb-1 flex items-center justify-between">
-                          <span>{room.name}</span>
-                          {room.channel && (
-                            <div className="flex items-center gap-1 text-[10px] text-[#963E56]/70">
-                              <GiWalkieTalkie className="h-3 w-3" />
-                              <span>{room.channel}</span>
-                            </div>
-                          )}
+                      <div key={room.id} className="space-y-2 rounded-lg bg-[#963E56]/5 p-2">
+                        <div className="font-medium text-sm text-[#963E56] border-b border-[#963E56]/10 pb-1">
+                          <div className="flex items-center justify-between mb-1">
+                            <span>{room.name}</span>
+                            {room.channel && (
+                              <div className="flex items-center gap-1 text-[10px] text-[#963E56]">
+                                <GiWalkieTalkie className="h-3 w-3" />
+                                <span>{room.channel}</span>
+                              </div>
+                            )}
+                          </div>
                         </div>
                         <div className="space-y-2 pl-2">
                           {roomPlannings.map(planning => {
@@ -155,7 +157,7 @@ export default function PublicCalendar() {
                             return (
                               <div
                                 key={planning.id}
-                                className="text-sm p-2 rounded bg-primary/5 border border-primary/10"
+                                className="text-sm p-2 rounded bg-white/50 border border-[#963E56]/10"
                               >
                                 <div className="font-medium flex items-center gap-1.5">
                                   <span>
@@ -165,7 +167,7 @@ export default function PublicCalendar() {
                                     }
                                   </span>
                                   {planning.isResponsible && (
-                                    <UserCircle2 className="h-4 w-4 shrink-0 text-primary/70" />
+                                    <UserCircle2 className="h-4 w-4 shrink-0 text-[#963E56]/70" />
                                   )}
                                 </div>
                               </div>
@@ -200,7 +202,7 @@ export default function PublicCalendar() {
                 }`}
               >
                 <div className={`font-medium text-lg ${
-                  isToday ? 'text-[#D9A347]' : 'text-primary'
+                  isToday ? 'text-[#D9A347]' : 'text-[#963E56]'
                 }`}>
                   {format(day, "EEEE", { locale: nl })}
                 </div>
@@ -214,15 +216,17 @@ export default function PublicCalendar() {
                     if (!roomPlannings) return null;
 
                     return (
-                      <div key={room.id} className="space-y-2">
-                        <div className="font-medium text-sm text-primary/80 border-b pb-1 flex items-center justify-between">
-                          <span>{room.name}</span>
-                          {room.channel && (
-                            <div className="flex items-center gap-1 text-[10px] text-[#963E56]/70">
-                              <GiWalkieTalkie className="h-3 w-3" />
-                              <span>{room.channel}</span>
-                            </div>
-                          )}
+                      <div key={room.id} className="space-y-2 rounded-lg bg-[#963E56]/5 p-2">
+                        <div className="font-medium text-sm text-[#963E56] border-b border-[#963E56]/10 pb-1">
+                          <div className="flex items-center justify-between mb-1">
+                            <span>{room.name}</span>
+                            {room.channel && (
+                              <div className="flex items-center gap-1 text-[10px] text-[#963E56]">
+                                <GiWalkieTalkie className="h-3 w-3" />
+                                <span>{room.channel}</span>
+                              </div>
+                            )}
+                          </div>
                         </div>
                         <div className="space-y-2 pl-2">
                           {roomPlannings.map(planning => {
@@ -230,7 +234,7 @@ export default function PublicCalendar() {
                             return (
                               <div
                                 key={planning.id}
-                                className="text-sm p-2 rounded bg-primary/5 border border-primary/10"
+                                className="text-sm p-2 rounded bg-white/50 border border-[#963E56]/10"
                               >
                                 <div className="font-medium flex items-center gap-1.5">
                                   <span>
@@ -240,7 +244,7 @@ export default function PublicCalendar() {
                                     }
                                   </span>
                                   {planning.isResponsible && (
-                                    <UserCircle2 className="h-4 w-4 shrink-0 text-primary/70" />
+                                    <UserCircle2 className="h-4 w-4 shrink-0 text-[#963E56]/70" />
                                   )}
                                 </div>
                               </div>
