@@ -9,7 +9,7 @@ import { CollapsibleSection } from "@/components/ui/collapsible-section";
 import { useRole } from "@/hooks/use-role";
 import { cn } from "@/lib/utils";
 import { db } from "@/lib/firebase";
-import { ref, onValue, remove, push, get, update } from "firebase/database";
+import { ref, onValue, remove, push, get, update, set } from "firebase/database";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import PlanningForm from "@/components/planning/planning-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -19,8 +19,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar } from "@/components/ui/calendar";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { logUserAction, UserActionTypes } from "@/lib/activity-logger";
-
-// Schema en interface definities blijven hetzelfde...
+import { useToast } from "@/hooks/use-toast";
 
 const planningSchema = z.object({
   volunteerId: z.string().min(1, "Vrijwilliger is verplicht").optional(),
@@ -41,6 +40,7 @@ interface Planning {
   endDate: string;
   isResponsible?: boolean;
 }
+
 const PlanningTable = ({
   plannings,
   emptyMessage,
@@ -351,12 +351,14 @@ const Planning = () => {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingPlanning, setEditingPlanning] = useState<Planning | null>(null);
   const { isAdmin } = useRole();
+  const { toast } = useToast();
   const form = useForm<z.infer<typeof planningSchema>>({
     resolver: zodResolver(planningSchema),
     defaultValues: {
       isBulkPlanning: false,
       selectedVolunteers: [],
       selectedRooms: [],
+      isResponsible: false
     }
   });
   useEffect(() => {
@@ -384,28 +386,44 @@ const Planning = () => {
       unsubRooms();
     };
   }, []);
-  const handleEdit = (planning: Planning) => {
-    setEditingPlanning(planning);
-    form.reset({
-      volunteerId: planning.volunteerId,
-      roomId: planning.roomId,
-      startDate: format(parseISO(planning.startDate), 'yyyy-MM-dd'),
-      endDate: format(parseISO(planning.endDate), 'yyyy-MM-dd'),
-      isBulkPlanning: false,
-      selectedVolunteers: [],
-      selectedRooms: [],
-      isResponsible: planning.isResponsible || false
-    });
-    setDialogOpen(true);
+  const handleEdit = async (planning: Planning) => {
+    try {
+      setEditingPlanning(planning);
+      form.reset({
+        volunteerId: planning.volunteerId,
+        roomId: planning.roomId,
+        startDate: format(parseISO(planning.startDate), 'yyyy-MM-dd'),
+        endDate: format(parseISO(planning.endDate), 'yyyy-MM-dd'),
+        isBulkPlanning: false,
+        selectedVolunteers: [],
+        selectedRooms: [],
+        isResponsible: planning.isResponsible || false
+      });
+      setDialogOpen(true);
+    } catch (error) {
+      console.error("Error setting up edit form:", error);
+      toast({
+        variant: "destructive",
+        title: "Fout",
+        description: "Er is een fout opgetreden bij het laden van de planning"
+      });
+    }
   };
   const handleDelete = async (id: string) => {
     try {
       const planningRef = ref(db, `plannings/${id}`);
       const snapshot = await get(planningRef);
       const planningData = snapshot.val();
+
+      if (!planningData) {
+        throw new Error("Planning niet gevonden");
+      }
+
       const volunteer = volunteers.find(v => v.id === planningData.volunteerId);
       const room = rooms.find(r => r.id === planningData.roomId);
+
       await remove(planningRef);
+
       await logUserAction(
         UserActionTypes.PLANNING_DELETE,
         `Planning verwijderd voor ${volunteer?.firstName} ${volunteer?.lastName}`,
@@ -415,13 +433,27 @@ const Planning = () => {
           details: `Verwijderd uit ${room?.name} (${planningData.startDate} - ${planningData.endDate})`
         }
       );
+
+      toast({
+        title: "Planning verwijderd",
+        description: "De planning is succesvol verwijderd"
+      });
     } catch (error) {
       console.error("Error deleting planning:", error);
+      toast({
+        variant: "destructive",
+        title: "Fout",
+        description: "Er is een fout opgetreden bij het verwijderen van de planning"
+      });
     }
   };
   const onSubmit = async (data: z.infer<typeof planningSchema>) => {
+    const { toast } = useToast();
+
     try {
       if (editingPlanning) {
+        // Update bestaande planning
+        const planningRef = ref(db, `plannings/${editingPlanning.id}`);
         const planningData = {
           volunteerId: data.volunteerId,
           roomId: data.roomId,
@@ -430,8 +462,7 @@ const Planning = () => {
           isResponsible: data.isResponsible
         };
 
-        const planningRef = ref(db, `plannings/${editingPlanning.id}`);
-        await update(planningRef, planningData);
+        await set(planningRef, planningData);
 
         const volunteer = volunteers.find(v => v.id === data.volunteerId);
         const room = rooms.find(r => r.id === data.roomId);
@@ -446,89 +477,60 @@ const Planning = () => {
             targetName: `${room?.name} (${planningData.startDate} - ${planningData.endDate})`
           }
         );
+
+        setDialogOpen(false);
+        setEditingPlanning(null);
+        form.reset();
+
+        toast({
+          title: "Planning bijgewerkt",
+          description: "De planning is succesvol bijgewerkt"
+        });
       } else {
+        // Nieuwe planning toevoegen
         const planningData = {
           startDate: format(new Date(data.startDate), 'yyyy-MM-dd'),
           endDate: format(new Date(data.endDate), 'yyyy-MM-dd')
         };
-        const checkForDuplicates = (volunteerId: string, startDate: string, endDate: string) => {
-          return plannings.some(planning =>
-            planning.volunteerId === volunteerId &&
-            ((planning.startDate >= startDate && planning.startDate <= endDate) ||
-              (planning.endDate >= startDate && planning.endDate <= endDate))
-          );
-        };
-        if (data.isBulkPlanning) {
-          const volunteers = data.selectedVolunteers || [];
-          const rooms = data.selectedRooms || [];
-          const duplicateVolunteers = volunteers.filter(volunteerId =>
-            checkForDuplicates(volunteerId, planningData.startDate, planningData.endDate)
-          );
-          if (duplicateVolunteers.length > 0) {
-            const duplicateNames = duplicateVolunteers.map(id => {
-              const volunteer = volunteers.find(v => v.id === id);
-              return volunteer ? `${volunteer.firstName} ${volunteer.lastName}` : 'Onbekend';
-            }).join(', ');
-            throw new Error(`De volgende vrijwilligers zijn al ingepland op deze datum(s): ${duplicateNames}`);
+
+
+        const newPlanningRef = push(ref(db, "plannings"));
+        await set(newPlanningRef, {
+          volunteerId: data.volunteerId,
+          roomId: data.roomId,
+          ...planningData,
+          isResponsible: data.isResponsible
+        });
+
+        const volunteer = volunteers.find(v => v.id === data.volunteerId);
+        const room = rooms.find(r => r.id === data.roomId);
+
+        await logUserAction(
+          UserActionTypes.PLANNING_CREATE,
+          data.isResponsible ? "Verantwoordelijke toegewezen" : "Planning toegevoegd",
+          {
+            type: 'planning',
+            id: newPlanningRef.key,
+            details: `${volunteer?.firstName} ${volunteer?.lastName} ${data.isResponsible ? 'als verantwoordelijke ' : ''}ingepland voor ${room?.name}`,
+            targetName: `${room?.name} (${planningData.startDate} - ${planningData.endDate})`
           }
-          await logUserAction(
-            UserActionTypes.PLANNING_BULK_CREATE,
-            `Bulk planning aangemaakt voor ${volunteers.length} vrijwilligers en ${rooms.length} ruimtes`,
-            {
-              type: 'planning',
-              details: `Periode: ${planningData.startDate} tot ${planningData.endDate}`
-            }
-          );
-          for (const volunteerId of volunteers) {
-            for (const roomId of rooms) {
-              await push(ref(db, "plannings"), {
-                volunteerId,
-                roomId,
-                ...planningData,
-                isResponsible: false
-              });
-            }
-          }
-        } else {
-          if (data.volunteerId && checkForDuplicates(data.volunteerId, planningData.startDate, planningData.endDate)) {
-            const volunteer = volunteers.find(v => v.id === data.volunteerId);
-            throw new Error(`${volunteer?.firstName} ${volunteer?.lastName} is al ingepland op deze datum(s)`);
-          }
-          if (data.isResponsible) {
-            const existingResponsible = plannings.find(
-              p => p.roomId === data.roomId && p.isResponsible
-            );
-            if (existingResponsible) {
-              const prevRef = ref(db, `plannings/${existingResponsible.id}`);
-              await update(prevRef, { isResponsible: false });
-            }
-          }
-          const result = await push(ref(db, "plannings"), {
-            volunteerId: data.volunteerId,
-            roomId: data.roomId,
-            isResponsible: data.isResponsible,
-            ...planningData
-          });
-          const volunteer = volunteers.find(v => v.id === data.volunteerId);
-          const room = rooms.find(r => r.id === data.roomId);
-          await logUserAction(
-            UserActionTypes.PLANNING_CREATE,
-            data.isResponsible ? "Verantwoordelijke toegewezen" : "Planning toegevoegd",
-            {
-              type: 'planning',
-              id: result.key,
-              details: `${volunteer?.firstName} ${volunteer?.lastName} ${data.isResponsible ? 'als verantwoordelijke ' : ''}ingepland voor ${room?.name}`,
-              targetName: `${room?.name} (${planningData.startDate} - ${planningData.endDate})`
-            }
-          );
-        }
+        );
+
+        setDialogOpen(false);
+        form.reset();
+
+        toast({
+          title: "Planning toegevoegd",
+          description: "De nieuwe planning is succesvol toegevoegd"
+        });
       }
-      setDialogOpen(false);
-      setEditingPlanning(null);
-      form.reset();
     } catch (error) {
       console.error("Submit error:", error);
-      throw error;
+      toast({
+        variant: "destructive",
+        title: "Fout",
+        description: error instanceof Error ? error.message : "Er is een fout opgetreden bij het opslaan van de planning"
+      });
     }
   };
   const handleSearchChange = async (value: string, type: 'active' | 'upcoming' | 'past') => {

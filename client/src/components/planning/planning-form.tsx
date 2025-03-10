@@ -6,7 +6,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Check, Search, X, UserCircle2, CalendarIcon } from "lucide-react";
+import { Check, Search, X, UserCircle2, CalendarIcon, Loader2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { format, parseISO } from "date-fns";
 import { nl } from "date-fns/locale";
@@ -25,6 +25,16 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 
+// Assuming this type definition exists elsewhere in your project
+interface Planning {
+  id: string;
+  roomId: string;
+  volunteerId: string;
+  isResponsible: boolean;
+  // ... other properties
+}
+
+
 const planningSchema = z.object({
   volunteerId: z.string().min(1, "Vrijwilliger is verplicht").optional(),
   roomId: z.string().min(1, "Ruimte is verplicht").optional(),
@@ -38,12 +48,12 @@ const planningSchema = z.object({
 
 interface PlanningFormProps {
   volunteers: { id: string; firstName: string; lastName: string; }[];
-  rooms: { id: string; name: string; responsible?: string; }[];
+  rooms: { id: string; name: string; }[];
   onSubmit: (data: z.infer<typeof planningSchema>) => Promise<void>;
   onClose: () => void;
   form: UseFormReturn<z.infer<typeof planningSchema>>;
-  editingPlanning: any | null;
-  plannings: any[];
+  editingPlanning: Planning | null;
+  plannings: Planning[];
 }
 
 const PlanningForm = ({
@@ -60,6 +70,7 @@ const PlanningForm = ({
   const [searchTermBulk, setSearchTermBulk] = useState("");
   const [showResponsibleAlert, setShowResponsibleAlert] = useState(false);
   const [currentResponsible, setCurrentResponsible] = useState<any>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const isBulkPlanning = form.watch("isBulkPlanning");
   const selectedRoomId = form.watch("roomId");
@@ -83,14 +94,17 @@ const PlanningForm = ({
 
   const handleFormSubmit = async (data: z.infer<typeof planningSchema>) => {
     try {
+      setIsSubmitting(true);
       await onSubmit(data);
-      onClose();
     } catch (error: unknown) {
+      console.error("Form submission error:", error);
       toast({
         variant: "destructive",
         title: "Fout",
-        description: error instanceof Error ? error.message : "Er is een fout opgetreden"
+        description: error instanceof Error ? error.message : "Er is een fout opgetreden bij het opslaan van de planning"
       });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -210,6 +224,25 @@ const PlanningForm = ({
                   </FormItem>
                 )}
               />
+              {selectedRoomId && isResponsible && (
+                <FormField
+                  control={form.control}
+                  name="isResponsible"
+                  render={({ field }) => (
+                    <div className="flex items-center gap-2">
+                      <Switch
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                        className="data-[state=checked]:bg-[#963E56]"
+                      />
+                      <Label className="text-sm flex items-center gap-1">
+                        <UserCircle2 className="h-4 w-4" />
+                        Verantwoordelijke
+                      </Label>
+                    </div>
+                  )}
+                />
+              )}
             </>
           )}
 
@@ -307,6 +340,7 @@ const PlanningForm = ({
               )}
             />
           </div>
+
           {isBulkPlanning && (
             <>
               <FormField
@@ -527,8 +561,16 @@ const PlanningForm = ({
           <Button
             type="submit"
             className="bg-[#963E56] hover:bg-[#963E56]/90 text-white text-sm"
+            disabled={isSubmitting}
           >
-            {editingPlanning ? "Planning Bijwerken" : "Planning Opslaan"}
+            {isSubmitting ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                <span>Bezig met opslaan...</span>
+              </>
+            ) : (
+              editingPlanning ? "Planning Bijwerken" : "Planning Opslaan"
+            )}
           </Button>
         </div>
       </form>
