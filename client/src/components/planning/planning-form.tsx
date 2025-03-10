@@ -72,13 +72,13 @@ const PlanningForm = ({
 
   const isBulkPlanning = form.watch("isBulkPlanning");
   const selectedRoomId = form.watch("roomId");
+  const selectedVolunteerId = form.watch("volunteerId");
   const startDate = form.watch("startDate");
-  const endDate = form.watch("endDate");
   const isResponsible = form.watch("isResponsible");
 
-  // Check voor bestaande verantwoordelijke wanneer room/datum verandert
+  // Check voor bestaande verantwoordelijke alleen wanneer isResponsible wordt aangezet
   useEffect(() => {
-    if (selectedRoomId && startDate) {
+    if (selectedRoomId && startDate && isResponsible) {
       const existingResponsible = plannings.find(
         p => p.roomId === selectedRoomId && 
             p.isResponsible && 
@@ -95,7 +95,7 @@ const PlanningForm = ({
         }
       }
     }
-  }, [selectedRoomId, startDate, plannings, volunteers, editingPlanning]);
+  }, [selectedRoomId, startDate, isResponsible, plannings, volunteers, editingPlanning]);
 
   const handleFormSubmit = async (data: z.infer<typeof planningSchema>) => {
     try {
@@ -252,7 +252,7 @@ const PlanningForm = ({
           )}
 
           {/* Verantwoordelijke Switch (alleen als ruimte en vrijwilliger zijn geselecteerd) */}
-          {selectedRoomId && form.watch("volunteerId") && !isBulkPlanning && (
+          {selectedRoomId && selectedVolunteerId && !isBulkPlanning && (
             <FormField
               control={form.control}
               name="isResponsible"
@@ -369,27 +369,36 @@ const PlanningForm = ({
           </div>
 
           {/* Waarschuwing voor bestaande verantwoordelijke */}
-          {currentResponsible && isResponsible && (
-            <div className="rounded-md bg-yellow-50 p-4">
-              <div className="flex">
-                <div className="flex-shrink-0">
-                  <AlertCircle className="h-5 w-5 text-yellow-400" />
-                </div>
-                <div className="ml-3">
-                  <h3 className="text-sm font-medium text-yellow-800">
-                    Let op
-                  </h3>
-                  <div className="mt-2 text-sm text-yellow-700">
-                    <p>
-                      Er is al een verantwoordelijke voor deze ruimte op deze datum:
-                      <span className="font-medium">
-                        {` ${currentResponsible.firstName} ${currentResponsible.lastName}`}
-                      </span>
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
+          {currentResponsible && showResponsibleAlert && (
+            <AlertDialog open={showResponsibleAlert} onOpenChange={setShowResponsibleAlert}>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Verantwoordelijke wijzigen</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    {currentResponsible && (
+                      <>
+                        Deze ruimte heeft al een verantwoordelijke:
+                        <span className="font-medium text-[#963E56]">
+                          {` ${currentResponsible.firstName} ${currentResponsible.lastName}`}
+                        </span>
+                        . Wil je deze vervangen?
+                      </>
+                    )}
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel onClick={() => {
+                    form.setValue("isResponsible", false);
+                    setShowResponsibleAlert(false);
+                  }}>
+                    Annuleren
+                  </AlertDialogCancel>
+                  <AlertDialogAction onClick={() => setShowResponsibleAlert(false)}>
+                    Doorgaan
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
           )}
           {isBulkPlanning && (
             <>
@@ -568,36 +577,6 @@ const PlanningForm = ({
             </>
           )}
         </div>
-
-        <AlertDialog open={showResponsibleAlert} onOpenChange={setShowResponsibleAlert}>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Verantwoordelijke wijzigen</AlertDialogTitle>
-              <AlertDialogDescription>
-                {currentResponsible && (
-                  <>
-                    Deze ruimte heeft al een verantwoordelijke:
-                    <span className="font-medium text-[#963E56]">
-                      {` ${currentResponsible.firstName} ${currentResponsible.lastName}`}
-                    </span>
-                    . Wil je deze vervangen?
-                  </>
-                )}
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel onClick={() => {
-                form.setValue("isResponsible", false);
-                setShowResponsibleAlert(false);
-              }}>
-                Annuleren
-              </AlertDialogCancel>
-              <AlertDialogAction onClick={() => setShowResponsibleAlert(false)}>
-                Doorgaan
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
 
         <div className="flex justify-end gap-3 pt-6 border-t">
           <Button
