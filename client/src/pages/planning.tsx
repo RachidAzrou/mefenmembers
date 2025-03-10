@@ -448,8 +448,6 @@ const Planning = () => {
     }
   };
   const onSubmit = async (data: z.infer<typeof planningSchema>) => {
-    const { toast } = useToast();
-
     try {
       if (editingPlanning) {
         // Update bestaande planning
