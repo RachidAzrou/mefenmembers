@@ -6,7 +6,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Check, Search, X, UserCircle2, CalendarIcon, Loader2 } from "lucide-react";
+import { Check, Search, X, UserCircle2, CalendarIcon, Loader2, AlertCircle } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { format, parseISO } from "date-fns";
 import { nl } from "date-fns/locale";
@@ -25,15 +25,14 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 
-// Assuming this type definition exists elsewhere in your project
 interface Planning {
   id: string;
   roomId: string;
   volunteerId: string;
+  startDate: string;
+  endDate: string;
   isResponsible: boolean;
-  // ... other properties
 }
-
 
 const planningSchema = z.object({
   volunteerId: z.string().min(1, "Vrijwilliger is verplicht").optional(),
@@ -67,30 +66,36 @@ const PlanningForm = ({
 }: PlanningFormProps) => {
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState("");
-  const [searchTermBulk, setSearchTermBulk] = useState("");
   const [showResponsibleAlert, setShowResponsibleAlert] = useState(false);
   const [currentResponsible, setCurrentResponsible] = useState<any>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const isBulkPlanning = form.watch("isBulkPlanning");
   const selectedRoomId = form.watch("roomId");
+  const startDate = form.watch("startDate");
+  const endDate = form.watch("endDate");
   const isResponsible = form.watch("isResponsible");
 
+  // Check voor bestaande verantwoordelijke wanneer room/datum verandert
   useEffect(() => {
-    if (selectedRoomId && isResponsible) {
-      const currentResponsiblePlanning = plannings.find(
-        p => p.roomId === selectedRoomId && p.isResponsible && (!editingPlanning || p.id !== editingPlanning.id)
+    if (selectedRoomId && startDate) {
+      const existingResponsible = plannings.find(
+        p => p.roomId === selectedRoomId && 
+            p.isResponsible && 
+            (!editingPlanning || p.id !== editingPlanning.id) &&
+            parseISO(p.startDate) <= parseISO(startDate) &&
+            parseISO(p.endDate) >= parseISO(startDate)
       );
 
-      if (currentResponsiblePlanning) {
-        const responsible = volunteers.find(v => v.id === currentResponsiblePlanning.volunteerId);
+      if (existingResponsible) {
+        const responsible = volunteers.find(v => v.id === existingResponsible.volunteerId);
         if (responsible) {
           setCurrentResponsible(responsible);
           setShowResponsibleAlert(true);
         }
       }
     }
-  }, [selectedRoomId, isResponsible, plannings, volunteers, editingPlanning]);
+  }, [selectedRoomId, startDate, plannings, volunteers, editingPlanning]);
 
   const handleFormSubmit = async (data: z.infer<typeof planningSchema>) => {
     try {
@@ -132,120 +137,142 @@ const PlanningForm = ({
         )}
 
         <div className="grid grid-cols-1 gap-6">
-          {!isBulkPlanning && (
-            <>
-              <FormField
-                control={form.control}
-                name="roomId"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-sm">Ruimte</FormLabel>
-                    <Select
-                      value={field.value}
-                      onValueChange={(value) => {
-                        field.onChange(value);
-                        form.setValue("isResponsible", false);
-                      }}
-                    >
-                      <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Selecteer een ruimte" />
-                      </SelectTrigger>
-                      <SelectContent className="z-50">
-                        {rooms.map((room) => (
-                          <SelectItem
-                            key={room.id}
-                            value={room.id}
-                            className="cursor-pointer py-2.5 px-3"
-                          >
-                            <div className="flex items-center gap-2">
-                              <div className="flex-grow">
-                                <div>{room.name}</div>
-                              </div>
-                            </div>
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+          {/* Eerst Ruimte Selectie */}
+          <FormField
+            control={form.control}
+            name="roomId"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="text-sm">Ruimte</FormLabel>
+                <Select
+                  value={field.value}
+                  onValueChange={(value) => {
+                    field.onChange(value);
+                    form.setValue("isResponsible", false);
+                  }}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Selecteer een ruimte" />
+                  </SelectTrigger>
+                  <SelectContent className="z-50">
+                    {rooms.map((room) => {
+                      const responsible = plannings.find(
+                        p => p.roomId === room.id && 
+                            p.isResponsible && 
+                            (!editingPlanning || p.id !== editingPlanning.id)
+                      );
+                      const responsibleVolunteer = responsible
+                        ? volunteers.find(v => v.id === responsible.volunteerId)
+                        : null;
 
-              <FormField
-                control={form.control}
-                name="volunteerId"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-sm">Vrijwilliger</FormLabel>
-                    <Select
-                      value={field.value}
-                      onValueChange={field.onChange}
-                    >
-                      <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Selecteer vrijwilliger" />
-                      </SelectTrigger>
-                      <SelectContent className="z-50 max-h-[300px]">
-                        <div className="sticky top-0 p-2 bg-white border-b">
-                          <div className="relative">
-                            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
-                            <Input
-                              type="text"
-                              placeholder="Zoek vrijwilliger..."
-                              value={searchTerm}
-                              onKeyDown={(e) => e.stopPropagation()}
-                              onChange={(e) => setSearchTerm(e.target.value)}
-                              className="pl-9 h-9"
-                            />
-                          </div>
-                        </div>
-                        <div className="pt-1">
-                          {volunteers
-                            .filter(volunteer => {
-                              const fullName = `${volunteer.firstName} ${volunteer.lastName}`.toLowerCase();
-                              return fullName.includes(searchTerm.toLowerCase());
-                            })
-                            .map((volunteer) => (
-                              <SelectItem
-                                key={volunteer.id}
-                                value={volunteer.id}
-                                className="cursor-pointer py-2.5 px-3"
-                              >
-                                <div className="flex items-center gap-2">
-                                  <div className="flex-grow">
-                                    <div>{volunteer.firstName} {volunteer.lastName}</div>
-                                  </div>
+                      return (
+                        <SelectItem
+                          key={room.id}
+                          value={room.id}
+                          className="cursor-pointer py-2.5 px-3"
+                        >
+                          <div className="flex items-center gap-2">
+                            <div className="flex-grow">
+                              <div>{room.name}</div>
+                              {responsibleVolunteer && (
+                                <div className="text-xs text-muted-foreground flex items-center gap-1">
+                                  <UserCircle2 className="h-3 w-3" />
+                                  <span>
+                                    Verantwoordelijke: {responsibleVolunteer.firstName} {responsibleVolunteer.lastName}
+                                  </span>
                                 </div>
-                              </SelectItem>
-                            ))}
+                              )}
+                            </div>
+                          </div>
+                        </SelectItem>
+                      );
+                    })}
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          {/* Dan Vrijwilliger Selectie (alleen als ruimte is geselecteerd) */}
+          {selectedRoomId && !isBulkPlanning && (
+            <FormField
+              control={form.control}
+              name="volunteerId"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-sm">Vrijwilliger</FormLabel>
+                  <Select
+                    value={field.value}
+                    onValueChange={field.onChange}
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Selecteer vrijwilliger" />
+                    </SelectTrigger>
+                    <SelectContent className="z-50 max-h-[300px]">
+                      <div className="sticky top-0 p-2 bg-white border-b">
+                        <div className="relative">
+                          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+                          <Input
+                            type="text"
+                            placeholder="Zoek vrijwilliger..."
+                            value={searchTerm}
+                            onKeyDown={(e) => e.stopPropagation()}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            className="pl-9 h-9"
+                          />
                         </div>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              {selectedRoomId && isResponsible && (
-                <FormField
-                  control={form.control}
-                  name="isResponsible"
-                  render={({ field }) => (
-                    <div className="flex items-center gap-2">
-                      <Switch
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
-                        className="data-[state=checked]:bg-[#963E56]"
-                      />
-                      <Label className="text-sm flex items-center gap-1">
-                        <UserCircle2 className="h-4 w-4" />
-                        Verantwoordelijke
-                      </Label>
-                    </div>
-                  )}
-                />
+                      </div>
+                      <div className="pt-1">
+                        {volunteers
+                          .filter(volunteer => {
+                            const fullName = `${volunteer.firstName} ${volunteer.lastName}`.toLowerCase();
+                            return fullName.includes(searchTerm.toLowerCase());
+                          })
+                          .map((volunteer) => (
+                            <SelectItem
+                              key={volunteer.id}
+                              value={volunteer.id}
+                              className="cursor-pointer py-2.5 px-3"
+                            >
+                              <div className="flex items-center gap-2">
+                                <div className="flex-grow">
+                                  <div>{volunteer.firstName} {volunteer.lastName}</div>
+                                </div>
+                              </div>
+                            </SelectItem>
+                          ))}
+                      </div>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
               )}
-            </>
+            />
           )}
 
+          {/* Verantwoordelijke Switch (alleen als ruimte en vrijwilliger zijn geselecteerd) */}
+          {selectedRoomId && form.watch("volunteerId") && !isBulkPlanning && (
+            <FormField
+              control={form.control}
+              name="isResponsible"
+              render={({ field }) => (
+                <div className="flex items-center gap-2">
+                  <Switch
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                    className="data-[state=checked]:bg-[#963E56]"
+                  />
+                  <Label className="text-sm flex items-center gap-1">
+                    <UserCircle2 className="h-4 w-4" />
+                    Verantwoordelijke
+                  </Label>
+                </div>
+              )}
+            />
+          )}
+
+          {/* Datum Selectie */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <FormField
               control={form.control}
@@ -341,6 +368,29 @@ const PlanningForm = ({
             />
           </div>
 
+          {/* Waarschuwing voor bestaande verantwoordelijke */}
+          {currentResponsible && isResponsible && (
+            <div className="rounded-md bg-yellow-50 p-4">
+              <div className="flex">
+                <div className="flex-shrink-0">
+                  <AlertCircle className="h-5 w-5 text-yellow-400" />
+                </div>
+                <div className="ml-3">
+                  <h3 className="text-sm font-medium text-yellow-800">
+                    Let op
+                  </h3>
+                  <div className="mt-2 text-sm text-yellow-700">
+                    <p>
+                      Er is al een verantwoordelijke voor deze ruimte op deze datum:
+                      <span className="font-medium">
+                        {` ${currentResponsible.firstName} ${currentResponsible.lastName}`}
+                      </span>
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
           {isBulkPlanning && (
             <>
               <FormField

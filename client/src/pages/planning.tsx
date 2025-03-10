@@ -454,6 +454,24 @@ const Planning = () => {
       if (editingPlanning) {
         // Update bestaande planning
         const planningRef = ref(db, `plannings/${editingPlanning.id}`);
+
+        // Check voor bestaande verantwoordelijke als we de verantwoordelijke status wijzigen
+        if (data.isResponsible && !editingPlanning.isResponsible) {
+          const existingResponsible = plannings.find(
+            p => p.roomId === data.roomId &&
+              p.isResponsible &&
+              p.id !== editingPlanning.id &&
+              parseISO(p.startDate) <= parseISO(data.startDate) &&
+              parseISO(p.endDate) >= parseISO(data.startDate)
+          );
+
+          if (existingResponsible) {
+            // Update bestaande verantwoordelijke
+            const prevRef = ref(db, `plannings/${existingResponsible.id}`);
+            await update(prevRef, { isResponsible: false });
+          }
+        }
+
         const planningData = {
           volunteerId: data.volunteerId,
           roomId: data.roomId,
@@ -469,11 +487,11 @@ const Planning = () => {
 
         await logUserAction(
           UserActionTypes.PLANNING_UPDATE,
-          "Planning bijgewerkt",
+          data.isResponsible ? "Verantwoordelijke gewijzigd" : "Planning bijgewerkt",
           {
             type: 'planning',
             id: editingPlanning.id,
-            details: `${volunteer?.firstName} ${volunteer?.lastName} bijgewerkt voor ${room?.name}`,
+            details: `${volunteer?.firstName} ${volunteer?.lastName} ${data.isResponsible ? 'als verantwoordelijke ' : ''}bijgewerkt voor ${room?.name}`,
             targetName: `${room?.name} (${planningData.startDate} - ${planningData.endDate})`
           }
         );
@@ -493,6 +511,21 @@ const Planning = () => {
           endDate: format(new Date(data.endDate), 'yyyy-MM-dd')
         };
 
+        // Check voor bestaande verantwoordelijke als we een nieuwe verantwoordelijke toevoegen
+        if (data.isResponsible) {
+          const existingResponsible = plannings.find(
+            p => p.roomId === data.roomId &&
+              p.isResponsible &&
+              parseISO(p.startDate) <= parseISO(data.startDate) &&
+              parseISO(p.endDate) >= parseISO(data.startDate)
+          );
+
+          if (existingResponsible) {
+            // Update bestaande verantwoordelijke
+            const prevRef = ref(db, `plannings/${existingResponsible.id}`);
+            await update(prevRef, { isResponsible: false });
+          }
+        }
 
         const newPlanningRef = push(ref(db, "plannings"));
         await set(newPlanningRef, {
