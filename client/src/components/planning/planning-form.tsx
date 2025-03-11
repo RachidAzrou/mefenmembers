@@ -166,7 +166,7 @@ const PlanningForm = ({
                   <SelectTrigger className="w-full">
                     <SelectValue placeholder="Selecteer ruimte" />
                   </SelectTrigger>
-                  <SelectContent side="bottom" align="center" position="popper">
+                  <SelectContent side="bottom" align="center" position="item-aligned">
                     {rooms.map((room) => {
                       const responsible = plannings.find(
                         p => p.roomId === room.id &&
@@ -226,10 +226,10 @@ const PlanningForm = ({
                       <SelectValue placeholder={`Selecteer vrijwilliger${isBulkPlanning ? 's' : ''}`} />
                     </SelectTrigger>
                     <SelectContent 
-                      sideOffset={4}
-                      position="popper" 
+                      position="item-aligned"
                       side="bottom"
-                      className="w-[var(--radix-select-trigger-width)]">
+                      className="w-[var(--radix-select-trigger-width)]"
+                    >
                       <div className="sticky top-0 p-2 bg-white border-b z-50">
                         <div className="relative">
                           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
