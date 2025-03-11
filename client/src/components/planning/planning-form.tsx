@@ -123,15 +123,22 @@ const PlanningForm = ({
           return;
         }
 
-        // Voeg de verantwoordelijke toe als die is geselecteerd
+        // Formateer de data voor bulk planning
         const bulkData = {
-          selectedVolunteers: data.selectedVolunteers,
-          selectedRooms: data.selectedRooms,
           startDate: data.startDate,
           endDate: data.endDate,
           isBulkPlanning: true,
-          responsibleVolunteerId: data.responsibleVolunteerId,
+          selectedVolunteers: data.selectedVolunteers || [],
+          selectedRooms: data.selectedRooms || [],
+          isResponsible: false
         };
+
+        // Als er een verantwoordelijke is geselecteerd, voeg deze toe
+        if (data.responsibleVolunteerId) {
+          bulkData.isResponsible = true;
+          // @ts-ignore
+          bulkData.responsibleVolunteerId = data.responsibleVolunteerId;
+        }
 
         await onSubmit(bulkData);
       } else {
@@ -155,7 +162,9 @@ const PlanningForm = ({
           startDate: data.startDate,
           endDate: data.endDate,
           isBulkPlanning: false,
-          isResponsible: data.isResponsible,
+          isResponsible: data.isResponsible || false,
+          selectedVolunteers: [],
+          selectedRooms: []
         };
 
         await onSubmit(normalData);
