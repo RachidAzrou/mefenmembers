@@ -63,13 +63,14 @@ const PlanningForm = ({
   onClose,
   form,
   editingPlanning,
-  plannings = [] 
+  plannings = []
 }: PlanningFormProps) => {
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState("");
   const [showResponsibleAlert, setShowResponsibleAlert] = useState(false);
   const [currentResponsible, setCurrentResponsible] = useState<any>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null); // Added state for form errors
 
   const isBulkPlanning = form.watch("isBulkPlanning");
   const selectedRoomId = form.watch("roomId");
@@ -105,14 +106,52 @@ const PlanningForm = ({
   const handleFormSubmit = async (data: z.infer<typeof planningSchema>) => {
     try {
       setIsSubmitting(true);
-      await onSubmit(data);
+      setFormError(null);
+
+      if (data.isBulkPlanning) {
+        // Validatie voor bulk planning
+        if (!data.selectedVolunteers?.length) {
+          setFormError("Selecteer ten minste één vrijwilliger");
+          return;
+        }
+        if (!data.selectedRooms?.length) {
+          setFormError("Selecteer ten minste één ruimte");
+          return;
+        }
+        if (!data.startDate || !data.endDate) {
+          setFormError("Start- en einddatum zijn verplicht");
+          return;
+        }
+
+        // Verwijder onnodige velden voor bulk planning
+        const { volunteerId, roomId, ...bulkData } = data;
+        await onSubmit(bulkData);
+      } else {
+        // Validatie voor normale planning
+        if (!data.volunteerId) {
+          setFormError("Selecteer een vrijwilliger");
+          return;
+        }
+        if (!data.roomId) {
+          setFormError("Selecteer een ruimte");
+          return;
+        }
+        if (!data.startDate || !data.endDate) {
+          setFormError("Start- en einddatum zijn verplicht");
+          return;
+        }
+
+        // Verwijder bulk planning velden
+        const { selectedVolunteers, selectedRooms, ...normalData } = data;
+        await onSubmit(normalData);
+      }
+
+      form.reset();
+      setSearchTerm("");
+      onClose();
     } catch (error: unknown) {
       console.error("Form submission error:", error);
-      toast({
-        variant: "destructive",
-        title: "Fout",
-        description: error instanceof Error ? error.message : "Er is een fout opgetreden bij het opslaan van de planning"
-      });
+      setFormError(error instanceof Error ? error.message : "Er is een fout opgetreden bij het opslaan van de planning");
     } finally {
       setIsSubmitting(false);
     }
@@ -473,6 +512,9 @@ const PlanningForm = ({
             />
           </div>
         </div>
+
+        {formError && <div className="text-red-500 text-sm">{formError}</div>} {/* Display form errors */}
+
 
         <div className="flex justify-end gap-3 pt-6 border-t">
           <Button
