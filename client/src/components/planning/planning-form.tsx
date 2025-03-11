@@ -19,8 +19,8 @@ interface Planning {
   id?: string;
   roomId: string;
   volunteerId: string;
-  startDate: number; // Timestamp in milliseconds
-  endDate: number; // Timestamp in milliseconds
+  startDate: number;
+  endDate: number;
   isResponsible: boolean;
 }
 
@@ -93,15 +93,10 @@ const PlanningForm = ({
   }, [isResponsible, selectedRoomId, startDate, plannings, editingPlanning?.id, volunteers]);
 
   const dateToTimestamp = (dateString: string): number => {
-    // Zet de datum om naar UTC midnight
-    const date = new Date(dateString);
-    const utcDate = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
-    return utcDate.getTime();
-  };
-
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return format(date, 'yyyy-MM-dd');
+    // Create date object for the given date string
+    const [year, month, day] = dateString.split('-').map(Number);
+    // Create UTC date at midnight
+    return Date.UTC(year, month - 1, day);
   };
 
   const handleFormSubmit = async (data: z.infer<typeof planningSchema>) => {
@@ -113,10 +108,6 @@ const PlanningForm = ({
         setFormError("Start- en einddatum zijn verplicht");
         return;
       }
-
-      // Converteer datums naar UTC timestamps
-      const startTimestamp = dateToTimestamp(data.startDate);
-      const endTimestamp = dateToTimestamp(data.endDate);
 
       if (data.isBulkPlanning) {
         if (!data.selectedVolunteers?.length) {
@@ -133,8 +124,8 @@ const PlanningForm = ({
           plannings.push({
             roomId: data.selectedRooms,
             volunteerId,
-            startDate: startTimestamp,
-            endDate: endTimestamp,
+            startDate: dateToTimestamp(data.startDate),
+            endDate: dateToTimestamp(data.endDate),
             isResponsible: data.responsibleVolunteerId === volunteerId
           });
         }
@@ -153,8 +144,8 @@ const PlanningForm = ({
         const planning: Planning = {
           roomId: data.roomId,
           volunteerId: data.volunteerId,
-          startDate: startTimestamp,
-          endDate: endTimestamp,
+          startDate: dateToTimestamp(data.startDate),
+          endDate: dateToTimestamp(data.endDate),
           isResponsible: data.isResponsible
         };
 
@@ -217,7 +208,7 @@ const PlanningForm = ({
                   <SelectTrigger className="w-full">
                     <SelectValue placeholder="Selecteer ruimte" />
                   </SelectTrigger>
-                  <SelectContent side="bottom" align="start" className="w-[var(--radix-select-trigger-width)]">
+                  <SelectContent side="bottom" position="popper" className="w-[var(--radix-select-trigger-width)]">
                     {rooms.map((room) => (
                       <SelectItem key={room.id} value={room.id} className="flex items-center justify-between py-2.5 px-3">
                         <div className="flex items-center gap-2">
@@ -265,7 +256,7 @@ const PlanningForm = ({
                           : `Selecteer vrijwilliger${isBulkPlanning ? 's' : ''}`}
                       </SelectValue>
                     </SelectTrigger>
-                    <SelectContent side="bottom" align="start" className="w-[var(--radix-select-trigger-width)]">
+                    <SelectContent side="bottom" position="popper" className="w-[var(--radix-select-trigger-width)]">
                       <div className="sticky top-0 px-2 py-2 bg-white border-b">
                         <div className="relative">
                           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
@@ -274,13 +265,13 @@ const PlanningForm = ({
                             placeholder="Zoek vrijwilliger..."
                             value={searchTerm}
                             onChange={(e) => {
-                              e.preventDefault();
                               e.stopPropagation();
                               setSearchTerm(e.target.value);
                             }}
                             onKeyDown={(e) => e.stopPropagation()}
                             onClick={(e) => e.stopPropagation()}
                             className="w-full pl-9 h-9 rounded-md border border-input bg-white px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-offset-0"
+                            autoComplete="off"
                           />
                         </div>
                       </div>
