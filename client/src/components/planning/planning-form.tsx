@@ -76,13 +76,11 @@ const PlanningForm = ({
   const startDate = form.watch("startDate");
   const isResponsible = form.watch("isResponsible");
 
-  // Reset verantwoordelijke-gerelateerde state wanneer de ruimte of vrijwilliger verandert
   useEffect(() => {
     setShowResponsibleAlert(false);
     setCurrentResponsible(null);
   }, [selectedRoomId, selectedVolunteerId]);
 
-  // Check voor bestaande verantwoordelijke alleen wanneer isResponsible wordt aangezet
   useEffect(() => {
     if (selectedRoomId && startDate && isResponsible) {
       const existingResponsible = plannings.find(
@@ -160,7 +158,7 @@ const PlanningForm = ({
                   <SelectTrigger className="w-full">
                     <SelectValue placeholder="Selecteer een ruimte" />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent position="popper" align="start" side="bottom">
                     {rooms.map((room) => {
                       const responsible = plannings.find(
                         p => p.roomId === room.id &&
@@ -209,7 +207,7 @@ const PlanningForm = ({
                     <SelectTrigger className="w-full">
                       <SelectValue placeholder="Selecteer vrijwilliger" />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent position="popper" align="start" side="bottom">
                       <div className="sticky top-0 p-2 bg-white border-b">
                         <div className="relative">
                           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -230,16 +228,8 @@ const PlanningForm = ({
                             return fullName.includes(searchTerm.toLowerCase());
                           })
                           .map((volunteer) => (
-                            <SelectItem key={volunteer.id} value={volunteer.id}>
-                              <div className="flex items-center justify-between">
-                                <span>{volunteer.firstName} {volunteer.lastName}</span>
-                                <Check 
-                                  className={cn(
-                                    "ml-2 h-4 w-4",
-                                    field.value === volunteer.id ? "opacity-100" : "opacity-0"
-                                  )}
-                                />
-                              </div>
+                            <SelectItem key={volunteer.id} value={volunteer.id} className="cursor-pointer">
+                              {volunteer.firstName} {volunteer.lastName}
                             </SelectItem>
                           ))}
                       </div>
@@ -427,23 +417,15 @@ const PlanningForm = ({
                             : "Selecteer vrijwilligers"}
                         </SelectValue>
                       </SelectTrigger>
-                      <SelectContent>
+                      <SelectContent position="popper" align="start" side="bottom">
                         {volunteers
                           .filter(volunteer => {
                             const fullName = `${volunteer.firstName} ${volunteer.lastName}`.toLowerCase();
                             return fullName.includes(searchTerm.toLowerCase());
                           })
                           .map((volunteer) => (
-                            <SelectItem key={volunteer.id} value={volunteer.id}>
-                              <div className="flex items-center justify-between">
-                                <span>{volunteer.firstName} {volunteer.lastName}</span>
-                                <Check
-                                  className={cn(
-                                    "ml-2 h-4 w-4",
-                                    field.value?.includes(volunteer.id) ? "opacity-100" : "opacity-0"
-                                  )}
-                                />
-                              </div>
+                            <SelectItem key={volunteer.id} value={volunteer.id} className="cursor-pointer">
+                              {volunteer.firstName} {volunteer.lastName}
                             </SelectItem>
                           ))}
                       </SelectContent>
@@ -502,7 +484,7 @@ const PlanningForm = ({
                             : "Selecteer ruimtes"}
                         </SelectValue>
                       </SelectTrigger>
-                      <SelectContent>
+                      <SelectContent position="popper" align="start" side="bottom">
                         {rooms.map((room) => (
                           <SelectItem key={room.id} value={room.id}>
                             {room.name}
@@ -510,32 +492,6 @@ const PlanningForm = ({
                         ))}
                       </SelectContent>
                     </Select>
-                    {field.value?.length > 0 && (
-                      <div className="mt-2 flex flex-wrap gap-2">
-                        {field.value.map(id => {
-                          const room = rooms.find(r => r.id === id);
-                          return room && (
-                            <div
-                              key={id}
-                              className="bg-[#963E56]/10 text-[#963E56] text-sm rounded-full px-3 py-1 flex items-center gap-2"
-                            >
-                              <span>{room.name}</span>
-                              <Button
-                                type="button"
-                                variant="ghost"
-                                size="icon"
-                                className="h-4 w-4 p-0 hover:bg-transparent"
-                                onClick={() => {
-                                  field.onChange(field.value?.filter(r => r !== id));
-                                }}
-                              >
-                                <X className="h-3 w-3" />
-                              </Button>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    )}
                     <FormMessage />
                   </FormItem>
                 )}
