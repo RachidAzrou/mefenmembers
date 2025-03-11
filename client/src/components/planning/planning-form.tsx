@@ -42,7 +42,8 @@ const planningSchema = z.object({
   isBulkPlanning: z.boolean().default(false),
   selectedVolunteers: z.array(z.string()).default([]),
   selectedRooms: z.array(z.string()).default([]),
-  isResponsible: z.boolean().default(false)
+  isResponsible: z.boolean().default(false),
+  responsibleVolunteerId: z.string().optional()
 });
 
 interface PlanningFormProps {
@@ -129,6 +130,7 @@ const PlanningForm = ({
                 if (!checked) {
                   form.setValue("selectedVolunteers", []);
                   form.setValue("selectedRooms", []);
+                  form.setValue("responsibleVolunteerId", undefined);
                 }
                 form.setValue("volunteerId", undefined);
                 form.setValue("roomId", undefined);
@@ -166,33 +168,12 @@ const PlanningForm = ({
                   <SelectTrigger className="w-full">
                     <SelectValue placeholder="Selecteer ruimte" />
                   </SelectTrigger>
-                  <SelectContent side="bottom" align="center" position="item-aligned">
-                    {rooms.map((room) => {
-                      const responsible = plannings.find(
-                        p => p.roomId === room.id &&
-                            p.isResponsible &&
-                            (!editingPlanning || p.id !== editingPlanning.id)
-                      );
-                      const responsibleVolunteer = responsible
-                        ? volunteers.find(v => v.id === responsible.volunteerId)
-                        : null;
-
-                      return (
-                        <SelectItem key={room.id} value={room.id}>
-                          <div>
-                            {room.name}
-                            {responsibleVolunteer && (
-                              <div className="text-xs text-muted-foreground flex items-center gap-1">
-                                <UserCircle2 className="h-3 w-3" />
-                                <span>
-                                  Verantwoordelijke: {responsibleVolunteer.firstName} {responsibleVolunteer.lastName}
-                                </span>
-                              </div>
-                            )}
-                          </div>
-                        </SelectItem>
-                      );
-                    })}
+                  <SelectContent>
+                    {rooms.map((room) => (
+                      <SelectItem key={room.id} value={room.id}>
+                        {room.name}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
                 <FormMessage />
@@ -225,12 +206,7 @@ const PlanningForm = ({
                     <SelectTrigger className="w-full">
                       <SelectValue placeholder={`Selecteer vrijwilliger${isBulkPlanning ? 's' : ''}`} />
                     </SelectTrigger>
-                    <SelectContent
-                      position="popper"
-                      align="start"
-                      side="bottom"
-                      className="w-[var(--radix-select-trigger-width)]"
-                    >
+                    <SelectContent align="start" position="popper">
                       <div className="sticky top-0 px-2 py-2 bg-white border-b">
                         <div className="relative">
                           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
@@ -286,83 +262,42 @@ const PlanningForm = ({
             />
           )}
 
-          {/* Bulk Planning vrijwilligers */}
-          {isBulkPlanning && (
+          {/* Verantwoordelijke Selectie voor Bulk Planning */}
+          {isBulkPlanning && selectedRoomId && (
             <FormField
               control={form.control}
-              name="selectedVolunteers"
+              name="responsibleVolunteerId"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-sm">Vrijwilligers</FormLabel>
+                  <FormLabel className="text-sm">Verantwoordelijke</FormLabel>
                   <Select
-                    value={field.value?.[0] || ""}
-                    onValueChange={(value) => {
-                      const current = field.value || [];
-                      const updated = current.includes(value)
-                        ? current.filter(id => id !== value)
-                        : [...current, value];
-                      field.onChange(updated);
-                    }}
+                    value={field.value}
+                    onValueChange={field.onChange}
                   >
                     <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Selecteer vrijwilligers">
-                        {field.value?.length
-                          ? `${field.value.length} vrijwilliger(s) geselecteerd`
-                          : "Selecteer vrijwilligers"}
-                      </SelectValue>
+                      <SelectValue placeholder="Selecteer verantwoordelijke" />
                     </SelectTrigger>
-                    <SelectContent
-                      position="popper"
-                      align="start"
-                      side="bottom"
-                      className="w-[var(--radix-select-trigger-width)]"
-                    >
-                      <div className="sticky top-0 px-2 py-2 bg-white border-b">
-                        <div className="relative">
-                          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
-                          <input
-                            type="text"
-                            placeholder="Zoek vrijwilliger..."
-                            value={searchTerm}
-                            onChange={(e) => {
-                              e.preventDefault();
-                              e.stopPropagation();
-                              setSearchTerm(e.target.value);
-                            }}
-                            onKeyDown={(e) => {
-                              e.stopPropagation();
-                            }}
-                            className="w-full pl-9 h-9 rounded-md border border-input bg-white px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-offset-0 disabled:cursor-not-allowed disabled:opacity-50"
-                          />
-                        </div>
-                      </div>
+                    <SelectContent align="start">
                       <div className="pt-1 max-h-[300px] overflow-y-auto">
-                        {volunteers
-                          .filter((volunteer) => {
-                            const fullName = `${volunteer.firstName} ${volunteer.lastName}`.toLowerCase();
-                            return fullName.includes(searchTerm.toLowerCase());
-                          })
-                          .map((volunteer) => (
-                            <SelectItem
-                              key={volunteer.id}
-                              value={volunteer.id}
-                              className="flex items-center justify-between py-2.5 px-3 cursor-pointer hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
-                            >
-                              <div className="flex items-center gap-2">
-                                <Check
-                                  className={cn(
-                                    "h-4 w-4 flex-shrink-0",
-                                    field.value.includes(volunteer.id)
-                                      ? "opacity-100"
-                                      : "opacity-0"
-                                  )}
-                                />
-                                <span className="flex-grow">
-                                  {volunteer.firstName} {volunteer.lastName}
-                                </span>
-                              </div>
-                            </SelectItem>
-                          ))}
+                        {volunteers.map((volunteer) => (
+                          <SelectItem
+                            key={volunteer.id}
+                            value={volunteer.id}
+                            className="flex items-center justify-between py-2.5 px-3 cursor-pointer hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
+                          >
+                            <div className="flex items-center gap-2">
+                              <Check
+                                className={cn(
+                                  "h-4 w-4 flex-shrink-0",
+                                  field.value === volunteer.id ? "opacity-100" : "opacity-0"
+                                )}
+                              />
+                              <span className="flex-grow">
+                                {volunteer.firstName} {volunteer.lastName}
+                              </span>
+                            </div>
+                          </SelectItem>
+                        ))}
                       </div>
                     </SelectContent>
                   </Select>
@@ -372,7 +307,7 @@ const PlanningForm = ({
             />
           )}
 
-          {/* Verantwoordelijke Switch */}
+          {/* Verantwoordelijke Switch voor Normale Planning */}
           {selectedRoomId && selectedVolunteerId && !isBulkPlanning && (
             <FormField
               control={form.control}
@@ -393,40 +328,7 @@ const PlanningForm = ({
             />
           )}
 
-          {/* Waarschuwing voor bestaande verantwoordelijke */}
-          {currentResponsible && showResponsibleAlert && (
-            <AlertDialog open={showResponsibleAlert} onOpenChange={setShowResponsibleAlert}>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>Verantwoordelijke wijzigen</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    {currentResponsible && (
-                      <>
-                        Deze ruimte heeft al een verantwoordelijke:
-                        <span className="font-medium text-[#963E56]">
-                          {` ${currentResponsible.firstName} ${currentResponsible.lastName}`}
-                        </span>
-                        . Wil je deze vervangen?
-                      </>
-                    )}
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel onClick={() => {
-                    form.setValue("isResponsible", false);
-                    setShowResponsibleAlert(false);
-                  }}>
-                    Annuleren
-                  </AlertDialogCancel>
-                  <AlertDialogAction onClick={() => setShowResponsibleAlert(false)}>
-                    Doorgaan
-                  </AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
-          )}
-
-          {/* Datum Selectie */}
+          {/* Datums */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <FormField
               control={form.control}
