@@ -8,7 +8,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Check, Search, X, UserCircle2, CalendarIcon, Loader2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { format } from "date-fns";
+import { format, startOfDay } from "date-fns";
 import { nl } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { z } from "zod";
@@ -92,6 +92,10 @@ const PlanningForm = ({
     }
   }, [isResponsible, selectedRoomId, startDate, plannings, editingPlanning?.id, volunteers]);
 
+  const formatDate = (date: Date) => {
+    return startOfDay(date).toISOString();
+  };
+
   const handleFormSubmit = async (data: z.infer<typeof planningSchema>) => {
     try {
       setIsSubmitting(true);
@@ -107,7 +111,6 @@ const PlanningForm = ({
           return;
         }
 
-        // Genereer planningen voor elke combinatie van vrijwilliger en ruimte
         const plannings: Planning[] = [];
 
         for (const roomId of data.selectedRooms) {
@@ -115,8 +118,8 @@ const PlanningForm = ({
             plannings.push({
               roomId,
               volunteerId,
-              startDate: data.startDate,
-              endDate: data.endDate,
+              startDate: formatDate(new Date(data.startDate)),
+              endDate: formatDate(new Date(data.endDate)),
               isResponsible: data.responsibleVolunteerId === volunteerId
             });
           }
@@ -136,8 +139,8 @@ const PlanningForm = ({
         const planning: Planning = {
           roomId: data.roomId,
           volunteerId: data.volunteerId,
-          startDate: data.startDate,
-          endDate: data.endDate,
+          startDate: formatDate(new Date(data.startDate)),
+          endDate: formatDate(new Date(data.endDate)),
           isResponsible: data.isResponsible
         };
 
