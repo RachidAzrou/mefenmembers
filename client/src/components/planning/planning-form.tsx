@@ -198,6 +198,11 @@ const PlanningForm = ({
                           ? current.filter(id => id !== value)
                           : [...current, value];
                         field.onChange(updated);
+                        // Reset verantwoordelijke als die niet meer in de selectie zit
+                        const responsibleId = form.getValues("responsibleVolunteerId");
+                        if (responsibleId && !updated.includes(responsibleId)) {
+                          form.setValue("responsibleVolunteerId", undefined);
+                        }
                       } else {
                         field.onChange(value);
                       }
@@ -224,6 +229,9 @@ const PlanningForm = ({
                               setSearchTerm(e.target.value);
                             }}
                             onKeyDown={(e) => {
+                              e.stopPropagation();
+                            }}
+                            onClick={(e) => {
                               e.stopPropagation();
                             }}
                             className="w-full pl-9 h-9 rounded-md border border-input bg-white px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-offset-0"
@@ -279,7 +287,12 @@ const PlanningForm = ({
                               size="icon"
                               className="h-4 w-4 p-0 hover:bg-transparent"
                               onClick={() => {
-                                field.onChange(field.value?.filter(v => v !== id));
+                                const newValue = field.value?.filter(v => v !== id);
+                                field.onChange(newValue);
+                                // Reset verantwoordelijke als die verwijderd wordt
+                                if (form.getValues("responsibleVolunteerId") === id) {
+                                  form.setValue("responsibleVolunteerId", undefined);
+                                }
                               }}
                             >
                               <X className="h-3 w-3" />
@@ -296,7 +309,7 @@ const PlanningForm = ({
           )}
 
           {/* Verantwoordelijke Selectie voor Bulk Planning */}
-          {isBulkPlanning && form.watch("selectedRooms")?.length > 0 && (
+          {isBulkPlanning && form.watch("selectedVolunteers")?.length > 0 && (
             <FormField
               control={form.control}
               name="responsibleVolunteerId"
@@ -314,25 +327,27 @@ const PlanningForm = ({
                       <SelectValue placeholder="Selecteer verantwoordelijke" />
                     </SelectTrigger>
                     <SelectContent forceMount side="bottom" align="start" className="w-[var(--radix-select-trigger-width)]">
-                      {volunteers.map((volunteer) => (
-                        <SelectItem
-                          key={volunteer.id}
-                          value={volunteer.id}
-                          className="flex items-center justify-between py-2.5 px-3 cursor-pointer hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
-                        >
-                          <div className="flex items-center gap-2">
-                            <Check
-                              className={cn(
-                                "h-4 w-4 flex-shrink-0",
-                                field.value === volunteer.id ? "opacity-100" : "opacity-0"
-                              )}
-                            />
-                            <span className="flex-grow">
-                              {volunteer.firstName} {volunteer.lastName}
-                            </span>
-                          </div>
-                        </SelectItem>
-                      ))}
+                      {volunteers
+                        .filter(volunteer => form.watch("selectedVolunteers")?.includes(volunteer.id))
+                        .map((volunteer) => (
+                          <SelectItem
+                            key={volunteer.id}
+                            value={volunteer.id}
+                            className="flex items-center justify-between py-2.5 px-3 cursor-pointer hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
+                          >
+                            <div className="flex items-center gap-2">
+                              <Check
+                                className={cn(
+                                  "h-4 w-4 flex-shrink-0",
+                                  field.value === volunteer.id ? "opacity-100" : "opacity-0"
+                                )}
+                              />
+                              <span className="flex-grow">
+                                {volunteer.firstName} {volunteer.lastName}
+                              </span>
+                            </div>
+                          </SelectItem>
+                        ))}
                     </SelectContent>
                   </Select>
                   <FormMessage />
