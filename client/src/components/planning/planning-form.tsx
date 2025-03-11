@@ -204,9 +204,13 @@ const PlanningForm = ({
                     }}
                   >
                     <SelectTrigger className="w-full">
-                      <SelectValue placeholder={`Selecteer vrijwilliger${isBulkPlanning ? 's' : ''}`} />
+                      <SelectValue placeholder={`Selecteer vrijwilliger${isBulkPlanning ? 's' : ''}`}>
+                        {isBulkPlanning && field.value?.length > 0
+                          ? `${field.value.length} vrijwilliger(s) geselecteerd`
+                          : `Selecteer vrijwilliger${isBulkPlanning ? 's' : ''}`}
+                      </SelectValue>
                     </SelectTrigger>
-                    <SelectContent align="start" position="popper">
+                    <SelectContent forceMount side="bottom" align="start" className="w-[var(--radix-select-trigger-width)]">
                       <div className="sticky top-0 px-2 py-2 bg-white border-b">
                         <div className="relative">
                           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
@@ -222,7 +226,8 @@ const PlanningForm = ({
                             onKeyDown={(e) => {
                               e.stopPropagation();
                             }}
-                            className="w-full pl-9 h-9 rounded-md border border-input bg-white px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-offset-0 disabled:cursor-not-allowed disabled:opacity-50"
+                            className="w-full pl-9 h-9 rounded-md border border-input bg-white px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-offset-0"
+                            autoComplete="off"
                           />
                         </div>
                       </div>
@@ -242,7 +247,9 @@ const PlanningForm = ({
                                 <Check
                                   className={cn(
                                     "h-4 w-4 flex-shrink-0",
-                                    field.value === volunteer.id || (Array.isArray(field.value) && field.value.includes(volunteer.id))
+                                    (isBulkPlanning
+                                      ? field.value?.includes(volunteer.id)
+                                      : field.value === volunteer.id)
                                       ? "opacity-100"
                                       : "opacity-0"
                                   )}
@@ -256,6 +263,32 @@ const PlanningForm = ({
                       </div>
                     </SelectContent>
                   </Select>
+                  {isBulkPlanning && field.value?.length > 0 && (
+                    <div className="mt-2 flex flex-wrap gap-2">
+                      {field.value.map(id => {
+                        const volunteer = volunteers.find(v => v.id === id);
+                        return volunteer && (
+                          <div
+                            key={id}
+                            className="bg-[#963E56]/10 text-[#963E56] text-sm rounded-full px-3 py-1 flex items-center gap-2"
+                          >
+                            <span>{volunteer.firstName} {volunteer.lastName}</span>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="icon"
+                              className="h-4 w-4 p-0 hover:bg-transparent"
+                              onClick={() => {
+                                field.onChange(field.value?.filter(v => v !== id));
+                              }}
+                            >
+                              <X className="h-3 w-3" />
+                            </Button>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
                   <FormMessage />
                 </FormItem>
               )}
@@ -263,13 +296,16 @@ const PlanningForm = ({
           )}
 
           {/* Verantwoordelijke Selectie voor Bulk Planning */}
-          {isBulkPlanning && selectedRoomId && (
+          {isBulkPlanning && form.watch("selectedRooms")?.length > 0 && (
             <FormField
               control={form.control}
               name="responsibleVolunteerId"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-sm">Verantwoordelijke</FormLabel>
+                  <div className="flex items-center gap-2 mb-2">
+                    <UserCircle2 className="h-4 w-4" />
+                    <FormLabel className="text-sm">Verantwoordelijke</FormLabel>
+                  </div>
                   <Select
                     value={field.value}
                     onValueChange={field.onChange}
@@ -277,28 +313,26 @@ const PlanningForm = ({
                     <SelectTrigger className="w-full">
                       <SelectValue placeholder="Selecteer verantwoordelijke" />
                     </SelectTrigger>
-                    <SelectContent align="start">
-                      <div className="pt-1 max-h-[300px] overflow-y-auto">
-                        {volunteers.map((volunteer) => (
-                          <SelectItem
-                            key={volunteer.id}
-                            value={volunteer.id}
-                            className="flex items-center justify-between py-2.5 px-3 cursor-pointer hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
-                          >
-                            <div className="flex items-center gap-2">
-                              <Check
-                                className={cn(
-                                  "h-4 w-4 flex-shrink-0",
-                                  field.value === volunteer.id ? "opacity-100" : "opacity-0"
-                                )}
-                              />
-                              <span className="flex-grow">
-                                {volunteer.firstName} {volunteer.lastName}
-                              </span>
-                            </div>
-                          </SelectItem>
-                        ))}
-                      </div>
+                    <SelectContent forceMount side="bottom" align="start" className="w-[var(--radix-select-trigger-width)]">
+                      {volunteers.map((volunteer) => (
+                        <SelectItem
+                          key={volunteer.id}
+                          value={volunteer.id}
+                          className="flex items-center justify-between py-2.5 px-3 cursor-pointer hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
+                        >
+                          <div className="flex items-center gap-2">
+                            <Check
+                              className={cn(
+                                "h-4 w-4 flex-shrink-0",
+                                field.value === volunteer.id ? "opacity-100" : "opacity-0"
+                              )}
+                            />
+                            <span className="flex-grow">
+                              {volunteer.firstName} {volunteer.lastName}
+                            </span>
+                          </div>
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                   <FormMessage />
