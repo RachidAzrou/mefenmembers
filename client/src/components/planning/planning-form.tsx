@@ -19,8 +19,8 @@ interface Planning {
   id?: string;
   roomId: string;
   volunteerId: string;
-  startDate: number;
-  endDate: number;
+  startDate: string;
+  endDate: string;
   isResponsible: boolean;
 }
 
@@ -92,12 +92,6 @@ const PlanningForm = ({
     }
   }, [isResponsible, selectedRoomId, startDate, plannings, editingPlanning?.id, volunteers]);
 
-  const dateToTimestamp = (dateString: string): number => {
-    // Create date object for the given date string
-    const [year, month, day] = dateString.split('-').map(Number);
-    // Create UTC date at midnight
-    return Date.UTC(year, month - 1, day);
-  };
 
   const handleFormSubmit = async (data: z.infer<typeof planningSchema>) => {
     try {
@@ -124,8 +118,8 @@ const PlanningForm = ({
           plannings.push({
             roomId: data.selectedRooms,
             volunteerId,
-            startDate: dateToTimestamp(data.startDate),
-            endDate: dateToTimestamp(data.endDate),
+            startDate: data.startDate,
+            endDate: data.endDate,
             isResponsible: data.responsibleVolunteerId === volunteerId
           });
         }
@@ -144,8 +138,8 @@ const PlanningForm = ({
         const planning: Planning = {
           roomId: data.roomId,
           volunteerId: data.volunteerId,
-          startDate: dateToTimestamp(data.startDate),
-          endDate: dateToTimestamp(data.endDate),
+          startDate: data.startDate,
+          endDate: data.endDate,
           isResponsible: data.isResponsible
         };
 
