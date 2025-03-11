@@ -175,27 +175,19 @@ const PlanningForm = ({
                         <SelectItem
                           key={room.id}
                           value={room.id}
-                          className="flex items-center justify-between cursor-pointer py-2.5 px-3"
+                          className="flex flex-col py-2.5 px-3"
                         >
-                          <div className="flex flex-grow items-center gap-2 pr-2">
-                            <div>
-                              <div>{room.name}</div>
-                              {responsibleVolunteer && (
-                                <div className="text-xs text-muted-foreground flex items-center gap-1">
-                                  <UserCircle2 className="h-3 w-3" />
-                                  <span>
-                                    Verantwoordelijke: {responsibleVolunteer.firstName} {responsibleVolunteer.lastName}
-                                  </span>
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                          <Check
-                            className={cn(
-                              "h-4 w-4 shrink-0",
-                              field.value === room.id ? "opacity-100" : "opacity-0"
+                          <div className="flex flex-col">
+                            <div>{room.name}</div>
+                            {responsibleVolunteer && (
+                              <div className="text-xs text-muted-foreground flex items-center gap-1">
+                                <UserCircle2 className="h-3 w-3" />
+                                <span>
+                                  Verantwoordelijke: {responsibleVolunteer.firstName} {responsibleVolunteer.lastName}
+                                </span>
+                              </div>
                             )}
-                          />
+                          </div>
                         </SelectItem>
                       );
                     })}
@@ -245,13 +237,11 @@ const PlanningForm = ({
                             <SelectItem
                               key={volunteer.id}
                               value={volunteer.id}
-                              className="flex items-center justify-between cursor-pointer py-2.5 px-3"
+                              className="flex items-center justify-between py-2.5 px-3"
                             >
-                              <div className="flex flex-grow items-center gap-2 pr-2">
-                                <span className="truncate">
-                                  {volunteer.firstName} {volunteer.lastName}
-                                </span>
-                              </div>
+                              <span className="flex-grow pr-2 truncate">
+                                {volunteer.firstName} {volunteer.lastName}
+                              </span>
                               <Check
                                 className={cn(
                                   "h-4 w-4 shrink-0",
@@ -288,6 +278,39 @@ const PlanningForm = ({
                 </div>
               )}
             />
+          )}
+
+          {/* Waarschuwing voor bestaande verantwoordelijke */}
+          {currentResponsible && showResponsibleAlert && (
+            <AlertDialog open={showResponsibleAlert} onOpenChange={setShowResponsibleAlert}>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Verantwoordelijke wijzigen</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    {currentResponsible && (
+                      <>
+                        Deze ruimte heeft al een verantwoordelijke:
+                        <span className="font-medium text-[#963E56]">
+                          {` ${currentResponsible.firstName} ${currentResponsible.lastName}`}
+                        </span>
+                        . Wil je deze vervangen?
+                      </>
+                    )}
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel onClick={() => {
+                    form.setValue("isResponsible", false);
+                    setShowResponsibleAlert(false);
+                  }}>
+                    Annuleren
+                  </AlertDialogCancel>
+                  <AlertDialogAction onClick={() => setShowResponsibleAlert(false)}>
+                    Doorgaan
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
           )}
 
           {/* Datum Selectie */}
@@ -386,39 +409,6 @@ const PlanningForm = ({
             />
           </div>
 
-          {/* Waarschuwing voor bestaande verantwoordelijke */}
-          {currentResponsible && showResponsibleAlert && (
-            <AlertDialog open={showResponsibleAlert} onOpenChange={setShowResponsibleAlert}>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>Verantwoordelijke wijzigen</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    {currentResponsible && (
-                      <>
-                        Deze ruimte heeft al een verantwoordelijke:
-                        <span className="font-medium text-[#963E56]">
-                          {` ${currentResponsible.firstName} ${currentResponsible.lastName}`}
-                        </span>
-                        . Wil je deze vervangen?
-                      </>
-                    )}
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel onClick={() => {
-                    form.setValue("isResponsible", false);
-                    setShowResponsibleAlert(false);
-                  }}>
-                    Annuleren
-                  </AlertDialogCancel>
-                  <AlertDialogAction onClick={() => setShowResponsibleAlert(false)}>
-                    Doorgaan
-                  </AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
-          )}
-
           {/* Bulk Planning opties */}
           {isBulkPlanning && (
             <>
@@ -469,13 +459,11 @@ const PlanningForm = ({
                               <SelectItem
                                 key={volunteer.id}
                                 value={volunteer.id}
-                                className="flex items-center justify-between cursor-pointer py-2.5 px-3"
+                                className="flex items-center justify-between py-2.5 px-3"
                               >
-                                <div className="flex flex-grow items-center gap-2 pr-2">
-                                  <span className="truncate">
-                                    {volunteer.firstName} {volunteer.lastName}
-                                  </span>
-                                </div>
+                                <span className="flex-grow pr-2 truncate">
+                                  {volunteer.firstName} {volunteer.lastName}
+                                </span>
                                 <Check
                                   className={cn(
                                     "h-4 w-4 shrink-0",
@@ -546,17 +534,11 @@ const PlanningForm = ({
                           <SelectItem
                             key={room.id}
                             value={room.id}
-                            className="flex items-center justify-between cursor-pointer py-2.5 px-3"
+                            className="py-2.5 px-3"
                           >
-                            <div className="flex flex-grow items-center gap-2 pr-2">
-                              <span className="truncate">{room.name}</span>
-                            </div>
-                            <Check
-                              className={cn(
-                                "h-4 w-4 shrink-0",
-                                field.value?.includes(room.id) ? "opacity-100" : "opacity-0"
-                              )}
-                            />
+                            <span className="block">
+                              {room.name}
+                            </span>
                           </SelectItem>
                         ))}
                       </SelectContent>
