@@ -123,8 +123,16 @@ const PlanningForm = ({
           return;
         }
 
-        // Verwijder onnodige velden voor bulk planning
-        const { volunteerId, roomId, ...bulkData } = data;
+        // Voeg de verantwoordelijke toe als die is geselecteerd
+        const bulkData = {
+          selectedVolunteers: data.selectedVolunteers,
+          selectedRooms: data.selectedRooms,
+          startDate: data.startDate,
+          endDate: data.endDate,
+          isBulkPlanning: true,
+          responsibleVolunteerId: data.responsibleVolunteerId,
+        };
+
         await onSubmit(bulkData);
       } else {
         // Validatie voor normale planning
@@ -141,8 +149,15 @@ const PlanningForm = ({
           return;
         }
 
-        // Verwijder bulk planning velden
-        const { selectedVolunteers, selectedRooms, ...normalData } = data;
+        const normalData = {
+          volunteerId: data.volunteerId,
+          roomId: data.roomId,
+          startDate: data.startDate,
+          endDate: data.endDate,
+          isBulkPlanning: false,
+          isResponsible: data.isResponsible,
+        };
+
         await onSubmit(normalData);
       }
 
