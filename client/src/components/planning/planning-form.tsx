@@ -225,14 +225,16 @@ const PlanningForm = ({
                     <SelectTrigger className="w-full">
                       <SelectValue placeholder={`Selecteer vrijwilliger${isBulkPlanning ? 's' : ''}`} />
                     </SelectTrigger>
-                    <SelectContent 
+                    <SelectContent
+                      position="popper"
                       align="start"
-                      className="w-[var(--radix-select-trigger-width)] max-h-[300px]"
+                      side="bottom"
+                      className="w-[var(--radix-select-trigger-width)]"
                     >
-                      <div className="sticky top-0 p-2 bg-white border-b z-50">
+                      <div className="sticky top-0 px-2 py-2 bg-white border-b">
                         <div className="relative">
-                          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                          <Input
+                          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+                          <input
                             type="text"
                             placeholder="Zoek vrijwilliger..."
                             value={searchTerm}
@@ -244,23 +246,35 @@ const PlanningForm = ({
                             onKeyDown={(e) => {
                               e.stopPropagation();
                             }}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                            }}
-                            className="pl-9 w-full"
-                            autoComplete="off"
+                            className="w-full pl-9 h-9 rounded-md border border-input bg-white px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-offset-0 disabled:cursor-not-allowed disabled:opacity-50"
                           />
                         </div>
                       </div>
-                      <div className="overflow-y-auto">
+                      <div className="pt-1 max-h-[300px] overflow-y-auto">
                         {volunteers
-                          .filter(volunteer => {
+                          .filter((volunteer) => {
                             const fullName = `${volunteer.firstName} ${volunteer.lastName}`.toLowerCase();
                             return fullName.includes(searchTerm.toLowerCase());
                           })
                           .map((volunteer) => (
-                            <SelectItem key={volunteer.id} value={volunteer.id}>
-                              {volunteer.firstName} {volunteer.lastName}
+                            <SelectItem
+                              key={volunteer.id}
+                              value={volunteer.id}
+                              className="flex items-center justify-between py-2.5 px-3 cursor-pointer hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
+                            >
+                              <div className="flex items-center gap-2">
+                                <Check
+                                  className={cn(
+                                    "h-4 w-4 flex-shrink-0",
+                                    field.value === volunteer.id || (Array.isArray(field.value) && field.value.includes(volunteer.id))
+                                      ? "opacity-100"
+                                      : "opacity-0"
+                                  )}
+                                />
+                                <span className="flex-grow">
+                                  {volunteer.firstName} {volunteer.lastName}
+                                </span>
+                              </div>
                             </SelectItem>
                           ))}
                       </div>
@@ -297,14 +311,16 @@ const PlanningForm = ({
                           : "Selecteer vrijwilligers"}
                       </SelectValue>
                     </SelectTrigger>
-                    <SelectContent 
+                    <SelectContent
+                      position="popper"
                       align="start"
-                      className="w-[var(--radix-select-trigger-width)] max-h-[300px]"
+                      side="bottom"
+                      className="w-[var(--radix-select-trigger-width)]"
                     >
-                      <div className="sticky top-0 p-2 bg-white border-b z-50">
+                      <div className="sticky top-0 px-2 py-2 bg-white border-b">
                         <div className="relative">
-                          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                          <Input
+                          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+                          <input
                             type="text"
                             placeholder="Zoek vrijwilliger..."
                             value={searchTerm}
@@ -316,23 +332,35 @@ const PlanningForm = ({
                             onKeyDown={(e) => {
                               e.stopPropagation();
                             }}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                            }}
-                            className="pl-9 w-full"
-                            autoComplete="off"
+                            className="w-full pl-9 h-9 rounded-md border border-input bg-white px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-offset-0 disabled:cursor-not-allowed disabled:opacity-50"
                           />
                         </div>
                       </div>
-                      <div className="overflow-y-auto">
+                      <div className="pt-1 max-h-[300px] overflow-y-auto">
                         {volunteers
-                          .filter(volunteer => {
+                          .filter((volunteer) => {
                             const fullName = `${volunteer.firstName} ${volunteer.lastName}`.toLowerCase();
                             return fullName.includes(searchTerm.toLowerCase());
                           })
                           .map((volunteer) => (
-                            <SelectItem key={volunteer.id} value={volunteer.id}>
-                              {volunteer.firstName} {volunteer.lastName}
+                            <SelectItem
+                              key={volunteer.id}
+                              value={volunteer.id}
+                              className="flex items-center justify-between py-2.5 px-3 cursor-pointer hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
+                            >
+                              <div className="flex items-center gap-2">
+                                <Check
+                                  className={cn(
+                                    "h-4 w-4 flex-shrink-0",
+                                    field.value.includes(volunteer.id)
+                                      ? "opacity-100"
+                                      : "opacity-0"
+                                  )}
+                                />
+                                <span className="flex-grow">
+                                  {volunteer.firstName} {volunteer.lastName}
+                                </span>
+                              </div>
                             </SelectItem>
                           ))}
                       </div>
