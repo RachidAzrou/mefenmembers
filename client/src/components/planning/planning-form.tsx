@@ -70,7 +70,7 @@ const PlanningForm = ({
   const [showResponsibleAlert, setShowResponsibleAlert] = useState(false);
   const [currentResponsible, setCurrentResponsible] = useState<any>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [formError, setFormError] = useState<string | null>(null); // Added state for form errors
+  const [formError, setFormError] = useState<string | null>(null);
 
   const isBulkPlanning = form.watch("isBulkPlanning");
   const selectedRoomId = form.watch("roomId");
@@ -108,6 +108,12 @@ const PlanningForm = ({
       setIsSubmitting(true);
       setFormError(null);
 
+      // Basis planning data
+      const baseData = {
+        startDate: data.startDate,
+        endDate: data.endDate,
+      };
+
       if (data.isBulkPlanning) {
         // Validatie voor bulk planning
         if (!data.selectedVolunteers?.length) {
@@ -118,26 +124,20 @@ const PlanningForm = ({
           setFormError("Selecteer ten minste één ruimte");
           return;
         }
-        if (!data.startDate || !data.endDate) {
-          setFormError("Start- en einddatum zijn verplicht");
-          return;
-        }
 
-        // Formateer de data voor bulk planning
         const bulkData = {
-          startDate: data.startDate,
-          endDate: data.endDate,
+          ...baseData,
           isBulkPlanning: true,
           selectedVolunteers: data.selectedVolunteers || [],
           selectedRooms: data.selectedRooms || [],
-          isResponsible: false
+          volunteerId: null,
+          roomId: null,
+          isResponsible: false,
         };
 
-        // Als er een verantwoordelijke is geselecteerd, voeg deze toe
         if (data.responsibleVolunteerId) {
           bulkData.isResponsible = true;
-          // @ts-ignore
-          bulkData.responsibleVolunteerId = data.responsibleVolunteerId;
+          bulkData.volunteerId = data.responsibleVolunteerId;
         }
 
         await onSubmit(bulkData);
@@ -151,20 +151,15 @@ const PlanningForm = ({
           setFormError("Selecteer een ruimte");
           return;
         }
-        if (!data.startDate || !data.endDate) {
-          setFormError("Start- en einddatum zijn verplicht");
-          return;
-        }
 
         const normalData = {
+          ...baseData,
+          isBulkPlanning: false,
           volunteerId: data.volunteerId,
           roomId: data.roomId,
-          startDate: data.startDate,
-          endDate: data.endDate,
-          isBulkPlanning: false,
           isResponsible: data.isResponsible || false,
           selectedVolunteers: [],
-          selectedRooms: []
+          selectedRooms: [],
         };
 
         await onSubmit(normalData);
@@ -537,8 +532,7 @@ const PlanningForm = ({
           </div>
         </div>
 
-        {formError && <div className="text-red-500 text-sm">{formError}</div>} {/* Display form errors */}
-
+        {formError && <div className="text-red-500 text-sm">{formError}</div>}
 
         <div className="flex justify-end gap-3 pt-6 border-t">
           <Button
