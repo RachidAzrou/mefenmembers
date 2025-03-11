@@ -8,25 +8,15 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Check, Search, X, UserCircle2, CalendarIcon, Loader2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { format, parseISO } from "date-fns";
+import { format } from "date-fns";
 import { nl } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { z } from "zod";
 import { UseFormReturn } from "react-hook-form";
 import { useToast } from "@/hooks/use-toast";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
 
 interface Planning {
-  id: string;
+  id?: string;
   roomId: string;
   volunteerId: string;
   startDate: string;
@@ -49,7 +39,7 @@ const planningSchema = z.object({
 type PlanningFormProps = {
   volunteers: { id: string; firstName: string; lastName: string; }[];
   rooms: { id: string; name: string; }[];
-  onSubmit: (data: z.infer<typeof planningSchema>) => Promise<void>;
+  onSubmit: (data: z.infer<typeof planningSchema> | { plannings: Planning[] }) => Promise<void>;
   onClose: () => void;
   form: UseFormReturn<z.infer<typeof planningSchema>>;
   editingPlanning: Planning | null;
@@ -89,8 +79,7 @@ const PlanningForm = ({
         p => p.roomId === selectedRoomId &&
             p.isResponsible &&
             (!editingPlanning || p.id !== editingPlanning.id) &&
-            parseISO(p.startDate) <= parseISO(startDate) &&
-            parseISO(p.endDate) >= parseISO(startDate)
+            p.startDate === startDate
       );
 
       if (existingResponsible) {
@@ -108,14 +97,7 @@ const PlanningForm = ({
       setIsSubmitting(true);
       setFormError(null);
 
-      // Basis planning data
-      const baseData = {
-        startDate: data.startDate,
-        endDate: data.endDate,
-      };
-
       if (data.isBulkPlanning) {
-        // Validatie voor bulk planning
         if (!data.selectedVolunteers?.length) {
           setFormError("Selecteer ten minste één vrijwilliger");
           return;
@@ -125,24 +107,23 @@ const PlanningForm = ({
           return;
         }
 
-        const bulkData = {
-          ...baseData,
-          isBulkPlanning: true,
-          selectedVolunteers: data.selectedVolunteers || [],
-          selectedRooms: data.selectedRooms || [],
-          volunteerId: null,
-          roomId: null,
-          isResponsible: false,
-        };
+        // Genereer planningen voor elke combinatie van vrijwilliger en ruimte
+        const plannings: Planning[] = [];
 
-        if (data.responsibleVolunteerId) {
-          bulkData.isResponsible = true;
-          bulkData.volunteerId = data.responsibleVolunteerId;
+        for (const roomId of data.selectedRooms) {
+          for (const volunteerId of data.selectedVolunteers) {
+            plannings.push({
+              roomId,
+              volunteerId,
+              startDate: data.startDate,
+              endDate: data.endDate,
+              isResponsible: data.responsibleVolunteerId === volunteerId
+            });
+          }
         }
 
-        await onSubmit(bulkData);
+        await onSubmit({ plannings });
       } else {
-        // Validatie voor normale planning
         if (!data.volunteerId) {
           setFormError("Selecteer een vrijwilliger");
           return;
@@ -152,17 +133,15 @@ const PlanningForm = ({
           return;
         }
 
-        const normalData = {
-          ...baseData,
-          isBulkPlanning: false,
-          volunteerId: data.volunteerId,
+        const planning: Planning = {
           roomId: data.roomId,
-          isResponsible: data.isResponsible || false,
-          selectedVolunteers: [],
-          selectedRooms: [],
+          volunteerId: data.volunteerId,
+          startDate: data.startDate,
+          endDate: data.endDate,
+          isResponsible: data.isResponsible
         };
 
-        await onSubmit(normalData);
+        await onSubmit({ plannings: [planning] });
       }
 
       form.reset();
@@ -207,7 +186,7 @@ const PlanningForm = ({
             name={isBulkPlanning ? "selectedRooms" : "roomId"}
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="text-sm">Ruimte</FormLabel>
+                <FormLabel className="text-sm">Ruimte{isBulkPlanning ? 'n' : ''}</FormLabel>
                 <Select
                   value={isBulkPlanning ? field.value?.[0] || "" : field.value}
                   onValueChange={(value) => {
@@ -224,23 +203,47 @@ const PlanningForm = ({
                   }}
                 >
                   <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Selecteer ruimte" />
+                    <SelectValue placeholder={`Selecteer ruimte${isBulkPlanning ? 'n' : ''}`}>
+                      {isBulkPlanning && field.value?.length > 0
+                        ? `${field.value.length} ruimte(s) geselecteerd`
+                        : `Selecteer ruimte${isBulkPlanning ? 'n' : ''}`}
+                    </SelectValue>
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent side="bottom" position="popper" className="w-[var(--radix-select-trigger-width)]">
                     {rooms.map((room) => (
-                      <SelectItem key={room.id} value={room.id}>
-                        {room.name}
+                      <SelectItem key={room.id} value={room.id} className="flex items-center justify-between py-2.5 px-3 cursor-pointer hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground">
+                        <div className="flex items-center gap-2">
+                          <Check className={cn("h-4 w-4 flex-shrink-0", (isBulkPlanning ? field.value?.includes(room.id) : field.value === room.id) ? "opacity-100" : "opacity-0")} />
+                          <span className="flex-grow">{room.name}</span>
+                        </div>
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
+                {isBulkPlanning && field.value?.length > 0 && (
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    {field.value.map(id => {
+                      const room = rooms.find(r => r.id === id);
+                      return room && (
+                        <div key={id} className="bg-[#963E56]/10 text-[#963E56] text-sm rounded-full px-3 py-1 flex items-center gap-2">
+                          <span>{room.name}</span>
+                          <Button type="button" variant="ghost" size="icon" className="h-4 w-4 p-0 hover:bg-transparent" onClick={() => {
+                            field.onChange(field.value?.filter(v => v !== id));
+                          }}>
+                            <X className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
                 <FormMessage />
               </FormItem>
             )}
           />
 
           {/* Vrijwilliger Selectie */}
-          {(selectedRoomId || (isBulkPlanning && form.watch("selectedRooms")?.length > 0)) && (
+          {(isBulkPlanning ? form.watch("selectedRooms")?.length > 0 : selectedRoomId) && (
             <FormField
               control={form.control}
               name={isBulkPlanning ? "selectedVolunteers" : "volunteerId"}
@@ -273,7 +276,7 @@ const PlanningForm = ({
                           : `Selecteer vrijwilliger${isBulkPlanning ? 's' : ''}`}
                       </SelectValue>
                     </SelectTrigger>
-                    <SelectContent forceMount side="bottom" align="start" className="w-[var(--radix-select-trigger-width)]">
+                    <SelectContent side="bottom" position="popper" className="w-[var(--radix-select-trigger-width)]">
                       <div className="sticky top-0 px-2 py-2 bg-white border-b">
                         <div className="relative">
                           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
@@ -293,33 +296,19 @@ const PlanningForm = ({
                               e.stopPropagation();
                             }}
                             className="w-full pl-9 h-9 rounded-md border border-input bg-white px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-offset-0"
-                            autoComplete="off"
                           />
                         </div>
                       </div>
-                      <div className="pt-1 max-h-[300px] overflow-y-auto">
+                      <div className="overflow-y-auto max-h-[300px]">
                         {volunteers
-                          .filter((volunteer) => {
+                          .filter(volunteer => {
                             const fullName = `${volunteer.firstName} ${volunteer.lastName}`.toLowerCase();
                             return fullName.includes(searchTerm.toLowerCase());
                           })
                           .map((volunteer) => (
-                            <SelectItem
-                              key={volunteer.id}
-                              value={volunteer.id}
-                              className="flex items-center justify-between py-2.5 px-3 cursor-pointer hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
-                            >
+                            <SelectItem key={volunteer.id} value={volunteer.id} className="flex items-center justify-between py-2.5 px-3 cursor-pointer hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground">
                               <div className="flex items-center gap-2">
-                                <Check
-                                  className={cn(
-                                    "h-4 w-4 flex-shrink-0",
-                                    (isBulkPlanning
-                                      ? field.value?.includes(volunteer.id)
-                                      : field.value === volunteer.id)
-                                      ? "opacity-100"
-                                      : "opacity-0"
-                                  )}
-                                />
+                                <Check className={cn("h-4 w-4 flex-shrink-0", (isBulkPlanning ? field.value?.includes(volunteer.id) : field.value === volunteer.id) ? "opacity-100" : "opacity-0")} />
                                 <span className="flex-grow">
                                   {volunteer.firstName} {volunteer.lastName}
                                 </span>
@@ -334,25 +323,16 @@ const PlanningForm = ({
                       {field.value.map(id => {
                         const volunteer = volunteers.find(v => v.id === id);
                         return volunteer && (
-                          <div
-                            key={id}
-                            className="bg-[#963E56]/10 text-[#963E56] text-sm rounded-full px-3 py-1 flex items-center gap-2"
-                          >
+                          <div key={id} className="bg-[#963E56]/10 text-[#963E56] text-sm rounded-full px-3 py-1 flex items-center gap-2">
                             <span>{volunteer.firstName} {volunteer.lastName}</span>
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="icon"
-                              className="h-4 w-4 p-0 hover:bg-transparent"
-                              onClick={() => {
-                                const newValue = field.value?.filter(v => v !== id);
-                                field.onChange(newValue);
-                                // Reset verantwoordelijke als die verwijderd wordt
-                                if (form.getValues("responsibleVolunteerId") === id) {
-                                  form.setValue("responsibleVolunteerId", undefined);
-                                }
-                              }}
-                            >
+                            <Button type="button" variant="ghost" size="icon" className="h-4 w-4 p-0 hover:bg-transparent" onClick={() => {
+                              const newValue = field.value?.filter(v => v !== id);
+                              field.onChange(newValue);
+                              // Reset verantwoordelijke als die verwijderd wordt
+                              if (form.getValues("responsibleVolunteerId") === id) {
+                                form.setValue("responsibleVolunteerId", undefined);
+                              }
+                            }}>
                               <X className="h-3 w-3" />
                             </Button>
                           </div>
@@ -377,29 +357,17 @@ const PlanningForm = ({
                     <UserCircle2 className="h-4 w-4" />
                     <FormLabel className="text-sm">Verantwoordelijke</FormLabel>
                   </div>
-                  <Select
-                    value={field.value}
-                    onValueChange={field.onChange}
-                  >
+                  <Select value={field.value} onValueChange={field.onChange}>
                     <SelectTrigger className="w-full">
                       <SelectValue placeholder="Selecteer verantwoordelijke" />
                     </SelectTrigger>
-                    <SelectContent forceMount side="bottom" align="start" className="w-[var(--radix-select-trigger-width)]">
+                    <SelectContent side="bottom" position="popper" className="w-[var(--radix-select-trigger-width)]">
                       {volunteers
                         .filter(volunteer => form.watch("selectedVolunteers")?.includes(volunteer.id))
                         .map((volunteer) => (
-                          <SelectItem
-                            key={volunteer.id}
-                            value={volunteer.id}
-                            className="flex items-center justify-between py-2.5 px-3 cursor-pointer hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
-                          >
+                          <SelectItem key={volunteer.id} value={volunteer.id} className="flex items-center justify-between py-2.5 px-3 cursor-pointer hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground">
                             <div className="flex items-center gap-2">
-                              <Check
-                                className={cn(
-                                  "h-4 w-4 flex-shrink-0",
-                                  field.value === volunteer.id ? "opacity-100" : "opacity-0"
-                                )}
-                              />
+                              <Check className={cn("h-4 w-4 flex-shrink-0", field.value === volunteer.id ? "opacity-100" : "opacity-0")} />
                               <span className="flex-grow">
                                 {volunteer.firstName} {volunteer.lastName}
                               </span>
@@ -421,11 +389,7 @@ const PlanningForm = ({
               name="isResponsible"
               render={({ field }) => (
                 <div className="flex items-center gap-2">
-                  <Switch
-                    checked={field.value}
-                    onCheckedChange={field.onChange}
-                    className="data-[state=checked]:bg-[#963E56]"
-                  />
+                  <Switch checked={field.value} onCheckedChange={field.onChange} className="data-[state=checked]:bg-[#963E56]" />
                   <Label className="text-sm flex items-center gap-1">
                     <UserCircle2 className="h-4 w-4" />
                     Verantwoordelijke
@@ -446,34 +410,18 @@ const PlanningForm = ({
                   <Popover>
                     <PopoverTrigger asChild>
                       <FormControl>
-                        <Button
-                          variant={"outline"}
-                          className={cn(
-                            "w-full pl-3 text-left font-normal",
-                            !field.value && "text-muted-foreground"
-                          )}
-                        >
-                          {field.value ? (
-                            format(new Date(field.value), "d MMM yyyy", { locale: nl })
-                          ) : (
-                            <span>Kies een datum</span>
-                          )}
+                        <Button variant={"outline"} className={cn("w-full pl-3 text-left font-normal", !field.value && "text-muted-foreground")}>
+                          {field.value ? format(new Date(field.value), "d MMM yyyy", { locale: nl }) : <span>Kies een datum</span>}
                           <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                         </Button>
                       </FormControl>
                     </PopoverTrigger>
                     <PopoverContent className="w-auto p-0" align="start">
-                      <Calendar
-                        mode="single"
-                        selected={field.value ? new Date(field.value) : undefined}
-                        onSelect={(date) => {
-                          if (date) {
-                            field.onChange(format(date, 'yyyy-MM-dd'));
-                          }
-                        }}
-                        initialFocus
-                        locale={nl}
-                      />
+                      <Calendar mode="single" selected={field.value ? new Date(field.value) : undefined} onSelect={(date) => {
+                        if (date) {
+                          field.onChange(format(date, 'yyyy-MM-dd'));
+                        }
+                      }} initialFocus locale={nl} />
                     </PopoverContent>
                   </Popover>
                   <FormMessage />
@@ -490,39 +438,22 @@ const PlanningForm = ({
                   <Popover>
                     <PopoverTrigger asChild>
                       <FormControl>
-                        <Button
-                          variant={"outline"}
-                          className={cn(
-                            "w-full pl-3 text-left font-normal",
-                            !field.value && "text-muted-foreground"
-                          )}
-                        >
-                          {field.value ? (
-                            format(new Date(field.value), "d MMM yyyy", { locale: nl })
-                          ) : (
-                            <span>Kies een datum</span>
-                          )}
+                        <Button variant={"outline"} className={cn("w-full pl-3 text-left font-normal", !field.value && "text-muted-foreground")}>
+                          {field.value ? format(new Date(field.value), "d MMM yyyy", { locale: nl }) : <span>Kies een datum</span>}
                           <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                         </Button>
                       </FormControl>
                     </PopoverTrigger>
                     <PopoverContent className="w-auto p-0" align="start">
-                      <Calendar
-                        mode="single"
-                        selected={field.value ? new Date(field.value) : undefined}
-                        onSelect={(date) => {
-                          if (date) {
-                            field.onChange(format(date, 'yyyy-MM-dd'));
-                          }
-                        }}
-                        disabled={(date) => {
-                          const startDate = form.getValues("startDate");
-                          if (!startDate) return true;
-                          return date < new Date(startDate);
-                        }}
-                        initialFocus
-                        locale={nl}
-                      />
+                      <Calendar mode="single" selected={field.value ? new Date(field.value) : undefined} onSelect={(date) => {
+                        if (date) {
+                          field.onChange(format(date, 'yyyy-MM-dd'));
+                        }
+                      }} disabled={(date) => {
+                        const startDate = form.getValues("startDate");
+                        if (!startDate) return true;
+                        return date < new Date(startDate);
+                      }} initialFocus locale={nl} />
                     </PopoverContent>
                   </Popover>
                   <FormMessage />
@@ -535,19 +466,10 @@ const PlanningForm = ({
         {formError && <div className="text-red-500 text-sm">{formError}</div>}
 
         <div className="flex justify-end gap-3 pt-6 border-t">
-          <Button
-            type="button"
-            variant="ghost"
-            onClick={onClose}
-            className="text-sm"
-          >
+          <Button type="button" variant="ghost" onClick={onClose} className="text-sm">
             Annuleren
           </Button>
-          <Button
-            type="submit"
-            className="bg-[#963E56] hover:bg-[#963E56]/90 text-white text-sm"
-            disabled={isSubmitting}
-          >
+          <Button type="submit" className="bg-[#963E56] hover:bg-[#963E56]/90 text-white text-sm" disabled={isSubmitting}>
             {isSubmitting ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
