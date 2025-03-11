@@ -6,7 +6,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Check, Search, X, UserCircle2, CalendarIcon, Loader2, AlertCircle } from "lucide-react";
+import { Check, Search, X, UserCircle2, CalendarIcon, Loader2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { format, parseISO } from "date-fns";
 import { nl } from "date-fns/locale";
@@ -76,6 +76,12 @@ const PlanningForm = ({
   const startDate = form.watch("startDate");
   const isResponsible = form.watch("isResponsible");
 
+  // Reset verantwoordelijke-gerelateerde state wanneer de ruimte of vrijwilliger verandert
+  useEffect(() => {
+    setShowResponsibleAlert(false);
+    setCurrentResponsible(null);
+  }, [selectedRoomId, selectedVolunteerId]);
+
   // Check voor bestaande verantwoordelijke alleen wanneer isResponsible wordt aangezet
   useEffect(() => {
     if (selectedRoomId && startDate && isResponsible) {
@@ -95,7 +101,7 @@ const PlanningForm = ({
         }
       }
     }
-  }, [selectedRoomId, startDate, isResponsible, plannings, volunteers, editingPlanning]);
+  }, [isResponsible]);
 
   const handleFormSubmit = async (data: z.infer<typeof planningSchema>) => {
     try {
@@ -169,10 +175,10 @@ const PlanningForm = ({
                         <SelectItem
                           key={room.id}
                           value={room.id}
-                          className="cursor-pointer py-2.5 px-3"
+                          className="flex items-center justify-between cursor-pointer py-2.5 px-3"
                         >
-                          <div className="flex items-center gap-2">
-                            <div className="flex-grow">
+                          <div className="flex flex-grow items-center gap-2 pr-2">
+                            <div>
                               <div>{room.name}</div>
                               {responsibleVolunteer && (
                                 <div className="text-xs text-muted-foreground flex items-center gap-1">
@@ -184,6 +190,12 @@ const PlanningForm = ({
                               )}
                             </div>
                           </div>
+                          <Check
+                            className={cn(
+                              "h-4 w-4 shrink-0",
+                              field.value === room.id ? "opacity-100" : "opacity-0"
+                            )}
+                          />
                         </SelectItem>
                       );
                     })}
@@ -233,13 +245,19 @@ const PlanningForm = ({
                             <SelectItem
                               key={volunteer.id}
                               value={volunteer.id}
-                              className="cursor-pointer py-2.5 px-3"
+                              className="flex items-center justify-between cursor-pointer py-2.5 px-3"
                             >
-                              <div className="flex items-center gap-2">
-                                <div className="flex-grow">
-                                  <div>{volunteer.firstName} {volunteer.lastName}</div>
-                                </div>
+                              <div className="flex flex-grow items-center gap-2 pr-2">
+                                <span className="truncate">
+                                  {volunteer.firstName} {volunteer.lastName}
+                                </span>
                               </div>
+                              <Check
+                                className={cn(
+                                  "h-4 w-4 shrink-0",
+                                  field.value === volunteer.id ? "opacity-100" : "opacity-0"
+                                )}
+                              />
                             </SelectItem>
                           ))}
                       </div>
@@ -400,6 +418,8 @@ const PlanningForm = ({
               </AlertDialogContent>
             </AlertDialog>
           )}
+
+          {/* Bulk Planning opties */}
           {isBulkPlanning && (
             <>
               <FormField
@@ -432,12 +452,9 @@ const PlanningForm = ({
                             <Input
                               type="text"
                               placeholder="Zoek vrijwilliger..."
-                              value={searchTermBulk}
+                              value={searchTerm}
                               onKeyDown={(e) => e.stopPropagation()}
-                              onChange={(e) => {
-                                e.preventDefault();
-                                setSearchTermBulk(e.target.value);
-                              }}
+                              onChange={(e) => setSearchTerm(e.target.value)}
                               className="pl-9 h-9"
                             />
                           </div>
@@ -446,23 +463,25 @@ const PlanningForm = ({
                           {volunteers
                             .filter(volunteer => {
                               const fullName = `${volunteer.firstName} ${volunteer.lastName}`.toLowerCase();
-                              return fullName.includes(searchTermBulk.toLowerCase());
+                              return fullName.includes(searchTerm.toLowerCase());
                             })
                             .map((volunteer) => (
                               <SelectItem
                                 key={volunteer.id}
                                 value={volunteer.id}
-                                className="flex items-center py-2 px-3 cursor-pointer hover:bg-accent hover:text-accent-foreground"
+                                className="flex items-center justify-between cursor-pointer py-2.5 px-3"
                               >
-                                <div className="flex items-center gap-2 w-full">
-                                  <Check
-                                    className={cn(
-                                      "h-4 w-4 flex-shrink-0",
-                                      field.value?.includes(volunteer.id) ? "opacity-100" : "opacity-0"
-                                    )}
-                                  />
-                                  <span className="flex-grow truncate">{volunteer.firstName} {volunteer.lastName}</span>
+                                <div className="flex flex-grow items-center gap-2 pr-2">
+                                  <span className="truncate">
+                                    {volunteer.firstName} {volunteer.lastName}
+                                  </span>
                                 </div>
+                                <Check
+                                  className={cn(
+                                    "h-4 w-4 shrink-0",
+                                    field.value?.includes(volunteer.id) ? "opacity-100" : "opacity-0"
+                                  )}
+                                />
                               </SelectItem>
                             ))}
                         </div>
@@ -516,9 +535,7 @@ const PlanningForm = ({
                       }}
                     >
                       <SelectTrigger className="w-full">
-                        <SelectValue
-                          placeholder="Selecteer ruimtes"
-                        >
+                        <SelectValue placeholder="Selecteer ruimtes">
                           {field.value?.length
                             ? `${field.value.length} ruimte(s) geselecteerd`
                             : "Selecteer ruimtes"}
@@ -529,17 +546,17 @@ const PlanningForm = ({
                           <SelectItem
                             key={room.id}
                             value={room.id}
-                            className="flex items-center py-2 px-3 cursor-pointer hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
+                            className="flex items-center justify-between cursor-pointer py-2.5 px-3"
                           >
-                            <div className="flex items-center gap-2 w-full">
-                              <Check
-                                className={cn(
-                                  "h-4 w-4 flex-shrink-0",
-                                  field.value?.includes(room.id) ? "opacity-100" : "opacity-0"
-                                )}
-                              />
-                              <span className="flex-grow truncate">{room.name}</span>
+                            <div className="flex flex-grow items-center gap-2 pr-2">
+                              <span className="truncate">{room.name}</span>
                             </div>
+                            <Check
+                              className={cn(
+                                "h-4 w-4 shrink-0",
+                                field.value?.includes(room.id) ? "opacity-100" : "opacity-0"
+                              )}
+                            />
                           </SelectItem>
                         ))}
                       </SelectContent>
