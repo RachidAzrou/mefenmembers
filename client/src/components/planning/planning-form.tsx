@@ -225,8 +225,12 @@ const PlanningForm = ({
                     <SelectTrigger className="w-full">
                       <SelectValue placeholder={`Selecteer vrijwilliger${isBulkPlanning ? 's' : ''}`} />
                     </SelectTrigger>
-                    <SelectContent side="bottom" align="start" className="w-[var(--radix-select-trigger-width)]">
-                      <div className="sticky top-0 p-2 bg-white border-b">
+                    <SelectContent 
+                      sideOffset={4}
+                      position="popper" 
+                      side="bottom"
+                      className="w-[var(--radix-select-trigger-width)]">
+                      <div className="sticky top-0 p-2 bg-white border-b z-50">
                         <div className="relative">
                           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                           <Input
