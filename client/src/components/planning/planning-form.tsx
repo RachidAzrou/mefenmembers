@@ -160,7 +160,7 @@ const PlanningForm = ({
                   <SelectTrigger className="w-full">
                     <SelectValue placeholder="Selecteer een ruimte" />
                   </SelectTrigger>
-                  <SelectContent className="z-50">
+                  <SelectContent>
                     {rooms.map((room) => {
                       const responsible = plannings.find(
                         p => p.roomId === room.id &&
@@ -174,7 +174,7 @@ const PlanningForm = ({
                       return (
                         <SelectItem key={room.id} value={room.id}>
                           <div>
-                            <div>{room.name}</div>
+                            {room.name}
                             {responsibleVolunteer && (
                               <div className="text-xs text-muted-foreground flex items-center gap-1">
                                 <UserCircle2 className="h-3 w-3" />
@@ -194,7 +194,7 @@ const PlanningForm = ({
             )}
           />
 
-          {/* Dan Vrijwilliger Selectie (alleen als ruimte is geselecteerd) */}
+          {/* Dan Vrijwilliger Selectie */}
           {selectedRoomId && !isBulkPlanning && (
             <FormField
               control={form.control}
@@ -209,17 +209,17 @@ const PlanningForm = ({
                     <SelectTrigger className="w-full">
                       <SelectValue placeholder="Selecteer vrijwilliger" />
                     </SelectTrigger>
-                    <SelectContent className="z-50 max-h-[300px]">
+                    <SelectContent>
                       <div className="sticky top-0 p-2 bg-white border-b">
                         <div className="relative">
-                          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+                          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                           <Input
                             type="text"
                             placeholder="Zoek vrijwilliger..."
                             value={searchTerm}
-                            onKeyDown={(e) => e.stopPropagation()}
                             onChange={(e) => setSearchTerm(e.target.value)}
-                            className="pl-9 h-9"
+                            className="pl-9"
+                            autoComplete="off"
                           />
                         </div>
                       </div>
@@ -231,9 +231,9 @@ const PlanningForm = ({
                           })
                           .map((volunteer) => (
                             <SelectItem key={volunteer.id} value={volunteer.id}>
-                              <div className="flex items-center justify-between w-full">
+                              <div className="flex items-center justify-between">
                                 <span>{volunteer.firstName} {volunteer.lastName}</span>
-                                <Check
+                                <Check 
                                   className={cn(
                                     "ml-2 h-4 w-4",
                                     field.value === volunteer.id ? "opacity-100" : "opacity-0"
@@ -332,7 +332,7 @@ const PlanningForm = ({
                         </Button>
                       </FormControl>
                     </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0 z-[100]" align="start">
+                    <PopoverContent className="w-auto p-0" align="start">
                       <Calendar
                         mode="single"
                         selected={field.value ? new Date(field.value) : undefined}
@@ -376,7 +376,7 @@ const PlanningForm = ({
                         </Button>
                       </FormControl>
                     </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0 z-[100]" align="start">
+                    <PopoverContent className="w-auto p-0" align="start">
                       <Calendar
                         mode="single"
                         selected={field.value ? new Date(field.value) : undefined}
@@ -427,40 +427,25 @@ const PlanningForm = ({
                             : "Selecteer vrijwilligers"}
                         </SelectValue>
                       </SelectTrigger>
-                      <SelectContent className="z-50 max-h-[300px]">
-                        <div className="sticky top-0 p-2 bg-white border-b">
-                          <div className="relative">
-                            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
-                            <Input
-                              type="text"
-                              placeholder="Zoek vrijwilliger..."
-                              value={searchTerm}
-                              onKeyDown={(e) => e.stopPropagation()}
-                              onChange={(e) => setSearchTerm(e.target.value)}
-                              className="pl-9 h-9"
-                            />
-                          </div>
-                        </div>
-                        <div className="pt-1">
-                          {volunteers
-                            .filter(volunteer => {
-                              const fullName = `${volunteer.firstName} ${volunteer.lastName}`.toLowerCase();
-                              return fullName.includes(searchTerm.toLowerCase());
-                            })
-                            .map((volunteer) => (
-                              <SelectItem key={volunteer.id} value={volunteer.id}>
-                                <div className="flex items-center justify-between w-full">
-                                  <span>{volunteer.firstName} {volunteer.lastName}</span>
-                                  <Check
-                                    className={cn(
-                                      "ml-2 h-4 w-4",
-                                      field.value?.includes(volunteer.id) ? "opacity-100" : "opacity-0"
-                                    )}
-                                  />
-                                </div>
-                              </SelectItem>
-                            ))}
-                        </div>
+                      <SelectContent>
+                        {volunteers
+                          .filter(volunteer => {
+                            const fullName = `${volunteer.firstName} ${volunteer.lastName}`.toLowerCase();
+                            return fullName.includes(searchTerm.toLowerCase());
+                          })
+                          .map((volunteer) => (
+                            <SelectItem key={volunteer.id} value={volunteer.id}>
+                              <div className="flex items-center justify-between">
+                                <span>{volunteer.firstName} {volunteer.lastName}</span>
+                                <Check
+                                  className={cn(
+                                    "ml-2 h-4 w-4",
+                                    field.value?.includes(volunteer.id) ? "opacity-100" : "opacity-0"
+                                  )}
+                                />
+                              </div>
+                            </SelectItem>
+                          ))}
                       </SelectContent>
                     </Select>
                     {field.value?.length > 0 && (
@@ -520,9 +505,7 @@ const PlanningForm = ({
                       <SelectContent>
                         {rooms.map((room) => (
                           <SelectItem key={room.id} value={room.id}>
-                            <span>
-                              {room.name}
-                            </span>
+                            {room.name}
                           </SelectItem>
                         ))}
                       </SelectContent>
