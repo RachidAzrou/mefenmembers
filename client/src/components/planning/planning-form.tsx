@@ -225,7 +225,7 @@ const PlanningForm = ({
                     <SelectTrigger className="w-full">
                       <SelectValue placeholder={`Selecteer vrijwilliger${isBulkPlanning ? 's' : ''}`} />
                     </SelectTrigger>
-                    <SelectContent side="top" align="center" position="item-aligned">
+                    <SelectContent side="top" align="start" className="w-[var(--radix-select-trigger-width)]">
                       <div className="sticky top-0 p-2 bg-white border-b">
                         <div className="relative">
                           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -233,8 +233,14 @@ const PlanningForm = ({
                             type="text"
                             placeholder="Zoek vrijwilliger..."
                             value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                            className="pl-9"
+                            onChange={(e) => {
+                              e.stopPropagation();
+                              setSearchTerm(e.target.value);
+                            }}
+                            onKeyDown={(e) => {
+                              e.stopPropagation();
+                            }}
+                            className="pl-9 w-full"
                             autoComplete="off"
                           />
                         </div>
