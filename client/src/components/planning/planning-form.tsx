@@ -141,24 +141,32 @@ const PlanningForm = ({
         )}
 
         <div className="grid grid-cols-1 gap-6">
-          {/* Eerst Ruimte Selectie */}
+          {/* Ruimte Selectie */}
           <FormField
             control={form.control}
-            name="roomId"
+            name={isBulkPlanning ? "selectedRooms" : "roomId"}
             render={({ field }) => (
               <FormItem>
                 <FormLabel className="text-sm">Ruimte</FormLabel>
                 <Select
-                  value={field.value}
+                  value={isBulkPlanning ? field.value?.[0] || "" : field.value}
                   onValueChange={(value) => {
-                    field.onChange(value);
-                    form.setValue("isResponsible", false);
+                    if (isBulkPlanning) {
+                      const current = field.value || [];
+                      const updated = current.includes(value)
+                        ? current.filter(id => id !== value)
+                        : [...current, value];
+                      field.onChange(updated);
+                    } else {
+                      field.onChange(value);
+                      form.setValue("isResponsible", false);
+                    }
                   }}
                 >
                   <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Selecteer een ruimte" />
+                    <SelectValue placeholder="Selecteer ruimte" />
                   </SelectTrigger>
-                  <SelectContent position="popper" align="start" side="bottom">
+                  <SelectContent side="bottom" align="center" position="popper">
                     {rooms.map((room) => {
                       const responsible = plannings.find(
                         p => p.roomId === room.id &&
@@ -192,22 +200,32 @@ const PlanningForm = ({
             )}
           />
 
-          {/* Dan Vrijwilliger Selectie */}
-          {selectedRoomId && !isBulkPlanning && (
+          {/* Vrijwilliger Selectie */}
+          {(selectedRoomId || (isBulkPlanning && form.watch("selectedRooms")?.length > 0)) && (
             <FormField
               control={form.control}
-              name="volunteerId"
+              name={isBulkPlanning ? "selectedVolunteers" : "volunteerId"}
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-sm">Vrijwilliger</FormLabel>
+                  <FormLabel className="text-sm">Vrijwilliger{isBulkPlanning ? 's' : ''}</FormLabel>
                   <Select
-                    value={field.value}
-                    onValueChange={field.onChange}
+                    value={isBulkPlanning ? field.value?.[0] || "" : field.value}
+                    onValueChange={(value) => {
+                      if (isBulkPlanning) {
+                        const current = field.value || [];
+                        const updated = current.includes(value)
+                          ? current.filter(id => id !== value)
+                          : [...current, value];
+                        field.onChange(updated);
+                      } else {
+                        field.onChange(value);
+                      }
+                    }}
                   >
                     <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Selecteer vrijwilliger" />
+                      <SelectValue placeholder={`Selecteer vrijwilliger${isBulkPlanning ? 's' : ''}`} />
                     </SelectTrigger>
-                    <SelectContent position="popper" align="start" side="bottom">
+                    <SelectContent side="top" align="center" position="item-aligned">
                       <div className="sticky top-0 p-2 bg-white border-b">
                         <div className="relative">
                           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -228,7 +246,7 @@ const PlanningForm = ({
                             return fullName.includes(searchTerm.toLowerCase());
                           })
                           .map((volunteer) => (
-                            <SelectItem key={volunteer.id} value={volunteer.id} className="cursor-pointer">
+                            <SelectItem key={volunteer.id} value={volunteer.id}>
                               {volunteer.firstName} {volunteer.lastName}
                             </SelectItem>
                           ))}
@@ -390,114 +408,6 @@ const PlanningForm = ({
               )}
             />
           </div>
-
-          {/* Bulk Planning opties */}
-          {isBulkPlanning && (
-            <>
-              <FormField
-                control={form.control}
-                name="selectedVolunteers"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-sm">Vrijwilligers</FormLabel>
-                    <Select
-                      value={field.value?.[0] || ""}
-                      onValueChange={(value) => {
-                        const current = field.value || [];
-                        const updated = current.includes(value)
-                          ? current.filter(id => id !== value)
-                          : [...current, value];
-                        field.onChange(updated);
-                      }}
-                    >
-                      <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Selecteer vrijwilligers">
-                          {field.value?.length
-                            ? `${field.value.length} vrijwilliger(s) geselecteerd`
-                            : "Selecteer vrijwilligers"}
-                        </SelectValue>
-                      </SelectTrigger>
-                      <SelectContent position="popper" align="start" side="bottom">
-                        {volunteers
-                          .filter(volunteer => {
-                            const fullName = `${volunteer.firstName} ${volunteer.lastName}`.toLowerCase();
-                            return fullName.includes(searchTerm.toLowerCase());
-                          })
-                          .map((volunteer) => (
-                            <SelectItem key={volunteer.id} value={volunteer.id} className="cursor-pointer">
-                              {volunteer.firstName} {volunteer.lastName}
-                            </SelectItem>
-                          ))}
-                      </SelectContent>
-                    </Select>
-                    {field.value?.length > 0 && (
-                      <div className="mt-2 flex flex-wrap gap-2">
-                        {field.value.map(id => {
-                          const volunteer = volunteers.find(v => v.id === id);
-                          return volunteer && (
-                            <div
-                              key={id}
-                              className="bg-[#963E56]/10 text-[#963E56] text-sm rounded-full px-3 py-1 flex items-center gap-2"
-                            >
-                              <span>{volunteer.firstName} {volunteer.lastName}</span>
-                              <Button
-                                type="button"
-                                variant="ghost"
-                                size="icon"
-                                className="h-4 w-4 p-0 hover:bg-transparent"
-                                onClick={() => {
-                                  field.onChange(field.value?.filter(v => v !== id));
-                                }}
-                              >
-                                <X className="h-3 w-3" />
-                              </Button>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    )}
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="selectedRooms"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-sm">Ruimtes</FormLabel>
-                    <Select
-                      value={field.value?.[0] || ""}
-                      onValueChange={(value) => {
-                        const current = field.value || [];
-                        const updated = current.includes(value)
-                          ? current.filter(id => id !== value)
-                          : [...current, value];
-                        field.onChange(updated);
-                      }}
-                    >
-                      <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Selecteer ruimtes">
-                          {field.value?.length
-                            ? `${field.value.length} ruimte(s) geselecteerd`
-                            : "Selecteer ruimtes"}
-                        </SelectValue>
-                      </SelectTrigger>
-                      <SelectContent position="popper" align="start" side="bottom">
-                        {rooms.map((room) => (
-                          <SelectItem key={room.id} value={room.id}>
-                            {room.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </>
-          )}
         </div>
 
         <div className="flex justify-end gap-3 pt-6 border-t">
