@@ -86,8 +86,8 @@ const PlanningForm = ({
   useEffect(() => {
     if (selectedRoomId && startDate && isResponsible) {
       const existingResponsible = plannings.find(
-        p => p.roomId === selectedRoomId && 
-            p.isResponsible && 
+        p => p.roomId === selectedRoomId &&
+            p.isResponsible &&
             (!editingPlanning || p.id !== editingPlanning.id) &&
             parseISO(p.startDate) <= parseISO(startDate) &&
             parseISO(p.endDate) >= parseISO(startDate)
@@ -163,8 +163,8 @@ const PlanningForm = ({
                   <SelectContent className="z-50">
                     {rooms.map((room) => {
                       const responsible = plannings.find(
-                        p => p.roomId === room.id && 
-                            p.isResponsible && 
+                        p => p.roomId === room.id &&
+                            p.isResponsible &&
                             (!editingPlanning || p.id !== editingPlanning.id)
                       );
                       const responsibleVolunteer = responsible
@@ -172,12 +172,8 @@ const PlanningForm = ({
                         : null;
 
                       return (
-                        <SelectItem
-                          key={room.id}
-                          value={room.id}
-                          className="flex flex-col py-2.5 px-3"
-                        >
-                          <div className="flex flex-col">
+                        <SelectItem key={room.id} value={room.id}>
+                          <div>
                             <div>{room.name}</div>
                             {responsibleVolunteer && (
                               <div className="text-xs text-muted-foreground flex items-center gap-1">
@@ -234,20 +230,16 @@ const PlanningForm = ({
                             return fullName.includes(searchTerm.toLowerCase());
                           })
                           .map((volunteer) => (
-                            <SelectItem
-                              key={volunteer.id}
-                              value={volunteer.id}
-                              className="flex items-center justify-between py-2.5 px-3"
-                            >
-                              <span className="flex-grow pr-2 truncate">
-                                {volunteer.firstName} {volunteer.lastName}
-                              </span>
-                              <Check
-                                className={cn(
-                                  "h-4 w-4 shrink-0",
-                                  field.value === volunteer.id ? "opacity-100" : "opacity-0"
-                                )}
-                              />
+                            <SelectItem key={volunteer.id} value={volunteer.id}>
+                              <div className="flex items-center justify-between w-full">
+                                <span>{volunteer.firstName} {volunteer.lastName}</span>
+                                <Check
+                                  className={cn(
+                                    "ml-2 h-4 w-4",
+                                    field.value === volunteer.id ? "opacity-100" : "opacity-0"
+                                  )}
+                                />
+                              </div>
                             </SelectItem>
                           ))}
                       </div>
@@ -259,7 +251,7 @@ const PlanningForm = ({
             />
           )}
 
-          {/* Verantwoordelijke Switch (alleen als ruimte en vrijwilliger zijn geselecteerd) */}
+          {/* Verantwoordelijke Switch */}
           {selectedRoomId && selectedVolunteerId && !isBulkPlanning && (
             <FormField
               control={form.control}
@@ -435,7 +427,7 @@ const PlanningForm = ({
                             : "Selecteer vrijwilligers"}
                         </SelectValue>
                       </SelectTrigger>
-                      <SelectContent className="max-h-[300px]">
+                      <SelectContent className="z-50 max-h-[300px]">
                         <div className="sticky top-0 p-2 bg-white border-b">
                           <div className="relative">
                             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
@@ -456,20 +448,16 @@ const PlanningForm = ({
                               return fullName.includes(searchTerm.toLowerCase());
                             })
                             .map((volunteer) => (
-                              <SelectItem
-                                key={volunteer.id}
-                                value={volunteer.id}
-                                className="flex items-center justify-between py-2.5 px-3"
-                              >
-                                <span className="flex-grow pr-2 truncate">
-                                  {volunteer.firstName} {volunteer.lastName}
-                                </span>
-                                <Check
-                                  className={cn(
-                                    "h-4 w-4 shrink-0",
-                                    field.value?.includes(volunteer.id) ? "opacity-100" : "opacity-0"
-                                  )}
-                                />
+                              <SelectItem key={volunteer.id} value={volunteer.id}>
+                                <div className="flex items-center justify-between w-full">
+                                  <span>{volunteer.firstName} {volunteer.lastName}</span>
+                                  <Check
+                                    className={cn(
+                                      "ml-2 h-4 w-4",
+                                      field.value?.includes(volunteer.id) ? "opacity-100" : "opacity-0"
+                                    )}
+                                  />
+                                </div>
                               </SelectItem>
                             ))}
                         </div>
@@ -531,12 +519,8 @@ const PlanningForm = ({
                       </SelectTrigger>
                       <SelectContent>
                         {rooms.map((room) => (
-                          <SelectItem
-                            key={room.id}
-                            value={room.id}
-                            className="py-2.5 px-3"
-                          >
-                            <span className="block">
+                          <SelectItem key={room.id} value={room.id}>
+                            <span>
                               {room.name}
                             </span>
                           </SelectItem>
