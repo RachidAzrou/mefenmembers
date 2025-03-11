@@ -226,9 +226,8 @@ const PlanningForm = ({
                       <SelectValue placeholder={`Selecteer vrijwilliger${isBulkPlanning ? 's' : ''}`} />
                     </SelectTrigger>
                     <SelectContent 
-                      position="item-aligned"
-                      side="bottom"
-                      className="w-[var(--radix-select-trigger-width)]"
+                      align="start"
+                      className="w-[var(--radix-select-trigger-width)] max-h-[300px]"
                     >
                       <div className="sticky top-0 p-2 bg-white border-b z-50">
                         <div className="relative">
@@ -253,7 +252,79 @@ const PlanningForm = ({
                           />
                         </div>
                       </div>
-                      <div className="pt-1 max-h-[300px] overflow-y-auto">
+                      <div className="overflow-y-auto">
+                        {volunteers
+                          .filter(volunteer => {
+                            const fullName = `${volunteer.firstName} ${volunteer.lastName}`.toLowerCase();
+                            return fullName.includes(searchTerm.toLowerCase());
+                          })
+                          .map((volunteer) => (
+                            <SelectItem key={volunteer.id} value={volunteer.id}>
+                              {volunteer.firstName} {volunteer.lastName}
+                            </SelectItem>
+                          ))}
+                      </div>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          )}
+
+          {/* Bulk Planning vrijwilligers */}
+          {isBulkPlanning && (
+            <FormField
+              control={form.control}
+              name="selectedVolunteers"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-sm">Vrijwilligers</FormLabel>
+                  <Select
+                    value={field.value?.[0] || ""}
+                    onValueChange={(value) => {
+                      const current = field.value || [];
+                      const updated = current.includes(value)
+                        ? current.filter(id => id !== value)
+                        : [...current, value];
+                      field.onChange(updated);
+                    }}
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Selecteer vrijwilligers">
+                        {field.value?.length
+                          ? `${field.value.length} vrijwilliger(s) geselecteerd`
+                          : "Selecteer vrijwilligers"}
+                      </SelectValue>
+                    </SelectTrigger>
+                    <SelectContent 
+                      align="start"
+                      className="w-[var(--radix-select-trigger-width)] max-h-[300px]"
+                    >
+                      <div className="sticky top-0 p-2 bg-white border-b z-50">
+                        <div className="relative">
+                          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                          <Input
+                            type="text"
+                            placeholder="Zoek vrijwilliger..."
+                            value={searchTerm}
+                            onChange={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              setSearchTerm(e.target.value);
+                            }}
+                            onKeyDown={(e) => {
+                              e.stopPropagation();
+                            }}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                            }}
+                            className="pl-9 w-full"
+                            autoComplete="off"
+                          />
+                        </div>
+                      </div>
+                      <div className="overflow-y-auto">
                         {volunteers
                           .filter(volunteer => {
                             const fullName = `${volunteer.firstName} ${volunteer.lastName}`.toLowerCase();
