@@ -6,7 +6,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Check, Search, X, UserCircle2, CalendarIcon, Loader2, ChevronsUpDown } from "lucide-react";
+import { Check, Search, X, UserCircle2, CalendarIcon, Loader2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { format, parseISO } from "date-fns";
 import { nl } from "date-fns/locale";
@@ -14,14 +14,6 @@ import { cn } from "@/lib/utils";
 import { z } from "zod";
 import { UseFormReturn } from "react-hook-form";
 import { useToast } from "@/hooks/use-toast";
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from "@/components/ui/command";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -216,90 +208,57 @@ const PlanningForm = ({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel className="text-sm">Vrijwilliger{isBulkPlanning ? 's' : ''}</FormLabel>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <FormControl>
-                        <Button
-                          variant="outline"
-                          role="combobox"
-                          className={cn(
-                            "w-full justify-between",
-                            !field.value && "text-muted-foreground"
-                          )}
-                        >
-                          {field.value ? (
-                            isBulkPlanning ? (
-                              `${field.value.length} vrijwilliger(s) geselecteerd`
-                            ) : (
-                              volunteers.find((volunteer) => volunteer.id === field.value)
-                                ? `${volunteers.find((volunteer) => volunteer.id === field.value)?.firstName} ${volunteers.find((volunteer) => volunteer.id === field.value)?.lastName}`
-                                : "Selecteer vrijwilliger"
-                            )
-                          ) : (
-                            "Selecteer vrijwilliger"
-                          )}
-                          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                        </Button>
-                      </FormControl>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-full p-0" align="start">
-                      <div className="sticky top-0 p-2 bg-background border-b">
+                  <Select
+                    value={isBulkPlanning ? field.value?.[0] || "" : field.value}
+                    onValueChange={(value) => {
+                      if (isBulkPlanning) {
+                        const current = field.value || [];
+                        const updated = current.includes(value)
+                          ? current.filter(id => id !== value)
+                          : [...current, value];
+                        field.onChange(updated);
+                      } else {
+                        field.onChange(value);
+                      }
+                    }}
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder={`Selecteer vrijwilliger${isBulkPlanning ? 's' : ''}`} />
+                    </SelectTrigger>
+                    <SelectContent side="top" align="start" className="w-[var(--radix-select-trigger-width)]">
+                      <div className="sticky top-0 p-2 bg-white border-b">
                         <div className="relative">
                           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                           <Input
                             type="text"
                             placeholder="Zoek vrijwilliger..."
                             value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
+                            onChange={(e) => {
+                              e.stopPropagation();
+                              setSearchTerm(e.target.value);
+                            }}
+                            onKeyDown={(e) => {
+                              e.stopPropagation();
+                            }}
                             className="pl-9 w-full"
+                            autoComplete="off"
                           />
                         </div>
                       </div>
-                      <Command>
-                        <CommandList>
-                          <CommandEmpty>Geen vrijwilligers gevonden.</CommandEmpty>
-                          <CommandGroup className="max-h-[300px] overflow-y-auto">
-                            {volunteers
-                              .filter(volunteer => {
-                                const fullName = `${volunteer.firstName} ${volunteer.lastName}`.toLowerCase();
-                                return fullName.includes(searchTerm.toLowerCase());
-                              })
-                              .map((volunteer) => (
-                                <CommandItem
-                                  key={volunteer.id}
-                                  value={volunteer.id}
-                                  onSelect={() => {
-                                    if (isBulkPlanning) {
-                                      const current = field.value || [];
-                                      const updated = current.includes(volunteer.id)
-                                        ? current.filter(id => id !== volunteer.id)
-                                        : [...current, volunteer.id];
-                                      field.onChange(updated);
-                                    } else {
-                                      field.onChange(volunteer.id);
-                                    }
-                                  }}
-                                >
-                                  <Check
-                                    className={cn(
-                                      "mr-2 h-4 w-4",
-                                      isBulkPlanning
-                                        ? field.value?.includes(volunteer.id)
-                                          ? "opacity-100"
-                                          : "opacity-0"
-                                        : field.value === volunteer.id
-                                          ? "opacity-100"
-                                          : "opacity-0"
-                                    )}
-                                  />
-                                  {volunteer.firstName} {volunteer.lastName}
-                                </CommandItem>
-                              ))}
-                          </CommandGroup>
-                        </CommandList>
-                      </Command>
-                    </PopoverContent>
-                  </Popover>
+                      <div className="pt-1">
+                        {volunteers
+                          .filter(volunteer => {
+                            const fullName = `${volunteer.firstName} ${volunteer.lastName}`.toLowerCase();
+                            return fullName.includes(searchTerm.toLowerCase());
+                          })
+                          .map((volunteer) => (
+                            <SelectItem key={volunteer.id} value={volunteer.id}>
+                              {volunteer.firstName} {volunteer.lastName}
+                            </SelectItem>
+                          ))}
+                      </div>
+                    </SelectContent>
+                  </Select>
                   <FormMessage />
                 </FormItem>
               )}
