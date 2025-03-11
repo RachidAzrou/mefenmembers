@@ -46,7 +46,7 @@ const planningSchema = z.object({
   responsibleVolunteerId: z.string().optional()
 });
 
-interface PlanningFormProps {
+type PlanningFormProps = {
   volunteers: { id: string; firstName: string; lastName: string; }[];
   rooms: { id: string; name: string; }[];
   onSubmit: (data: z.infer<typeof planningSchema>) => Promise<void>;
@@ -54,7 +54,7 @@ interface PlanningFormProps {
   form: UseFormReturn<z.infer<typeof planningSchema>>;
   editingPlanning: Planning | null;
   plannings: Planning[];
-}
+};
 
 const PlanningForm = ({
   volunteers,
@@ -63,7 +63,7 @@ const PlanningForm = ({
   onClose,
   form,
   editingPlanning,
-  plannings
+  plannings = [] 
 }: PlanningFormProps) => {
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState("");
@@ -84,7 +84,7 @@ const PlanningForm = ({
 
   useEffect(() => {
     if (selectedRoomId && startDate && isResponsible) {
-      const existingResponsible = plannings.find(
+      const existingResponsible = plannings?.find(
         p => p.roomId === selectedRoomId &&
             p.isResponsible &&
             (!editingPlanning || p.id !== editingPlanning.id) &&
@@ -100,7 +100,7 @@ const PlanningForm = ({
         }
       }
     }
-  }, [isResponsible]);
+  }, [isResponsible, selectedRoomId, startDate, plannings, editingPlanning?.id, volunteers]);
 
   const handleFormSubmit = async (data: z.infer<typeof planningSchema>) => {
     try {
