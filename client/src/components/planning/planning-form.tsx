@@ -8,7 +8,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Check, Search, X, UserCircle2, CalendarIcon, Loader2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { format, startOfDay } from "date-fns";
+import { format } from "date-fns";
 import { nl } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { z } from "zod";
@@ -19,8 +19,8 @@ interface Planning {
   id?: string;
   roomId: string;
   volunteerId: string;
-  startDate: string;
-  endDate: string;
+  startDate: number; // Timestamp in milliseconds
+  endDate: number; // Timestamp in milliseconds
   isResponsible: boolean;
 }
 
@@ -92,6 +92,13 @@ const PlanningForm = ({
     }
   }, [isResponsible, selectedRoomId, startDate, plannings, editingPlanning?.id, volunteers]);
 
+  const dateToTimestamp = (dateString: string): number => {
+    const date = new Date(dateString);
+    date.setHours(0, 0, 0, 0);
+    return date.getTime();
+  };
+
+
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     return format(date, 'yyyy-MM-dd');
@@ -119,8 +126,8 @@ const PlanningForm = ({
             plannings.push({
               roomId,
               volunteerId,
-              startDate: formatDate(data.startDate),
-              endDate: formatDate(data.endDate),
+              startDate: dateToTimestamp(data.startDate),
+              endDate: dateToTimestamp(data.endDate),
               isResponsible: data.responsibleVolunteerId === volunteerId
             });
           }
@@ -140,8 +147,8 @@ const PlanningForm = ({
         const planning: Planning = {
           roomId: data.roomId,
           volunteerId: data.volunteerId,
-          startDate: formatDate(data.startDate),
-          endDate: formatDate(data.endDate),
+          startDate: dateToTimestamp(data.startDate),
+          endDate: dateToTimestamp(data.endDate),
           isResponsible: data.isResponsible
         };
 
