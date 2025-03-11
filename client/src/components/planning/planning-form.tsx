@@ -225,7 +225,7 @@ const PlanningForm = ({
                     <SelectTrigger className="w-full">
                       <SelectValue placeholder={`Selecteer vrijwilliger${isBulkPlanning ? 's' : ''}`} />
                     </SelectTrigger>
-                    <SelectContent side="top" align="start" className="w-[var(--radix-select-trigger-width)]">
+                    <SelectContent side="bottom" align="start" className="w-[var(--radix-select-trigger-width)]">
                       <div className="sticky top-0 p-2 bg-white border-b">
                         <div className="relative">
                           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -245,7 +245,7 @@ const PlanningForm = ({
                           />
                         </div>
                       </div>
-                      <div className="pt-1">
+                      <div className="pt-1 max-h-[300px] overflow-y-auto">
                         {volunteers
                           .filter(volunteer => {
                             const fullName = `${volunteer.firstName} ${volunteer.lastName}`.toLowerCase();
