@@ -31,7 +31,7 @@ const planningSchema = z.object({
   endDate: z.string().min(1, "Einddatum is verplicht"),
   isBulkPlanning: z.boolean().default(false),
   selectedVolunteers: z.array(z.string()).default([]),
-  selectedRooms: z.array(z.string()).default([]),
+  selectedRooms: z.string().optional(),
   isResponsible: z.boolean().default(false),
   responsibleVolunteerId: z.string().optional()
 });
@@ -93,11 +93,11 @@ const PlanningForm = ({
   }, [isResponsible, selectedRoomId, startDate, plannings, editingPlanning?.id, volunteers]);
 
   const dateToTimestamp = (dateString: string): number => {
+    // Zet de datum om naar UTC midnight
     const date = new Date(dateString);
-    date.setHours(0, 0, 0, 0);
-    return date.getTime();
+    const utcDate = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+    return utcDate.getTime();
   };
-
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -109,28 +109,34 @@ const PlanningForm = ({
       setIsSubmitting(true);
       setFormError(null);
 
+      if (!data.startDate || !data.endDate) {
+        setFormError("Start- en einddatum zijn verplicht");
+        return;
+      }
+
+      // Converteer datums naar UTC timestamps
+      const startTimestamp = dateToTimestamp(data.startDate);
+      const endTimestamp = dateToTimestamp(data.endDate);
+
       if (data.isBulkPlanning) {
         if (!data.selectedVolunteers?.length) {
           setFormError("Selecteer ten minste één vrijwilliger");
           return;
         }
-        if (!data.selectedRooms?.length) {
-          setFormError("Selecteer ten minste één ruimte");
+        if (!data.selectedRooms) {
+          setFormError("Selecteer een ruimte");
           return;
         }
 
         const plannings: Planning[] = [];
-
-        for (const roomId of data.selectedRooms) {
-          for (const volunteerId of data.selectedVolunteers) {
-            plannings.push({
-              roomId,
-              volunteerId,
-              startDate: dateToTimestamp(data.startDate),
-              endDate: dateToTimestamp(data.endDate),
-              isResponsible: data.responsibleVolunteerId === volunteerId
-            });
-          }
+        for (const volunteerId of data.selectedVolunteers) {
+          plannings.push({
+            roomId: data.selectedRooms,
+            volunteerId,
+            startDate: startTimestamp,
+            endDate: endTimestamp,
+            isResponsible: data.responsibleVolunteerId === volunteerId
+          });
         }
 
         await onSubmit({ plannings });
@@ -147,8 +153,8 @@ const PlanningForm = ({
         const planning: Planning = {
           roomId: data.roomId,
           volunteerId: data.volunteerId,
-          startDate: dateToTimestamp(data.startDate),
-          endDate: dateToTimestamp(data.endDate),
+          startDate: startTimestamp,
+          endDate: endTimestamp,
           isResponsible: data.isResponsible
         };
 
@@ -177,7 +183,7 @@ const PlanningForm = ({
                 form.setValue("isBulkPlanning", checked);
                 if (!checked) {
                   form.setValue("selectedVolunteers", []);
-                  form.setValue("selectedRooms", []);
+                  form.setValue("selectedRooms", "");
                   form.setValue("responsibleVolunteerId", undefined);
                 }
                 form.setValue("volunteerId", undefined);
@@ -191,70 +197,43 @@ const PlanningForm = ({
         )}
 
         <div className="grid grid-cols-1 gap-6">
-          {/* Ruimte Selectie */}
           <FormField
             control={form.control}
             name={isBulkPlanning ? "selectedRooms" : "roomId"}
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="text-sm">Ruimte{isBulkPlanning ? 'n' : ''}</FormLabel>
+                <FormLabel className="text-sm">Ruimte</FormLabel>
                 <Select
-                  value={isBulkPlanning ? field.value?.[0] || "" : field.value}
+                  value={field.value || ""}
                   onValueChange={(value) => {
+                    field.onChange(value);
                     if (isBulkPlanning) {
-                      const current = field.value || [];
-                      const updated = current.includes(value)
-                        ? current.filter(id => id !== value)
-                        : [...current, value];
-                      field.onChange(updated);
+                      form.setValue("responsibleVolunteerId", undefined);
                     } else {
-                      field.onChange(value);
                       form.setValue("isResponsible", false);
                     }
                   }}
                 >
                   <SelectTrigger className="w-full">
-                    <SelectValue placeholder={`Selecteer ruimte${isBulkPlanning ? 'n' : ''}`}>
-                      {isBulkPlanning && field.value?.length > 0
-                        ? `${field.value.length} ruimte(s) geselecteerd`
-                        : `Selecteer ruimte${isBulkPlanning ? 'n' : ''}`}
-                    </SelectValue>
+                    <SelectValue placeholder="Selecteer ruimte" />
                   </SelectTrigger>
-                  <SelectContent side="bottom" position="popper" className="w-[var(--radix-select-trigger-width)]">
+                  <SelectContent side="bottom" align="start" className="w-[var(--radix-select-trigger-width)]">
                     {rooms.map((room) => (
-                      <SelectItem key={room.id} value={room.id} className="flex items-center justify-between py-2.5 px-3 cursor-pointer hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground">
+                      <SelectItem key={room.id} value={room.id} className="flex items-center justify-between py-2.5 px-3">
                         <div className="flex items-center gap-2">
-                          <Check className={cn("h-4 w-4 flex-shrink-0", (isBulkPlanning ? field.value?.includes(room.id) : field.value === room.id) ? "opacity-100" : "opacity-0")} />
-                          <span className="flex-grow">{room.name}</span>
+                          <Check className={cn("h-4 w-4 flex-shrink-0", field.value === room.id ? "opacity-100" : "opacity-0")} />
+                          <span>{room.name}</span>
                         </div>
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
-                {isBulkPlanning && field.value?.length > 0 && (
-                  <div className="mt-2 flex flex-wrap gap-2">
-                    {field.value.map(id => {
-                      const room = rooms.find(r => r.id === id);
-                      return room && (
-                        <div key={id} className="bg-[#963E56]/10 text-[#963E56] text-sm rounded-full px-3 py-1 flex items-center gap-2">
-                          <span>{room.name}</span>
-                          <Button type="button" variant="ghost" size="icon" className="h-4 w-4 p-0 hover:bg-transparent" onClick={() => {
-                            field.onChange(field.value?.filter(v => v !== id));
-                          }}>
-                            <X className="h-3 w-3" />
-                          </Button>
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
                 <FormMessage />
               </FormItem>
             )}
           />
 
-          {/* Vrijwilliger Selectie */}
-          {(isBulkPlanning ? form.watch("selectedRooms")?.length > 0 : selectedRoomId) && (
+          {(isBulkPlanning ? form.watch("selectedRooms") : selectedRoomId) && (
             <FormField
               control={form.control}
               name={isBulkPlanning ? "selectedVolunteers" : "volunteerId"}
@@ -270,7 +249,6 @@ const PlanningForm = ({
                           ? current.filter(id => id !== value)
                           : [...current, value];
                         field.onChange(updated);
-                        // Reset verantwoordelijke als die niet meer in de selectie zit
                         const responsibleId = form.getValues("responsibleVolunteerId");
                         if (responsibleId && !updated.includes(responsibleId)) {
                           form.setValue("responsibleVolunteerId", undefined);
@@ -287,7 +265,7 @@ const PlanningForm = ({
                           : `Selecteer vrijwilliger${isBulkPlanning ? 's' : ''}`}
                       </SelectValue>
                     </SelectTrigger>
-                    <SelectContent side="bottom" position="popper" className="w-[var(--radix-select-trigger-width)]">
+                    <SelectContent side="bottom" align="start" className="w-[var(--radix-select-trigger-width)]">
                       <div className="sticky top-0 px-2 py-2 bg-white border-b">
                         <div className="relative">
                           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
@@ -300,12 +278,8 @@ const PlanningForm = ({
                               e.stopPropagation();
                               setSearchTerm(e.target.value);
                             }}
-                            onKeyDown={(e) => {
-                              e.stopPropagation();
-                            }}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                            }}
+                            onKeyDown={(e) => e.stopPropagation()}
+                            onClick={(e) => e.stopPropagation()}
                             className="w-full pl-9 h-9 rounded-md border border-input bg-white px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-offset-0"
                           />
                         </div>
@@ -317,10 +291,10 @@ const PlanningForm = ({
                             return fullName.includes(searchTerm.toLowerCase());
                           })
                           .map((volunteer) => (
-                            <SelectItem key={volunteer.id} value={volunteer.id} className="flex items-center justify-between py-2.5 px-3 cursor-pointer hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground">
+                            <SelectItem key={volunteer.id} value={volunteer.id} className="flex items-center justify-between py-2.5 px-3">
                               <div className="flex items-center gap-2">
                                 <Check className={cn("h-4 w-4 flex-shrink-0", (isBulkPlanning ? field.value?.includes(volunteer.id) : field.value === volunteer.id) ? "opacity-100" : "opacity-0")} />
-                                <span className="flex-grow">
+                                <span>
                                   {volunteer.firstName} {volunteer.lastName}
                                 </span>
                               </div>
@@ -339,7 +313,6 @@ const PlanningForm = ({
                             <Button type="button" variant="ghost" size="icon" className="h-4 w-4 p-0 hover:bg-transparent" onClick={() => {
                               const newValue = field.value?.filter(v => v !== id);
                               field.onChange(newValue);
-                              // Reset verantwoordelijke als die verwijderd wordt
                               if (form.getValues("responsibleVolunteerId") === id) {
                                 form.setValue("responsibleVolunteerId", undefined);
                               }
@@ -357,7 +330,6 @@ const PlanningForm = ({
             />
           )}
 
-          {/* Verantwoordelijke Selectie voor Bulk Planning */}
           {isBulkPlanning && form.watch("selectedVolunteers")?.length > 0 && (
             <FormField
               control={form.control}
@@ -376,10 +348,10 @@ const PlanningForm = ({
                       {volunteers
                         .filter(volunteer => form.watch("selectedVolunteers")?.includes(volunteer.id))
                         .map((volunteer) => (
-                          <SelectItem key={volunteer.id} value={volunteer.id} className="flex items-center justify-between py-2.5 px-3 cursor-pointer hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground">
+                          <SelectItem key={volunteer.id} value={volunteer.id} className="flex items-center justify-between py-2.5 px-3">
                             <div className="flex items-center gap-2">
                               <Check className={cn("h-4 w-4 flex-shrink-0", field.value === volunteer.id ? "opacity-100" : "opacity-0")} />
-                              <span className="flex-grow">
+                              <span>
                                 {volunteer.firstName} {volunteer.lastName}
                               </span>
                             </div>
@@ -393,7 +365,6 @@ const PlanningForm = ({
             />
           )}
 
-          {/* Verantwoordelijke Switch voor Normale Planning */}
           {selectedRoomId && selectedVolunteerId && !isBulkPlanning && (
             <FormField
               control={form.control}
@@ -410,7 +381,6 @@ const PlanningForm = ({
             />
           )}
 
-          {/* Datums */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <FormField
               control={form.control}
