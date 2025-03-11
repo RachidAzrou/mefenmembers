@@ -92,8 +92,9 @@ const PlanningForm = ({
     }
   }, [isResponsible, selectedRoomId, startDate, plannings, editingPlanning?.id, volunteers]);
 
-  const formatDate = (date: Date) => {
-    return startOfDay(date).toISOString();
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return format(date, 'yyyy-MM-dd');
   };
 
   const handleFormSubmit = async (data: z.infer<typeof planningSchema>) => {
@@ -118,8 +119,8 @@ const PlanningForm = ({
             plannings.push({
               roomId,
               volunteerId,
-              startDate: formatDate(new Date(data.startDate)),
-              endDate: formatDate(new Date(data.endDate)),
+              startDate: formatDate(data.startDate),
+              endDate: formatDate(data.endDate),
               isResponsible: data.responsibleVolunteerId === volunteerId
             });
           }
@@ -139,8 +140,8 @@ const PlanningForm = ({
         const planning: Planning = {
           roomId: data.roomId,
           volunteerId: data.volunteerId,
-          startDate: formatDate(new Date(data.startDate)),
-          endDate: formatDate(new Date(data.endDate)),
+          startDate: formatDate(data.startDate),
+          endDate: formatDate(data.endDate),
           isResponsible: data.isResponsible
         };
 
