@@ -31,7 +31,7 @@ const planningSchema = z.object({
   endDate: z.string().min(1, "Einddatum is verplicht"),
   isBulkPlanning: z.boolean().default(false),
   selectedVolunteers: z.array(z.string()).default([]),
-  selectedRooms: z.string().nullable().optional(),
+  selectedRooms: z.string().min(1, "Selecteer een ruimte").optional(),
   isResponsible: z.boolean().default(false),
   responsibleVolunteerId: z.string().optional()
 });
