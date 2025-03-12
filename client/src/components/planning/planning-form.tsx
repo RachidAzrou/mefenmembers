@@ -24,17 +24,33 @@ interface Planning {
   isResponsible: boolean;
 }
 
-const planningSchema = z.object({
-  volunteerId: z.string().optional(),
-  roomId: z.string().optional(),
+// Schema for bulk planning
+const bulkPlanningSchema = z.object({
+  selectedVolunteers: z.array(z.string()).min(1, "Selecteer ten minste één vrijwilliger"),
+  selectedRooms: z.string().min(1, "Selecteer een ruimte"),
   startDate: z.string().min(1, "Startdatum is verplicht"),
   endDate: z.string().min(1, "Einddatum is verplicht"),
-  isBulkPlanning: z.boolean().default(false),
-  selectedVolunteers: z.array(z.string()).default([]),
-  selectedRooms: z.string().min(1, "Selecteer een ruimte").optional(),
-  isResponsible: z.boolean().default(false),
-  responsibleVolunteerId: z.string().optional()
+  responsibleVolunteerId: z.string().optional(),
 });
+
+// Schema for single planning
+const singlePlanningSchema = z.object({
+  volunteerId: z.string().min(1, "Vrijwilliger is verplicht"),
+  roomId: z.string().min(1, "Ruimte is verplicht"),
+  startDate: z.string().min(1, "Startdatum is verplicht"),
+  endDate: z.string().min(1, "Einddatum is verplicht"),
+  isResponsible: z.boolean().default(false),
+});
+
+// Combined schema
+const planningSchema = z.object({
+  isBulkPlanning: z.boolean().default(false),
+}).and(
+  z.discriminatedUnion('isBulkPlanning', [
+    z.object({ isBulkPlanning: z.literal(true) }).merge(bulkPlanningSchema),
+    z.object({ isBulkPlanning: z.literal(false) }).merge(singlePlanningSchema),
+  ])
+);
 
 type PlanningFormProps = {
   volunteers: { id: string; firstName: string; lastName: string; }[];
@@ -63,8 +79,8 @@ const PlanningForm = ({
   const [formError, setFormError] = useState<string | null>(null);
 
   const isBulkPlanning = form.watch("isBulkPlanning");
-  const selectedRoomId = form.watch("roomId");
-  const selectedVolunteerId = form.watch("volunteerId");
+  const selectedRoomId = form.watch(isBulkPlanning ? "selectedRooms" : "roomId");
+  const selectedVolunteerId = form.watch(isBulkPlanning ? "volunteerId" : "volunteerId");
   const startDate = form.watch("startDate");
   const isResponsible = form.watch("isResponsible");
 
@@ -97,23 +113,9 @@ const PlanningForm = ({
       setIsSubmitting(true);
       setFormError(null);
 
-      if (!data.startDate || !data.endDate) {
-        setFormError("Start- en einddatum zijn verplicht");
-        return;
-      }
 
       if (data.isBulkPlanning) {
-        if (!data.selectedVolunteers?.length) {
-          setFormError("Selecteer ten minste één vrijwilliger");
-          return;
-        }
-        if (!data.selectedRooms) {
-          setFormError("Selecteer een ruimte");
-          return;
-        }
-
         const plannings: Planning[] = [];
-
         for (const volunteerId of data.selectedVolunteers) {
           plannings.push({
             roomId: data.selectedRooms,
@@ -123,18 +125,8 @@ const PlanningForm = ({
             isResponsible: data.responsibleVolunteerId === volunteerId
           });
         }
-
         await onSubmit({ plannings });
       } else {
-        if (!data.volunteerId) {
-          setFormError("Selecteer een vrijwilliger");
-          return;
-        }
-        if (!data.roomId) {
-          setFormError("Selecteer een ruimte");
-          return;
-        }
-
         const planning: Planning = {
           roomId: data.roomId,
           volunteerId: data.volunteerId,
@@ -142,7 +134,6 @@ const PlanningForm = ({
           endDate: data.endDate,
           isResponsible: data.isResponsible
         };
-
         await onSubmit({ plannings: [planning] });
       }
 
