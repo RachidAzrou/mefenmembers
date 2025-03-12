@@ -25,8 +25,8 @@ interface Planning {
 }
 
 const planningSchema = z.object({
-  volunteerId: z.string().min(1, "Vrijwilliger is verplicht").optional(),
-  roomId: z.string().min(1, "Ruimte is verplicht").optional(),
+  volunteerId: z.string().optional(),
+  roomId: z.string().optional(),
   startDate: z.string().min(1, "Startdatum is verplicht"),
   endDate: z.string().min(1, "Einddatum is verplicht"),
   isBulkPlanning: z.boolean().default(false),
@@ -39,7 +39,7 @@ const planningSchema = z.object({
 type PlanningFormProps = {
   volunteers: { id: string; firstName: string; lastName: string; }[];
   rooms: { id: string; name: string; }[];
-  onSubmit: (data: z.infer<typeof planningSchema> | { plannings: Planning[] }) => Promise<void>;
+  onSubmit: (data: { plannings: Planning[] }) => Promise<void>;
   onClose: () => void;
   form: UseFormReturn<z.infer<typeof planningSchema>>;
   editingPlanning: Planning | null;
@@ -91,7 +91,6 @@ const PlanningForm = ({
       }
     }
   }, [isResponsible, selectedRoomId, startDate, plannings, editingPlanning?.id, volunteers]);
-
 
   const handleFormSubmit = async (data: z.infer<typeof planningSchema>) => {
     try {
@@ -149,7 +148,7 @@ const PlanningForm = ({
       form.reset();
       setSearchTerm("");
       onClose();
-    } catch (error: unknown) {
+    } catch (error) {
       console.error("Form submission error:", error);
       setFormError(error instanceof Error ? error.message : "Er is een fout opgetreden bij het opslaan van de planning");
     } finally {
@@ -168,7 +167,7 @@ const PlanningForm = ({
                 form.setValue("isBulkPlanning", checked);
                 if (!checked) {
                   form.setValue("selectedVolunteers", []);
-                  form.setValue("selectedRooms", "");
+                  form.setValue("selectedRooms", undefined);
                   form.setValue("responsibleVolunteerId", undefined);
                 }
                 form.setValue("volunteerId", undefined);
@@ -383,11 +382,17 @@ const PlanningForm = ({
                       </FormControl>
                     </PopoverTrigger>
                     <PopoverContent className="w-auto p-0" align="start">
-                      <Calendar mode="single" selected={field.value ? new Date(field.value) : undefined} onSelect={(date) => {
-                        if (date) {
-                          field.onChange(format(date, 'yyyy-MM-dd'));
-                        }
-                      }} initialFocus locale={nl} />
+                      <Calendar
+                        mode="single"
+                        selected={field.value ? new Date(field.value) : undefined}
+                        onSelect={(date) => {
+                          if (date) {
+                            field.onChange(format(date, 'yyyy-MM-dd'));
+                          }
+                        }}
+                        initialFocus
+                        locale={nl}
+                      />
                     </PopoverContent>
                   </Popover>
                   <FormMessage />
@@ -411,15 +416,22 @@ const PlanningForm = ({
                       </FormControl>
                     </PopoverTrigger>
                     <PopoverContent className="w-auto p-0" align="start">
-                      <Calendar mode="single" selected={field.value ? new Date(field.value) : undefined} onSelect={(date) => {
-                        if (date) {
-                          field.onChange(format(date, 'yyyy-MM-dd'));
-                        }
-                      }} disabled={(date) => {
-                        const startDate = form.getValues("startDate");
-                        if (!startDate) return true;
-                        return date < new Date(startDate);
-                      }} initialFocus locale={nl} />
+                      <Calendar
+                        mode="single"
+                        selected={field.value ? new Date(field.value) : undefined}
+                        onSelect={(date) => {
+                          if (date) {
+                            field.onChange(format(date, 'yyyy-MM-dd'));
+                          }
+                        }}
+                        disabled={(date) => {
+                          const startDate = form.getValues("startDate");
+                          if (!startDate) return true;
+                          return date < new Date(startDate);
+                        }}
+                        initialFocus
+                        locale={nl}
+                      />
                     </PopoverContent>
                   </Popover>
                   <FormMessage />
