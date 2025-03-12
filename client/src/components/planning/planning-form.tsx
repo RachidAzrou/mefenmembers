@@ -351,3 +351,6 @@ export function PlanningForm({
     </Form>
   );
 }
+
+// Add default export
+export default PlanningForm;
