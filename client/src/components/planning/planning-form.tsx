@@ -31,7 +31,7 @@ const planningSchema = z.object({
   endDate: z.string().min(1, "Einddatum is verplicht"),
   isBulkPlanning: z.boolean().default(false),
   selectedVolunteers: z.array(z.string()).default([]),
-  selectedRooms: z.string().optional(),
+  selectedRooms: z.string().nullable().optional(),
   isResponsible: z.boolean().default(false),
   responsibleVolunteerId: z.string().optional()
 });
@@ -113,6 +113,7 @@ const PlanningForm = ({
         }
 
         const plannings: Planning[] = [];
+
         for (const volunteerId of data.selectedVolunteers) {
           plannings.push({
             roomId: data.selectedRooms,
@@ -167,7 +168,7 @@ const PlanningForm = ({
                 form.setValue("isBulkPlanning", checked);
                 if (!checked) {
                   form.setValue("selectedVolunteers", []);
-                  form.setValue("selectedRooms", undefined);
+                  form.setValue("selectedRooms", null);
                   form.setValue("responsibleVolunteerId", undefined);
                 }
                 form.setValue("volunteerId", undefined);
