@@ -14,17 +14,14 @@ import { cn } from "@/lib/utils";
 import { z } from "zod";
 import { UseFormReturn } from "react-hook-form";
 
-// Base schema voor planning
 const planningSchema = z.object({
   startDate: z.string().min(1, "Startdatum is verplicht"),
   endDate: z.string().min(1, "Einddatum is verplicht"),
   isBulkPlanning: z.boolean().default(false),
-  // Bulk planning velden
   selectedVolunteers: z.array(z.string()).default([]),
-  selectedRoomId: z.string().optional(),
-  // Single planning velden
-  volunteerId: z.string().optional(),
-  roomId: z.string().optional(),
+  selectedRoomId: z.string().min(1, "Selecteer een ruimte").optional(),
+  volunteerId: z.string().min(1, "Selecteer een vrijwilliger").optional(),
+  roomId: z.string().min(1, "Selecteer een ruimte").optional(),
 });
 
 interface PlanningFormProps {
@@ -47,9 +44,33 @@ export function PlanningForm({
   const isBulkPlanning = form.watch("isBulkPlanning");
   const [searchTerm, setSearchTerm] = useState("");
 
+  const handleSubmit = async (data: z.infer<typeof planningSchema>) => {
+    if (isBulkPlanning) {
+      // Ensure selectedRoomId and selectedVolunteers are present for bulk planning
+      if (!data.selectedRoomId || !data.selectedVolunteers?.length) {
+        return;
+      }
+
+      const plannings = data.selectedVolunteers.map(volunteerId => ({
+        roomId: data.selectedRoomId!,
+        volunteerId,
+        startDate: data.startDate,
+        endDate: data.endDate
+      }));
+
+      await onSubmit({ ...data, plannings });
+    } else {
+      // Ensure volunteerId and roomId are present for single planning
+      if (!data.volunteerId || !data.roomId) {
+        return;
+      }
+      await onSubmit(data);
+    }
+  };
+
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
         {!editingPlanning && (
           <div className="flex items-center space-x-2 pb-4 mb-4 border-b border-border">
             <Switch
@@ -74,7 +95,7 @@ export function PlanningForm({
           </div>
         )}
 
-        {/* Ruimte Selectie */}
+        {/* Room Selection */}
         <FormField
           control={form.control}
           name={isBulkPlanning ? "selectedRoomId" : "roomId"}
@@ -117,7 +138,7 @@ export function PlanningForm({
           )}
         />
 
-        {/* Vrijwilliger Selectie */}
+        {/* Volunteer Selection */}
         {((isBulkPlanning && form.watch("selectedRoomId")) || (!isBulkPlanning && form.watch("roomId"))) && (
           <FormField
             control={form.control}
@@ -128,7 +149,7 @@ export function PlanningForm({
                   Vrijwilliger{isBulkPlanning ? 's' : ''}
                 </FormLabel>
                 <Select
-                  value={isBulkPlanning ? field.value?.[0] || "" : field.value}
+                  value={isBulkPlanning ? field.value?.[0] || "" : field.value || ""}
                   onValueChange={(value) => {
                     if (isBulkPlanning) {
                       const current = field.value || [];
@@ -188,10 +209,12 @@ export function PlanningForm({
                                 className={cn(
                                   "h-4 w-4 flex-shrink-0",
                                   isBulkPlanning
-                                    ? field.value?.includes(volunteer.id)
+                                    ? (field.value || []).includes(volunteer.id)
+                                      ? "opacity-100"
+                                      : "opacity-0"
                                     : field.value === volunteer.id
-                                    ? "opacity-100"
-                                    : "opacity-0"
+                                      ? "opacity-100"
+                                      : "opacity-0"
                                 )}
                               />
                               <span>
@@ -235,7 +258,7 @@ export function PlanningForm({
           />
         )}
 
-        {/* Datum Selectie */}
+        {/* Date Selection */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <FormField
             control={form.control}
@@ -352,5 +375,4 @@ export function PlanningForm({
   );
 }
 
-// Add default export
 export default PlanningForm;
