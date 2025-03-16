@@ -397,31 +397,57 @@ const Planning = () => {
       isResponsible: false
     }
   });
+
   useEffect(() => {
+    console.log("Setting up Firebase listeners");
+
     const planningsRef = ref(db, "plannings");
-    const volunteersRef = ref(db, "volunteers");
-    const roomsRef = ref(db, "rooms");
     const unsubPlannings = onValue(planningsRef, (snapshot) => {
       const data = snapshot.val();
-      const planningsList = data ? Object.entries(data).map(([id, planning]: [string, any]) => ({ id, ...planning })) : [];
+      console.log("Received plannings data:", data);
+
+      const planningsList = data ? Object.entries(data).map(([id, planning]: [string, any]) => ({
+        id,
+        ...planning
+      })) : [];
+
+      console.log("Processed plannings list:", planningsList);
       setPlannings(planningsList);
+    }, (error) => {
+      console.error("Error loading plannings:", error);
     });
-    const unsubVolunteers = onValue(volunteersRef, (snapshot) => {
-      const data = snapshot.val();
-      const volunteersList = data ? Object.entries(data).map(([id, volunteer]: [string, any]) => ({ id, ...volunteer })) : [];
-      setVolunteers(volunteersList);
-    });
+
+    // Setup other listeners for rooms and volunteers
+    const roomsRef = ref(db, "rooms");
+    const volunteersRef = ref(db, "volunteers");
+
     const unsubRooms = onValue(roomsRef, (snapshot) => {
       const data = snapshot.val();
-      const roomsList = data ? Object.entries(data).map(([id, room]: [string, any]) => ({ id, ...room })) : [];
+      console.log("Received rooms data:", data);
+      const roomsList = data ? Object.entries(data).map(([id, room]: [string, any]) => ({
+        id,
+        ...room
+      })) : [];
       setRooms(roomsList);
     });
+
+    const unsubVolunteers = onValue(volunteersRef, (snapshot) => {
+      const data = snapshot.val();
+      console.log("Received volunteers data:", data);
+      const volunteersList = data ? Object.entries(data).map(([id, volunteer]: [string, any]) => ({
+        id,
+        ...volunteer
+      })) : [];
+      setVolunteers(volunteersList);
+    });
+
     return () => {
       unsubPlannings();
-      unsubVolunteers();
       unsubRooms();
+      unsubVolunteers();
     };
   }, []);
+
   const handleEdit = async (planning: Planning) => {
     try {
       setEditingPlanning(planning);
@@ -698,8 +724,14 @@ const Planning = () => {
       // Save each planning individually with a unique key
       for (const planning of data.plannings) {
         const newPlanningRef = push(planningsRef);
-        await set(newPlanningRef, planning);
-        console.log("Saved planning:", planning, "with key:", newPlanningRef.key);
+        const planningData = {
+          ...planning,
+          startDate: format(new Date(planning.startDate), 'yyyy-MM-dd'),
+          endDate: format(new Date(planning.endDate), 'yyyy-MM-dd')
+        };
+
+        await set(newPlanningRef, planningData);
+        console.log("Saved planning:", planningData, "with key:", newPlanningRef.key);
       }
 
       await logUserAction(
@@ -716,6 +748,8 @@ const Planning = () => {
         description: "Planning(en) succesvol opgeslagen"
       });
 
+      // Refresh the form and close dialog
+      form.reset();
       setDialogOpen(false);
     } catch (error) {
       console.error("Error saving plannings:", error);
@@ -838,7 +872,7 @@ const Planning = () => {
               form={form}
               editingPlanning={editingPlanning}
               plannings={plannings}
-              handleSubmit={handleSubmit} // Added prop for new handler
+              handleSubmit={handleSubmit}
             />
           </DialogContent>
         </Dialog>

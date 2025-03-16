@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { format, startOfWeek, addDays, parseISO, isSameDay, isWithinInterval } from "date-fns";
+import { format, startOfWeek, addDays, parseISO, isSameDay, isWithinInterval, startOfDay } from "date-fns";
 import { nl } from "date-fns/locale";
 import { db } from "@/lib/firebase";
 import { ref, onValue } from "firebase/database";
@@ -88,34 +88,39 @@ export default function PublicCalendar() {
   }, []);
 
   const getPlanningsForDay = (day: Date) => {
+    console.log("Getting plannings for day:", format(day, 'yyyy-MM-dd'));
     return plannings.filter(planning => {
-      const planningStart = parseISO(planning.startDate);
-      const planningEnd = parseISO(planning.endDate);
+      const planningStart = startOfDay(parseISO(planning.startDate));
+      const planningEnd = startOfDay(parseISO(planning.endDate));
+
+      console.log("Checking planning:", {
+        planning,
+        planningStart: format(planningStart, 'yyyy-MM-dd'),
+        planningEnd: format(planningEnd, 'yyyy-MM-dd'),
+        day: format(day, 'yyyy-MM-dd')
+      });
 
       return isWithinInterval(day, {
         start: planningStart,
         end: planningEnd
-      }) || isSameDay(day, planningStart) || isSameDay(day, planningEnd);
+      });
     });
   };
 
   const getPlanningsByRoom = (day: Date) => {
     const dayPlannings = getPlanningsForDay(day);
+    console.log("Plannings for day:", dayPlannings);
+
     const planningsByRoom = new Map<string, Planning[]>();
 
     rooms.forEach(room => {
       const roomPlannings = dayPlannings.filter(p => p.roomId === room.id);
       if (roomPlannings.length > 0) {
-        // Sort plannings to put responsible volunteer first
-        const sortedPlannings = [...roomPlannings].sort((a, b) => {
-          if (a.isResponsible) return -1;
-          if (b.isResponsible) return 1;
-          return 0;
-        });
-        planningsByRoom.set(room.id, sortedPlannings);
+        planningsByRoom.set(room.id, roomPlannings);
       }
     });
 
+    console.log("Plannings by room:", Object.fromEntries(planningsByRoom));
     return planningsByRoom;
   };
 

@@ -68,6 +68,7 @@ function PlanningForm({
   const handleFormSubmit = async (data: PlanningFormData) => {
     try {
       setIsSubmitting(true);
+      console.log("Submitting form data:", data);
 
       let plannings: Planning[];
 
@@ -104,23 +105,27 @@ function PlanningForm({
   };
 
   const resetForm = (isBulk: boolean) => {
-    if (isBulk) {
-      form.reset({
-        isBulkPlanning: true,
-        selectedVolunteers: [],
-        selectedRoomId: "",
-        startDate: "",
-        endDate: ""
-      } as PlanningFormData);
-    } else {
-      form.reset({
-        isBulkPlanning: false,
-        volunteerId: "",
-        roomId: "",
-        startDate: "",
-        endDate: ""
-      } as PlanningFormData);
-    }
+    const defaultValues = isBulk ? {
+      isBulkPlanning: true,
+      selectedVolunteers: [],
+      selectedRoomId: "",
+      startDate: "",
+      endDate: ""
+    } : {
+      isBulkPlanning: false,
+      volunteerId: "",
+      roomId: "",
+      startDate: "",
+      endDate: ""
+    };
+
+    form.reset(defaultValues as PlanningFormData);
+  };
+
+  // Helper to get volunteer name
+  const getVolunteerName = (id: string) => {
+    const volunteer = volunteers.find(v => v.id === id);
+    return volunteer ? `${volunteer.firstName} ${volunteer.lastName}` : "";
   };
 
   return (
@@ -130,9 +135,7 @@ function PlanningForm({
           <div className="flex items-center space-x-2 pb-4 mb-4 border-b border-border">
             <Switch
               checked={isBulkPlanning}
-              onCheckedChange={(checked) => {
-                resetForm(checked);
-              }}
+              onCheckedChange={(checked) => resetForm(checked)}
               className="data-[state=checked]:bg-[#963E56]"
             />
             <Label className="text-sm">Bulk Inplannen</Label>
@@ -149,8 +152,10 @@ function PlanningForm({
                 value={field.value}
                 onValueChange={field.onChange}
               >
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Selecteer een ruimte" />
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecteer een ruimte">
+                    {field.value && rooms.find(r => r.id === field.value)?.name}
+                  </SelectValue>
                 </SelectTrigger>
                 <SelectContent>
                   {rooms.map((room) => (
@@ -190,11 +195,16 @@ function PlanningForm({
                   }
                 }}
               >
-                <SelectTrigger className="w-full">
+                <SelectTrigger>
                   <SelectValue placeholder={`Selecteer vrijwilliger${isBulkPlanning ? 's' : ''}`}>
-                    {isBulkPlanning && field.value?.length
-                      ? `${field.value.length} vrijwilliger(s) geselecteerd`
-                      : null}
+                    {isBulkPlanning 
+                      ? field.value?.length > 0 
+                        ? `${field.value.length} vrijwilliger(s) geselecteerd`
+                        : null
+                      : field.value
+                        ? getVolunteerName(field.value)
+                        : null
+                    }
                   </SelectValue>
                 </SelectTrigger>
                 <SelectContent>
@@ -348,7 +358,7 @@ function PlanningForm({
                       }}
                       disabled={(date) => {
                         const startDate = form.getValues("startDate");
-                        if (!startDate) return true;
+                        if (!startDate) return false;
                         return date < new Date(startDate);
                       }}
                       initialFocus
