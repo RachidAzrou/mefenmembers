@@ -177,6 +177,26 @@ function PlanningPage() {
     }
   };
 
+  const handleBulkDelete = async (plannings: Planning[]) => {
+    try {
+      const deletePromises = plannings.map(planning =>
+        remove(ref(db, `plannings/${planning.id}`))
+      );
+      await Promise.all(deletePromises);
+      toast({
+        title: "Succes",
+        description: "Planningen zijn verwijderd"
+      });
+    } catch (error) {
+      console.error("Error deleting plannings:", error);
+      toast({
+        variant: "destructive",
+        title: "Fout",
+        description: "Er is een fout opgetreden bij het verwijderen van de planningen"
+      });
+    }
+  };
+
   const now = useMemo(() => {
     const date = new Date();
     date.setHours(0, 0, 0, 0);
@@ -288,14 +308,31 @@ function PlanningPage() {
         <div className="rounded-lg border bg-card p-4">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-semibold text-[#963E56]">Actieve Planningen</h2>
-            <div className="relative w-64">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Zoeken..."
-                value={searchActive}
-                onChange={(e) => setSearchActive(e.target.value)}
-                className="pl-9"
-              />
+            <div className="flex items-center gap-4">
+              <div className="relative w-64">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Zoeken..."
+                  value={searchActive}
+                  onChange={(e) => setSearchActive(e.target.value)}
+                  className="pl-9"
+                />
+              </div>
+              {activePlannings.length > 0 && (
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  onClick={() => {
+                    if (window.confirm(`Weet je zeker dat je alle ${activePlannings.length} actieve planningen wilt verwijderen?`)) {
+                      handleBulkDelete(activePlannings);
+                    }
+                  }}
+                  className="whitespace-nowrap"
+                >
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Alles verwijderen
+                </Button>
+              )}
             </div>
           </div>
           {activePlannings.length === 0 ? (
@@ -332,14 +369,31 @@ function PlanningPage() {
         <div className="rounded-lg border bg-card p-4">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-semibold text-[#963E56]">Toekomstige Planningen</h2>
-            <div className="relative w-64">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Zoeken..."
-                value={searchUpcoming}
-                onChange={(e) => setSearchUpcoming(e.target.value)}
-                className="pl-9"
-              />
+            <div className="flex items-center gap-4">
+              <div className="relative w-64">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Zoeken..."
+                  value={searchUpcoming}
+                  onChange={(e) => setSearchUpcoming(e.target.value)}
+                  className="pl-9"
+                />
+              </div>
+              {upcomingPlannings.length > 0 && (
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  onClick={() => {
+                    if (window.confirm(`Weet je zeker dat je alle ${upcomingPlannings.length} toekomstige planningen wilt verwijderen?`)) {
+                      handleBulkDelete(upcomingPlannings);
+                    }
+                  }}
+                  className="whitespace-nowrap"
+                >
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Alles verwijderen
+                </Button>
+              )}
             </div>
           </div>
           {upcomingPlannings.length === 0 ? (
@@ -376,14 +430,31 @@ function PlanningPage() {
         <div className="rounded-lg border bg-card p-4">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-semibold text-[#963E56]">Afgelopen Planningen</h2>
-            <div className="relative w-64">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Zoeken..."
-                value={searchPast}
-                onChange={(e) => setSearchPast(e.target.value)}
-                className="pl-9"
-              />
+            <div className="flex items-center gap-4">
+              <div className="relative w-64">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Zoeken..."
+                  value={searchPast}
+                  onChange={(e) => setSearchPast(e.target.value)}
+                  className="pl-9"
+                />
+              </div>
+              {pastPlannings.length > 0 && (
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  onClick={() => {
+                    if (window.confirm(`Weet je zeker dat je alle ${pastPlannings.length} afgelopen planningen wilt verwijderen?`)) {
+                      handleBulkDelete(pastPlannings);
+                    }
+                  }}
+                  className="whitespace-nowrap"
+                >
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Alles verwijderen
+                </Button>
+              )}
             </div>
           </div>
           {pastPlannings.length === 0 ? (

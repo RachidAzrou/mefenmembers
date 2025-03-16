@@ -1,18 +1,17 @@
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { Plus } from "lucide-react";
-import PlanningForm from "./planning-form";
-import type { UseFormReturn } from "react-hook-form";
-import type { Planning, PlanningFormData } from "./planning-form";
+import PlanningForm, { PlanningFormData } from "./planning-form";
+import { UseFormReturn } from "react-hook-form";
 
 interface PlanningDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  editingPlanning: Planning | null;
+  editingPlanning: any | null;
   form: UseFormReturn<PlanningFormData>;
   onSubmit: (data: PlanningFormData) => Promise<void>;
-  volunteers: { id: string; firstName: string; lastName: string }[];
-  rooms: { id: string; name: string }[];
+  volunteers: { id: string; firstName: string; lastName: string; }[];
+  rooms: { id: string; name: string; }[];
 }
 
 export function PlanningDialog({
@@ -22,26 +21,10 @@ export function PlanningDialog({
   form,
   onSubmit,
   volunteers,
-  rooms
+  rooms,
 }: PlanningDialogProps) {
   return (
-    <Dialog 
-      open={open} 
-      onOpenChange={(newOpen) => {
-        if (!newOpen) {
-          form.reset({
-            isBulkPlanning: false,
-            volunteerId: "",
-            roomId: "",
-            startDate: "",
-            endDate: "",
-            selectedVolunteers: [],
-            selectedRoomId: "",
-          });
-        }
-        onOpenChange(newOpen);
-      }}
-    >
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogTrigger asChild>
         <Button
           className="gap-2 bg-[#963E56] hover:bg-[#963E56]/90 text-white min-w-[200px]"
@@ -50,19 +33,13 @@ export function PlanningDialog({
           <span>Inplannen</span>
         </Button>
       </DialogTrigger>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>
-            {editingPlanning ? "Planning Bewerken" : "Nieuwe Planning"}
-          </DialogTitle>
-        </DialogHeader>
+      <DialogContent className="sm:max-w-[600px]">
         <PlanningForm
-          key={editingPlanning ? `edit-${editingPlanning.id}` : 'new-planning'}
-          volunteers={volunteers}
-          rooms={rooms}
+          form={form}
           onSubmit={onSubmit}
           onClose={() => onOpenChange(false)}
-          form={form}
+          volunteers={volunteers}
+          rooms={rooms}
           editingPlanning={editingPlanning}
         />
       </DialogContent>
