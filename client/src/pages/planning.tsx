@@ -1,58 +1,23 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-  Calendar as CalendarIcon,
-  Search,
-  Plus,
-  Settings2,
-  Trash2,
-  Edit2,
-  ChevronRight,
-  UserCircle2,
-  House,
-} from "lucide-react";
-import {
-  format,
-  parseISO,
-  startOfDay,
-  endOfDay,
-  startOfWeek,
-} from "date-fns";
+import { Calendar as CalendarIcon, Search, Plus, Settings2, Trash2, Edit2, ChevronRight, UserCircle2, House } from "lucide-react";
+import { format, parseISO, startOfDay, endOfDay, startOfWeek } from "date-fns";
 import { nl } from "date-fns/locale";
 import { Card, CardContent } from "@/components/ui/card";
 import { CollapsibleSection } from "@/components/ui/collapsible-section";
 import { useRole } from "@/hooks/use-role";
 import { cn } from "@/lib/utils";
 import { db } from "@/lib/firebase";
-import {
-  ref,
-  onValue,
-  remove,
-  push,
-  get,
-  update,
-  set,
-} from "firebase/database";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+import { ref, onValue, remove, push, get, update, set } from "firebase/database";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import PlanningForm from "@/components/planning/planning-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { logUserAction, UserActionTypes } from "@/lib/activity-logger";
 import { useToast } from "@/hooks/use-toast";
 
@@ -74,6 +39,10 @@ interface Planning {
   startDate: string;
   endDate: string;
   isResponsible?: boolean;
+}
+
+interface PlanningFormData extends z.infer<typeof planningSchema> {
+  selectedRoomId: string;
 }
 
 const PlanningTable = ({
@@ -374,7 +343,8 @@ const PlanningSection = ({ title, icon, defaultOpen, children }: {
   );
 };
 
-const Planning = () => {
+const PlanningPage = () => {
+  console.log("Rendering PlanningPage");
   const [plannings, setPlannings] = useState<Planning[]>([]);
   const [volunteers, setVolunteers] = useState<{ id: string; firstName: string; lastName: string; }[]>([]);
   const [rooms, setRooms] = useState<{ id: string; name: string; }[]>([]);
@@ -388,13 +358,14 @@ const Planning = () => {
   const [editingPlanning, setEditingPlanning] = useState<Planning | null>(null);
   const { isAdmin } = useRole();
   const { toast } = useToast();
-  const form = useForm<z.infer<typeof planningSchema>>({
+  const form = useForm<PlanningFormData>({
     resolver: zodResolver(planningSchema),
     defaultValues: {
       isBulkPlanning: false,
       selectedVolunteers: [],
-      selectedRooms: [],
-      isResponsible: false
+      selectedRoomId: "",
+      startDate: "",
+      endDate: ""
     }
   });
 
@@ -413,11 +384,8 @@ const Planning = () => {
 
       console.log("Processed plannings list:", planningsList);
       setPlannings(planningsList);
-    }, (error) => {
-      console.error("Error loading plannings:", error);
     });
 
-    // Setup other listeners for rooms and volunteers
     const roomsRef = ref(db, "rooms");
     const volunteersRef = ref(db, "volunteers");
 
@@ -459,7 +427,8 @@ const Planning = () => {
         isBulkPlanning: false,
         selectedVolunteers: [],
         selectedRooms: [],
-        isResponsible: planning.isResponsible || false
+        isResponsible: planning.isResponsible || false,
+        selectedRoomId: planning.roomId // Added to match new form structure
       });
       setDialogOpen(true);
     } catch (error) {
@@ -509,16 +478,14 @@ const Planning = () => {
       });
     }
   };
-  const onSubmit = async (data: z.infer<typeof planningSchema>) => {
+  const onSubmit = async (data: PlanningFormData) => {
     try {
       if (editingPlanning) {
-        // Update bestaande planning
         const planningRef = ref(db, `plannings/${editingPlanning.id}`);
 
-        // Check voor bestaande verantwoordelijke als we de verantwoordelijke status wijzigen
         if (data.isResponsible && !editingPlanning.isResponsible) {
           const existingResponsible = plannings.find(
-            p => p.roomId === data.roomId &&
+            p => p.roomId === data.selectedRoomId &&
               p.isResponsible &&
               p.id !== editingPlanning.id &&
               parseISO(p.startDate) <= parseISO(data.startDate) &&
@@ -526,7 +493,6 @@ const Planning = () => {
           );
 
           if (existingResponsible) {
-            // Update bestaande verantwoordelijke
             const prevRef = ref(db, `plannings/${existingResponsible.id}`);
             await update(prevRef, { isResponsible: false });
           }
@@ -534,7 +500,7 @@ const Planning = () => {
 
         const planningData = {
           volunteerId: data.volunteerId,
-          roomId: data.roomId,
+          roomId: data.selectedRoomId,
           startDate: format(new Date(data.startDate), 'yyyy-MM-dd'),
           endDate: format(new Date(data.endDate), 'yyyy-MM-dd'),
           isResponsible: data.isResponsible
@@ -543,7 +509,7 @@ const Planning = () => {
         await set(planningRef, planningData);
 
         const volunteer = volunteers.find(v => v.id === data.volunteerId);
-        const room = rooms.find(r => r.id === data.roomId);
+        const room = rooms.find(r => r.id === data.selectedRoomId);
 
         await logUserAction(
           UserActionTypes.PLANNING_UPDATE,
@@ -565,23 +531,15 @@ const Planning = () => {
           description: "De planning is succesvol bijgewerkt"
         });
       } else {
-        // Nieuwe planning toevoegen
-        const planningData = {
-          startDate: format(new Date(data.startDate), 'yyyy-MM-dd'),
-          endDate: format(new Date(data.endDate), 'yyyy-MM-dd')
-        };
-
-        // Check voor bestaande verantwoordelijke als we een nieuwe verantwoordelijke toevoegen
         if (data.isResponsible) {
           const existingResponsible = plannings.find(
-            p => p.roomId === data.roomId &&
+            p => p.roomId === data.selectedRoomId &&
               p.isResponsible &&
               parseISO(p.startDate) <= parseISO(data.startDate) &&
               parseISO(p.endDate) >= parseISO(data.startDate)
           );
 
           if (existingResponsible) {
-            // Update bestaande verantwoordelijke
             const prevRef = ref(db, `plannings/${existingResponsible.id}`);
             await update(prevRef, { isResponsible: false });
           }
@@ -590,13 +548,14 @@ const Planning = () => {
         const newPlanningRef = push(ref(db, "plannings"));
         await set(newPlanningRef, {
           volunteerId: data.volunteerId,
-          roomId: data.roomId,
-          ...planningData,
+          roomId: data.selectedRoomId,
+          startDate: format(new Date(data.startDate), 'yyyy-MM-dd'),
+          endDate: format(new Date(data.endDate), 'yyyy-MM-dd'),
           isResponsible: data.isResponsible
         });
 
         const volunteer = volunteers.find(v => v.id === data.volunteerId);
-        const room = rooms.find(r => r.id === data.roomId);
+        const room = rooms.find(r => r.id === data.selectedRoomId);
 
         await logUserAction(
           UserActionTypes.PLANNING_CREATE,
@@ -605,7 +564,7 @@ const Planning = () => {
             type: 'planning',
             id: newPlanningRef.key,
             details: `${volunteer?.firstName} ${volunteer?.lastName} ${data.isResponsible ? 'als verantwoordelijke ' : ''}ingepland voor ${room?.name}`,
-            targetName: `${room?.name} (${planningData.startDate} - ${planningData.endDate})`
+            targetName: `${room?.name} (${data.startDate} - ${data.endDate})`
           }
         );
 
@@ -721,7 +680,6 @@ const Planning = () => {
       console.log("Submitting plannings:", data.plannings);
       const planningsRef = ref(db, "plannings");
 
-      // Save each planning individually with a unique key
       for (const planning of data.plannings) {
         const newPlanningRef = push(planningsRef);
         const planningData = {
@@ -748,7 +706,6 @@ const Planning = () => {
         description: "Planning(en) succesvol opgeslagen"
       });
 
-      // Refresh the form and close dialog
       form.reset();
       setDialogOpen(false);
     } catch (error) {
@@ -826,7 +783,8 @@ const Planning = () => {
                 isBulkPlanning: false,
                 selectedVolunteers: [],
                 selectedRooms: [],
-                isResponsible: false
+                isResponsible: false,
+                selectedRoomId: ""
               });
             }
             setDialogOpen(open);
@@ -844,7 +802,8 @@ const Planning = () => {
                   isBulkPlanning: false,
                   selectedVolunteers: [],
                   selectedRooms: [],
-                  isResponsible: false
+                  isResponsible: false,
+                  selectedRoomId: ""
                 });
                 logUserAction(UserActionTypes.MODAL_OPEN, "Planning modal geopend");
               }}
@@ -961,4 +920,5 @@ const Planning = () => {
   );
 };
 
-export default Planning;
+export { PlanningPage };
+export default PlanningPage;

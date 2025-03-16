@@ -11,7 +11,7 @@ import Profile from "@/pages/profile";
 import Volunteers from "@/pages/volunteers";
 import Rooms from "@/pages/rooms";
 import Materials from "@/pages/materials";
-import Planning from "@/pages/planning";
+import { PlanningPage } from "@/pages/planning";
 import PublicCalendar from "@/pages/public-calendar";
 import ImportExport from "@/pages/import-export";
 import Mosque from "@/pages/mosque";
@@ -79,7 +79,7 @@ function Router() {
       <Route path="/register" component={Register} />
       <Route path="/" component={() => <PrivateRoute component={Dashboard} />} />
       <Route path="/profile" component={() => <PrivateRoute component={Profile} />} />
-      <Route path="/planning" component={() => <PrivateRoute component={Planning} />} />
+      <Route path="/planning" component={() => <PrivateRoute component={PlanningPage} />} />
       <Route path="/volunteers" component={() => <PrivateRoute component={Volunteers} />} />
       <Route path="/rooms" component={() => <PrivateRoute component={Rooms} />} />
       <Route path="/materials" component={() => <PrivateRoute component={Materials} />} />
