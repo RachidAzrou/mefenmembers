@@ -68,7 +68,6 @@ const PlanningForm: React.FC<PlanningFormProps> = ({
   const { toast } = useToast();
   const isBulkPlanning = form.watch("isBulkPlanning");
   const selectedVolunteers = form.watch("selectedVolunteers") || [];
-  const selectedRoomId = form.watch("selectedRoomId");
 
   const handleFormSubmit = async (data: PlanningFormData) => {
     try {
@@ -135,54 +134,54 @@ const PlanningForm: React.FC<PlanningFormProps> = ({
               <FormLabel className="text-sm">
                 Vrijwilliger{isBulkPlanning ? 's' : ''}
               </FormLabel>
-              <div className="relative">
-                <div className="sticky top-0 p-2 bg-white border-b">
-                  <div className="relative">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
-                    <Input
-                      type="text"
-                      placeholder="Zoek vrijwilliger..."
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      className="pl-9 h-9"
-                    />
-                  </div>
-                </div>
-                <Select
-                  value={isBulkPlanning ? field.value?.[0] || "" : field.value}
-                  onValueChange={(value) => {
-                    if (isBulkPlanning) {
-                      const current = field.value || [];
-                      const updated = current.includes(value)
-                        ? current.filter(id => id !== value)
-                        : [...current, value];
-                      field.onChange(updated);
-                    } else {
-                      field.onChange(value);
+              <Select
+                value={isBulkPlanning ? field.value?.[0] || "" : field.value}
+                onValueChange={(value) => {
+                  if (isBulkPlanning) {
+                    const current = field.value || [];
+                    const updated = current.includes(value)
+                      ? current.filter(id => id !== value)
+                      : [...current, value];
+                    field.onChange(updated);
+                  } else {
+                    field.onChange(value);
+                  }
+                }}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder={`Selecteer vrijwilliger${isBulkPlanning ? 's' : ''}`}>
+                    {isBulkPlanning
+                      ? field.value?.length > 0
+                        ? `${field.value.length} vrijwilliger(s) geselecteerd`
+                        : null
+                      : field.value
+                        ? getVolunteerName(field.value)
+                        : null
                     }
-                  }}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder={`Selecteer vrijwilliger${isBulkPlanning ? 's' : ''}`}>
-                      {isBulkPlanning
-                        ? field.value?.length > 0
-                          ? `${field.value.length} vrijwilliger(s) geselecteerd`
-                          : null
-                        : field.value
-                          ? getVolunteerName(field.value)
-                          : null
-                      }
-                    </SelectValue>
-                  </SelectTrigger>
-                  <SelectContent side="bottom" position="popper" className="max-h-[300px]">
+                  </SelectValue>
+                </SelectTrigger>
+                <SelectContent side="bottom" align="start" className="h-[300px]">
+                  <div className="sticky top-0 bg-white p-2 border-b">
+                    <div className="relative">
+                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        type="text"
+                        placeholder="Zoek vrijwilliger..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="pl-9"
+                      />
+                    </div>
+                  </div>
+                  <div className="pt-1">
                     {filteredVolunteers.map((volunteer) => (
                       <SelectItem key={volunteer.id} value={volunteer.id}>
                         <span>{volunteer.firstName} {volunteer.lastName}</span>
                       </SelectItem>
                     ))}
-                  </SelectContent>
-                </Select>
-              </div>
+                  </div>
+                </SelectContent>
+              </Select>
               {isBulkPlanning && field.value?.length > 0 && (
                 <div className="mt-2 flex flex-wrap gap-2">
                   {field.value.map(id => {
