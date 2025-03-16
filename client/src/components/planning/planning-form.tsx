@@ -13,6 +13,7 @@ import { nl } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { z } from "zod";
 import { UseFormReturn } from "react-hook-form";
+import { useToast } from "@/hooks/use-toast";
 
 const planningSchema = z.object({
   startDate: z.string().min(1, "Startdatum is verplicht"),
@@ -27,7 +28,7 @@ const planningSchema = z.object({
 interface PlanningFormProps {
   volunteers: { id: string; firstName: string; lastName: string }[];
   rooms: { id: string; name: string }[];
-  onSubmit: (data: z.infer<typeof planningSchema>) => Promise<void>;
+  onSubmit: (data: any) => Promise<void>;
   onClose: () => void;
   form: UseFormReturn<z.infer<typeof planningSchema>>;
   editingPlanning: any | null;
@@ -41,30 +42,76 @@ export function PlanningForm({
   form,
   editingPlanning
 }: PlanningFormProps) {
+  const { toast } = useToast();
   const isBulkPlanning = form.watch("isBulkPlanning");
   const [searchTerm, setSearchTerm] = useState("");
 
   const handleSubmit = async (data: z.infer<typeof planningSchema>) => {
-    if (isBulkPlanning) {
-      // Ensure selectedRoomId and selectedVolunteers are present for bulk planning
-      if (!data.selectedRoomId || !data.selectedVolunteers?.length) {
-        return;
+    try {
+      if (isBulkPlanning) {
+        if (!data.selectedRoomId) {
+          toast({
+            title: "Fout",
+            description: "Selecteer een ruimte",
+            variant: "destructive",
+          });
+          return;
+        }
+        if (!data.selectedVolunteers?.length) {
+          toast({
+            title: "Fout",
+            description: "Selecteer ten minste één vrijwilliger",
+            variant: "destructive",
+          });
+          return;
+        }
+
+        const plannings = data.selectedVolunteers.map(volunteerId => ({
+          roomId: data.selectedRoomId,
+          volunteerId: volunteerId,
+          startDate: data.startDate,
+          endDate: data.endDate
+        }));
+
+        await onSubmit({ plannings });
+      } else {
+        if (!data.volunteerId) {
+          toast({
+            title: "Fout",
+            description: "Selecteer een vrijwilliger",
+            variant: "destructive",
+          });
+          return;
+        }
+        if (!data.roomId) {
+          toast({
+            title: "Fout",
+            description: "Selecteer een ruimte",
+            variant: "destructive",
+          });
+          return;
+        }
+
+        const planning = {
+          roomId: data.roomId,
+          volunteerId: data.volunteerId,
+          startDate: data.startDate,
+          endDate: data.endDate
+        };
+
+        await onSubmit({ plannings: [planning] });
       }
 
-      const plannings = data.selectedVolunteers.map(volunteerId => ({
-        roomId: data.selectedRoomId!,
-        volunteerId,
-        startDate: data.startDate,
-        endDate: data.endDate
-      }));
-
-      await onSubmit({ ...data, plannings });
-    } else {
-      // Ensure volunteerId and roomId are present for single planning
-      if (!data.volunteerId || !data.roomId) {
-        return;
-      }
-      await onSubmit(data);
+      form.reset();
+      setSearchTerm("");
+      onClose();
+    } catch (error) {
+      console.error("Form submission error:", error);
+      toast({
+        title: "Fout",
+        description: "Er is een fout opgetreden bij het opslaan van de planning",
+        variant: "destructive",
+      });
     }
   };
 
