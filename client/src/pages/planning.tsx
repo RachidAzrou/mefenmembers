@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Calendar as CalendarIcon, Search, Plus, Settings2, Trash2, Edit2, ChevronRight, UserCircle2, House } from "lucide-react";
@@ -634,45 +634,53 @@ const PlanningPage = () => {
     );
     console.log("Generating PDF...");
   };
-  const now = new Date();
-  now.setHours(0, 0, 0, 0);
-  const activePlannings = plannings.filter((planning) => {
-    const start = parseISO(planning.startDate);
-    const end = parseISO(planning.endDate);
-    start.setHours(0, 0, 0, 0);
-    end.setHours(0, 0, 0, 0);
-    now.setHours(0, 0, 0, 0);
-    return start <= now && end >= now;
-  });
-  const upcomingPlannings = plannings.filter((planning) => {
-    const start = parseISO(planning.startDate);
-    start.setHours(0, 0, 0, 0);
-    now.setHours(0, 0, 0, 0);
-    return start > now;
-  });
+  const now = useMemo(() => {
+    const date = new Date();
+    date.setHours(0, 0, 0, 0);
+    return date;
+  }, []);
+  const activePlannings = useMemo(() => {
+    return plannings.filter((planning) => {
+      const start = parseISO(planning.startDate);
+      const end = parseISO(planning.endDate);
+      start.setHours(0, 0, 0, 0);
+      end.setHours(0, 0, 0, 0);
+      return start <= now && end >= now;
+    });
+  }, [plannings, now]);
+  const upcomingPlannings = useMemo(() => {
+    return plannings.filter((planning) => {
+      const start = parseISO(planning.startDate);
+      start.setHours(0, 0, 0, 0);
+      return start > now;
+    });
+  }, [plannings, now]);
   const pastPlannings = useMemo(() => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const weekStart = startOfWeek(today, { locale: nl });
-    return plannings.map(planning => {
-      const planningStart = parseISO(planning.startDate);
-      const planningEnd = parseISO(planning.endDate);
-      planningStart.setHours(0, 0, 0, 0);
-      planningEnd.setHours(0, 0, 0, 0);
-      if (planningStart < today && planningStart >= weekStart) {
-        return {
-          ...planning,
-          endDate: planningEnd > today ? format(today, 'yyyy-MM-dd') : planning.endDate
-        };
-      } else if (planningStart < weekStart && planningEnd >= weekStart && planningEnd < today) {
-        return {
-          ...planning,
-          startDate: format(weekStart, 'yyyy-MM-dd'),
-          endDate: format(new Date(Math.min(planningEnd.getTime(), today.getTime())), 'yyyy-MM-dd')
-        };
-      }
-      return null;
-    }).filter((p): p is Planning => p !== null);
+    return plannings
+      .map(planning => {
+        const planningStart = parseISO(planning.startDate);
+        const planningEnd = parseISO(planning.endDate);
+        planningStart.setHours(0, 0, 0, 0);
+        planningEnd.setHours(0, 0, 0, 0);
+
+        if (planningStart < today && planningStart >= weekStart) {
+          return {
+            ...planning,
+            endDate: planningEnd > today ? format(today, 'yyyy-MM-dd') : planning.endDate
+          };
+        } else if (planningStart < weekStart && planningEnd >= weekStart && planningEnd < today) {
+          return {
+            ...planning,
+            startDate: format(weekStart, 'yyyy-MM-dd'),
+            endDate: format(new Date(Math.min(planningEnd.getTime(), today.getTime())), 'yyyy-MM-dd')
+          };
+        }
+        return null;
+      })
+      .filter((p): p is Planning => p !== null);
   }, [plannings]);
 
   const handleSubmit = async (data: { plannings: Planning[] }) => {
@@ -844,7 +852,7 @@ const PlanningPage = () => {
           defaultOpen={true}
         >
           <div className="p-4">
-            <div className="mb-4 rounded-lg border border-muted bg-muted/5 p-4">
+            <div className="mb-4 rounded-lg border border-muted bg-muted/5 p4">
               <div className="flex items-center gap-2 text-sm text-[#963E56]">
                 <CalendarIcon className="h-4 w-4" />
                 <span>Planningen voor vandaag</span>
@@ -899,12 +907,12 @@ const PlanningPage = () => {
             <div className="mb-4 rounded-lg border border-muted bg-muted/5 p-4">
               <div className="flex items-center gap-2 text-sm text-[#963E56]">
                 <CalendarIcon className="h-4 w-4" />
-                <span>Historisch overzicht van afgelopen planningen</span>
+                <span>Planningen van afgelopen week</span>
               </div>
             </div>
             <PlanningTable
               plannings={pastPlannings}
-              emptyMessage="Geen afgelopen planningen gevonden"
+              emptyMessage="Geen planningen gevonden voor afgelopen week"
               volunteers={volunteers}
               rooms={rooms}
               onDelete={handleDelete}
@@ -916,6 +924,50 @@ const PlanningPage = () => {
           </div>
         </PlanningSection>
       </div>
+
+      <Dialog
+        open={dialogOpen}
+        onOpenChange={(open) => {
+          if (!open) {
+            setEditingPlanning(null);
+            form.reset();
+          }
+          setDialogOpen(open);
+        }}
+      >
+        <DialogTrigger asChild>
+          <Button
+            onClick={() => {
+              setEditingPlanning(null);
+              form.reset();
+              logUserAction(UserActionTypes.MODAL_OPEN, "Planning modal geopend");
+            }}
+            className="gap-2 bg-[#963E56] hover:bg-[#963E56]/90 text-white"
+          >
+            <Plus className="h-4 w-4" />
+            <span>Inplannen</span>
+          </Button>
+        </DialogTrigger>
+        <DialogContent className="max-w-[95vw] sm:max-w-[450px]">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-semibold text-[#963E56]">
+              {editingPlanning ? "Planning Bewerken" : "Planning"}
+            </DialogTitle>
+          </DialogHeader>
+          <PlanningForm
+            volunteers={volunteers}
+            rooms={rooms}
+            onSubmit={onSubmit}
+            onClose={() => {
+              setDialogOpen(false);
+              setEditingPlanning(null);
+              form.reset();
+            }}
+            form={form}
+            editingPlanning={editingPlanning}
+          />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
