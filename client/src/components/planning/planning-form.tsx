@@ -274,18 +274,23 @@ const PlanningForm: React.FC<PlanningFormProps> = ({
                   </FormLabel>
                   <Select
                     value={field.value}
-                    onValueChange={field.onChange}
+                    onValueChange={(value) => {
+                      field.onChange(value);
+                    }}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Selecteer verantwoordelijke">
                         {field.value && getVolunteerName(field.value)}
                       </SelectValue>
                     </SelectTrigger>
-                    <SelectContent side="bottom">
+                    <SelectContent className="overflow-y-auto">
                       {selectedVolunteers.map((volunteerId) => {
                         const volunteer = volunteers.find(v => v.id === volunteerId);
                         return volunteer && (
-                          <SelectItem key={volunteerId} value={volunteerId}>
+                          <SelectItem 
+                            key={volunteerId} 
+                            value={volunteerId}
+                          >
                             <span>{volunteer.firstName} {volunteer.lastName}</span>
                           </SelectItem>
                         );
