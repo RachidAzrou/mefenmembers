@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Calendar as CalendarIcon, Search, Trash2, Edit2, UserCircle2 } from "lucide-react";
+import { Calendar as CalendarIcon, Search, Trash2, Edit2, ShieldCheck } from "lucide-react";
 import { format, parseISO, startOfDay } from "date-fns";
 import { nl } from "date-fns/locale";
 import { Card, CardContent } from "@/components/ui/card";
@@ -433,7 +433,9 @@ const PlanningItem: React.FC<PlanningItemProps> = ({
             {volunteer ? `${volunteer.firstName} ${volunteer.lastName}` : 'Onbekende vrijwilliger'}
           </span>
           {planning.isResponsible && (
-            <UserCircle2 className="h-4 w-4 text-[#963E56]" />
+            <div className="bg-[#963E56]/10 rounded-full p-1">
+              <ShieldCheck className="h-4 w-4 text-[#963E56]" />
+            </div>
           )}
         </div>
         <div className="text-sm text-muted-foreground">

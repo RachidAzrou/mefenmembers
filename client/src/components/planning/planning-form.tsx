@@ -6,7 +6,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { CalendarIcon, Check, Search, X } from "lucide-react";
+import { CalendarIcon, Check, Search, X, ShieldCheck } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { format } from "date-fns";
 import { nl } from "date-fns/locale";
@@ -178,8 +178,8 @@ const PlanningForm: React.FC<PlanningFormProps> = ({
               >
                 <SelectTrigger>
                   <SelectValue placeholder={`Selecteer vrijwilliger${isBulkPlanning ? 's' : ''}`}>
-                    {isBulkPlanning 
-                      ? field.value?.length > 0 
+                    {isBulkPlanning
+                      ? field.value?.length > 0
                         ? `${field.value.length} vrijwilliger(s) geselecteerd`
                         : null
                       : field.value
@@ -361,7 +361,14 @@ const PlanningForm: React.FC<PlanningFormProps> = ({
               name="responsibleVolunteerId"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-sm">Verantwoordelijke</FormLabel>
+                  <FormLabel className="text-sm">
+                    <div className="flex items-center gap-2">
+                      <span>Verantwoordelijke</span>
+                      <div className="bg-[#963E56]/10 rounded-full p-1">
+                        <ShieldCheck className="h-4 w-4 text-[#963E56]" />
+                      </div>
+                    </div>
+                  </FormLabel>
                   <Select
                     value={field.value}
                     onValueChange={field.onChange}
@@ -397,7 +404,12 @@ const PlanningForm: React.FC<PlanningFormProps> = ({
             render={({ field }) => (
               <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
                 <div className="space-y-0.5">
-                  <FormLabel>Verantwoordelijke</FormLabel>
+                  <div className="flex items-center gap-2">
+                    <FormLabel>Verantwoordelijke</FormLabel>
+                    <div className="bg-[#963E56]/10 rounded-full p-1">
+                      <ShieldCheck className="h-4 w-4 text-[#963E56]" />
+                    </div>
+                  </div>
                   <div className="text-sm text-muted-foreground">
                     Maak deze vrijwilliger verantwoordelijk voor de ruimte
                   </div>
@@ -428,10 +440,10 @@ const PlanningForm: React.FC<PlanningFormProps> = ({
             className="bg-[#963E56] hover:bg-[#963E56]/90 text-sm text-white"
             disabled={isSubmitting}
           >
-            {isSubmitting 
-              ? "Opslaan..." 
-              : editingPlanning 
-                ? "Planning Bijwerken" 
+            {isSubmitting
+              ? "Opslaan..."
+              : editingPlanning
+                ? "Planning Bijwerken"
                 : "Planning Opslaan"}
           </Button>
         </div>
