@@ -45,7 +45,10 @@ const planningSchema = z.object({
   selectedRoomId: z.string().optional(),
 });
 
-export function PlanningForm({
+type PlanningFormType = z.infer<typeof planningSchema>;
+
+// Component implementation
+function PlanningFormComponent({
   volunteers,
   rooms,
   onSubmit,
@@ -58,7 +61,7 @@ export function PlanningForm({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const isBulkPlanning = form.watch("isBulkPlanning");
 
-  const handleFormSubmit = async (formData: z.infer<typeof planningSchema>) => {
+  const handleFormSubmit = async (formData: PlanningFormType) => {
     try {
       setIsSubmitting(true);
       console.log("Submitting form data:", formData);
@@ -276,11 +279,11 @@ export function PlanningForm({
                                   "h-4 w-4 flex-shrink-0",
                                   isBulkPlanning
                                     ? (field.value || []).includes(volunteer.id)
-                                    ? "opacity-100"
-                                    : "opacity-0"
-                                  : field.value === volunteer.id
-                                    ? "opacity-100"
-                                    : "opacity-0"
+                                      ? "opacity-100"
+                                      : "opacity-0"
+                                    : field.value === volunteer.id
+                                      ? "opacity-100"
+                                      : "opacity-0"
                                 )}
                               />
                               <span>{volunteer.firstName} {volunteer.lastName}</span>
@@ -444,4 +447,6 @@ export function PlanningForm({
   );
 }
 
-export default PlanningForm;
+// Export both the component and the schema
+export { planningSchema, type PlanningFormType };
+export default PlanningFormComponent;
