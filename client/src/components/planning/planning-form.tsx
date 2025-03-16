@@ -45,21 +45,22 @@ export function PlanningForm({
   const { toast } = useToast();
   const isBulkPlanning = form.watch("isBulkPlanning");
   const [searchTerm, setSearchTerm] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async (data: z.infer<typeof planningSchema>) => {
     try {
-      const roomId = isBulkPlanning ? data.selectedRoomId : data.roomId;
-
-      if (!roomId) {
-        toast({
-          title: "Fout",
-          description: "Selecteer een ruimte",
-          variant: "destructive",
-        });
-        return;
-      }
+      console.log("Submitting form with data:", data);
+      setIsSubmitting(true);
 
       if (isBulkPlanning) {
+        if (!data.selectedRoomId) {
+          toast({
+            title: "Fout",
+            description: "Selecteer een ruimte",
+            variant: "destructive",
+          });
+          return;
+        }
         if (!data.selectedVolunteers?.length) {
           toast({
             title: "Fout",
@@ -70,12 +71,13 @@ export function PlanningForm({
         }
 
         const plannings = data.selectedVolunteers.map(volunteerId => ({
-          roomId: roomId,
-          volunteerId: volunteerId,
+          roomId: data.selectedRoomId,
+          volunteerId,
           startDate: data.startDate,
           endDate: data.endDate
         }));
 
+        console.log("Submitting bulk plannings:", plannings);
         await onSubmit({ plannings });
       } else {
         if (!data.volunteerId) {
@@ -86,16 +88,30 @@ export function PlanningForm({
           });
           return;
         }
+        if (!data.roomId) {
+          toast({
+            title: "Fout",
+            description: "Selecteer een ruimte",
+            variant: "destructive",
+          });
+          return;
+        }
 
         const planning = {
-          roomId: roomId,
+          roomId: data.roomId,
           volunteerId: data.volunteerId,
           startDate: data.startDate,
           endDate: data.endDate
         };
 
+        console.log("Submitting single planning:", planning);
         await onSubmit({ plannings: [planning] });
       }
+
+      toast({
+        title: "Succes",
+        description: "Planning is opgeslagen",
+      });
 
       form.reset();
       setSearchTerm("");
@@ -107,6 +123,8 @@ export function PlanningForm({
         description: "Er is een fout opgetreden bij het opslaan van de planning",
         variant: "destructive",
       });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -119,7 +137,6 @@ export function PlanningForm({
               checked={isBulkPlanning}
               onCheckedChange={(checked) => {
                 form.setValue("isBulkPlanning", checked);
-                // Reset form values based on mode
                 if (checked) {
                   form.setValue("selectedVolunteers", []);
                   form.setValue("selectedRoomId", "");
@@ -138,7 +155,6 @@ export function PlanningForm({
           </div>
         )}
 
-        {/* Room Selection */}
         <FormField
           control={form.control}
           name={isBulkPlanning ? "selectedRoomId" : "roomId"}
@@ -176,7 +192,6 @@ export function PlanningForm({
           )}
         />
 
-        {/* Volunteer Selection */}
         {((isBulkPlanning && form.watch("selectedRoomId")) || (!isBulkPlanning && form.watch("roomId"))) && (
           <FormField
             control={form.control}
@@ -291,7 +306,6 @@ export function PlanningForm({
           />
         )}
 
-        {/* Date Selection */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <FormField
             control={form.control}
@@ -399,8 +413,9 @@ export function PlanningForm({
           <Button
             type="submit"
             className="bg-[#963E56] hover:bg-[#963E56]/90 text-sm"
+            disabled={isSubmitting}
           >
-            {editingPlanning ? "Planning Bijwerken" : "Planning Opslaan"}
+            {isSubmitting ? "Opslaan..." : editingPlanning ? "Planning Bijwerken" : "Planning Opslaan"}
           </Button>
         </div>
       </form>
