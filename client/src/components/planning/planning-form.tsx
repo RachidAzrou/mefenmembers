@@ -126,6 +126,36 @@ const PlanningForm: React.FC<PlanningFormProps> = ({
           </div>
         )}
 
+        {/* Ruimte selectie */}
+        <FormField
+          control={form.control}
+          name={isBulkPlanning ? "selectedRoomId" : "roomId"}
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel className="text-sm">Ruimte</FormLabel>
+              <Select
+                value={field.value}
+                onValueChange={field.onChange}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecteer een ruimte">
+                    {field.value && rooms.find(r => r.id === field.value)?.name}
+                  </SelectValue>
+                </SelectTrigger>
+                <SelectContent side="bottom">
+                  {rooms.map((room) => (
+                    <SelectItem key={room.id} value={room.id}>
+                      <span>{room.name}</span>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        {/* Vrijwilliger selectie */}
         <FormField
           control={form.control}
           name={isBulkPlanning ? "selectedVolunteers" : "volunteerId"}
@@ -168,14 +198,22 @@ const PlanningForm: React.FC<PlanningFormProps> = ({
                         type="text"
                         placeholder="Zoek vrijwilliger..."
                         value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
+                        onChange={(e) => {
+                          e.stopPropagation();
+                          setSearchTerm(e.target.value);
+                        }}
+                        onKeyDown={(e) => e.stopPropagation()}
                         className="pl-9"
                       />
                     </div>
                   </div>
                   <div className="pt-1">
                     {filteredVolunteers.map((volunteer) => (
-                      <SelectItem key={volunteer.id} value={volunteer.id}>
+                      <SelectItem 
+                        key={volunteer.id} 
+                        value={volunteer.id}
+                        onSelect={(e) => e.preventDefault()}
+                      >
                         <span>{volunteer.firstName} {volunteer.lastName}</span>
                       </SelectItem>
                     ))}
@@ -214,7 +252,7 @@ const PlanningForm: React.FC<PlanningFormProps> = ({
           )}
         />
 
-        {/* Verantwoordelijke sectie direct na vrijwilliger selectie */}
+        {/* Verantwoordelijke sectie */}
         {isBulkPlanning ? (
           selectedVolunteers.length > 0 && (
             <FormField
@@ -279,34 +317,7 @@ const PlanningForm: React.FC<PlanningFormProps> = ({
           />
         )}
 
-        <FormField
-          control={form.control}
-          name={isBulkPlanning ? "selectedRoomId" : "roomId"}
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel className="text-sm">Ruimte</FormLabel>
-              <Select
-                value={field.value}
-                onValueChange={field.onChange}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecteer een ruimte">
-                    {field.value && rooms.find(r => r.id === field.value)?.name}
-                  </SelectValue>
-                </SelectTrigger>
-                <SelectContent side="bottom">
-                  {rooms.map((room) => (
-                    <SelectItem key={room.id} value={room.id}>
-                      <span>{room.name}</span>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
+        {/* Datum selectie */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <FormField
             control={form.control}
