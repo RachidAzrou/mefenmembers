@@ -15,20 +15,31 @@ import { z } from "zod";
 import { UseFormReturn } from "react-hook-form";
 import { useToast } from "@/hooks/use-toast";
 
+// Define the planning interface
+interface Planning {
+  roomId: string;
+  volunteerId: string;
+  startDate: string;
+  endDate: string;
+}
+
+// Schema for planning form
 const planningSchema = z.object({
   startDate: z.string().min(1, "Startdatum is verplicht"),
   endDate: z.string().min(1, "Einddatum is verplicht"),
   isBulkPlanning: z.boolean().default(false),
+  // Fields for single planning
+  volunteerId: z.string().optional(),
+  roomId: z.string().optional(),
+  // Fields for bulk planning
   selectedVolunteers: z.array(z.string()).default([]),
-  selectedRoomId: z.string().min(1, "Selecteer een ruimte").optional(),
-  volunteerId: z.string().min(1, "Selecteer een vrijwilliger").optional(),
-  roomId: z.string().min(1, "Selecteer een ruimte").optional(),
+  selectedRoomId: z.string().optional(),
 });
 
 interface PlanningFormProps {
   volunteers: { id: string; firstName: string; lastName: string }[];
   rooms: { id: string; name: string }[];
-  onSubmit: (data: any) => Promise<void>;
+  onSubmit: (data: { plannings: Planning[] }) => Promise<void>;
   onClose: () => void;
   form: UseFormReturn<z.infer<typeof planningSchema>>;
   editingPlanning: any | null;
@@ -49,10 +60,13 @@ export function PlanningForm({
 
   const handleSubmit = async (data: z.infer<typeof planningSchema>) => {
     try {
-      console.log("Submitting form with data:", data);
       setIsSubmitting(true);
+      console.log("Form data:", data);
+
+      let plannings: Planning[] = [];
 
       if (isBulkPlanning) {
+        // Validate bulk planning
         if (!data.selectedRoomId) {
           toast({
             title: "Fout",
@@ -70,16 +84,15 @@ export function PlanningForm({
           return;
         }
 
-        const plannings = data.selectedVolunteers.map(volunteerId => ({
-          roomId: data.selectedRoomId,
+        // Create bulk plannings
+        plannings = data.selectedVolunteers.map(volunteerId => ({
+          roomId: data.selectedRoomId!,
           volunteerId,
           startDate: data.startDate,
           endDate: data.endDate
         }));
-
-        console.log("Submitting bulk plannings:", plannings);
-        await onSubmit({ plannings });
       } else {
+        // Validate single planning
         if (!data.volunteerId) {
           toast({
             title: "Fout",
@@ -97,16 +110,17 @@ export function PlanningForm({
           return;
         }
 
-        const planning = {
-          roomId: data.roomId,
-          volunteerId: data.volunteerId,
+        // Create single planning
+        plannings = [{
+          roomId: data.roomId!,
+          volunteerId: data.volunteerId!,
           startDate: data.startDate,
           endDate: data.endDate
-        };
-
-        console.log("Submitting single planning:", planning);
-        await onSubmit({ plannings: [planning] });
+        }];
       }
+
+      console.log("Submitting plannings:", plannings);
+      await onSubmit({ plannings });
 
       toast({
         title: "Succes",
@@ -138,15 +152,19 @@ export function PlanningForm({
               onCheckedChange={(checked) => {
                 form.setValue("isBulkPlanning", checked);
                 if (checked) {
+                  // Reset single planning fields
+                  form.setValue("volunteerId", undefined);
+                  form.setValue("roomId", undefined);
+                  // Initialize bulk planning fields
                   form.setValue("selectedVolunteers", []);
-                  form.setValue("selectedRoomId", "");
-                  form.setValue("volunteerId", "");
-                  form.setValue("roomId", "");
+                  form.setValue("selectedRoomId", undefined);
                 } else {
+                  // Reset bulk planning fields
                   form.setValue("selectedVolunteers", []);
-                  form.setValue("selectedRoomId", "");
-                  form.setValue("volunteerId", "");
-                  form.setValue("roomId", "");
+                  form.setValue("selectedRoomId", undefined);
+                  // Initialize single planning fields
+                  form.setValue("volunteerId", undefined);
+                  form.setValue("roomId", undefined);
                 }
               }}
               className="data-[state=checked]:bg-[#963E56]"
@@ -155,6 +173,7 @@ export function PlanningForm({
           </div>
         )}
 
+        {/* Room Selection */}
         <FormField
           control={form.control}
           name={isBulkPlanning ? "selectedRoomId" : "roomId"}
@@ -192,6 +211,7 @@ export function PlanningForm({
           )}
         />
 
+        {/* Volunteer Selection */}
         {((isBulkPlanning && form.watch("selectedRoomId")) || (!isBulkPlanning && form.watch("roomId"))) && (
           <FormField
             control={form.control}
@@ -306,6 +326,7 @@ export function PlanningForm({
           />
         )}
 
+        {/* Date Selection */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <FormField
             control={form.control}
