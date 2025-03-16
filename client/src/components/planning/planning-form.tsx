@@ -6,7 +6,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { CalendarIcon, Check, Search, X, ShieldCheck } from "lucide-react";
+import { CalendarIcon, Search, X, ShieldCheck } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { format } from "date-fns";
 import { nl } from "date-fns/locale";
@@ -69,7 +69,6 @@ const PlanningForm: React.FC<PlanningFormProps> = ({
   const isBulkPlanning = form.watch("isBulkPlanning");
   const selectedVolunteers = form.watch("selectedVolunteers") || [];
   const selectedRoomId = form.watch("selectedRoomId");
-  const responsibleVolunteerId = form.watch("responsibleVolunteerId");
 
   const handleFormSubmit = async (data: PlanningFormData) => {
     try {
@@ -92,6 +91,11 @@ const PlanningForm: React.FC<PlanningFormProps> = ({
     const volunteer = volunteers.find(v => v.id === id);
     return volunteer ? `${volunteer.firstName} ${volunteer.lastName}` : "";
   };
+
+  const filteredVolunteers = volunteers.filter(volunteer => {
+    const fullName = `${volunteer.firstName} ${volunteer.lastName}`.toLowerCase();
+    return fullName.includes(searchTerm.toLowerCase());
+  });
 
   return (
     <Form {...form}>
@@ -141,10 +145,7 @@ const PlanningForm: React.FC<PlanningFormProps> = ({
                 <SelectContent>
                   {rooms.map((room) => (
                     <SelectItem key={room.id} value={room.id}>
-                      <div className="flex items-center gap-2">
-                        <Check className={cn("h-4 w-4", field.value === room.id ? "opacity-100" : "opacity-0")} />
-                        <span>{room.name}</span>
-                      </div>
+                      <span>{room.name}</span>
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -198,32 +199,18 @@ const PlanningForm: React.FC<PlanningFormProps> = ({
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                         className="pl-9 h-9"
+                        onClick={(e) => e.stopPropagation()}
                       />
                     </div>
                   </div>
                   <div className="pt-1">
-                    {volunteers
-                      .filter(volunteer => {
-                        const fullName = `${volunteer.firstName} ${volunteer.lastName}`.toLowerCase();
-                        return fullName.includes(searchTerm.toLowerCase());
-                      })
-                      .map((volunteer) => (
-                        <SelectItem key={volunteer.id} value={volunteer.id}>
-                          <div className="flex items-center gap-2">
-                            <Check className={cn(
-                              "h-4 w-4",
-                              isBulkPlanning
-                                ? (field.value || []).includes(volunteer.id)
-                                  ? "opacity-100"
-                                  : "opacity-0"
-                                : field.value === volunteer.id
-                                  ? "opacity-100"
-                                  : "opacity-0"
-                            )} />
-                            <span>{volunteer.firstName} {volunteer.lastName}</span>
-                          </div>
-                        </SelectItem>
-                      ))}
+                    {filteredVolunteers.map((volunteer) => (
+                      <SelectItem key={volunteer.id} value={volunteer.id}>
+                        <div className="flex items-center gap-2">
+                          <span>{volunteer.firstName} {volunteer.lastName}</span>
+                        </div>
+                      </SelectItem>
+                    ))}
                   </div>
                 </SelectContent>
               </Select>
@@ -355,7 +342,7 @@ const PlanningForm: React.FC<PlanningFormProps> = ({
         </div>
 
         {isBulkPlanning ? (
-          selectedVolunteers.length > 0 && selectedRoomId && (
+          selectedVolunteers.length > 0 && (
             <FormField
               control={form.control}
               name="responsibleVolunteerId"
@@ -384,7 +371,6 @@ const PlanningForm: React.FC<PlanningFormProps> = ({
                         return volunteer && (
                           <SelectItem key={volunteerId} value={volunteerId}>
                             <div className="flex items-center gap-2">
-                              <Check className={cn("h-4 w-4", field.value === volunteerId ? "opacity-100" : "opacity-0")} />
                               <span>{volunteer.firstName} {volunteer.lastName}</span>
                             </div>
                           </SelectItem>

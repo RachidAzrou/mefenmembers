@@ -271,7 +271,7 @@ function PlanningPage() {
         </Card>
       </div>
 
-      <div className="flex justify-center">
+      <div className="flex justify-end">
         <PlanningDialog
           key="planning-dialog"
           open={dialogOpen}
