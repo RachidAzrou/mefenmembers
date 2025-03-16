@@ -48,15 +48,18 @@ export function PlanningForm({
 
   const handleSubmit = async (data: z.infer<typeof planningSchema>) => {
     try {
+      const roomId = isBulkPlanning ? data.selectedRoomId : data.roomId;
+
+      if (!roomId) {
+        toast({
+          title: "Fout",
+          description: "Selecteer een ruimte",
+          variant: "destructive",
+        });
+        return;
+      }
+
       if (isBulkPlanning) {
-        if (!data.selectedRoomId) {
-          toast({
-            title: "Fout",
-            description: "Selecteer een ruimte",
-            variant: "destructive",
-          });
-          return;
-        }
         if (!data.selectedVolunteers?.length) {
           toast({
             title: "Fout",
@@ -67,7 +70,7 @@ export function PlanningForm({
         }
 
         const plannings = data.selectedVolunteers.map(volunteerId => ({
-          roomId: data.selectedRoomId,
+          roomId: roomId,
           volunteerId: volunteerId,
           startDate: data.startDate,
           endDate: data.endDate
@@ -83,17 +86,9 @@ export function PlanningForm({
           });
           return;
         }
-        if (!data.roomId) {
-          toast({
-            title: "Fout",
-            description: "Selecteer een ruimte",
-            variant: "destructive",
-          });
-          return;
-        }
 
         const planning = {
-          roomId: data.roomId,
+          roomId: roomId,
           volunteerId: data.volunteerId,
           startDate: data.startDate,
           endDate: data.endDate
@@ -124,14 +119,15 @@ export function PlanningForm({
               checked={isBulkPlanning}
               onCheckedChange={(checked) => {
                 form.setValue("isBulkPlanning", checked);
+                // Reset form values based on mode
                 if (checked) {
                   form.setValue("selectedVolunteers", []);
                   form.setValue("selectedRoomId", "");
-                  form.setValue("volunteerId", undefined);
-                  form.setValue("roomId", undefined);
+                  form.setValue("volunteerId", "");
+                  form.setValue("roomId", "");
                 } else {
                   form.setValue("selectedVolunteers", []);
-                  form.setValue("selectedRoomId", undefined);
+                  form.setValue("selectedRoomId", "");
                   form.setValue("volunteerId", "");
                   form.setValue("roomId", "");
                 }
@@ -156,12 +152,7 @@ export function PlanningForm({
                 <SelectTrigger className="w-full">
                   <SelectValue placeholder="Selecteer een ruimte" />
                 </SelectTrigger>
-                <SelectContent
-                  position="popper"
-                  side="bottom"
-                  align="start"
-                  sideOffset={8}
-                >
+                <SelectContent position="popper" side="bottom" sideOffset={4}>
                   {rooms.map((room) => (
                     <SelectItem
                       key={room.id}
@@ -218,12 +209,7 @@ export function PlanningForm({
                         : "Selecteer vrijwilliger"}
                     </SelectValue>
                   </SelectTrigger>
-                  <SelectContent
-                    position="popper"
-                    side="bottom"
-                    align="start"
-                    sideOffset={8}
-                  >
+                  <SelectContent position="popper" side="bottom" sideOffset={4}>
                     <div className="sticky top-0 p-2 bg-white border-b">
                       <div className="relative">
                         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
