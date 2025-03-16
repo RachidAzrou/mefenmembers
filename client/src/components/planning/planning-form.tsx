@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
@@ -15,15 +15,7 @@ import { z } from "zod";
 import { UseFormReturn } from "react-hook-form";
 import { useToast } from "@/hooks/use-toast";
 
-// Planning types
-interface Planning {
-  roomId: string;
-  volunteerId: string;
-  startDate: string;
-  endDate: string;
-}
-
-// Form schema
+// Schema definition
 const planningSchema = z.discriminatedUnion("isBulkPlanning", [
   z.object({
     isBulkPlanning: z.literal(false),
@@ -43,54 +35,40 @@ const planningSchema = z.discriminatedUnion("isBulkPlanning", [
 
 type PlanningFormData = z.infer<typeof planningSchema>;
 
+interface Planning {
+  id: string;
+  volunteerId: string;
+  roomId: string;
+  startDate: string;
+  endDate: string;
+}
+
 interface PlanningFormProps {
   volunteers: { id: string; firstName: string; lastName: string }[];
   rooms: { id: string; name: string }[];
-  onSubmit: (data: { plannings: Planning[] }) => Promise<void>;
+  onSubmit: (data: PlanningFormData) => Promise<void>;
   onClose: () => void;
   form: UseFormReturn<PlanningFormData>;
-  editingPlanning: any | null;
+  editingPlanning: Planning | null;
 }
 
-function PlanningForm({
+const PlanningForm: React.FC<PlanningFormProps> = ({
   volunteers,
   rooms,
   onSubmit,
   onClose,
   form,
   editingPlanning
-}: PlanningFormProps) {
-  const { toast } = useToast();
+}) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { toast } = useToast();
   const isBulkPlanning = form.watch("isBulkPlanning");
 
   const handleFormSubmit = async (data: PlanningFormData) => {
     try {
       setIsSubmitting(true);
-      console.log("Submitting form data:", data);
-
-      let plannings: Planning[];
-
-      if (data.isBulkPlanning) {
-        plannings = data.selectedVolunteers.map(volunteerId => ({
-          roomId: data.selectedRoomId,
-          volunteerId,
-          startDate: data.startDate,
-          endDate: data.endDate
-        }));
-      } else {
-        plannings = [{
-          roomId: data.roomId,
-          volunteerId: data.volunteerId,
-          startDate: data.startDate,
-          endDate: data.endDate
-        }];
-      }
-
-      await onSubmit({ plannings });
-      toast({ title: "Succes", description: "Planning is opgeslagen" });
-      form.reset();
+      await onSubmit(data);
       onClose();
     } catch (error) {
       console.error("Form submission error:", error);
@@ -104,25 +82,6 @@ function PlanningForm({
     }
   };
 
-  const resetForm = (isBulk: boolean) => {
-    const defaultValues = isBulk ? {
-      isBulkPlanning: true,
-      selectedVolunteers: [],
-      selectedRoomId: "",
-      startDate: "",
-      endDate: ""
-    } : {
-      isBulkPlanning: false,
-      volunteerId: "",
-      roomId: "",
-      startDate: "",
-      endDate: ""
-    };
-
-    form.reset(defaultValues as PlanningFormData);
-  };
-
-  // Helper to get volunteer name
   const getVolunteerName = (id: string) => {
     const volunteer = volunteers.find(v => v.id === id);
     return volunteer ? `${volunteer.firstName} ${volunteer.lastName}` : "";
@@ -135,7 +94,21 @@ function PlanningForm({
           <div className="flex items-center space-x-2 pb-4 mb-4 border-b border-border">
             <Switch
               checked={isBulkPlanning}
-              onCheckedChange={(checked) => resetForm(checked)}
+              onCheckedChange={(checked) => {
+                form.reset(checked ? {
+                  isBulkPlanning: true,
+                  selectedVolunteers: [],
+                  selectedRoomId: "",
+                  startDate: "",
+                  endDate: ""
+                } : {
+                  isBulkPlanning: false,
+                  volunteerId: "",
+                  roomId: "",
+                  startDate: "",
+                  endDate: ""
+                } as PlanningFormData);
+              }}
               className="data-[state=checked]:bg-[#963E56]"
             />
             <Label className="text-sm">Bulk Inplannen</Label>
@@ -262,7 +235,8 @@ function PlanningForm({
                           size="icon"
                           className="h-4 w-4 p-0 hover:bg-transparent"
                           onClick={() => {
-                            field.onChange(field.value?.filter(v => v !== id));
+                            const newValue = field.value?.filter(v => v !== id);
+                            field.onChange(newValue);
                           }}
                         >
                           <X className="h-3 w-3" />
@@ -282,7 +256,7 @@ function PlanningForm({
             control={form.control}
             name="startDate"
             render={({ field }) => (
-              <FormItem className="flex flex-col">
+              <FormItem>
                 <FormLabel>Startdatum</FormLabel>
                 <Popover>
                   <PopoverTrigger asChild>
@@ -326,7 +300,7 @@ function PlanningForm({
             control={form.control}
             name="endDate"
             render={({ field }) => (
-              <FormItem className="flex flex-col">
+              <FormItem>
                 <FormLabel>Einddatum</FormLabel>
                 <Popover>
                   <PopoverTrigger asChild>
@@ -383,7 +357,7 @@ function PlanningForm({
           </Button>
           <Button
             type="submit"
-            className="bg-[#963E56] hover:bg-[#963E56]/90 text-sm"
+            className="bg-[#963E56] hover:bg-[#963E56]/90 text-sm text-white"
             disabled={isSubmitting}
           >
             {isSubmitting 
@@ -396,7 +370,7 @@ function PlanningForm({
       </form>
     </Form>
   );
-}
+};
 
 export type { Planning, PlanningFormData };
 export { planningSchema };
