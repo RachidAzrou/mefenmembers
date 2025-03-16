@@ -63,18 +63,23 @@ export function PlanningForm({
       setIsSubmitting(true);
       console.log("Form data:", data);
 
+      // Get the appropriate room ID based on planning mode
+      const roomId = isBulkPlanning ? data.selectedRoomId : data.roomId;
+
+      // Validate room selection
+      if (!roomId || roomId === "") {
+        toast({
+          title: "Fout",
+          description: "Selecteer een ruimte",
+          variant: "destructive",
+        });
+        return;
+      }
+
       let plannings: Planning[] = [];
 
       if (isBulkPlanning) {
-        // Validate bulk planning
-        if (!data.selectedRoomId) {
-          toast({
-            title: "Fout",
-            description: "Selecteer een ruimte",
-            variant: "destructive",
-          });
-          return;
-        }
+        // Validate volunteer selection for bulk planning
         if (!data.selectedVolunteers?.length) {
           toast({
             title: "Fout",
@@ -86,14 +91,14 @@ export function PlanningForm({
 
         // Create bulk plannings
         plannings = data.selectedVolunteers.map(volunteerId => ({
-          roomId: data.selectedRoomId!,
+          roomId,
           volunteerId,
           startDate: data.startDate,
           endDate: data.endDate
         }));
       } else {
-        // Validate single planning
-        if (!data.volunteerId) {
+        // Validate volunteer selection for single planning
+        if (!data.volunteerId || data.volunteerId === "") {
           toast({
             title: "Fout",
             description: "Selecteer een vrijwilliger",
@@ -101,19 +106,11 @@ export function PlanningForm({
           });
           return;
         }
-        if (!data.roomId) {
-          toast({
-            title: "Fout",
-            description: "Selecteer een ruimte",
-            variant: "destructive",
-          });
-          return;
-        }
 
         // Create single planning
         plannings = [{
-          roomId: data.roomId!,
-          volunteerId: data.volunteerId!,
+          roomId,
+          volunteerId: data.volunteerId,
           startDate: data.startDate,
           endDate: data.endDate
         }];
@@ -153,18 +150,18 @@ export function PlanningForm({
                 form.setValue("isBulkPlanning", checked);
                 if (checked) {
                   // Reset single planning fields
-                  form.setValue("volunteerId", undefined);
-                  form.setValue("roomId", undefined);
+                  form.setValue("volunteerId", "");
+                  form.setValue("roomId", "");
                   // Initialize bulk planning fields
                   form.setValue("selectedVolunteers", []);
-                  form.setValue("selectedRoomId", undefined);
+                  form.setValue("selectedRoomId", "");
                 } else {
                   // Reset bulk planning fields
                   form.setValue("selectedVolunteers", []);
-                  form.setValue("selectedRoomId", undefined);
+                  form.setValue("selectedRoomId", "");
                   // Initialize single planning fields
-                  form.setValue("volunteerId", undefined);
-                  form.setValue("roomId", undefined);
+                  form.setValue("volunteerId", "");
+                  form.setValue("roomId", "");
                 }
               }}
               className="data-[state=checked]:bg-[#963E56]"
