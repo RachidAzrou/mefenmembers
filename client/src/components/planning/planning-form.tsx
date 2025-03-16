@@ -14,6 +14,7 @@ import { cn } from "@/lib/utils";
 import { z } from "zod";
 import { UseFormReturn } from "react-hook-form";
 import { useToast } from "@/hooks/use-toast";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 
 // Schema definition
 const planningSchema = z.discriminatedUnion("isBulkPlanning", [
@@ -190,9 +191,9 @@ const PlanningForm: React.FC<PlanningFormProps> = ({
                     }
                   </SelectValue>
                 </SelectTrigger>
-                <SelectContent 
-                  side="bottom" 
-                  align="start" 
+                <SelectContent
+                  side="bottom"
+                  align="start"
                   className="h-[300px]"
                 >
                   <div className="sticky top-0 bg-white p-2 border-b z-50">
@@ -214,8 +215,8 @@ const PlanningForm: React.FC<PlanningFormProps> = ({
                   </div>
                   <div className="pt-1">
                     {filteredVolunteers.map((volunteer) => (
-                      <SelectItem 
-                        key={volunteer.id} 
+                      <SelectItem
+                        key={volunteer.id}
                         value={volunteer.id}
                       >
                         <span>{volunteer.firstName} {volunteer.lastName}</span>
@@ -256,14 +257,14 @@ const PlanningForm: React.FC<PlanningFormProps> = ({
           )}
         />
 
-        {/* Verantwoordelijke sectie */}
+        {/* Verantwoordelijke sectie voor bulk planning */}
         {isBulkPlanning ? (
           selectedVolunteers.length > 0 && (
             <FormField
               control={form.control}
               name="responsibleVolunteerId"
               render={({ field }) => (
-                <FormItem>
+                <FormItem className="space-y-3">
                   <FormLabel className="text-sm">
                     <div className="flex items-center gap-2">
                       <span>Verantwoordelijke</span>
@@ -272,31 +273,30 @@ const PlanningForm: React.FC<PlanningFormProps> = ({
                       </div>
                     </div>
                   </FormLabel>
-                  <Select
-                    value={field.value}
-                    onValueChange={(value) => {
-                      field.onChange(value);
-                    }}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecteer verantwoordelijke">
-                        {field.value && getVolunteerName(field.value)}
-                      </SelectValue>
-                    </SelectTrigger>
-                    <SelectContent className="overflow-y-auto">
+                  <FormControl>
+                    <RadioGroup
+                      onValueChange={field.onChange}
+                      value={field.value}
+                      className="flex flex-col space-y-1"
+                    >
                       {selectedVolunteers.map((volunteerId) => {
                         const volunteer = volunteers.find(v => v.id === volunteerId);
                         return volunteer && (
-                          <SelectItem 
-                            key={volunteerId} 
-                            value={volunteerId}
+                          <FormItem
+                            key={volunteerId}
+                            className="flex items-center space-x-3 space-y-0"
                           >
-                            <span>{volunteer.firstName} {volunteer.lastName}</span>
-                          </SelectItem>
+                            <FormControl>
+                              <RadioGroupItem value={volunteerId} />
+                            </FormControl>
+                            <FormLabel className="font-normal">
+                              {volunteer.firstName} {volunteer.lastName}
+                            </FormLabel>
+                          </FormItem>
                         );
                       })}
-                    </SelectContent>
-                  </Select>
+                    </RadioGroup>
+                  </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
