@@ -27,7 +27,7 @@ export function PlanningDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogTrigger asChild>
         <Button
-          className="gap-2 bg-[#800020] hover:bg-[#800020]/90 text-white min-w-[200px] font-medium shadow-lg hover:shadow-xl transition-all duration-200 ease-in-out transform hover:-translate-y-0.5 rounded-lg py-2.5"
+          className="gap-2 bg-[#963E56] hover:bg-[#963E56]/90 text-white min-w-[200px] font-medium shadow-lg hover:shadow-xl transition-all duration-200 ease-in-out transform hover:-translate-y-0.5 rounded-lg py-2.5"
         >
           <Plus className="h-5 w-5" />
           <span>Inplannen</span>

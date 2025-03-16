@@ -327,7 +327,7 @@ function PlanningPage() {
                       handleBulkDelete(activePlannings);
                     }
                   }}
-                  className="whitespace-nowrap bg-[#800020] hover:bg-[#800020]/90 text-white font-medium shadow-lg hover:shadow-xl transition-all duration-200 ease-in-out transform hover:-translate-y-0.5"
+                  className="whitespace-nowrap bg-[#963E56] hover:bg-[#963E56]/90 text-white font-medium shadow-lg hover:shadow-xl transition-all duration-200 ease-in-out transform hover:-translate-y-0.5"
                 >
                   <Trash2 className="h-4 w-4 mr-2" />
                   Leegmaken
@@ -388,7 +388,7 @@ function PlanningPage() {
                       handleBulkDelete(upcomingPlannings);
                     }
                   }}
-                  className="whitespace-nowrap bg-[#800020] hover:bg-[#800020]/90 text-white font-medium shadow-lg hover:shadow-xl transition-all duration-200 ease-in-out transform hover:-translate-y-0.5"
+                  className="whitespace-nowrap bg-[#963E56] hover:bg-[#963E56]/90 text-white font-medium shadow-lg hover:shadow-xl transition-all duration-200 ease-in-out transform hover:-translate-y-0.5"
                 >
                   <Trash2 className="h-4 w-4 mr-2" />
                   Leegmaken
@@ -449,7 +449,7 @@ function PlanningPage() {
                       handleBulkDelete(pastPlannings);
                     }
                   }}
-                  className="whitespace-nowrap bg-[#800020] hover:bg-[#800020]/90 text-white font-medium shadow-lg hover:shadow-xl transition-all duration-200 ease-in-out transform hover:-translate-y-0.5"
+                  className="whitespace-nowrap bg-[#963E56] hover:bg-[#963E56]/90 text-white font-medium shadow-lg hover:shadow-xl transition-all duration-200 ease-in-out transform hover:-translate-y-0.5"
                 >
                   <Trash2 className="h-4 w-4 mr-2" />
                   Leegmaken
