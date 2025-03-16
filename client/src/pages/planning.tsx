@@ -327,10 +327,10 @@ function PlanningPage() {
                       handleBulkDelete(activePlannings);
                     }
                   }}
-                  className="whitespace-nowrap"
+                  className="whitespace-nowrap bg-[#800020] hover:bg-[#800020]/90 text-white font-medium shadow-lg hover:shadow-xl transition-all duration-200 ease-in-out transform hover:-translate-y-0.5"
                 >
                   <Trash2 className="h-4 w-4 mr-2" />
-                  Alles verwijderen
+                  Leegmaken
                 </Button>
               )}
             </div>
@@ -388,10 +388,10 @@ function PlanningPage() {
                       handleBulkDelete(upcomingPlannings);
                     }
                   }}
-                  className="whitespace-nowrap"
+                  className="whitespace-nowrap bg-[#800020] hover:bg-[#800020]/90 text-white font-medium shadow-lg hover:shadow-xl transition-all duration-200 ease-in-out transform hover:-translate-y-0.5"
                 >
                   <Trash2 className="h-4 w-4 mr-2" />
-                  Alles verwijderen
+                  Leegmaken
                 </Button>
               )}
             </div>
@@ -449,10 +449,10 @@ function PlanningPage() {
                       handleBulkDelete(pastPlannings);
                     }
                   }}
-                  className="whitespace-nowrap"
+                  className="whitespace-nowrap bg-[#800020] hover:bg-[#800020]/90 text-white font-medium shadow-lg hover:shadow-xl transition-all duration-200 ease-in-out transform hover:-translate-y-0.5"
                 >
                   <Trash2 className="h-4 w-4 mr-2" />
-                  Alles verwijderen
+                  Leegmaken
                 </Button>
               )}
             </div>
