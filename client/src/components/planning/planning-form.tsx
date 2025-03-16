@@ -190,8 +190,12 @@ const PlanningForm: React.FC<PlanningFormProps> = ({
                     }
                   </SelectValue>
                 </SelectTrigger>
-                <SelectContent side="bottom" align="start" className="h-[300px]">
-                  <div className="sticky top-0 bg-white p-2 border-b">
+                <SelectContent 
+                  side="bottom" 
+                  align="start" 
+                  className="h-[300px]"
+                >
+                  <div className="sticky top-0 bg-white p-2 border-b z-50">
                     <div className="relative">
                       <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                       <Input
@@ -202,6 +206,7 @@ const PlanningForm: React.FC<PlanningFormProps> = ({
                           e.stopPropagation();
                           setSearchTerm(e.target.value);
                         }}
+                        onClick={(e) => e.stopPropagation()}
                         onKeyDown={(e) => e.stopPropagation()}
                         className="pl-9"
                       />
@@ -212,7 +217,6 @@ const PlanningForm: React.FC<PlanningFormProps> = ({
                       <SelectItem 
                         key={volunteer.id} 
                         value={volunteer.id}
-                        onSelect={(e) => e.preventDefault()}
                       >
                         <span>{volunteer.firstName} {volunteer.lastName}</span>
                       </SelectItem>
