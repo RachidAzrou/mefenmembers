@@ -38,35 +38,53 @@ export default function PublicCalendar() {
   const weekDays = Array.from({ length: 7 }).map((_, i) => addDays(weekStart, i));
 
   useEffect(() => {
+    console.log("Setting up Firebase listeners");
+
     const planningsRef = ref(db, "plannings");
-    onValue(planningsRef, (snapshot) => {
+    const unsubPlannings = onValue(planningsRef, (snapshot) => {
       const data = snapshot.val();
-      const planningsList = data ? Object.entries(data).map(([id, planning]) => ({
+      console.log("Received plannings data:", data);
+
+      const planningsList = data ? Object.entries(data).map(([id, planning]: [string, any]) => ({
         id,
-        ...(planning as Omit<Planning, "id">),
+        ...planning
       })) : [];
+
+      console.log("Processed plannings list:", planningsList);
       setPlannings(planningsList);
+    }, (error) => {
+      console.error("Error loading plannings:", error);
     });
 
+    // Setup other listeners for rooms and volunteers
     const roomsRef = ref(db, "rooms");
-    onValue(roomsRef, (snapshot) => {
+    const volunteersRef = ref(db, "volunteers");
+
+    const unsubRooms = onValue(roomsRef, (snapshot) => {
       const data = snapshot.val();
-      const roomsList = data ? Object.entries(data).map(([id, room]) => ({
+      console.log("Received rooms data:", data);
+      const roomsList = data ? Object.entries(data).map(([id, room]: [string, any]) => ({
         id,
-        ...(room as Omit<Room, "id">),
+        ...room
       })) : [];
       setRooms(roomsList);
     });
 
-    const volunteersRef = ref(db, "volunteers");
-    onValue(volunteersRef, (snapshot) => {
+    const unsubVolunteers = onValue(volunteersRef, (snapshot) => {
       const data = snapshot.val();
-      const volunteersList = data ? Object.entries(data).map(([id, volunteer]) => ({
+      console.log("Received volunteers data:", data);
+      const volunteersList = data ? Object.entries(data).map(([id, volunteer]: [string, any]) => ({
         id,
-        ...(volunteer as Omit<Volunteer, "id">),
+        ...volunteer
       })) : [];
       setVolunteers(volunteersList);
     });
+
+    return () => {
+      unsubPlannings();
+      unsubRooms();
+      unsubVolunteers();
+    };
   }, []);
 
   const getPlanningsForDay = (day: Date) => {

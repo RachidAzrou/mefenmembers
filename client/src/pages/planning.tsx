@@ -1,23 +1,58 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Calendar as CalendarIcon, Search, Plus, Settings2, Trash2, Edit2, ChevronRight, UserCircle2, House } from "lucide-react";
-import { format, parseISO, startOfDay, endOfDay, startOfWeek } from "date-fns";
+import {
+  Calendar as CalendarIcon,
+  Search,
+  Plus,
+  Settings2,
+  Trash2,
+  Edit2,
+  ChevronRight,
+  UserCircle2,
+  House,
+} from "lucide-react";
+import {
+  format,
+  parseISO,
+  startOfDay,
+  endOfDay,
+  startOfWeek,
+} from "date-fns";
 import { nl } from "date-fns/locale";
 import { Card, CardContent } from "@/components/ui/card";
 import { CollapsibleSection } from "@/components/ui/collapsible-section";
 import { useRole } from "@/hooks/use-role";
 import { cn } from "@/lib/utils";
 import { db } from "@/lib/firebase";
-import { ref, onValue, remove, push, get, update, set } from "firebase/database";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import {
+  ref,
+  onValue,
+  remove,
+  push,
+  get,
+  update,
+  set,
+} from "firebase/database";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import PlanningForm from "@/components/planning/planning-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { logUserAction, UserActionTypes } from "@/lib/activity-logger";
 import { useToast } from "@/hooks/use-toast";
 
@@ -29,7 +64,7 @@ const planningSchema = z.object({
   isBulkPlanning: z.boolean().default(false),
   selectedVolunteers: z.array(z.string()).default([]),
   selectedRooms: z.array(z.string()).default([]),
-  isResponsible: z.boolean().default(false)
+  isResponsible: z.boolean().default(false),
 });
 
 interface Planning {
@@ -338,6 +373,7 @@ const PlanningSection = ({ title, icon, defaultOpen, children }: {
     </CollapsibleSection>
   );
 };
+
 const Planning = () => {
   const [plannings, setPlannings] = useState<Planning[]>([]);
   const [volunteers, setVolunteers] = useState<{ id: string; firstName: string; lastName: string; }[]>([]);
@@ -653,6 +689,44 @@ const Planning = () => {
       return null;
     }).filter((p): p is Planning => p !== null);
   }, [plannings]);
+
+  const handleSubmit = async (data: { plannings: Planning[] }) => {
+    try {
+      console.log("Submitting plannings:", data.plannings);
+      const planningsRef = ref(db, "plannings");
+
+      // Save each planning individually with a unique key
+      for (const planning of data.plannings) {
+        const newPlanningRef = push(planningsRef);
+        await set(newPlanningRef, planning);
+        console.log("Saved planning:", planning, "with key:", newPlanningRef.key);
+      }
+
+      await logUserAction(
+        UserActionTypes.PLANNING_CREATE,
+        `${data.plannings.length} planning(en) toegevoegd`,
+        {
+          type: 'planning',
+          details: `${data.plannings.length} nieuwe planning(en) aangemaakt`
+        }
+      );
+
+      toast({
+        title: "Success",
+        description: "Planning(en) succesvol opgeslagen"
+      });
+
+      setDialogOpen(false);
+    } catch (error) {
+      console.error("Error saving plannings:", error);
+      toast({
+        variant: "destructive",
+        title: "Fout",
+        description: "Er is een fout opgetreden bij het opslaan van de planning"
+      });
+    }
+  };
+
   return (
     <div className="space-y-6 p-6">
       <div className="flex items-center gap-3">
@@ -764,6 +838,7 @@ const Planning = () => {
               form={form}
               editingPlanning={editingPlanning}
               plannings={plannings}
+              handleSubmit={handleSubmit} // Added prop for new handler
             />
           </DialogContent>
         </Dialog>
