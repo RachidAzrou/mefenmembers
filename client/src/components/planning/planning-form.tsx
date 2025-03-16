@@ -129,91 +129,60 @@ const PlanningForm: React.FC<PlanningFormProps> = ({
 
         <FormField
           control={form.control}
-          name={isBulkPlanning ? "selectedRoomId" : "roomId"}
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel className="text-sm">Ruimte</FormLabel>
-              <Select
-                value={field.value}
-                onValueChange={field.onChange}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecteer een ruimte">
-                    {field.value && rooms.find(r => r.id === field.value)?.name}
-                  </SelectValue>
-                </SelectTrigger>
-                <SelectContent>
-                  {rooms.map((room) => (
-                    <SelectItem key={room.id} value={room.id}>
-                      <span>{room.name}</span>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
           name={isBulkPlanning ? "selectedVolunteers" : "volunteerId"}
           render={({ field }) => (
             <FormItem>
               <FormLabel className="text-sm">
                 Vrijwilliger{isBulkPlanning ? 's' : ''}
               </FormLabel>
-              <Select
-                value={isBulkPlanning ? field.value?.[0] || "" : field.value}
-                onValueChange={(value) => {
-                  if (isBulkPlanning) {
-                    const current = field.value || [];
-                    const updated = current.includes(value)
-                      ? current.filter(id => id !== value)
-                      : [...current, value];
-                    field.onChange(updated);
-                  } else {
-                    field.onChange(value);
-                  }
-                }}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder={`Selecteer vrijwilliger${isBulkPlanning ? 's' : ''}`}>
-                    {isBulkPlanning
-                      ? field.value?.length > 0
-                        ? `${field.value.length} vrijwilliger(s) geselecteerd`
-                        : null
-                      : field.value
-                        ? getVolunteerName(field.value)
-                        : null
-                    }
-                  </SelectValue>
-                </SelectTrigger>
-                <SelectContent>
-                  <div className="sticky top-0 p-2 bg-white border-b">
-                    <div className="relative">
-                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
-                      <Input
-                        type="text"
-                        placeholder="Zoek vrijwilliger..."
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        className="pl-9 h-9"
-                        onClick={(e) => e.stopPropagation()}
-                      />
-                    </div>
+              <div className="relative">
+                <div className="sticky top-0 p-2 bg-white border-b">
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+                    <Input
+                      type="text"
+                      placeholder="Zoek vrijwilliger..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="pl-9 h-9"
+                    />
                   </div>
-                  <div className="pt-1">
+                </div>
+                <Select
+                  value={isBulkPlanning ? field.value?.[0] || "" : field.value}
+                  onValueChange={(value) => {
+                    if (isBulkPlanning) {
+                      const current = field.value || [];
+                      const updated = current.includes(value)
+                        ? current.filter(id => id !== value)
+                        : [...current, value];
+                      field.onChange(updated);
+                    } else {
+                      field.onChange(value);
+                    }
+                  }}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder={`Selecteer vrijwilliger${isBulkPlanning ? 's' : ''}`}>
+                      {isBulkPlanning
+                        ? field.value?.length > 0
+                          ? `${field.value.length} vrijwilliger(s) geselecteerd`
+                          : null
+                        : field.value
+                          ? getVolunteerName(field.value)
+                          : null
+                      }
+                    </SelectValue>
+                  </SelectTrigger>
+                  <SelectContent side="bottom" position="popper" className="max-h-[300px]">
                     {filteredVolunteers.map((volunteer) => (
                       <SelectItem key={volunteer.id} value={volunteer.id}>
-                        <div className="flex items-center gap-2">
-                          <span>{volunteer.firstName} {volunteer.lastName}</span>
-                        </div>
+                        <span>{volunteer.firstName} {volunteer.lastName}</span>
                       </SelectItem>
                     ))}
-                  </div>
-                </SelectContent>
-              </Select>
+                  </SelectContent>
+                </Select>
+              </div>
               {isBulkPlanning && field.value?.length > 0 && (
                 <div className="mt-2 flex flex-wrap gap-2">
                   {field.value.map(id => {
@@ -241,6 +210,99 @@ const PlanningForm: React.FC<PlanningFormProps> = ({
                   })}
                 </div>
               )}
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        {/* Verantwoordelijke sectie direct na vrijwilliger selectie */}
+        {isBulkPlanning ? (
+          selectedVolunteers.length > 0 && (
+            <FormField
+              control={form.control}
+              name="responsibleVolunteerId"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-sm">
+                    <div className="flex items-center gap-2">
+                      <span>Verantwoordelijke</span>
+                      <div className="bg-[#963E56]/10 rounded-full p-1">
+                        <ShieldCheck className="h-4 w-4 text-[#963E56]" />
+                      </div>
+                    </div>
+                  </FormLabel>
+                  <Select
+                    value={field.value}
+                    onValueChange={field.onChange}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecteer verantwoordelijke">
+                        {field.value && getVolunteerName(field.value)}
+                      </SelectValue>
+                    </SelectTrigger>
+                    <SelectContent side="bottom">
+                      {selectedVolunteers.map((volunteerId) => {
+                        const volunteer = volunteers.find(v => v.id === volunteerId);
+                        return volunteer && (
+                          <SelectItem key={volunteerId} value={volunteerId}>
+                            <span>{volunteer.firstName} {volunteer.lastName}</span>
+                          </SelectItem>
+                        );
+                      })}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          )
+        ) : (
+          <FormField
+            control={form.control}
+            name="isResponsible"
+            render={({ field }) => (
+              <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+                <div className="flex items-center gap-2">
+                  <FormLabel>Verantwoordelijke</FormLabel>
+                  <div className="bg-[#963E56]/10 rounded-full p-1">
+                    <ShieldCheck className="h-4 w-4 text-[#963E56]" />
+                  </div>
+                </div>
+                <FormControl>
+                  <Switch
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                    className="data-[state=checked]:bg-[#963E56]"
+                  />
+                </FormControl>
+              </FormItem>
+            )}
+          />
+        )}
+
+        <FormField
+          control={form.control}
+          name={isBulkPlanning ? "selectedRoomId" : "roomId"}
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel className="text-sm">Ruimte</FormLabel>
+              <Select
+                value={field.value}
+                onValueChange={field.onChange}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecteer een ruimte">
+                    {field.value && rooms.find(r => r.id === field.value)?.name}
+                  </SelectValue>
+                </SelectTrigger>
+                <SelectContent side="bottom">
+                  {rooms.map((room) => (
+                    <SelectItem key={room.id} value={room.id}>
+                      <span>{room.name}</span>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
               <FormMessage />
             </FormItem>
           )}
@@ -340,72 +402,6 @@ const PlanningForm: React.FC<PlanningFormProps> = ({
             )}
           />
         </div>
-
-        {isBulkPlanning ? (
-          selectedVolunteers.length > 0 && (
-            <FormField
-              control={form.control}
-              name="responsibleVolunteerId"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="text-sm">
-                    <div className="flex items-center gap-2">
-                      <span>Verantwoordelijke</span>
-                      <div className="bg-[#963E56]/10 rounded-full p-1">
-                        <ShieldCheck className="h-4 w-4 text-[#963E56]" />
-                      </div>
-                    </div>
-                  </FormLabel>
-                  <Select
-                    value={field.value}
-                    onValueChange={field.onChange}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecteer verantwoordelijke">
-                        {field.value && getVolunteerName(field.value)}
-                      </SelectValue>
-                    </SelectTrigger>
-                    <SelectContent>
-                      {selectedVolunteers.map((volunteerId) => {
-                        const volunteer = volunteers.find(v => v.id === volunteerId);
-                        return volunteer && (
-                          <SelectItem key={volunteerId} value={volunteerId}>
-                            <div className="flex items-center gap-2">
-                              <span>{volunteer.firstName} {volunteer.lastName}</span>
-                            </div>
-                          </SelectItem>
-                        );
-                      })}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          )
-        ) : (
-          <FormField
-            control={form.control}
-            name="isResponsible"
-            render={({ field }) => (
-              <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
-                <div className="flex items-center gap-2">
-                  <FormLabel>Verantwoordelijke</FormLabel>
-                  <div className="bg-[#963E56]/10 rounded-full p-1">
-                    <ShieldCheck className="h-4 w-4 text-[#963E56]" />
-                  </div>
-                </div>
-                <FormControl>
-                  <Switch
-                    checked={field.value}
-                    onCheckedChange={field.onChange}
-                    className="data-[state=checked]:bg-[#963E56]"
-                  />
-                </FormControl>
-              </FormItem>
-            )}
-          />
-        )}
 
         <div className="flex justify-end gap-3 pt-6">
           <Button
