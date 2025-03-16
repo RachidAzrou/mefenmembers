@@ -44,7 +44,7 @@ export function PlanningDialog({
     >
       <DialogTrigger asChild>
         <Button
-          className="gap-2 bg-[#963E56] hover:bg-[#963E56]/90 text-white"
+          className="gap-2 bg-[#963E56] hover:bg-[#963E56]/90 text-white min-w-[200px]"
         >
           <Plus className="h-4 w-4" />
           <span>Inplannen</span>

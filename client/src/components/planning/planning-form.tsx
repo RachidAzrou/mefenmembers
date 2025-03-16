@@ -403,15 +403,10 @@ const PlanningForm: React.FC<PlanningFormProps> = ({
             name="isResponsible"
             render={({ field }) => (
               <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
-                <div className="space-y-0.5">
-                  <div className="flex items-center gap-2">
-                    <FormLabel>Verantwoordelijke</FormLabel>
-                    <div className="bg-[#963E56]/10 rounded-full p-1">
-                      <ShieldCheck className="h-4 w-4 text-[#963E56]" />
-                    </div>
-                  </div>
-                  <div className="text-sm text-muted-foreground">
-                    Maak deze vrijwilliger verantwoordelijk voor de ruimte
+                <div className="flex items-center gap-2">
+                  <FormLabel>Verantwoordelijke</FormLabel>
+                  <div className="bg-[#963E56]/10 rounded-full p-1">
+                    <ShieldCheck className="h-4 w-4 text-[#963E56]" />
                   </div>
                 </div>
                 <FormControl>

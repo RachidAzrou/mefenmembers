@@ -225,17 +225,6 @@ function PlanningPage() {
           <CalendarIcon className="h-8 w-8 text-[#963E56]" />
           <h1 className="text-3xl font-bold text-[#963E56]">Planning</h1>
         </div>
-
-        <PlanningDialog
-          key="planning-dialog"
-          open={dialogOpen}
-          onOpenChange={setDialogOpen}
-          editingPlanning={editingPlanning}
-          form={form}
-          onSubmit={handleSubmit}
-          volunteers={volunteers}
-          rooms={rooms}
-        />
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -280,6 +269,19 @@ function PlanningPage() {
             </div>
           </CardContent>
         </Card>
+      </div>
+
+      <div className="flex justify-center">
+        <PlanningDialog
+          key="planning-dialog"
+          open={dialogOpen}
+          onOpenChange={setDialogOpen}
+          editingPlanning={editingPlanning}
+          form={form}
+          onSubmit={handleSubmit}
+          volunteers={volunteers}
+          rooms={rooms}
+        />
       </div>
 
       <div className="space-y-4">
