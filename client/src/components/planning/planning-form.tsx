@@ -23,6 +23,7 @@ const planningSchema = z.discriminatedUnion("isBulkPlanning", [
     roomId: z.string().min(1, "Selecteer een ruimte"),
     startDate: z.string().min(1, "Startdatum is verplicht"),
     endDate: z.string().min(1, "Einddatum is verplicht"),
+    isResponsible: z.boolean().default(false),
   }),
   z.object({
     isBulkPlanning: z.literal(true),
@@ -30,6 +31,7 @@ const planningSchema = z.discriminatedUnion("isBulkPlanning", [
     selectedRoomId: z.string().min(1, "Selecteer een ruimte"),
     startDate: z.string().min(1, "Startdatum is verplicht"),
     endDate: z.string().min(1, "Einddatum is verplicht"),
+    responsibleVolunteerId: z.string().optional(),
   }),
 ]);
 
@@ -41,6 +43,7 @@ interface Planning {
   roomId: string;
   startDate: string;
   endDate: string;
+  isResponsible?: boolean;
 }
 
 interface PlanningFormProps {
@@ -64,6 +67,9 @@ const PlanningForm: React.FC<PlanningFormProps> = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
   const isBulkPlanning = form.watch("isBulkPlanning");
+  const selectedVolunteers = form.watch("selectedVolunteers") || [];
+  const selectedRoomId = form.watch("selectedRoomId");
+  const responsibleVolunteerId = form.watch("responsibleVolunteerId");
 
   const handleFormSubmit = async (data: PlanningFormData) => {
     try {
@@ -100,13 +106,15 @@ const PlanningForm: React.FC<PlanningFormProps> = ({
                   selectedVolunteers: [],
                   selectedRoomId: "",
                   startDate: "",
-                  endDate: ""
+                  endDate: "",
+                  responsibleVolunteerId: undefined,
                 } : {
                   isBulkPlanning: false,
                   volunteerId: "",
                   roomId: "",
                   startDate: "",
-                  endDate: ""
+                  endDate: "",
+                  isResponsible: false,
                 } as PlanningFormData);
               }}
               className="data-[state=checked]:bg-[#963E56]"
@@ -345,6 +353,66 @@ const PlanningForm: React.FC<PlanningFormProps> = ({
             )}
           />
         </div>
+
+        {isBulkPlanning ? (
+          selectedVolunteers.length > 0 && selectedRoomId && (
+            <FormField
+              control={form.control}
+              name="responsibleVolunteerId"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-sm">Verantwoordelijke</FormLabel>
+                  <Select
+                    value={field.value}
+                    onValueChange={field.onChange}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecteer verantwoordelijke">
+                        {field.value && getVolunteerName(field.value)}
+                      </SelectValue>
+                    </SelectTrigger>
+                    <SelectContent>
+                      {selectedVolunteers.map((volunteerId) => {
+                        const volunteer = volunteers.find(v => v.id === volunteerId);
+                        return volunteer && (
+                          <SelectItem key={volunteerId} value={volunteerId}>
+                            <div className="flex items-center gap-2">
+                              <Check className={cn("h-4 w-4", field.value === volunteerId ? "opacity-100" : "opacity-0")} />
+                              <span>{volunteer.firstName} {volunteer.lastName}</span>
+                            </div>
+                          </SelectItem>
+                        );
+                      })}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          )
+        ) : (
+          <FormField
+            control={form.control}
+            name="isResponsible"
+            render={({ field }) => (
+              <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+                <div className="space-y-0.5">
+                  <FormLabel>Verantwoordelijke</FormLabel>
+                  <div className="text-sm text-muted-foreground">
+                    Maak deze vrijwilliger verantwoordelijk voor de ruimte
+                  </div>
+                </div>
+                <FormControl>
+                  <Switch
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                    className="data-[state=checked]:bg-[#963E56]"
+                  />
+                </FormControl>
+              </FormItem>
+            )}
+          />
+        )}
 
         <div className="flex justify-end gap-3 pt-6">
           <Button

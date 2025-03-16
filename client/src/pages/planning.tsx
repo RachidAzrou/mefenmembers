@@ -1,18 +1,19 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Calendar as CalendarIcon, Search, Trash2, Edit2 } from "lucide-react";
+import { Calendar as CalendarIcon, Search, Trash2, Edit2, UserCircle2 } from "lucide-react";
 import { format, parseISO, startOfDay } from "date-fns";
 import { nl } from "date-fns/locale";
 import { Card, CardContent } from "@/components/ui/card";
 import { useRole } from "@/hooks/use-role";
 import { db } from "@/lib/firebase";
-import { ref, onValue, remove, push, set } from "firebase/database";
+import { ref, onValue, remove, push, set, update } from "firebase/database";
 import { PlanningDialog } from "@/components/planning/planning-dialog";
 import { planningSchema, type Planning, type PlanningFormData } from "@/components/planning/planning-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { useToast } from "@/hooks/use-toast";
+import { cn } from "@/lib/utils";
 
 function PlanningPage() {
   const [plannings, setPlannings] = useState<Planning[]>([]);
@@ -37,6 +38,8 @@ function PlanningPage() {
       endDate: "",
       selectedVolunteers: [],
       selectedRoomId: "",
+      isResponsible: false,
+      responsibleVolunteerId: undefined,
     }
   });
 
@@ -82,16 +85,50 @@ function PlanningPage() {
   const handleSubmit = async (data: PlanningFormData) => {
     try {
       if (data.isBulkPlanning) {
+        // Handle bulk planning
         for (const volunteerId of data.selectedVolunteers) {
+          if (data.responsibleVolunteerId && data.responsibleVolunteerId === volunteerId) {
+            // Check for existing responsible
+            const existingResponsible = plannings.find(
+              p => p.roomId === data.selectedRoomId &&
+                p.isResponsible &&
+                parseISO(p.startDate) <= parseISO(data.startDate) &&
+                parseISO(p.endDate) >= parseISO(data.startDate)
+            );
+
+            if (existingResponsible) {
+              const prevRef = ref(db, `plannings/${existingResponsible.id}`);
+              await update(prevRef, { isResponsible: false });
+            }
+          }
+
           const newPlanningRef = push(ref(db, "plannings"));
           await set(newPlanningRef, {
             volunteerId,
             roomId: data.selectedRoomId,
             startDate: format(new Date(data.startDate), 'yyyy-MM-dd'),
-            endDate: format(new Date(data.endDate), 'yyyy-MM-dd')
+            endDate: format(new Date(data.endDate), 'yyyy-MM-dd'),
+            isResponsible: data.responsibleVolunteerId === volunteerId
           });
         }
       } else {
+        // Handle single planning
+        if (data.isResponsible) {
+          // Check for existing responsible
+          const existingResponsible = plannings.find(
+            p => p.roomId === data.roomId &&
+              p.isResponsible &&
+              p.id !== editingPlanning?.id &&
+              parseISO(p.startDate) <= parseISO(data.startDate) &&
+              parseISO(p.endDate) >= parseISO(data.startDate)
+          );
+
+          if (existingResponsible) {
+            const prevRef = ref(db, `plannings/${existingResponsible.id}`);
+            await update(prevRef, { isResponsible: false });
+          }
+        }
+
         const planningRef = editingPlanning
           ? ref(db, `plannings/${editingPlanning.id}`)
           : push(ref(db, "plannings"));
@@ -100,7 +137,8 @@ function PlanningPage() {
           volunteerId: data.volunteerId,
           roomId: data.roomId,
           startDate: format(new Date(data.startDate), 'yyyy-MM-dd'),
-          endDate: format(new Date(data.endDate), 'yyyy-MM-dd')
+          endDate: format(new Date(data.endDate), 'yyyy-MM-dd'),
+          isResponsible: data.isResponsible
         });
       }
 
@@ -170,6 +208,15 @@ function PlanningPage() {
       return end < now;
     });
   }, [plannings, now]);
+
+  // Sort plannings to show responsible volunteers first within each room section
+  const sortPlannings = (plannings: Planning[]) => {
+    return [...plannings].sort((a, b) => {
+      if (a.isResponsible && !b.isResponsible) return -1;
+      if (!a.isResponsible && b.isResponsible) return 1;
+      return 0;
+    });
+  };
 
   return (
     <div className="space-y-6 p-6">
@@ -255,7 +302,7 @@ function PlanningPage() {
             </div>
           ) : (
             <div className="space-y-4">
-              {activePlannings.map((planning) => (
+              {sortPlannings(activePlannings).map((planning) => (
                 <PlanningItem
                   key={planning.id}
                   planning={planning}
@@ -269,6 +316,7 @@ function PlanningPage() {
                       roomId: planning.roomId,
                       startDate: planning.startDate,
                       endDate: planning.endDate,
+                      isResponsible: planning.isResponsible,
                     });
                     setDialogOpen(true);
                   }}
@@ -298,7 +346,7 @@ function PlanningPage() {
             </div>
           ) : (
             <div className="space-y-4">
-              {upcomingPlannings.map((planning) => (
+              {sortPlannings(upcomingPlannings).map((planning) => (
                 <PlanningItem
                   key={planning.id}
                   planning={planning}
@@ -312,6 +360,7 @@ function PlanningPage() {
                       roomId: planning.roomId,
                       startDate: planning.startDate,
                       endDate: planning.endDate,
+                      isResponsible: planning.isResponsible,
                     });
                     setDialogOpen(true);
                   }}
@@ -341,7 +390,7 @@ function PlanningPage() {
             </div>
           ) : (
             <div className="space-y-4">
-              {pastPlannings.map((planning) => (
+              {sortPlannings(pastPlannings).map((planning) => (
                 <PlanningItem
                   key={planning.id}
                   planning={planning}
@@ -376,8 +425,16 @@ const PlanningItem: React.FC<PlanningItemProps> = ({
   return (
     <div className="flex items-center justify-between p-4 border rounded-lg bg-background">
       <div className="space-y-1">
-        <div className="font-medium">
-          {volunteer ? `${volunteer.firstName} ${volunteer.lastName}` : 'Onbekende vrijwilliger'}
+        <div className="flex items-center gap-2">
+          <span className={cn(
+            "font-medium",
+            planning.isResponsible && "text-[#963E56]"
+          )}>
+            {volunteer ? `${volunteer.firstName} ${volunteer.lastName}` : 'Onbekende vrijwilliger'}
+          </span>
+          {planning.isResponsible && (
+            <UserCircle2 className="h-4 w-4 text-[#963E56]" />
+          )}
         </div>
         <div className="text-sm text-muted-foreground">
           {room?.name || 'Onbekende ruimte'}
