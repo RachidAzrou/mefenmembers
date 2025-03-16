@@ -23,32 +23,36 @@ interface Planning {
   endDate: string;
 }
 
+// Form schema
+const planningSchema = z.discriminatedUnion("isBulkPlanning", [
+  z.object({
+    isBulkPlanning: z.literal(false),
+    volunteerId: z.string().min(1, "Selecteer een vrijwilliger"),
+    roomId: z.string().min(1, "Selecteer een ruimte"),
+    startDate: z.string().min(1, "Startdatum is verplicht"),
+    endDate: z.string().min(1, "Einddatum is verplicht"),
+  }),
+  z.object({
+    isBulkPlanning: z.literal(true),
+    selectedVolunteers: z.array(z.string()).min(1, "Selecteer ten minste één vrijwilliger"),
+    selectedRoomId: z.string().min(1, "Selecteer een ruimte"),
+    startDate: z.string().min(1, "Startdatum is verplicht"),
+    endDate: z.string().min(1, "Einddatum is verplicht"),
+  }),
+]);
+
+type PlanningFormData = z.infer<typeof planningSchema>;
+
 interface PlanningFormProps {
   volunteers: { id: string; firstName: string; lastName: string }[];
   rooms: { id: string; name: string }[];
   onSubmit: (data: { plannings: Planning[] }) => Promise<void>;
   onClose: () => void;
-  form: UseFormReturn<z.infer<typeof planningSchema>>;
+  form: UseFormReturn<PlanningFormData>;
   editingPlanning: any | null;
 }
 
-// Form schema
-const planningSchema = z.object({
-  startDate: z.string().min(1, "Startdatum is verplicht"),
-  endDate: z.string().min(1, "Einddatum is verplicht"),
-  isBulkPlanning: z.boolean().default(false),
-  // Single planning fields
-  volunteerId: z.string().optional(),
-  roomId: z.string().optional(),
-  // Bulk planning fields
-  selectedVolunteers: z.array(z.string()).default([]),
-  selectedRoomId: z.string().optional(),
-});
-
-type PlanningFormType = z.infer<typeof planningSchema>;
-
-// Component implementation
-function PlanningFormComponent({
+function PlanningForm({
   volunteers,
   rooms,
   onSubmit,
@@ -61,78 +65,31 @@ function PlanningFormComponent({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const isBulkPlanning = form.watch("isBulkPlanning");
 
-  const handleFormSubmit = async (formData: PlanningFormType) => {
+  const handleFormSubmit = async (data: PlanningFormData) => {
     try {
       setIsSubmitting(true);
-      console.log("Submitting form data:", formData);
 
-      if (isBulkPlanning) {
-        // Bulk planning validation
-        if (!formData.selectedRoomId) {
-          toast({
-            title: "Fout",
-            description: "Selecteer een ruimte",
-            variant: "destructive",
-          });
-          return;
-        }
+      let plannings: Planning[];
 
-        if (!formData.selectedVolunteers?.length) {
-          toast({
-            title: "Fout",
-            description: "Selecteer ten minste één vrijwilliger",
-            variant: "destructive",
-          });
-          return;
-        }
-
-        // Create bulk plannings
-        const plannings = formData.selectedVolunteers.map(volunteerId => ({
-          roomId: formData.selectedRoomId!,
+      if (data.isBulkPlanning) {
+        plannings = data.selectedVolunteers.map(volunteerId => ({
+          roomId: data.selectedRoomId,
           volunteerId,
-          startDate: formData.startDate,
-          endDate: formData.endDate
+          startDate: data.startDate,
+          endDate: data.endDate
         }));
-
-        await onSubmit({ plannings });
       } else {
-        // Single planning validation
-        if (!formData.roomId) {
-          toast({
-            title: "Fout",
-            description: "Selecteer een ruimte",
-            variant: "destructive",
-          });
-          return;
-        }
-
-        if (!formData.volunteerId) {
-          toast({
-            title: "Fout",
-            description: "Selecteer een vrijwilliger",
-            variant: "destructive",
-          });
-          return;
-        }
-
-        // Create single planning
-        const planning = {
-          roomId: formData.roomId,
-          volunteerId: formData.volunteerId,
-          startDate: formData.startDate,
-          endDate: formData.endDate
-        };
-
-        await onSubmit({ plannings: [planning] });
+        plannings = [{
+          roomId: data.roomId,
+          volunteerId: data.volunteerId,
+          startDate: data.startDate,
+          endDate: data.endDate
+        }];
       }
 
-      toast({
-        title: "Succes",
-        description: "Planning is opgeslagen",
-      });
-
+      await onSubmit({ plannings });
+      toast({ title: "Succes", description: "Planning is opgeslagen" });
       form.reset();
-      setSearchTerm("");
       onClose();
     } catch (error) {
       console.error("Form submission error:", error);
@@ -146,6 +103,26 @@ function PlanningFormComponent({
     }
   };
 
+  const resetForm = (isBulk: boolean) => {
+    if (isBulk) {
+      form.reset({
+        isBulkPlanning: true,
+        selectedVolunteers: [],
+        selectedRoomId: "",
+        startDate: "",
+        endDate: ""
+      } as PlanningFormData);
+    } else {
+      form.reset({
+        isBulkPlanning: false,
+        volunteerId: "",
+        roomId: "",
+        startDate: "",
+        endDate: ""
+      } as PlanningFormData);
+    }
+  };
+
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(handleFormSubmit)} className="space-y-4">
@@ -154,19 +131,7 @@ function PlanningFormComponent({
             <Switch
               checked={isBulkPlanning}
               onCheckedChange={(checked) => {
-                form.setValue("isBulkPlanning", checked);
-                // Reset form based on mode
-                if (checked) {
-                  form.setValue("volunteerId", undefined);
-                  form.setValue("roomId", undefined);
-                  form.setValue("selectedVolunteers", []);
-                  form.setValue("selectedRoomId", undefined);
-                } else {
-                  form.setValue("selectedVolunteers", []);
-                  form.setValue("selectedRoomId", undefined);
-                  form.setValue("volunteerId", undefined);
-                  form.setValue("roomId", undefined);
-                }
+                resetForm(checked);
               }}
               className="data-[state=checked]:bg-[#963E56]"
             />
@@ -174,7 +139,6 @@ function PlanningFormComponent({
           </div>
         )}
 
-        {/* Room Selection */}
         <FormField
           control={form.control}
           name={isBulkPlanning ? "selectedRoomId" : "roomId"}
@@ -182,7 +146,7 @@ function PlanningFormComponent({
             <FormItem>
               <FormLabel className="text-sm">Ruimte</FormLabel>
               <Select
-                value={field.value || ""}
+                value={field.value}
                 onValueChange={field.onChange}
               >
                 <SelectTrigger className="w-full">
@@ -190,17 +154,9 @@ function PlanningFormComponent({
                 </SelectTrigger>
                 <SelectContent>
                   {rooms.map((room) => (
-                    <SelectItem
-                      key={room.id}
-                      value={room.id}
-                    >
+                    <SelectItem key={room.id} value={room.id}>
                       <div className="flex items-center gap-2">
-                        <Check
-                          className={cn(
-                            "h-4 w-4 flex-shrink-0",
-                            field.value === room.id ? "opacity-100" : "opacity-0"
-                          )}
-                        />
+                        <Check className={cn("h-4 w-4", field.value === room.id ? "opacity-100" : "opacity-0")} />
                         <span>{room.name}</span>
                       </div>
                     </SelectItem>
@@ -212,120 +168,105 @@ function PlanningFormComponent({
           )}
         />
 
-        {/* Volunteer Selection */}
-        {((isBulkPlanning && form.watch("selectedRoomId")) || (!isBulkPlanning && form.watch("roomId"))) && (
-          <FormField
-            control={form.control}
-            name={isBulkPlanning ? "selectedVolunteers" : "volunteerId"}
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel className="text-sm">
-                  Vrijwilliger{isBulkPlanning ? 's' : ''}
-                </FormLabel>
-                <Select
-                  value={isBulkPlanning ? field.value?.[0] || "" : field.value || ""}
-                  onValueChange={(value) => {
-                    if (isBulkPlanning) {
-                      const current = field.value || [];
-                      const updated = current.includes(value)
-                        ? current.filter(id => id !== value)
-                        : [...current, value];
-                      field.onChange(updated);
-                    } else {
-                      field.onChange(value);
-                    }
-                  }}
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue>
-                      {isBulkPlanning
-                        ? field.value?.length
-                          ? `${field.value.length} vrijwilliger(s) geselecteerd`
-                          : "Selecteer vrijwilligers"
-                        : "Selecteer vrijwilliger"}
-                    </SelectValue>
-                  </SelectTrigger>
-                  <SelectContent>
-                    <div className="sticky top-0 p-2 bg-white border-b">
-                      <div className="relative">
-                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
-                        <Input
-                          type="text"
-                          placeholder="Zoek vrijwilliger..."
-                          value={searchTerm}
-                          onKeyDown={(e) => e.stopPropagation()}
-                          onChange={(e) => {
-                            e.stopPropagation();
-                            setSearchTerm(e.target.value);
-                          }}
-                          className="pl-9 h-9"
-                        />
-                      </div>
+        <FormField
+          control={form.control}
+          name={isBulkPlanning ? "selectedVolunteers" : "volunteerId"}
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel className="text-sm">
+                Vrijwilliger{isBulkPlanning ? 's' : ''}
+              </FormLabel>
+              <Select
+                value={isBulkPlanning ? field.value?.[0] || "" : field.value}
+                onValueChange={(value) => {
+                  if (isBulkPlanning) {
+                    const current = field.value || [];
+                    const updated = current.includes(value)
+                      ? current.filter(id => id !== value)
+                      : [...current, value];
+                    field.onChange(updated);
+                  } else {
+                    field.onChange(value);
+                  }
+                }}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder={`Selecteer vrijwilliger${isBulkPlanning ? 's' : ''}`}>
+                    {isBulkPlanning && field.value?.length
+                      ? `${field.value.length} vrijwilliger(s) geselecteerd`
+                      : null}
+                  </SelectValue>
+                </SelectTrigger>
+                <SelectContent>
+                  <div className="sticky top-0 p-2 bg-white border-b">
+                    <div className="relative">
+                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+                      <Input
+                        type="text"
+                        placeholder="Zoek vrijwilliger..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="pl-9 h-9"
+                      />
                     </div>
-                    <div className="pt-1">
-                      {volunteers
-                        .filter(volunteer => {
-                          const fullName = `${volunteer.firstName} ${volunteer.lastName}`.toLowerCase();
-                          return fullName.includes(searchTerm.toLowerCase());
-                        })
-                        .map((volunteer) => (
-                          <SelectItem
-                            key={volunteer.id}
-                            value={volunteer.id}
-                          >
-                            <div className="flex items-center gap-2">
-                              <Check
-                                className={cn(
-                                  "h-4 w-4 flex-shrink-0",
-                                  isBulkPlanning
-                                    ? (field.value || []).includes(volunteer.id)
-                                      ? "opacity-100"
-                                      : "opacity-0"
-                                    : field.value === volunteer.id
-                                      ? "opacity-100"
-                                      : "opacity-0"
-                                )}
-                              />
-                              <span>{volunteer.firstName} {volunteer.lastName}</span>
-                            </div>
-                          </SelectItem>
-                        ))}
-                    </div>
-                  </SelectContent>
-                </Select>
-                {isBulkPlanning && field.value?.length > 0 && (
-                  <div className="mt-2 flex flex-wrap gap-2">
-                    {field.value.map(id => {
-                      const volunteer = volunteers.find(v => v.id === id);
-                      return volunteer && (
-                        <div
-                          key={id}
-                          className="bg-[#963E56]/10 text-[#963E56] text-sm rounded-full px-3 py-1 flex items-center gap-2"
-                        >
-                          <span>{volunteer.firstName} {volunteer.lastName}</span>
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="icon"
-                            className="h-4 w-4 p-0 hover:bg-transparent"
-                            onClick={() => {
-                              field.onChange(field.value?.filter(v => v !== id));
-                            }}
-                          >
-                            <X className="h-3 w-3" />
-                          </Button>
-                        </div>
-                      );
-                    })}
                   </div>
-                )}
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        )}
+                  <div className="pt-1">
+                    {volunteers
+                      .filter(volunteer => {
+                        const fullName = `${volunteer.firstName} ${volunteer.lastName}`.toLowerCase();
+                        return fullName.includes(searchTerm.toLowerCase());
+                      })
+                      .map((volunteer) => (
+                        <SelectItem key={volunteer.id} value={volunteer.id}>
+                          <div className="flex items-center gap-2">
+                            <Check className={cn(
+                              "h-4 w-4",
+                              isBulkPlanning
+                                ? (field.value || []).includes(volunteer.id)
+                                  ? "opacity-100"
+                                  : "opacity-0"
+                                : field.value === volunteer.id
+                                  ? "opacity-100"
+                                  : "opacity-0"
+                            )} />
+                            <span>{volunteer.firstName} {volunteer.lastName}</span>
+                          </div>
+                        </SelectItem>
+                      ))}
+                  </div>
+                </SelectContent>
+              </Select>
+              {isBulkPlanning && field.value?.length > 0 && (
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {field.value.map(id => {
+                    const volunteer = volunteers.find(v => v.id === id);
+                    return volunteer && (
+                      <div
+                        key={id}
+                        className="bg-[#963E56]/10 text-[#963E56] text-sm rounded-full px-3 py-1 flex items-center gap-2"
+                      >
+                        <span>{volunteer.firstName} {volunteer.lastName}</span>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="h-4 w-4 p-0 hover:bg-transparent"
+                          onClick={() => {
+                            field.onChange(field.value?.filter(v => v !== id));
+                          }}
+                        >
+                          <X className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+              <FormMessage />
+            </FormItem>
+          )}
+        />
 
-        {/* Date Selection */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <FormField
             control={form.control}
@@ -447,6 +388,6 @@ function PlanningFormComponent({
   );
 }
 
-// Export both the component and the schema
-export { planningSchema, type PlanningFormType };
-export default PlanningFormComponent;
+export type { Planning, PlanningFormData };
+export { planningSchema };
+export default PlanningForm;
