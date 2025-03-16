@@ -409,4 +409,5 @@ const PlanningItem: React.FC<PlanningItemProps> = ({
   );
 };
 
+export { PlanningPage };
 export default PlanningPage;
