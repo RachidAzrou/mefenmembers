@@ -197,7 +197,7 @@ export default function MembersList() {
         </button>
         
         <button 
-          onClick={() => setActiveFilter("paid")}
+          onClick={() => activeFilter === "paid" ? setActiveFilter("all") : setActiveFilter("paid")}
           className="text-left focus:outline-none focus:ring-2 focus:ring-green-500 rounded-lg"
         >
           <Card className={`overflow-hidden border-none shadow-md transition-all duration-200 ${
@@ -223,7 +223,7 @@ export default function MembersList() {
         </button>
         
         <button 
-          onClick={() => setActiveFilter("unpaid")}
+          onClick={() => activeFilter === "unpaid" ? setActiveFilter("all") : setActiveFilter("unpaid")}
           className="text-left focus:outline-none focus:ring-2 focus:ring-red-500 rounded-lg"
         >
           <Card className={`overflow-hidden border-none shadow-md transition-all duration-200 ${
@@ -423,7 +423,7 @@ export default function MembersList() {
                       onClick={() => toggleSort("name")} 
                       className="flex items-center hover:text-[#963E56] transition-colors"
                     >
-                      Naam
+                      Voornaam
                       {sortField === "name" && (
                         <span className="ml-1">
                           {sortDirection === "asc" ? 
@@ -433,6 +433,9 @@ export default function MembersList() {
                         </span>
                       )}
                     </button>
+                  </TableHead>
+                  <TableHead className="font-medium sm:font-semibold text-xs sm:text-sm text-gray-700">
+                    Achternaam
                   </TableHead>
                   <TableHead className="hidden md:table-cell font-medium sm:font-semibold text-xs sm:text-sm text-gray-700">
                     <button 
@@ -476,7 +479,8 @@ export default function MembersList() {
                   Array(5).fill(0).map((_, i) => (
                     <TableRow key={i} className="hover:bg-gray-50">
                       <TableCell><Skeleton className="h-5 w-12" /></TableCell>
-                      <TableCell><Skeleton className="h-5 w-32" /></TableCell>
+                      <TableCell><Skeleton className="h-5 w-24" /></TableCell>
+                      <TableCell><Skeleton className="h-5 w-24" /></TableCell>
                       <TableCell className="hidden md:table-cell"><Skeleton className="h-5 w-20" /></TableCell>
                       <TableCell className="hidden md:table-cell"><Skeleton className="h-5 w-32" /></TableCell>
                       <TableCell className="hidden md:table-cell"><Skeleton className="h-5 w-24" /></TableCell>
@@ -486,7 +490,7 @@ export default function MembersList() {
                   ))
                 ) : sortedMembers.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={7} className="h-32 text-center">
+                    <TableCell colSpan={8} className="h-32 text-center">
                       <div className="flex flex-col items-center justify-center text-gray-500">
                         <Users className="h-10 w-10 mb-2 text-gray-300" />
                         <p className="mb-1">Geen leden gevonden</p>
@@ -505,7 +509,10 @@ export default function MembersList() {
                         {member.memberNumber.toString().padStart(4, '0')}
                       </TableCell>
                       <TableCell className="font-medium text-xs sm:text-sm py-2 sm:py-4">
-                        {member.firstName} {member.lastName}
+                        {member.firstName}
+                      </TableCell>
+                      <TableCell className="font-medium text-xs sm:text-sm py-2 sm:py-4">
+                        {member.lastName}
                       </TableCell>
                       <TableCell className="hidden md:table-cell text-gray-600 text-xs sm:text-sm py-2 sm:py-4">
                         {formatDate(member.birthDate)}
