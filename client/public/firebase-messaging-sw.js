@@ -1,13 +1,13 @@
 // Cache version
-const CACHE_VERSION = 'v1.1.0';
-const CACHE_NAME = `mefen-leden-cache-${CACHE_VERSION}`;
+const CACHE_VERSION = 'v2.1.4';
+const CACHE_NAME = `mefen-cache-${CACHE_VERSION}`;
 
 // Assets to cache
 const assetsToCache = [
   '/',
   '/index.html',
   '/manifest.json',
-  '/membership_7548050.png',
+  '/static/mosque_15418029.png',
   '/static/Naamloos.png',
   '/static/icon-512x512.png'
 ];
