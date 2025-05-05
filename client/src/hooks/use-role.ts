@@ -30,5 +30,6 @@ export function useRole() {
     fetchRole();
   }, [user]);
 
-  return { role, isAdmin: role === 'admin', isMedewerker: role === 'medewerker', loading };
+  // Iedereen heeft dezelfde rechten
+  return { role, isAdmin: role === 'gebruiker', isMedewerker: role === 'gebruiker', loading };
 }

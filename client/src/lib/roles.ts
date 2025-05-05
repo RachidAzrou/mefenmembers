@@ -2,14 +2,15 @@ import { User } from "firebase/auth";
 import { ref, get, set } from "firebase/database";
 import { db } from "./firebase";
 
-export type UserRole = 'admin' | 'medewerker';
+export type UserRole = 'gebruiker';
 
 export async function createUserInDatabase(user: User) {
   try {
     const userRef = ref(db, `users/${user.uid}`);
     await set(userRef, {
       email: user.email,
-      admin: false // By default, new users are not admins (they are medewerker)
+      // Alle gebruikers hebben dezelfde rechten
+      role: 'gebruiker'
     });
     console.log(`Created user ${user.email} in database`);
     return true;
@@ -19,32 +20,34 @@ export async function createUserInDatabase(user: User) {
   }
 }
 
+// Deze functie behouden we met dezelfde naam maar alle gebruikers krijgen gelijke rechten
 export async function createAdminUser(uid: string, email: string) {
   try {
     const userRef = ref(db, `users/${uid}`);
     await set(userRef, {
       email,
-      admin: true
+      role: 'gebruiker'
     });
-    console.log(`Created admin user ${email} in database`);
+    console.log(`Created user ${email} in database`);
     return true;
   } catch (error) {
-    console.error('Error creating admin user in database:', error);
+    console.error('Error creating user in database:', error);
     return false;
   }
 }
 
+// Deze functie behouden we met dezelfde naam maar doet niets meer met verschillende rechten
 export async function updateUserRole(uid: string, email: string, isAdmin: boolean) {
   try {
     const userRef = ref(db, `users/${uid}`);
     await set(userRef, {
       email,
-      admin: isAdmin
+      role: 'gebruiker'
     });
-    console.log(`Updated user ${email} role to ${isAdmin ? 'admin' : 'medewerker'}`);
+    console.log(`Updated user ${email} settings`);
     return true;
   } catch (error) {
-    console.error('Error updating user role:', error);
+    console.error('Error updating user:', error);
     return false;
   }
 }
@@ -62,39 +65,28 @@ export async function getUserRole(user: User | null): Promise<UserRole | null> {
     console.log('User UID:', user.uid);
     console.log('Database path:', `users/${user.uid}`);
     console.log('User data from Firebase:', userData);
-    console.log('Admin status:', userData?.admin);
 
-    // Check if user has admin flag
-    if (userData && userData.admin === true) {
-      return 'admin';
-    }
-
-    // If user exists but is not admin, they are a medewerker
-    return userData ? 'medewerker' : null;
+    // Alle bestaande gebruikers hebben dezelfde rechten
+    return userData ? 'gebruiker' : null;
   } catch (error) {
     console.error('Error fetching user role:', error);
     return null;
   }
 }
 
+// Deze functies houden we aan voor backwards compatibiliteit, maar ze geven altijd hetzelfde terug
 export function isAdmin(role: UserRole | null): boolean {
-  return role === 'admin';
+  return role === 'gebruiker'; // Iedereen heeft dezelfde rechten
 }
 
 export function isMedewerker(role: UserRole | null): boolean {
-  return role === 'medewerker';
+  return role === 'gebruiker'; // Iedereen heeft dezelfde rechten
 }
 
 // Helper function to check page access
 export function canAccessPage(role: UserRole | null, page: string): boolean {
   if (!role) return false;
-
-  // Pages only accessible to admins
-  const adminOnlyPages = ['/rooms', '/materials/manage', '/mosque/edit'];
-  if (adminOnlyPages.includes(page)) {
-    return isAdmin(role);
-  }
-
-  // All other pages are accessible to both roles
+  
+  // Alle pagina's zijn toegankelijk voor alle gebruikers
   return true;
 }

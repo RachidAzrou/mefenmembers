@@ -329,7 +329,25 @@ export default function Dashboard() {
                   {/* Ouderen (65+) */}
                   <div className="flex items-center gap-4 p-4 rounded-lg bg-gray-50">
                     <div className="bg-purple-100 p-3 rounded-full">
-                      <UserCog className="h-5 w-5 text-purple-600" />
+                      <svg 
+                        xmlns="http://www.w3.org/2000/svg" 
+                        viewBox="0 0 24 24" 
+                        fill="none" 
+                        stroke="currentColor" 
+                        strokeWidth="2" 
+                        strokeLinecap="round" 
+                        strokeLinejoin="round" 
+                        className="h-5 w-5 text-purple-600"
+                      >
+                        <path d="M12 8a2 2 0 1 0 0-4 2 2 0 0 0 0 4Z" />
+                        <path d="M9 10h.01" />
+                        <path d="M15 10h.01" />
+                        <path d="M10 14a4 4 0 0 1 0-8" />
+                        <path d="M14 14a4 4 0 0 0 0-8" />
+                        <path d="M16 18a8 8 0 0 0-8 0" />
+                        <path d="M7 21h10" />
+                        <path d="M12 21v-3" />
+                      </svg>
                     </div>
                     <div>
                       <div className="text-sm text-gray-500">Ouderen (65+ jaar)</div>
