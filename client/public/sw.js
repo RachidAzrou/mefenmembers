@@ -1,9 +1,10 @@
-const CACHE_NAME = 'mefen-memberapp-v1.1.0'; // Updated version number and name
+const CACHE_NAME = 'mefen-memberapp-v1.1.1'; // Updated version number and name
 const urlsToCache = [
   '/',
   '/index.html',
   '/manifest.json',
   '/membership_7548050.png',
+  '/icon-512x512.png',
   '/src/main.tsx',
   '/src/index.css',
   '/src/App.tsx',
