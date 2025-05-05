@@ -2,21 +2,18 @@
 import { initializeApp } from 'firebase/app';
 import { getDatabase, ref, get, set, push, update, remove, query, orderByChild } from 'firebase/database';
 
-// Firebase configuratie
+// Direct hardcoded Firebase configuratie voor MEFEN project
+// BELANGRIJK: Deze configuratie wordt direct gebruikt, geen env variables nodig
 const firebaseConfig = {
-  apiKey: process.env.FIREBASE_API_KEY || process.env.VITE_FIREBASE_API_KEY,
-  authDomain: process.env.FIREBASE_AUTH_DOMAIN || `${process.env.FIREBASE_PROJECT_ID || process.env.VITE_FIREBASE_PROJECT_ID}.firebaseapp.com`,
-  databaseURL: process.env.FIREBASE_DATABASE_URL || "https://mefen-leden-default-rtdb.europe-west1.firebasedatabase.app",
-  projectId: process.env.FIREBASE_PROJECT_ID || process.env.VITE_FIREBASE_PROJECT_ID,
-  appId: process.env.FIREBASE_APP_ID || process.env.VITE_FIREBASE_APP_ID
+  apiKey: "AIzaSyCw3uxCv7SdAa4xtmRimVjXlLjr_4hyeTE",
+  authDomain: "mefen-leden.firebaseapp.com",
+  databaseURL: "https://mefen-leden-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "mefen-leden",
+  appId: "1:1032362907538:web:568add0016024ddf17534b"
 };
 
-// Log Firebase configuratie voor debugging
-console.log("Firebase configuratie status:");
-console.log("API Key aanwezig:", !!firebaseConfig.apiKey);
-console.log("Auth Domain:", firebaseConfig.authDomain);
-console.log("Database URL:", firebaseConfig.databaseURL);
-console.log("Project ID:", firebaseConfig.projectId);
+// Log beperkte Firebase debug info
+console.log("Firebase database URL:", firebaseConfig.databaseURL);
 
 // Initialiseer Firebase
 const app = initializeApp(firebaseConfig);

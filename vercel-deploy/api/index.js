@@ -250,12 +250,17 @@ app.delete('/api/members/:id', async (req, res) => {
     const memberNumber = memberData.memberNumber;
     
     // Bewaar lidnummer in deletedMemberNumbers
-    const deletedNumbersRef = ref(database, 'deletedMemberNumbers');
-    const newDeletedRef = push(deletedNumbersRef);
-    await set(newDeletedRef, {
-      memberNumber,
-      deletedAt: new Date().toISOString()
-    });
+    try {
+      const deletedNumbersRef = ref(database, 'deletedMemberNumbers');
+      const newDeletedRef = push(deletedNumbersRef);
+      await set(newDeletedRef, {
+        memberNumber,
+        deletedAt: new Date().toISOString()
+      });
+    } catch (error) {
+      console.error("Fout bij opslaan verwijderd lidnummer:", error.message);
+      // Ga door ondanks de fout, om het lid toch te verwijderen
+    }
     
     // Verwijder het lid
     await remove(memberRef);
