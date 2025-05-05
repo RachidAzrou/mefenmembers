@@ -4,7 +4,7 @@ import {
   Users, Check, X, Download, UserPlus, CalendarDays, 
   CreditCard, TrendingUp, Percent, UserCheck,
   Baby, GraduationCap, UserRound, Heart, BarChart3,
-  PieChart
+  PieChart, Briefcase, PersonStanding
 } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { useQuery } from "@tanstack/react-query";
@@ -111,9 +111,14 @@ export default function Dashboard() {
     return age !== null && age >= 65;
   }).length;
   
-  // Behandel klikken op widgets
+  // Behandel klikken op widgets als toggle
   const handleStatusFilterChange = (filter: 'all' | 'paid' | 'unpaid') => {
-    setStatusFilter(filter);
+    // Als dezelfde filter al actief is, schakel terug naar 'all'
+    if (statusFilter === filter) {
+      setStatusFilter('all');
+    } else {
+      setStatusFilter(filter);
+    }
   };
     
   return (
@@ -139,11 +144,11 @@ export default function Dashboard() {
         <CardHeader className="flex flex-row items-center justify-between">
           <div>
             <CardTitle className="text-lg flex items-center">
-              <PieChart className="h-5 w-5 mr-2 text-[#963E56]" />
+              <Users className="h-5 w-5 mr-2 text-[#963E56]" />
               Ledenoverzicht
             </CardTitle>
             <CardDescription>
-              Aantal leden
+              Status van de leden
             </CardDescription>
           </div>
           
@@ -218,11 +223,7 @@ export default function Dashboard() {
                   {paidMembers}
                 </div>
                 <div className="text-xs text-muted-foreground mt-1">Betaald</div>
-                {statusFilter === 'paid' && (
-                  <div className="text-[10px] text-green-600 mt-1">
-                    {paymentPercentage}% van alle leden
-                  </div>
-                )}
+
               </button>
               
               {/* Niet betaald widget - komt als derde */}
@@ -238,11 +239,7 @@ export default function Dashboard() {
                   {unpaidMembers}
                 </div>
                 <div className="text-xs text-muted-foreground mt-1">Niet betaald</div>
-                {statusFilter === 'unpaid' && (
-                  <div className="text-[10px] text-red-600 mt-1">
-                    {members.length > 0 ? (100 - paymentPercentage) : 0}% van alle leden
-                  </div>
-                )}
+
               </button>
             </div>
           </div>
@@ -329,7 +326,7 @@ export default function Dashboard() {
                   {/* Volwassenen (25-64) */}
                   <div className="flex items-center gap-4 p-4 rounded-lg bg-gray-50">
                     <div className="bg-orange-100 p-3 rounded-full">
-                      <UserRound className="h-5 w-5 text-orange-600" />
+                      <Briefcase className="h-5 w-5 text-orange-600" />
                     </div>
                     <div>
                       <div className="text-sm text-gray-500">Volwassenen (25-64 jaar)</div>
@@ -345,7 +342,7 @@ export default function Dashboard() {
                   {/* Ouderen (65+) */}
                   <div className="flex items-center gap-4 p-4 rounded-lg bg-gray-50">
                     <div className="bg-purple-100 p-3 rounded-full">
-                      <Heart className="h-5 w-5 text-purple-600" />
+                      <PersonStanding className="h-5 w-5 text-purple-600" />
                     </div>
                     <div>
                       <div className="text-sm text-gray-500">Ouderen (65+ jaar)</div>
