@@ -5,7 +5,6 @@ import { Toaster } from "@/components/ui/toaster";
 import NotFound from "@/pages/not-found";
 import Login from "@/pages/login";
 import Register from "@/pages/register";
-import Members from "@/pages/members";
 import Dashboard from "@/pages/dashboard";
 import MembersList from "@/pages/members-list";
 import MemberAdd from "@/pages/member-add";

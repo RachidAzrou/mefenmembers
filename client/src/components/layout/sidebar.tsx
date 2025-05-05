@@ -122,28 +122,26 @@ export function Sidebar() {
         </div>
 
         {/* Profile section */}
-        <Link href="/profile" onClick={() => handleNavigation('/profile')}>
-          <div className={cn(
-            "border-b p-4 cursor-pointer hover:bg-gray-50/80 transition-all duration-200",
-            collapsed ? "text-center" : ""
-          )}>
-            <div className="flex items-center gap-3">
-              <div className="bg-primary/10 rounded-full p-2 inline-flex">
-                <User className="h-5 w-5 text-primary" />
-              </div>
-              {!collapsed && (
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium truncate">
-                    {currentUser?.email}
-                  </p>
-                  <p className="text-xs text-gray-500 truncate">
-                    {isAdmin ? "Administrator" : "Gebruiker"}
-                  </p>
-                </div>
-              )}
+        <div className={cn(
+          "border-b p-4 transition-all duration-200",
+          collapsed ? "text-center" : ""
+        )}>
+          <div className="flex items-center gap-3">
+            <div className="bg-primary/10 rounded-full p-2 inline-flex">
+              <User className="h-5 w-5 text-primary" />
             </div>
+            {!collapsed && (
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium truncate">
+                  {currentUser?.email}
+                </p>
+                <p className="text-xs text-gray-500 truncate">
+                  {isAdmin ? "Administrator" : "Gebruiker"}
+                </p>
+              </div>
+            )}
           </div>
-        </Link>
+        </div>
 
         {/* Menu items */}
         <ScrollArea className="flex-1">
@@ -187,25 +185,6 @@ export function Sidebar() {
 
         {/* Footer section */}
         <div className="p-2 border-t space-y-2">
-          {isAdmin && (
-            <Link href="/settings" onClick={() => handleNavigation('/settings')}>
-              <Button
-                variant={location === "/settings" ? "secondary" : "ghost"}
-                className={cn(
-                  "w-full h-14 md:h-12 transition-all duration-200",
-                  location === "/settings"
-                    ? "bg-primary/10 text-primary hover:bg-primary/15"
-                    : "hover:bg-primary/5 hover:text-primary",
-                  collapsed ? "justify-center" : "justify-start"
-                )}
-              >
-                <Settings className="h-6 w-6 md:h-5 md:w-5" />
-                {!collapsed && (
-                  <span className="ml-3">Instellingen</span>
-                )}
-              </Button>
-            </Link>
-          )}
 
           <Button
             variant="ghost"
