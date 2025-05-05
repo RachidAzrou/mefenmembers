@@ -10,45 +10,72 @@ import * as XLSX from 'xlsx';
 import { useToast } from "@/hooks/use-toast";
 import { Document, Page, Text, View, StyleSheet, PDFDownloadLink } from '@react-pdf/renderer';
 
-// PDF Stylesheet voor het genereren van een minimalistisch PDF document
+// PDF Stylesheet voor het genereren van een mooi en professioneel PDF document
 const styles = StyleSheet.create({
   page: {
     flexDirection: 'column',
     backgroundColor: '#FFFFFF',
-    padding: 20,
+    padding: 30,
+    fontFamily: 'Helvetica',
+  },
+  headerContainer: {
+    marginBottom: 15,
+    paddingBottom: 10,
+    borderBottomWidth: 2,
+    borderBottomColor: '#963E56',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  headerLeft: {
+    flexDirection: 'column',
+  },
+  headerRight: {
+    flexDirection: 'column',
+    alignItems: 'flex-end',
   },
   header: {
-    fontSize: 16,
-    marginBottom: 10,
+    fontSize: 18,
     fontWeight: 'bold',
-    textAlign: 'center',
     color: '#963E56',
   },
   subtitle: {
     fontSize: 10,
-    marginBottom: 12,
-    textAlign: 'center',
     color: '#666666',
+    marginTop: 4,
+  },
+  date: {
+    fontSize: 9,
+    color: '#666666',
+    marginTop: 2,
+  },
+  filterInfo: {
+    fontSize: 9,
+    color: '#963E56',
+    fontWeight: 'bold',
+    marginTop: 2,
+  },
+  tableWrapper: {
+    borderRadius: 4,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    marginTop: 8,
   },
   table: {
     display: 'flex',
     width: 'auto',
-    borderStyle: 'solid',
-    borderWidth: 1,
-    borderColor: '#DDDDDD',
-    marginTop: 10,
   },
   tableHeader: {
     backgroundColor: '#963E56',
     flexDirection: 'row',
-    borderBottomWidth: 1,
-    borderBottomColor: '#DDDDDD',
   },
   tableHeaderCell: {
-    padding: 5,
+    padding: 6,
     fontSize: 8,
     fontWeight: 'bold',
     color: 'white',
+    textTransform: 'uppercase',
   },
   tableRow: {
     flexDirection: 'row',
@@ -56,18 +83,67 @@ const styles = StyleSheet.create({
     borderBottomColor: '#EEEEEE',
   },
   tableCell: {
-    padding: 4,
-    fontSize: 7,
+    padding: 5,
+    fontSize: 8,
     color: '#444444',
+  },
+  paidCell: {
+    color: '#22c55e',
+    fontWeight: 'bold',
+  },
+  unpaidCell: {
+    color: '#ef4444',
+    fontWeight: 'bold',
   },
   footer: {
     position: 'absolute',
-    bottom: 20,
+    bottom: 30,
     left: 0,
     right: 0,
-    textAlign: 'center',
-    fontSize: 7,
+    borderTopWidth: 1,
+    borderTopColor: '#EEEEEE',
+    paddingTop: 10,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  footerText: {
+    fontSize: 8,
     color: '#888888',
+  },
+  pageNumber: {
+    fontSize: 8,
+    color: '#888888',
+  },
+  summary: {
+    marginTop: 15,
+    marginBottom: 15,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  summaryBox: {
+    flexDirection: 'column',
+    backgroundColor: '#F8F9FA',
+    borderRadius: 4,
+    padding: 8,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    width: '30%',
+  },
+  summaryTitle: {
+    fontSize: 9,
+    fontWeight: 'bold',
+    color: '#333333',
+    marginBottom: 4,
+  },
+  summaryValue: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#963E56',
+  },
+  summaryLabel: {
+    fontSize: 8,
+    color: '#666666',
+    marginTop: 2,
   },
 });
 import { 
@@ -300,74 +376,136 @@ export default function ExportPage() {
     // Datum weergave
     const today = new Date().toLocaleDateString('nl-NL');
 
+    // Bereken statistieken voor de samenvatting
+    const totalMembers = filteredMembers.length;
+    const paidMembers = filteredMembers.filter(m => m.paymentStatus).length;
+    const unpaidMembers = totalMembers - paidMembers;
+    const paidPercentage = totalMembers > 0 ? Math.round((paidMembers / totalMembers) * 100) : 0;
+    
+    // Formatteer datums
+    const formattedDate = new Date().toLocaleDateString('nl-NL', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric'
+    });
+    
+    const time = new Date().toLocaleTimeString('nl-NL', {
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+
     return (
       <Document>
         <Page size="A4" style={styles.page}>
-          <Text style={styles.header}>Ledenlijst MEFEN Moskee</Text>
-          <Text style={styles.subtitle}>
-            {paymentFilter === "all" ? "Alle leden" : 
-             paymentFilter === "paid" ? "Alleen betalende leden" : 
-             "Alleen niet-betalende leden"}
-          </Text>
-          
-          <View style={styles.table}>
-            {/* Tabel header */}
-            <View style={styles.tableHeader}>
-              {enabledFields.map(field => (
-                <Text key={field.id} style={[styles.tableHeaderCell, { width: columnWidths[field.id] }]}>
-                  {field.label}
-                </Text>
-              ))}
+          {/* Header met logo en titel */}
+          <View style={styles.headerContainer}>
+            <View style={styles.headerLeft}>
+              <Text style={styles.header}>Ledenlijst MEFEN Moskee</Text>
+              <Text style={styles.subtitle}>
+                {enabledFields.length} geselecteerde velden • {totalMembers} leden
+              </Text>
             </View>
-            
-            {/* Tabel rijen */}
-            {filteredMembers.map((member, index) => (
-              <View key={member.id} style={[
-                styles.tableRow, 
-                index % 2 === 0 ? { backgroundColor: '#F8F9FA' } : {}
-              ]}>
-                {enabledFields.map(field => {
-                  let value: string = "";
-                  
-                  switch (field.id) {
-                    case "memberNumber":
-                      value = member.memberNumber.toString().padStart(4, '0');
-                      break;
-                    case "birthDate":
-                      if (member.birthDate) {
-                        // Compacte datumnotatie: DD-MM-YYYY
-                        const bdate = new Date(member.birthDate);
-                        value = `${bdate.getDate().toString().padStart(2,'0')}-${(bdate.getMonth()+1).toString().padStart(2,'0')}-${bdate.getFullYear()}`;
-                      } else {
-                        value = "-";
-                      }
-                      break;
-                    case "registrationDate":
-                      // Compacte datumnotatie: DD-MM-YYYY
-                      const rdate = new Date(member.registrationDate);
-                      value = `${rdate.getDate().toString().padStart(2,'0')}-${(rdate.getMonth()+1).toString().padStart(2,'0')}-${rdate.getFullYear()}`;
-                      break;
-                    case "paymentStatus":
-                      // Gebruik symbolen in plaats van tekst
-                      value = member.paymentStatus ? "✓" : "✗";
-                      break;
-                    default:
-                      value = (member[field.id as keyof Member] as string) || "-";
-                  }
-                  
-                  return (
-                    <Text key={field.id} style={[styles.tableCell, { width: columnWidths[field.id] }]}>
-                      {value}
-                    </Text>
-                  );
-                })}
-              </View>
-            ))}
+            <View style={styles.headerRight}>
+              <Text style={styles.date}>Gegenereerd op {formattedDate}</Text>
+              <Text style={styles.filterInfo}>
+                {paymentFilter === "all" ? "Alle leden" : 
+                 paymentFilter === "paid" ? "Alleen betalende leden" : 
+                 "Alleen niet-betalende leden"}
+              </Text>
+            </View>
           </View>
           
-          <Text style={styles.footer}>
-            © MEFEN Moskee | {today}
-          </Text>
+          {/* Samenvatting statistieken blokjes */}
+          <View style={styles.summary}>
+            <View style={styles.summaryBox}>
+              <Text style={styles.summaryTitle}>Totaal</Text>
+              <Text style={styles.summaryValue}>{totalMembers}</Text>
+              <Text style={styles.summaryLabel}>Geregistreerde leden</Text>
+            </View>
+            
+            <View style={styles.summaryBox}>
+              <Text style={styles.summaryTitle}>Betaald</Text>
+              <Text style={[styles.summaryValue, { color: '#22c55e' }]}>{paidMembers}</Text>
+              <Text style={styles.summaryLabel}>{paidPercentage}% van totaal</Text>
+            </View>
+            
+            <View style={styles.summaryBox}>
+              <Text style={styles.summaryTitle}>Niet betaald</Text>
+              <Text style={[styles.summaryValue, { color: '#ef4444' }]}>{unpaidMembers}</Text>
+              <Text style={styles.summaryLabel}>{100 - paidPercentage}% van totaal</Text>
+            </View>
+          </View>
+          
+          {/* Tabel met leden */}
+          <View style={styles.tableWrapper}>
+            <View style={styles.table}>
+              {/* Tabel header */}
+              <View style={styles.tableHeader}>
+                {enabledFields.map(field => (
+                  <Text key={field.id} style={[styles.tableHeaderCell, { width: columnWidths[field.id] }]}>
+                    {field.label}
+                  </Text>
+                ))}
+              </View>
+              
+              {/* Tabel rijen */}
+              {filteredMembers.map((member, index) => (
+                <View key={member.id} style={[
+                  styles.tableRow, 
+                  index % 2 === 0 ? { backgroundColor: '#F8F9FA' } : {}
+                ]}>
+                  {enabledFields.map(field => {
+                    let value: string = "";
+                    let cellStyle = styles.tableCell;
+                    
+                    switch (field.id) {
+                      case "memberNumber":
+                        value = member.memberNumber.toString().padStart(4, '0');
+                        break;
+                      case "birthDate":
+                        if (member.birthDate) {
+                          // Compacte datumnotatie: DD-MM-YYYY
+                          const bdate = new Date(member.birthDate);
+                          value = `${bdate.getDate().toString().padStart(2,'0')}-${(bdate.getMonth()+1).toString().padStart(2,'0')}-${bdate.getFullYear()}`;
+                        } else {
+                          value = "-";
+                        }
+                        break;
+                      case "registrationDate":
+                        // Compacte datumnotatie: DD-MM-YYYY
+                        const rdate = new Date(member.registrationDate);
+                        value = `${rdate.getDate().toString().padStart(2,'0')}-${(rdate.getMonth()+1).toString().padStart(2,'0')}-${rdate.getFullYear()}`;
+                        break;
+                      case "paymentStatus":
+                        // Gebruik symbolen met kleur
+                        if (member.paymentStatus) {
+                          value = "✓";
+                          cellStyle = {...cellStyle, ...styles.paidCell};
+                        } else {
+                          value = "✗";
+                          cellStyle = {...cellStyle, ...styles.unpaidCell};
+                        }
+                        break;
+                      default:
+                        value = (member[field.id as keyof Member] as string) || "-";
+                    }
+                    
+                    return (
+                      <Text key={field.id} style={[cellStyle, { width: columnWidths[field.id] }]}>
+                        {value}
+                      </Text>
+                    );
+                  })}
+                </View>
+              ))}
+            </View>
+          </View>
+          
+          {/* Footer met copyright en paginanummer */}
+          <View style={styles.footer}>
+            <Text style={styles.footerText}>© MEFEN Moskee | Ledenlijst {formattedDate}</Text>
+            <Text style={styles.pageNumber}>Pagina 1</Text>
+          </View>
         </Page>
       </Document>
     );
