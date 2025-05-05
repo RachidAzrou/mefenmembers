@@ -355,7 +355,8 @@ export default function MemberAdd() {
                         }
                         
                         // Maak een Date object en controleer of het geldig is
-                        const date = new Date(year, month, day);
+                        // Gebruik UTC om tijdzone-issues te voorkomen (dag -1 probleem)
+                        const date = new Date(Date.UTC(year, month, day, 12, 0, 0));
                         
                         // Controleer of datum niet in de toekomst ligt
                         if (date > new Date()) {
@@ -363,11 +364,11 @@ export default function MemberAdd() {
                         }
                         
                         // Controleer of de datum bestaat (bijv. 31/02/2023 bestaat niet)
-                        if (
-                          date.getDate() !== day || 
-                          date.getMonth() !== month || 
-                          date.getFullYear() !== year
-                        ) {
+                        const utcDay = date.getUTCDate();
+                        const utcMonth = date.getUTCMonth();
+                        const utcYear = date.getUTCFullYear();
+                        
+                        if (utcDay !== day || utcMonth !== month || utcYear !== year) {
                           return null;
                         }
                         
