@@ -113,10 +113,10 @@ export default function Login() {
                 />
               </div>
               <h1 className="text-2xl sm:text-3xl font-bold text-[#963E56] mb-3">
-                Vrijwilligersbeheer
+                Ledenbeheer
               </h1>
               <p className="text-gray-600 text-sm sm:text-base">
-                Log in om de vrijwilligers te beheren
+                Log in om de leden te beheren
               </p>
             </div>
 
@@ -172,21 +172,17 @@ export default function Login() {
                 Inloggen
               </Button>
 
-              <div className="text-center mt-4">
-                <Link href="/register" className="text-[#963E56] hover:underline font-medium">
-                  Registreer als vrijwilliger
-                </Link>
-              </div>
+              {/* Registreer knop is verwijderd */}
             </form>
           </CardContent>
         </Card>
 
         <div className="text-center space-y-1 mt-6">
           <p className="text-white/90 text-sm font-medium">
-            MEFEN Vrijwilligers Management Systeem
+            MEFEN Leden Management Systeem
           </p>
           <p className="text-white/70 text-xs">
-            Versie 2.1.4
+            Versie 1.1.0
           </p>
         </div>
       </div>

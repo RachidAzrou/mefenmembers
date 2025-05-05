@@ -67,15 +67,16 @@ const styles = StyleSheet.create({
     width: 'auto',
   },
   tableHeader: {
-    backgroundColor: '#963E56',
+    backgroundColor: '#F8F9FA',
     flexDirection: 'row',
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E7EB',
   },
   tableHeaderCell: {
     padding: 6,
-    fontSize: 7, // Kleinere lettergrootte voor betere passing
+    fontSize: 8,
     fontWeight: 'bold',
-    color: 'white',
-    textTransform: 'uppercase',
+    color: '#4B5563',
   },
   tableRow: {
     flexDirection: 'row',
@@ -108,26 +109,23 @@ const styles = StyleSheet.create({
   },
   footerText: {
     fontSize: 8,
-    color: '#888888',
+    color: '#963E56',
+    fontWeight: 'bold',
   },
   pageNumber: {
     fontSize: 8,
     color: '#888888',
   },
   summary: {
-    marginTop: 15,
-    marginBottom: 15,
+    marginBottom: 20,
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    justifyContent: 'flex-start',
+    gap: 15,
   },
   summaryBox: {
     flexDirection: 'column',
-    backgroundColor: '#F8F9FA',
-    borderRadius: 4,
-    padding: 8,
-    borderWidth: 1,
-    borderColor: '#E5E7EB',
-    width: '30%',
+    padding: 5,
+    width: '22%',
   },
   summaryTitle: {
     fontSize: 9,
@@ -415,26 +413,7 @@ export default function ExportPage() {
             </View>
           </View>
 
-          {/* Samenvatting sectie */}
-          <View style={styles.summary}>
-            <View style={styles.summaryBox}>
-              <Text style={styles.summaryTitle}>Aantal leden</Text>
-              <Text style={styles.summaryValue}>{totalMembers}</Text>
-              <Text style={styles.summaryLabel}>Totaal in database</Text>
-            </View>
-            
-            <View style={styles.summaryBox}>
-              <Text style={styles.summaryTitle}>Betaald</Text>
-              <Text style={styles.summaryValue}>{paidMembers}</Text>
-              <Text style={styles.summaryLabel}>{paidPercentage}% van alle leden</Text>
-            </View>
-            
-            <View style={styles.summaryBox}>
-              <Text style={styles.summaryTitle}>Niet betaald</Text>
-              <Text style={styles.summaryValue}>{unpaidMembers}</Text>
-              <Text style={styles.summaryLabel}>{100 - paidPercentage}% van alle leden</Text>
-            </View>
-          </View>
+          {/* Verwijder samenvatting sectie voor cleanere PDF export */}
           
           {/* Tabel met leden */}
           <View style={styles.tableWrapper}>
