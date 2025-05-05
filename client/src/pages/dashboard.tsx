@@ -158,10 +158,28 @@ export default function Dashboard() {
         <CardContent>
           <div className="space-y-2">
             <div className="flex justify-between items-center">
-              <span className="text-sm font-medium">{paymentPercentage}% voltooid</span>
-              <span className="text-sm text-muted-foreground">{paidMembers} van {members.length} leden</span>
+              {statusFilter === 'all' && (
+                <>
+                  <span className="text-sm font-medium">{paymentPercentage}% voltooid</span>
+                  <span className="text-sm text-muted-foreground">{paidMembers} van {members.length} leden</span>
+                </>
+              )}
+              {statusFilter === 'paid' && (
+                <>
+                  <span className="text-sm font-medium">100% betaald</span>
+                  <span className="text-sm text-muted-foreground">{paidMembers} leden ({paymentPercentage}% van totaal)</span>
+                </>
+              )}
+              {statusFilter === 'unpaid' && (
+                <>
+                  <span className="text-sm font-medium">0% betaald</span>
+                  <span className="text-sm text-muted-foreground">{unpaidMembers} leden ({100-paymentPercentage}% van totaal)</span>
+                </>
+              )}
             </div>
-            <Progress value={paymentPercentage} className="h-2" />
+            <Progress 
+              value={statusFilter === 'paid' ? 100 : statusFilter === 'unpaid' ? 0 : paymentPercentage} 
+              className="h-2" />
             
             <div className="grid grid-cols-3 gap-4 pt-4 text-center">
               {/* Totaal leden widget - komt als eerste */}
@@ -259,11 +277,13 @@ export default function Dashboard() {
                     <div className="text-sm text-gray-500">Meest recente registratie</div>
                     <div className="font-medium">
                       {mostRecentRegistration
-                        ? mostRecentRegistration.toLocaleDateString('nl-NL', {
-                            day: 'numeric',
-                            month: 'long',
-                            year: 'numeric'
-                          })
+                        ? (() => {
+                            const day = mostRecentRegistration.getDate();
+                            const month = mostRecentRegistration.getMonth() + 1;
+                            // Gebruik alleen de laatste twee cijfers van het jaar
+                            const year = mostRecentRegistration.getFullYear().toString().slice(-2);
+                            return `${day}/${month}/${year}`;
+                          })()
                         : "-"}
                     </div>
                   </div>

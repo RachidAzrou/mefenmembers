@@ -72,7 +72,7 @@ const styles = StyleSheet.create({
   },
   tableHeaderCell: {
     padding: 6,
-    fontSize: 8,
+    fontSize: 7, // Kleinere lettergrootte voor betere passing
     fontWeight: 'bold',
     color: 'white',
     textTransform: 'uppercase',
