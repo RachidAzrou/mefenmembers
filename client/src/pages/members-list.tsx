@@ -82,13 +82,13 @@ export default function MembersList() {
   
   return (
     <div className="space-y-6">
-      {/* Header section met gradient achtergrond */}
-      <div className="rounded-lg bg-gradient-to-r from-[#963E56]/80 to-[#963E56] p-6 shadow-md">
+      {/* Header section met gradient achtergrond - responsive */}
+      <div className="rounded-lg bg-gradient-to-r from-[#963E56]/80 to-[#963E56] p-4 sm:p-6 shadow-md">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-white mb-1">
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-white mb-1">
             Ledenlijst
           </h1>
-          <p className="text-white/80">
+          <p className="text-white/80 text-sm sm:text-base">
             Beheer en bekijk alle leden van Moskee MEFEN
           </p>
         </div>
@@ -117,17 +117,17 @@ export default function MembersList() {
           </Button>
       </div>
       
-      {/* Statistieken strook */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      {/* Statistieken strook - responsieve verbeteringen */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
         <Card className="overflow-hidden border-none shadow-md bg-blue-50">
-          <CardContent className="p-4 flex flex-col items-center justify-center">
-            <div className="rounded-full p-2 bg-blue-100 mb-2">
-              <Users className="h-5 w-5 text-blue-600"/>
+          <CardContent className="p-3 sm:p-4 flex flex-col items-center justify-center">
+            <div className="rounded-full p-1.5 sm:p-2 bg-blue-100 mb-1 sm:mb-2">
+              <Users className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600"/>
             </div>
-            <div className="text-xl font-bold text-blue-600">
-              {isLoading ? <Skeleton className="h-6 w-12" /> : members.length}
+            <div className="text-base sm:text-xl font-bold text-blue-600">
+              {isLoading ? <Skeleton className="h-5 sm:h-6 w-10 sm:w-12" /> : members.length}
             </div>
-            <p className="text-xs text-blue-800/60 text-center">Totaal leden</p>
+            <p className="text-[10px] sm:text-xs text-blue-800/60 text-center">Totaal leden</p>
           </CardContent>
         </Card>
         
