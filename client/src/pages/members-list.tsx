@@ -27,7 +27,7 @@ import {
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { formatPhoneNumber } from "@/lib/utils";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import { Skeleton } from "@/components/ui/skeleton";
 
 import { useToast } from "@/hooks/use-toast";
@@ -47,6 +47,7 @@ export default function MembersList() {
   const [viewMember, setViewMember] = useState<Member | null>(null);
   const [activeFilter, setActiveFilter] = useState<"all" | "paid" | "unpaid" | "recent">("all");
   const { toast } = useToast();
+  const [, navigate] = useLocation();
   
   // Haal alle leden op
   const { data: members = [], isLoading } = useQuery<Member[]>({
@@ -342,7 +343,10 @@ export default function MembersList() {
                               <Eye className="mr-2 h-4 w-4" />
                               Details bekijken
                             </DropdownMenuItem>
-                            {/* Bewerk knop verwijderd op verzoek */}
+                            <DropdownMenuItem onClick={() => navigate(`/member-add?id=${member.id}`)} className="cursor-pointer">
+                              <Edit className="mr-2 h-4 w-4" />
+                              Bewerken
+                            </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
                       </TableCell>

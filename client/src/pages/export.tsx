@@ -406,14 +406,18 @@ export default function ExportPage() {
         <div className="bg-gradient-to-r from-gray-100 to-gray-50 h-1" />
         <Tabs defaultValue="excel">
           <div className="px-4 sm:px-6 pt-4 sm:pt-6 pb-2 border-b">
-            <TabsList className="grid w-full grid-cols-2 max-w-xs sm:max-w-md mx-auto">
+            <TabsList className="grid w-full grid-cols-3 max-w-sm sm:max-w-lg mx-auto">
               <TabsTrigger value="excel" className="text-xs sm:text-sm rounded-l-lg data-[state=active]:bg-[#963E56] data-[state=active]:text-white">
                 <FileSpreadsheet className="mr-1 sm:mr-2 h-3.5 w-3.5 sm:h-4 sm:w-4" />
                 Excel (.xlsx)
               </TabsTrigger>
-              <TabsTrigger value="csv" className="text-xs sm:text-sm rounded-r-lg data-[state=active]:bg-[#963E56] data-[state=active]:text-white">
+              <TabsTrigger value="csv" className="text-xs sm:text-sm data-[state=active]:bg-[#963E56] data-[state=active]:text-white">
                 <FileText className="mr-1 sm:mr-2 h-3.5 w-3.5 sm:h-4 sm:w-4" />
                 CSV (.csv)
+              </TabsTrigger>
+              <TabsTrigger value="pdf" className="text-xs sm:text-sm rounded-r-lg data-[state=active]:bg-[#963E56] data-[state=active]:text-white">
+                <FileDown className="mr-1 sm:mr-2 h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                PDF (.pdf)
               </TabsTrigger>
             </TabsList>
           </div>
