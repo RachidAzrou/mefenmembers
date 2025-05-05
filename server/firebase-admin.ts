@@ -2,8 +2,11 @@ import admin from 'firebase-admin';
 import fs from 'fs';
 import path from 'path';
 
-// SERVERLESS-VRIENDELIJKE VERSIE met serviceaccount.json ondersteuning
+// SERVERLESS-VRIENDELIJKE VERSIE met prioriteit voor RTDB
 console.log('[FirebaseAdmin] Initialisatie start...');
+
+// Firebase Realtime Database URL
+const RTDB_URL = 'https://mefen-leden-default-rtdb.europe-west1.firebasedatabase.app';
 
 // Paden naar serviceaccount bestanden
 const serviceAccountPaths = [
@@ -12,7 +15,7 @@ const serviceAccountPaths = [
   path.join(process.cwd(), 'mefen-leden-firebase-adminsdk.json')
 ];
 
-// Eén keer initialiseren op een veilige manier die werkt in serverless omgevingen
+// Vereenvoudigde initialisatie specifiek voor RTDB gebruik
 const getFirebaseAdmin = () => {
   try {
     if (admin.apps.length === 0) {
@@ -40,7 +43,7 @@ const getFirebaseAdmin = () => {
         console.log('[FirebaseAdmin] Initialisatie met serviceaccount JSON bestand');
         admin.initializeApp({
           credential: admin.credential.cert(serviceAccount),
-          databaseURL: 'https://mefen-leden-default-rtdb.europe-west1.firebasedatabase.app'
+          databaseURL: process.env.FIREBASE_DATABASE_URL || RTDB_URL
         });
       } 
       // METHODE 2: Gebruik omgevingsvariabelen als fallback
@@ -51,19 +54,26 @@ const getFirebaseAdmin = () => {
         console.log('[FirebaseAdmin] Private Key aanwezig:', !!process.env.FIREBASE_PRIVATE_KEY);
         
         // Verwerk de private key
-        const privateKey = process.env.FIREBASE_PRIVATE_KEY ? 
-          process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n') : 
-          undefined;
+        let privateKey = process.env.FIREBASE_PRIVATE_KEY;
         
-        // Voor debugging (alleen veilige informatie)
-        if (process.env.VERCEL) {
-          console.log('[FirebaseAdmin] Private key lengte:', privateKey ? privateKey.length : 0);
-          if (privateKey) {
-            console.log('[FirebaseAdmin] Private key begint met:', privateKey.substring(0, 20) + '...');
-            console.log('[FirebaseAdmin] Private key eindigt met:', '...' + privateKey.substring(privateKey.length - 20));
+        // Verwerk de private key op drie verschillende manieren om maximale compatibiliteit te garanderen
+        if (privateKey) {
+          // 1. Vervang escaped newlines door echte newlines
+          privateKey = privateKey.replace(/\\n/g, '\n');
+          
+          // 2. Verwijder begin en eind quotes indien aanwezig
+          if (privateKey.startsWith('"') && privateKey.endsWith('"')) {
+            privateKey = privateKey.substring(1, privateKey.length - 1);
           }
+          
+          // Log veilige informatie voor debugging
+          console.log('[FirebaseAdmin] Private key verwerkt, lengte:', privateKey.length);
+          console.log('[FirebaseAdmin] Begin/eind regex check:', 
+            privateKey.includes('-----BEGIN PRIVATE KEY-----') && 
+            privateKey.includes('-----END PRIVATE KEY-----'));
         }
         
+        // VEREENVOUDIGDE INITIALISATIE voor betere Vercel-compatibiliteit
         try {
           admin.initializeApp({
             credential: admin.credential.cert({
@@ -71,15 +81,28 @@ const getFirebaseAdmin = () => {
               clientEmail: process.env.FIREBASE_CLIENT_EMAIL || 'firebase-adminsdk-j4oqr@mefen-leden.iam.gserviceaccount.com',
               privateKey: privateKey
             } as admin.ServiceAccount),
-            databaseURL: 'https://mefen-leden-default-rtdb.europe-west1.firebasedatabase.app'
+            databaseURL: process.env.FIREBASE_DATABASE_URL || RTDB_URL
           });
+          console.log('[FirebaseAdmin] Initialisatie succesvol voltooid');
         } catch (e) {
-          console.error('[FirebaseAdmin] Initialisatie met omgevingsvariabelen mislukt:', e);
-          throw e;
+          console.error('[FirebaseAdmin] FOUT bij initialisatie met omgevingsvariabelen:', e);
+          
+          // METHODE 3: Fallback naar simpele app initialisatie voor alleen RTDB toegang
+          // Hiervoor zijn minder credentials nodig
+          try {
+            console.log('[FirebaseAdmin] Proberen met vereenvoudigde initialisatie (alleen voor RTDB)');
+            
+            // In sommige gevallen kan RTDB toegankelijk zijn zonder volledige authenticatie
+            admin.initializeApp({
+              databaseURL: process.env.FIREBASE_DATABASE_URL || RTDB_URL
+            });
+            console.log('[FirebaseAdmin] Vereenvoudigde initialisatie succesvol voltooid');
+          } catch (fallbackError) {
+            console.error('[FirebaseAdmin] Ook vereenvoudigde initialisatie mislukt:', fallbackError);
+            throw fallbackError;
+          }
         }
       }
-      
-      console.log('[FirebaseAdmin] Initialisatie succesvol voltooid');
     }
     
     return admin;
@@ -93,17 +116,25 @@ const getFirebaseAdmin = () => {
 // Initialiseer Firebase Admin
 const firebaseAdmin = getFirebaseAdmin();
 
-// Noodoplossing: Als de initialisatie toch mislukt is op Vercel, 
-// kunnen we een fallback mechanisme instellen
-let firestoreInstance;
-let rtdbInstance;
+// Probeer eerst Realtime Database te verkrijgen, dan pas Firestore
+let rtdbInstance = null;
+let firestoreInstance = null;
 
 try {
-  firestoreInstance = firebaseAdmin.firestore();
+  // Probeer eerst RTDB te initialiseren - dit is de primaire database voor deze implementatie
   rtdbInstance = firebaseAdmin.database();
-  console.log('[FirebaseAdmin] Firestore en RTDB services succesvol geïnitialiseerd');
+  console.log('[FirebaseAdmin] Realtime Database succesvol geïnitialiseerd');
+  
+  // Probeer daarna Firestore te initialiseren als fallback
+  try {
+    firestoreInstance = firebaseAdmin.firestore();
+    console.log('[FirebaseAdmin] Firestore ook succesvol geïnitialiseerd');
+  } catch (firestoreError) {
+    console.log('[FirebaseAdmin] Firestore niet beschikbaar (niet erg, we gebruiken RTDB):', firestoreError.message);
+    firestoreInstance = null;
+  }
 } catch (error) {
-  console.error('[FirebaseAdmin] Kon services niet initialiseren, bezig met fallback configuratie:', error);
+  console.error('[FirebaseAdmin] Kon database services niet initialiseren:', error);
   
   // In Vercel productie-omgeving, log extra informatie voor debugging
   if (process.env.VERCEL) {
@@ -111,15 +142,15 @@ try {
     console.error('- NODE_ENV:', process.env.NODE_ENV);
     console.error('- VERCEL_ENV:', process.env.VERCEL_ENV);
     console.error('- VERCEL_REGION:', process.env.VERCEL_REGION);
+    console.error('- DATABASE_URL:', process.env.FIREBASE_DATABASE_URL ? 'ingesteld' : 'niet ingesteld');
   }
   
   // Fallback: null-objecten zodat de applicatie niet crasht
-  // De API routes zullen hierdoor een gecontroleerde foutmelding geven
-  firestoreInstance = null;
   rtdbInstance = null;
+  firestoreInstance = null;
 }
 
 // Exporteer de benodigde services
-export const firestore = firestoreInstance;
 export const rtdb = rtdbInstance;
+export const firestore = firestoreInstance;
 export default firebaseAdmin;
