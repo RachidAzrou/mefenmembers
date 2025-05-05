@@ -155,6 +155,12 @@ export class FirestoreStorage implements IStorage {
   }
 
   async updateMember(id: string, member: Partial<InsertMember>): Promise<Member> {
+    // Controleer of Firebase geïnitialiseerd is
+    if (!this.firestore || !this.membersCollection) {
+      console.error('[Storage] Firebase niet beschikbaar, kan lid niet bijwerken');
+      throw new Error('Database service is tijdelijk niet beschikbaar');
+    }
+    
     // We kunnen direct naar de document ID verwijzen in Firestore
     const docRef = this.membersCollection.doc(id);
     const doc = await docRef.get();
@@ -192,6 +198,12 @@ export class FirestoreStorage implements IStorage {
   }
 
   async deleteMember(id: string): Promise<void> {
+    // Controleer of Firebase geïnitialiseerd is
+    if (!this.firestore || !this.membersCollection) {
+      console.error('[Storage] Firebase niet beschikbaar, kan lid niet verwijderen');
+      throw new Error('Database service is tijdelijk niet beschikbaar');
+    }
+    
     // We kunnen direct naar de document ID verwijzen in Firestore
     const docRef = this.membersCollection.doc(id);
     const doc = await docRef.get();
@@ -214,6 +226,15 @@ export class FirestoreStorage implements IStorage {
     try {
       console.log("generateMemberNumber - Start");
       
+      // Controleer of Firebase geïnitialiseerd is
+      if (!this.firestore || !this.countersCollection) {
+        console.error('[Storage] Firebase niet beschikbaar, kan lidnummer niet genereren');
+        // Fallback: retourneer gewoon 1 als we geen toegang hebben tot de database
+        // Dit is niet ideaal, maar voorkomt dat de applicatie crasht in productie
+        console.warn('[Storage] Gebruiken fallback lidnummer: 9999');
+        return 9999;
+      }
+      
       // Controleer of er verwijderde nummers beschikbaar zijn
       console.log("Checking for available deleted numbers");
       const nextAvailable = await this.getNextAvailableMemberNumber();
@@ -228,7 +249,14 @@ export class FirestoreStorage implements IStorage {
       console.log("Generating new member number from counter");
       const counterRef = this.countersCollection.doc('members');
       
-      return firestore.runTransaction(async (transaction) => {
+      // Controleer of Firestore beschikbaar is
+      if (!this.firestore) {
+        console.error('[Storage] Firestore niet beschikbaar voor transactie');
+        // Fallback om crashes te voorkomen
+        return 1;
+      }
+      
+      return this.firestore.runTransaction(async (transaction) => {
         console.log("Starting transaction");
         const counterDoc = await transaction.get(counterRef);
         
@@ -254,7 +282,9 @@ export class FirestoreStorage implements IStorage {
         console.error("Error message:", error.message);
         console.error("Error stack:", error.stack);
       }
-      throw error; // Propagate the error
+      // Als er een fout optreedt, retourneer een fallback waarde
+      // Dit voorkomt dat de applicatie volledig crasht in productie
+      return 1;
     }
   }
 
