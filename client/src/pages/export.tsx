@@ -186,20 +186,11 @@ export default function ExportPage() {
     <div className="space-y-6">
       {/* Header met gradient */}
       <div className="rounded-lg bg-gradient-to-r from-[#963E56]/80 to-[#963E56] p-6 shadow-md text-white">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight">Exporteren</h1>
-            <p className="text-white/80">
-              Exporteer de ledenlijst naar verschillende bestandsformaten.
-            </p>
-          </div>
-          <div className="flex gap-2">
-            <Link href="/members">
-              <Button variant="secondary" className="bg-white/20 hover:bg-white/30 text-white border-white/20">
-                Terug naar Ledenlijst
-              </Button>
-            </Link>
-          </div>
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">Exporteren</h1>
+          <p className="text-white/80">
+            Exporteer de ledenlijst naar verschillende bestandsformaten.
+          </p>
         </div>
       </div>
       
