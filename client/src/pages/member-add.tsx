@@ -36,7 +36,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { format } from "date-fns";
 import { nl } from "date-fns/locale";
-import { cn } from "@/lib/utils";
+import { cn, formatPhoneNumber } from "@/lib/utils";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useLocation, useParams } from "wouter";
@@ -439,15 +439,30 @@ export default function MemberAdd() {
                     <FormField
                       control={form.control}
                       name="phoneNumber"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Telefoonnummer<span className="text-destructive">*</span></FormLabel>
-                          <FormControl>
-                            <Input placeholder="Telefoonnummer" className="border-gray-200 focus:border-[#963E56]" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
+                      render={({ field }) => {
+                        // Formatteren bij weergave, maar originele waarde behouden bij invoer
+                        const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+                          // Alleen cijfers opslaan in de waarde
+                          const cleaned = e.target.value.replace(/\D/g, '');
+                          field.onChange(cleaned);
+                        };
+                        
+                        return (
+                          <FormItem>
+                            <FormLabel>Telefoonnummer<span className="text-destructive">*</span></FormLabel>
+                            <FormControl>
+                              <Input 
+                                placeholder="Bijv. 0493-40-14-11" 
+                                className="border-gray-200 focus:border-[#963E56]" 
+                                value={field.value ? formatPhoneNumber(field.value) : ""}
+                                onChange={handleInputChange}
+                                onBlur={field.onBlur}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        );
+                      }}
                     />
                     
                     <FormField
