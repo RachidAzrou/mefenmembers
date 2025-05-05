@@ -132,37 +132,37 @@ export default function MembersList() {
         </Card>
         
         <Card className="overflow-hidden border-none shadow-md bg-green-50">
-          <CardContent className="p-4 flex flex-col items-center justify-center">
-            <div className="rounded-full p-2 bg-green-100 mb-2">
-              <Check className="h-5 w-5 text-green-600"/>
+          <CardContent className="p-3 sm:p-4 flex flex-col items-center justify-center">
+            <div className="rounded-full p-1.5 sm:p-2 bg-green-100 mb-1 sm:mb-2">
+              <Check className="h-4 w-4 sm:h-5 sm:w-5 text-green-600"/>
             </div>
-            <div className="text-xl font-bold text-green-600">
-              {isLoading ? <Skeleton className="h-6 w-12" /> : members.filter(m => m.paymentStatus).length}
+            <div className="text-base sm:text-xl font-bold text-green-600">
+              {isLoading ? <Skeleton className="h-5 sm:h-6 w-10 sm:w-12" /> : members.filter(m => m.paymentStatus).length}
             </div>
-            <p className="text-xs text-green-800/60 text-center">Betaald</p>
+            <p className="text-[10px] sm:text-xs text-green-800/60 text-center">Betaald</p>
           </CardContent>
         </Card>
         
         <Card className="overflow-hidden border-none shadow-md bg-red-50">
-          <CardContent className="p-4 flex flex-col items-center justify-center">
-            <div className="rounded-full p-2 bg-red-100 mb-2">
-              <X className="h-5 w-5 text-red-600"/>
+          <CardContent className="p-3 sm:p-4 flex flex-col items-center justify-center">
+            <div className="rounded-full p-1.5 sm:p-2 bg-red-100 mb-1 sm:mb-2">
+              <X className="h-4 w-4 sm:h-5 sm:w-5 text-red-600"/>
             </div>
-            <div className="text-xl font-bold text-red-600">
-              {isLoading ? <Skeleton className="h-6 w-12" /> : members.length - members.filter(m => m.paymentStatus).length}
+            <div className="text-base sm:text-xl font-bold text-red-600">
+              {isLoading ? <Skeleton className="h-5 sm:h-6 w-10 sm:w-12" /> : members.length - members.filter(m => m.paymentStatus).length}
             </div>
-            <p className="text-xs text-red-800/60 text-center">Niet betaald</p>
+            <p className="text-[10px] sm:text-xs text-red-800/60 text-center">Niet betaald</p>
           </CardContent>
         </Card>
         
         <Card className="overflow-hidden border-none shadow-md bg-purple-50">
-          <CardContent className="p-4 flex flex-col items-center justify-center">
-            <div className="rounded-full p-2 bg-purple-100 mb-2">
-              <CalendarDays className="h-5 w-5 text-purple-600"/>
+          <CardContent className="p-3 sm:p-4 flex flex-col items-center justify-center">
+            <div className="rounded-full p-1.5 sm:p-2 bg-purple-100 mb-1 sm:mb-2">
+              <CalendarDays className="h-4 w-4 sm:h-5 sm:w-5 text-purple-600"/>
             </div>
-            <div className="text-xl font-bold text-purple-600">
+            <div className="text-base sm:text-xl font-bold text-purple-600">
               {isLoading ? (
-                <Skeleton className="h-6 w-12" />
+                <Skeleton className="h-5 sm:h-6 w-10 sm:w-12" />
               ) : (
                 members.length > 0
                   ? new Date(Math.max(...members.map(m => new Date(m.registrationDate).getTime())))
@@ -170,23 +170,23 @@ export default function MembersList() {
                   : "-"
               )}
             </div>
-            <p className="text-xs text-purple-800/60 text-center">Laatste registratie</p>
+            <p className="text-[10px] sm:text-xs text-purple-800/60 text-center">Laatste registratie</p>
           </CardContent>
         </Card>
       </div>
       
       <Card className="border-none shadow-md overflow-hidden">
         <div className="bg-gradient-to-r from-gray-100 to-gray-50 h-1" />
-        <CardHeader className="pb-3">
-          <CardTitle className="text-lg flex items-center">
-            <Users className="h-5 w-5 mr-2 text-[#963E56]" /> Ledenbestand
+        <CardHeader className="pb-3 px-3 sm:px-6">
+          <CardTitle className="text-base sm:text-lg flex items-center">
+            <Users className="h-4 w-4 sm:h-5 sm:w-5 mr-2 text-[#963E56]" /> Ledenbestand
           </CardTitle>
-          <CardDescription>
+          <CardDescription className="text-xs sm:text-sm">
             {filteredMembers.length} leden gevonden
             {searchQuery ? ` voor zoekterm "${searchQuery}"` : ""}
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="px-3 sm:px-6 py-4">
           <div className="flex flex-col md:flex-row gap-4 mb-6">
             <div className="relative flex-1">
               <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
@@ -194,8 +194,8 @@ export default function MembersList() {
               </div>
               <Input
                 type="search"
-                placeholder="Zoeken op naam, lidnummer, e-mail of telefoon..."
-                className="pl-10 py-6 border-gray-200 bg-gray-50 focus:bg-white transition-colors shadow-sm"
+                placeholder="Zoeken op naam, lidnummer..."
+                className="pl-10 py-5 sm:py-6 text-sm sm:text-base border-gray-200 bg-gray-50 focus:bg-white transition-colors shadow-sm"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
@@ -206,13 +206,13 @@ export default function MembersList() {
             <Table>
               <TableHeader className="bg-gray-50">
                 <TableRow>
-                  <TableHead className="font-semibold text-gray-700">Lidnummer</TableHead>
-                  <TableHead className="font-semibold text-gray-700">Naam</TableHead>
-                  <TableHead className="hidden md:table-cell font-semibold text-gray-700">Geboortedatum</TableHead>
-                  <TableHead className="hidden md:table-cell font-semibold text-gray-700">E-mail</TableHead>
-                  <TableHead className="hidden md:table-cell font-semibold text-gray-700">Telefoon</TableHead>
-                  <TableHead className="font-semibold text-gray-700">Status</TableHead>
-                  <TableHead className="text-right font-semibold text-gray-700">Acties</TableHead>
+                  <TableHead className="font-medium sm:font-semibold text-xs sm:text-sm text-gray-700">Lidnr.</TableHead>
+                  <TableHead className="font-medium sm:font-semibold text-xs sm:text-sm text-gray-700">Naam</TableHead>
+                  <TableHead className="hidden md:table-cell font-medium sm:font-semibold text-xs sm:text-sm text-gray-700">Geboortedatum</TableHead>
+                  <TableHead className="hidden md:table-cell font-medium sm:font-semibold text-xs sm:text-sm text-gray-700">E-mail</TableHead>
+                  <TableHead className="hidden md:table-cell font-medium sm:font-semibold text-xs sm:text-sm text-gray-700">Telefoon</TableHead>
+                  <TableHead className="font-medium sm:font-semibold text-xs sm:text-sm text-gray-700">Status</TableHead>
+                  <TableHead className="text-right font-medium sm:font-semibold text-xs sm:text-sm text-gray-700">Acties</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -245,27 +245,27 @@ export default function MembersList() {
                 ) : (
                   filteredMembers.map((member) => (
                     <TableRow key={member.id} className="hover:bg-gray-50/50 transition-colors">
-                      <TableCell className="font-medium text-[#963E56]">
+                      <TableCell className="font-medium text-[#963E56] text-xs sm:text-sm py-2 sm:py-4">
                         {member.memberNumber}
                       </TableCell>
-                      <TableCell className="font-medium">
+                      <TableCell className="font-medium text-xs sm:text-sm py-2 sm:py-4">
                         {member.firstName} {member.lastName}
                       </TableCell>
-                      <TableCell className="hidden md:table-cell text-gray-600">
+                      <TableCell className="hidden md:table-cell text-gray-600 text-xs sm:text-sm py-2 sm:py-4">
                         {formatDate(member.birthDate)}
                       </TableCell>
-                      <TableCell className="hidden md:table-cell text-gray-600">
+                      <TableCell className="hidden md:table-cell text-gray-600 text-xs sm:text-sm py-2 sm:py-4">
                         {member.email || "-"}
                       </TableCell>
-                      <TableCell className="hidden md:table-cell text-gray-600">
+                      <TableCell className="hidden md:table-cell text-gray-600 text-xs sm:text-sm py-2 sm:py-4">
                         {member.phoneNumber ? formatPhoneNumber(member.phoneNumber) : "-"}
                       </TableCell>
-                      <TableCell>
+                      <TableCell className="py-2 sm:py-4">
                         <Badge 
                           variant={member.paymentStatus ? "default" : "outline"}
-                          className={member.paymentStatus 
+                          className={`text-[10px] sm:text-xs ${member.paymentStatus 
                             ? "bg-green-100 text-green-800 hover:bg-green-200 hover:text-green-900"
-                            : "bg-red-50 border-red-200 text-red-700 hover:bg-red-100"}
+                            : "bg-red-50 border-red-200 text-red-700 hover:bg-red-100"}`}
                         >
                           {member.paymentStatus 
                             ? "✓ Betaald" 
@@ -309,77 +309,77 @@ export default function MembersList() {
       {viewMember && (
         <Dialog open={!!viewMember} onOpenChange={() => setViewMember(null)}>
           <DialogContent className="sm:max-w-[650px] p-0 overflow-hidden">
-            <div className="bg-gradient-to-r from-[#963E56]/90 to-[#963E56] p-6 text-white">
+            <div className="bg-gradient-to-r from-[#963E56]/90 to-[#963E56] p-4 sm:p-6 text-white">
               <DialogHeader className="text-white">
-                <DialogTitle className="text-xl">
+                <DialogTitle className="text-lg sm:text-xl">
                   {viewMember.firstName} {viewMember.lastName}
                 </DialogTitle>
-                <DialogDescription className="text-white/80 text-sm">
+                <DialogDescription className="text-white/80 text-xs sm:text-sm">
                   Lidnummer: {viewMember.memberNumber} • Lid sinds {formatDate(viewMember.registrationDate)}
                 </DialogDescription>
               </DialogHeader>
             </div>
             
-            <div className="p-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="p-4 sm:p-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-700 mb-3 flex items-center">
-                    <User className="h-5 w-5 mr-2 text-[#963E56]" /> 
+                  <h3 className="text-base sm:text-lg font-semibold text-gray-700 mb-2 sm:mb-3 flex items-center">
+                    <User className="h-4 w-4 sm:h-5 sm:w-5 mr-1.5 sm:mr-2 text-[#963E56]" /> 
                     Persoonlijke gegevens
                   </h3>
-                  <div className="space-y-3">
-                    <div className="bg-gray-50 rounded-lg p-3">
-                      <div className="text-sm text-gray-500">Volledige naam</div>
-                      <div className="font-medium">{viewMember.firstName} {viewMember.lastName}</div>
+                  <div className="space-y-2 sm:space-y-3">
+                    <div className="bg-gray-50 rounded-lg p-2 sm:p-3">
+                      <div className="text-xs sm:text-sm text-gray-500">Volledige naam</div>
+                      <div className="font-medium text-sm sm:text-base">{viewMember.firstName} {viewMember.lastName}</div>
                     </div>
                     
-                    <div className="bg-gray-50 rounded-lg p-3">
-                      <div className="text-sm text-gray-500">Geboortedatum</div>
-                      <div className="font-medium">{formatDate(viewMember.birthDate)}</div>
+                    <div className="bg-gray-50 rounded-lg p-2 sm:p-3">
+                      <div className="text-xs sm:text-sm text-gray-500">Geboortedatum</div>
+                      <div className="font-medium text-sm sm:text-base">{formatDate(viewMember.birthDate)}</div>
                     </div>
                     
-                    <div className="bg-gray-50 rounded-lg p-3">
-                      <div className="text-sm text-gray-500">Lid sinds</div>
-                      <div className="font-medium">{formatDate(viewMember.registrationDate)}</div>
+                    <div className="bg-gray-50 rounded-lg p-2 sm:p-3">
+                      <div className="text-xs sm:text-sm text-gray-500">Lid sinds</div>
+                      <div className="font-medium text-sm sm:text-base">{formatDate(viewMember.registrationDate)}</div>
                     </div>
                   </div>
                 </div>
                 
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-700 mb-3 flex items-center">
-                    <Phone className="h-5 w-5 mr-2 text-[#963E56]" /> 
+                  <h3 className="text-base sm:text-lg font-semibold text-gray-700 mb-2 sm:mb-3 flex items-center mt-4 md:mt-0">
+                    <Phone className="h-4 w-4 sm:h-5 sm:w-5 mr-1.5 sm:mr-2 text-[#963E56]" /> 
                     Contact & betaling
                   </h3>
-                  <div className="space-y-3">
-                    <div className="bg-gray-50 rounded-lg p-3">
-                      <div className="text-sm text-gray-500">E-mail</div>
-                      <div className="font-medium">{viewMember.email || "Niet opgegeven"}</div>
+                  <div className="space-y-2 sm:space-y-3">
+                    <div className="bg-gray-50 rounded-lg p-2 sm:p-3">
+                      <div className="text-xs sm:text-sm text-gray-500">E-mail</div>
+                      <div className="font-medium text-sm sm:text-base">{viewMember.email || "Niet opgegeven"}</div>
                     </div>
                     
-                    <div className="bg-gray-50 rounded-lg p-3">
-                      <div className="text-sm text-gray-500">Telefoon</div>
-                      <div className="font-medium">{formatPhoneNumber(viewMember.phoneNumber)}</div>
+                    <div className="bg-gray-50 rounded-lg p-2 sm:p-3">
+                      <div className="text-xs sm:text-sm text-gray-500">Telefoon</div>
+                      <div className="font-medium text-sm sm:text-base">{formatPhoneNumber(viewMember.phoneNumber)}</div>
                     </div>
                     
-                    <div className="bg-gray-50 rounded-lg p-3">
-                      <div className="text-sm text-gray-500">Rekeningnummer</div>
-                      <div className="font-medium">{viewMember.accountNumber || "Niet opgegeven"}</div>
+                    <div className="bg-gray-50 rounded-lg p-2 sm:p-3">
+                      <div className="text-xs sm:text-sm text-gray-500">Rekeningnummer</div>
+                      <div className="font-medium text-sm sm:text-base">{viewMember.accountNumber || "Niet opgegeven"}</div>
                     </div>
                   </div>
                 </div>
               </div>
               
-              <div className="mt-6 flex items-center p-4 rounded-lg bg-gray-50 gap-4">
-                <div className={`p-3 rounded-full ${viewMember.paymentStatus ? 'bg-green-100' : 'bg-red-100'}`}>
+              <div className="mt-4 sm:mt-6 flex items-center p-3 sm:p-4 rounded-lg bg-gray-50 gap-3 sm:gap-4">
+                <div className={`p-2 sm:p-3 rounded-full ${viewMember.paymentStatus ? 'bg-green-100' : 'bg-red-100'}`}>
                   {viewMember.paymentStatus ? (
-                    <Check className="h-5 w-5 text-green-600" />
+                    <Check className="h-4 w-4 sm:h-5 sm:w-5 text-green-600" />
                   ) : (
-                    <X className="h-5 w-5 text-red-600" />
+                    <X className="h-4 w-4 sm:h-5 sm:w-5 text-red-600" />
                   )}
                 </div>
                 <div>
-                  <div className="text-sm text-gray-500">Betaalstatus</div>
-                  <div className="font-medium">
+                  <div className="text-xs sm:text-sm text-gray-500">Betaalstatus</div>
+                  <div className="text-sm sm:text-base font-medium">
                     {viewMember.paymentStatus ? "Betaald" : "Niet betaald"}
                   </div>
                 </div>
