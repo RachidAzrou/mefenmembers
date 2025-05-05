@@ -289,6 +289,17 @@ export class FirestoreStorage implements IStorage {
   }
 
   async addDeletedMemberNumber(memberNumber: number): Promise<DeletedMemberNumber> {
+    // Controleer of Firebase geïnitialiseerd is
+    if (!this.firestore || !this.deletedMemberNumbersCollection) {
+      console.error('[Storage] Firebase niet beschikbaar, kan verwijderd lidnummer niet toevoegen');
+      const fallbackNumber = {
+        id: `fallback-${Date.now()}`,
+        memberNumber,
+        deletedAt: new Date()
+      };
+      return fallbackNumber as DeletedMemberNumber;
+    }
+    
     const deletedNumberRef = this.deletedMemberNumbersCollection.doc();
     
     const deletedNumber = {
@@ -302,37 +313,64 @@ export class FirestoreStorage implements IStorage {
   }
 
   async getDeletedMemberNumbers(): Promise<DeletedMemberNumber[]> {
+    // Controleer of Firebase geïnitialiseerd is
+    if (!this.firestore || !this.deletedMemberNumbersCollection) {
+      console.error('[Storage] Firebase niet beschikbaar, kan verwijderde lidnummers niet ophalen');
+      return [];
+    }
+    
     const snapshot = await this.deletedMemberNumbersCollection.orderBy('memberNumber', 'asc').get();
     return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }) as DeletedMemberNumber);
   }
 
   async getNextAvailableMemberNumber(): Promise<number> {
-    // Haal het oudste verwijderde lidnummer op
-    const snapshot = await this.deletedMemberNumbersCollection
-      .orderBy('deletedAt', 'asc')
-      .limit(1)
-      .get();
-    
-    if (snapshot.empty) {
-      return 0; // Geen verwijderde nummers beschikbaar
+    // Controleer of Firebase geïnitialiseerd is
+    if (!this.firestore || !this.deletedMemberNumbersCollection) {
+      console.error('[Storage] Firebase niet beschikbaar, kan verwijderde lidnummers niet gebruiken');
+      return 0;
     }
     
-    const doc = snapshot.docs[0];
-    const memberNumber = doc.data().memberNumber;
-    
-    // Verwijder het uit de verwijderde nummers collectie
-    await this.removeDeletedMemberNumber(memberNumber);
-    
-    return memberNumber;
+    try {
+      // Haal het oudste verwijderde lidnummer op
+      const snapshot = await this.deletedMemberNumbersCollection
+        .orderBy('deletedAt', 'asc')
+        .limit(1)
+        .get();
+      
+      if (snapshot.empty) {
+        return 0; // Geen verwijderde nummers beschikbaar
+      }
+      
+      const doc = snapshot.docs[0];
+      const memberNumber = doc.data().memberNumber;
+      
+      // Verwijder het uit de verwijderde nummers collectie
+      await this.removeDeletedMemberNumber(memberNumber);
+      
+      return memberNumber;
+    } catch (error) {
+      console.error('[Storage] Error bij ophalen beschikbare lidnummers:', error);
+      return 0;
+    }
   }
 
   async removeDeletedMemberNumber(memberNumber: number): Promise<void> {
-    const snapshot = await this.deletedMemberNumbersCollection
-      .where('memberNumber', '==', memberNumber)
-      .get();
+    // Controleer of Firebase geïnitialiseerd is
+    if (!this.firestore || !this.deletedMemberNumbersCollection) {
+      console.error('[Storage] Firebase niet beschikbaar, kan verwijderd lidnummer niet verwijderen');
+      return;
+    }
     
-    if (!snapshot.empty) {
-      await snapshot.docs[0].ref.delete();
+    try {
+      const snapshot = await this.deletedMemberNumbersCollection
+        .where('memberNumber', '==', memberNumber)
+        .get();
+      
+      if (!snapshot.empty) {
+        await snapshot.docs[0].ref.delete();
+      }
+    } catch (error) {
+      console.error('[Storage] Error bij verwijderen lidnummer:', error);
     }
   }
 }

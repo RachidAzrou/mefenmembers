@@ -3,6 +3,7 @@ import { createServer, type Server } from "http";
 import { storage } from "./firestore-storage"; // Gebruik de nieuwe Firestore implementatie
 import { insertMemberSchema } from "@shared/schema";
 import { fromZodError } from "zod-validation-error";
+import { setupVercelDebugging } from "./vercel-debug";
 
 // Debug voor Vercel deployment
 const isVercel = !!process.env.VERCEL;
@@ -10,6 +11,10 @@ console.log('[Server Routes] Draait in Vercel omgeving:', isVercel);
 console.log('[Server Routes] NODE_ENV:', process.env.NODE_ENV);
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Activeer Vercel debugging tools
+  if (process.env.VERCEL || process.env.NODE_ENV === 'development') {
+    setupVercelDebugging(app);
+  }
   // Members routes
   // Generate unique member number (moet vóór /api/members/:id komen)
   app.get("/api/members/generate-number", async (_req: Request, res: Response) => {
