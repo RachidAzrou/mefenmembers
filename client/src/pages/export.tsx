@@ -249,47 +249,51 @@ export default function ExportPage() {
     // Optimaliseren van kolombreedte op basis van het aantal en type geselecteerde velden
     const columnWidths: Record<string, string> = {};
     
-    // Bereken het totale percentage om te verdelen over de kolommen
-    const totalColumns = enabledFields.length;
+    // Pas de breedtes aan op basis van het aantal geselecteerde velden
+    const numSelectedFields = enabledFields.length;
+    const isCompact = numSelectedFields > 7; // Als er veel velden zijn, maak dan alles compacter
     
     enabledFields.forEach(field => {
       switch (field.id) {
         case "memberNumber":
-          // Lidnummer is meestal kort, dus minder ruimte nodig
-          columnWidths[field.id] = "8%";
+          // Lidnummer is kort
+          columnWidths[field.id] = isCompact ? "6%" : "7%";
           break;
         case "firstName":
-          columnWidths[field.id] = "12%";
+          columnWidths[field.id] = isCompact ? "10%" : "12%";
           break;
         case "lastName":
           // Achternamen zijn vaak langer dan voornamen
-          columnWidths[field.id] = "14%";
+          columnWidths[field.id] = isCompact ? "12%" : "14%";
           break;
         case "birthDate":
+          // Datums hebben een vaste lengte
+          columnWidths[field.id] = isCompact ? "9%" : "10%";
+          break;
         case "registrationDate":
-          // Datums hebben een vaste lengte, maak ze smaller
-          columnWidths[field.id] = "10%";
+          // Registratiedatum maken we korter
+          columnWidths[field.id] = isCompact ? "8%" : "9%";
           break;
         case "paymentStatus":
           // Status heeft alleen ✓ of ✗, dus zeer compact
-          columnWidths[field.id] = "6%";
+          columnWidths[field.id] = isCompact ? "5%" : "6%";
           break;
         case "email":
           // Email is vaak lang, dus meer ruimte
-          columnWidths[field.id] = "18%";
+          columnWidths[field.id] = isCompact ? "16%" : "18%";
           break;
         case "phoneNumber":
-          columnWidths[field.id] = "12%";
+          columnWidths[field.id] = isCompact ? "10%" : "12%";
           break;
         case "accountNumber":
-          columnWidths[field.id] = "14%";
+          columnWidths[field.id] = isCompact ? "12%" : "14%";
           break;
         case "notes":
-          // Notities kunnen lang zijn, maar moeten niet te veel ruimte innemen
-          columnWidths[field.id] = "16%";
+          // Notities compacter maken als er veel velden zijn
+          columnWidths[field.id] = isCompact ? "12%" : "16%";
           break;
         default:
-          columnWidths[field.id] = "10%";
+          columnWidths[field.id] = isCompact ? "8%" : "10%";
       }
     });
     
@@ -330,12 +334,21 @@ export default function ExportPage() {
                       value = member.memberNumber.toString().padStart(4, '0');
                       break;
                     case "birthDate":
-                      value = member.birthDate ? new Date(member.birthDate).toLocaleDateString() : "-";
+                      if (member.birthDate) {
+                        // Compacte datumnotatie: DD-MM-YYYY
+                        const bdate = new Date(member.birthDate);
+                        value = `${bdate.getDate().toString().padStart(2,'0')}-${(bdate.getMonth()+1).toString().padStart(2,'0')}-${bdate.getFullYear()}`;
+                      } else {
+                        value = "-";
+                      }
                       break;
                     case "registrationDate":
-                      value = new Date(member.registrationDate).toLocaleDateString();
+                      // Compacte datumnotatie: DD-MM-YYYY
+                      const rdate = new Date(member.registrationDate);
+                      value = `${rdate.getDate().toString().padStart(2,'0')}-${(rdate.getMonth()+1).toString().padStart(2,'0')}-${rdate.getFullYear()}`;
                       break;
                     case "paymentStatus":
+                      // Gebruik symbolen in plaats van tekst
                       value = member.paymentStatus ? "✓" : "✗";
                       break;
                     default:
