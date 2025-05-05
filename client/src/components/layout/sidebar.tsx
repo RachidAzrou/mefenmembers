@@ -4,16 +4,13 @@ import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Link, useLocation } from "wouter";
 import {
-  LayoutDashboard, Users, Calendar,
-  Package2, LogOut, Menu, ChevronLeft, ChevronRight,
-  Settings, FileJson, User, House, Radio, UsersRound
+  LogOut, Menu, ChevronLeft, ChevronRight,
+  Settings, User, UsersRound
 } from "lucide-react";
-import { PiMosqueLight } from "react-icons/pi";
 import { useState, useEffect } from "react";
 import { auth } from "@/lib/firebase";
 import { signOut } from "firebase/auth";
 import { useRole } from "@/hooks/use-role";
-import { useNotifications } from "@/hooks/use-notifications";
 import { logUserAction, UserActionTypes } from "@/lib/activity-logger";
 
 export function Sidebar() {
@@ -21,7 +18,6 @@ export function Sidebar() {
   const [collapsed, setCollapsed] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const { isAdmin } = useRole();
-  const { unreadCount, clearUnreadCount } = useNotifications();
   const currentUser = auth.currentUser;
 
   useEffect(() => {
@@ -58,21 +54,9 @@ export function Sidebar() {
   };
 
   const menuItems = [
-    { icon: LayoutDashboard, label: "Dashboard", href: "/" },
-    { icon: Calendar, label: "Planning", href: "/planning" },
-    { icon: Users, label: "Vrijwilligers", href: "/volunteers" },
-    { icon: UsersRound, label: "Leden", href: "/members" },
-    { icon: Package2, label: "Materialen", href: "/materials" },
-    { icon: Radio, label: "Communicatie", href: "/communication" },
-    {
-      icon: FileJson,
-      label: "Import/Export",
-      href: "/import-export",
-      notificationCount: unreadCount
-    },
-    { icon: PiMosqueLight, label: "Mijn Moskee", href: "/mosque" },
-    { icon: House, label: "Ruimtes", href: "/rooms", adminOnly: true },
-  ].filter(item => !item.adminOnly || isAdmin);
+    { icon: UsersRound, label: "Leden", href: "/" },
+    { icon: UsersRound, label: "Ledenlijst", href: "/members" },
+  ];
 
   const handleNavigation = (href: string) => {
     // Only collapse on mobile and when sidebar is expanded

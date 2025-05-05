@@ -2,38 +2,16 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { queryClient } from "./lib/queryClient";
 import { Switch, Route } from "wouter";
 import { Toaster } from "@/components/ui/toaster";
-import { Walkthrough } from "@/components/walkthrough.tsx";
 import NotFound from "@/pages/not-found";
-import Dashboard from "@/pages/dashboard";
 import Login from "@/pages/login";
 import Register from "@/pages/register";
-import Profile from "@/pages/profile";
-import Volunteers from "@/pages/volunteers";
-import Rooms from "@/pages/rooms";
-import Materials from "@/pages/materials";
-import { PlanningPage } from "@/pages/planning";
-import PublicCalendar from "@/pages/public-calendar";
-import ImportExport from "@/pages/import-export";
-import Mosque from "@/pages/mosque";
-import Settings from "@/pages/settings";
-import Communication from "@/pages/communication";
 import Members from "@/pages/members";
 import { Sidebar } from "@/components/layout/sidebar";
 import { auth } from "./lib/firebase";
 import { useAuthState } from "react-firebase-hooks/auth";
-import { useNotifications } from "@/hooks/use-notifications";
-import { SocketProvider } from "@/hooks/use-socket";
 import React from 'react';
 
 function AuthenticatedLayout({ children }: { children: React.ReactNode }) {
-  const { permission, requestPermission } = useNotifications();
-
-  React.useEffect(() => {
-    if (permission === 'default') {
-      requestPermission();
-    }
-  }, [permission, requestPermission]);
-
   return (
     <div className="flex min-h-[100dvh] bg-gray-50/80 relative">
       <Sidebar />
@@ -42,7 +20,6 @@ function AuthenticatedLayout({ children }: { children: React.ReactNode }) {
           {children}
         </div>
       </main>
-      <Walkthrough />
     </div>
   );
 }
@@ -78,18 +55,8 @@ function Router() {
     <Switch>
       <Route path="/login" component={Login} />
       <Route path="/register" component={Register} />
-      <Route path="/" component={() => <PrivateRoute component={Dashboard} />} />
-      <Route path="/profile" component={() => <PrivateRoute component={Profile} />} />
-      <Route path="/planning" component={() => <PrivateRoute component={PlanningPage} />} />
-      <Route path="/volunteers" component={() => <PrivateRoute component={Volunteers} />} />
-      <Route path="/rooms" component={() => <PrivateRoute component={Rooms} />} />
-      <Route path="/materials" component={() => <PrivateRoute component={Materials} />} />
+      <Route path="/" component={() => <PrivateRoute component={Members} />} />
       <Route path="/members" component={() => <PrivateRoute component={Members} />} />
-      <Route path="/import-export" component={() => <PrivateRoute component={ImportExport} />} />
-      <Route path="/mosque" component={() => <PrivateRoute component={Mosque} />} />
-      <Route path="/settings" component={() => <PrivateRoute component={Settings} />} />
-      <Route path="/communication" component={() => <PrivateRoute component={Communication} />} />
-      <Route path="/calendar/public" component={PublicCalendar} />
       <Route component={NotFound} />
     </Switch>
   );
@@ -98,10 +65,8 @@ function Router() {
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <SocketProvider>
-        <Router />
-        <Toaster />
-      </SocketProvider>
+      <Router />
+      <Toaster />
     </QueryClientProvider>
   );
 }
