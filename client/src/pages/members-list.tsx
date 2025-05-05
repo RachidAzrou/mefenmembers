@@ -616,7 +616,7 @@ export default function MembersList() {
           <DialogContent className="sm:max-w-[650px] p-0 overflow-hidden">
             <div className="bg-gradient-to-r from-[#963E56]/90 to-[#963E56] p-4 sm:p-6 text-white">
               <DialogHeader className="text-white">
-                <DialogTitle className="text-lg sm:text-xl">
+                <DialogTitle className="text-lg sm:text-xl text-white">
                   {viewMember.firstName} {viewMember.lastName}
                 </DialogTitle>
                 <DialogDescription className="text-white/80 text-xs sm:text-sm">
