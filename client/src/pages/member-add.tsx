@@ -27,6 +27,14 @@ import { apiRequest } from "@/lib/queryClient";
 import { Link, useLocation, useParams } from "wouter";
 import { insertMemberSchema, Member } from "@shared/schema";
 import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 // Form validator schema met alle vereiste velden
 const memberFormSchema = insertMemberSchema.extend({
@@ -347,9 +355,11 @@ export default function MemberAdd() {
                                   <div className="space-y-1">
                                     <Label htmlFor="birth-day" className="text-xs text-gray-500">Dag</Label>
                                     <Select
-                                      value={selectedDay?.toString() || ""}
+                                      value={selectedDay?.toString() || "placeholder"}
                                       onValueChange={(value) => {
-                                        setSelectedDay(parseInt(value, 10));
+                                        if (value !== "placeholder") {
+                                          setSelectedDay(parseInt(value, 10));
+                                        }
                                       }}
                                     >
                                       <SelectTrigger id="birth-day" className="h-8">
@@ -369,16 +379,18 @@ export default function MemberAdd() {
                                   <div className="space-y-1">
                                     <Label htmlFor="birth-month" className="text-xs text-gray-500">Maand</Label>
                                     <Select
-                                      value={selectedMonth?.toString() || ""}
+                                      value={selectedMonth?.toString() || "placeholder"}
                                       onValueChange={(value) => {
-                                        const monthValue = parseInt(value, 10);
-                                        setSelectedMonth(monthValue);
-                                        
-                                        // Pas de dag aan als de nieuwe maand minder dagen heeft
-                                        if (selectedYear !== null && selectedDay !== null) {
-                                          const daysInNewMonth = getDaysInMonth(selectedYear, monthValue);
-                                          if (selectedDay > daysInNewMonth) {
-                                            setSelectedDay(daysInNewMonth);
+                                        if (value !== "placeholder") {
+                                          const monthValue = parseInt(value, 10);
+                                          setSelectedMonth(monthValue);
+                                          
+                                          // Pas de dag aan als de nieuwe maand minder dagen heeft
+                                          if (selectedYear !== null && selectedDay !== null) {
+                                            const daysInNewMonth = getDaysInMonth(selectedYear, monthValue);
+                                            if (selectedDay > daysInNewMonth) {
+                                              setSelectedDay(daysInNewMonth);
+                                            }
                                           }
                                         }
                                       }}
@@ -400,16 +412,18 @@ export default function MemberAdd() {
                                   <div className="space-y-1">
                                     <Label htmlFor="birth-year" className="text-xs text-gray-500">Jaar</Label>
                                     <Select
-                                      value={selectedYear?.toString() || ""}
+                                      value={selectedYear?.toString() || "placeholder"}
                                       onValueChange={(value) => {
-                                        const yearValue = parseInt(value, 10);
-                                        setSelectedYear(yearValue);
-                                        
-                                        // Pas de dag aan voor schrikkeljaren
-                                        if (selectedMonth === 1 && selectedDay !== null) { // Februari
-                                          const daysInNewMonth = getDaysInMonth(yearValue, 1);
-                                          if (selectedDay > daysInNewMonth) {
-                                            setSelectedDay(daysInNewMonth);
+                                        if (value !== "placeholder") {
+                                          const yearValue = parseInt(value, 10);
+                                          setSelectedYear(yearValue);
+                                          
+                                          // Pas de dag aan voor schrikkeljaren
+                                          if (selectedMonth === 1 && selectedDay !== null) { // Februari
+                                            const daysInNewMonth = getDaysInMonth(yearValue, 1);
+                                            if (selectedDay > daysInNewMonth) {
+                                              setSelectedDay(daysInNewMonth);
+                                            }
                                           }
                                         }
                                       }}
