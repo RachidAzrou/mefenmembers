@@ -10,55 +10,25 @@ import * as XLSX from 'xlsx';
 import { useToast } from "@/hooks/use-toast";
 import { Document, Page, Text, View, StyleSheet, PDFDownloadLink } from '@react-pdf/renderer';
 
-// PDF Stylesheet voor het genereren van het PDF document
+// PDF Stylesheet voor het genereren van een minimalistisch PDF document
 const styles = StyleSheet.create({
   page: {
     flexDirection: 'column',
     backgroundColor: '#FFFFFF',
-    padding: 30,
-  },
-  headerContainer: {
-    backgroundColor: '#F9F5F6',
-    padding: 15,
-    marginBottom: 20,
-    borderRadius: 5,
-    borderBottomWidth: 3,
-    borderBottomColor: '#963E56',
+    padding: 20,
   },
   header: {
-    fontSize: 20,
-    marginBottom: 8,
+    fontSize: 16,
+    marginBottom: 10,
     fontWeight: 'bold',
     textAlign: 'center',
     color: '#963E56',
   },
   subtitle: {
-    fontSize: 12,
+    fontSize: 10,
+    marginBottom: 12,
     textAlign: 'center',
     color: '#666666',
-  },
-  infoContainer: {
-    marginBottom: 20,
-    padding: 10,
-    backgroundColor: '#F6F8FA',
-    borderRadius: 5,
-    borderLeftWidth: 3,
-    borderLeftColor: '#963E56',
-  },
-  infoText: {
-    fontSize: 10,
-    marginBottom: 3,
-    color: '#666666',
-  },
-  infoTextBold: {
-    fontSize: 10,
-    fontWeight: 'bold',
-    color: '#444444',
-  },
-  summary: {
-    marginBottom: 15,
-    fontSize: 10,
-    color: '#333333',
   },
   table: {
     display: 'flex',
@@ -66,20 +36,17 @@ const styles = StyleSheet.create({
     borderStyle: 'solid',
     borderWidth: 1,
     borderColor: '#DDDDDD',
-    borderRadius: 3,
     marginTop: 10,
-    overflow: 'hidden',
   },
   tableHeader: {
     backgroundColor: '#963E56',
     flexDirection: 'row',
     borderBottomWidth: 1,
     borderBottomColor: '#DDDDDD',
-    padding: 3,
   },
   tableHeaderCell: {
-    padding: 6,
-    fontSize: 10,
+    padding: 5,
+    fontSize: 8,
     fontWeight: 'bold',
     color: 'white',
   },
@@ -89,33 +56,17 @@ const styles = StyleSheet.create({
     borderBottomColor: '#EEEEEE',
   },
   tableCell: {
-    padding: 6,
-    fontSize: 9,
+    padding: 4,
+    fontSize: 7,
     color: '#444444',
   },
   footer: {
     position: 'absolute',
-    bottom: 30,
+    bottom: 20,
     left: 0,
     right: 0,
     textAlign: 'center',
-    fontSize: 8,
-    color: '#888888',
-    borderTopWidth: 1,
-    borderTopColor: '#EEEEEE',
-    paddingTop: 10,
-  },
-  logo: {
-    width: 60,
-    height: 60,
-    marginBottom: 10,
-    alignSelf: 'center',
-  },
-  pageNumber: {
-    position: 'absolute',
-    bottom: 15,
-    right: 30,
-    fontSize: 8,
+    fontSize: 7,
     color: '#888888',
   },
 });
@@ -330,59 +281,19 @@ export default function ExportPage() {
       }
     });
     
-    // Bereken statistieken van de data voor het informatieblok
-    const totalMembers = filteredMembers.length;
-    const paidMembers = filteredMembers.filter(m => m.paymentStatus).length;
-    const unpaidMembers = totalMembers - paidMembers;
-    const paymentPercentage = totalMembers > 0 ? Math.round((paidMembers / totalMembers) * 100) : 0;
-    
-    // Datum van vandaag in Nederlands formaat
-    const today = new Date().toLocaleDateString('nl-NL', {
-      day: 'numeric',
-      month: 'long',
-      year: 'numeric'
-    });
-    
-    // Tijd van generatie
-    const currentTime = new Date().toLocaleTimeString('nl-NL', {
-      hour: '2-digit',
-      minute: '2-digit'
-    });
+    // Datum weergave
+    const today = new Date().toLocaleDateString('nl-NL');
 
     return (
       <Document>
-        <Page size="A4" style={styles.page} wrap>
-          {/* Header sectie met stijlvolle opmaak */}
-          <View style={styles.headerContainer}>
-            <Text style={styles.header}>Ledenlijst MEFEN Moskee</Text>
-            <Text style={styles.subtitle}>
-              Ledenadministratie export
-            </Text>
-          </View>
+        <Page size="A4" style={styles.page}>
+          <Text style={styles.header}>Ledenlijst MEFEN Moskee</Text>
+          <Text style={styles.subtitle}>
+            {paymentFilter === "all" ? "Alle leden" : 
+             paymentFilter === "paid" ? "Alleen betalende leden" : 
+             "Alleen niet-betalende leden"}
+          </Text>
           
-          {/* Informatie blok met exportdetails */}
-          <View style={styles.infoContainer}>
-            <Text style={styles.infoTextBold}>Exportdetails</Text>
-            <Text style={styles.infoText}>Datum: {today} om {currentTime}</Text>
-            <Text style={styles.infoText}>
-              Filter: {paymentFilter === "all" ? "Alle leden" : 
-                       paymentFilter === "paid" ? "Alleen betalende leden" : 
-                       "Alleen niet-betalende leden"}
-            </Text>
-            <Text style={styles.infoText}>
-              Geselecteerde velden: {enabledFields.length} van {exportFields.length}
-            </Text>
-          </View>
-          
-          {/* Samenvatting van de lidmaatschappen */}
-          <View style={styles.summary}>
-            <Text style={styles.infoTextBold}>Samenvatting</Text>
-            <Text style={styles.infoText}>Totaal aantal leden: {totalMembers}</Text>
-            <Text style={styles.infoText}>Betalende leden: {paidMembers} ({paymentPercentage}%)</Text>
-            <Text style={styles.infoText}>Niet-betalende leden: {unpaidMembers}</Text>
-          </View>
-          
-          {/* Verbeterde tabel met betere opmaak */}
           <View style={styles.table}>
             {/* Tabel header */}
             <View style={styles.tableHeader}>
@@ -393,11 +304,11 @@ export default function ExportPage() {
               ))}
             </View>
             
-            {/* Tabel rijen met afwisselende kleuren */}
+            {/* Tabel rijen */}
             {filteredMembers.map((member, index) => (
               <View key={member.id} style={[
                 styles.tableRow, 
-                index % 2 === 0 ? { backgroundColor: '#F8F9FA' } : { backgroundColor: '#FFFFFF' }
+                index % 2 === 0 ? { backgroundColor: '#F8F9FA' } : {}
               ]}>
                 {enabledFields.map(field => {
                   let value: string = "";
@@ -407,23 +318,13 @@ export default function ExportPage() {
                       value = member.memberNumber.toString().padStart(4, '0');
                       break;
                     case "birthDate":
-                      value = member.birthDate 
-                        ? new Date(member.birthDate).toLocaleDateString('nl-NL', {
-                            day: 'numeric',
-                            month: 'numeric',
-                            year: 'numeric'
-                          }) 
-                        : "-";
+                      value = member.birthDate ? new Date(member.birthDate).toLocaleDateString() : "-";
                       break;
                     case "registrationDate":
-                      value = new Date(member.registrationDate).toLocaleDateString('nl-NL', {
-                        day: 'numeric',
-                        month: 'numeric',
-                        year: 'numeric'
-                      });
+                      value = new Date(member.registrationDate).toLocaleDateString();
                       break;
                     case "paymentStatus":
-                      value = member.paymentStatus ? "✓ Betaald" : "✗ Niet betaald";
+                      value = member.paymentStatus ? "✓" : "✗";
                       break;
                     default:
                       value = (member[field.id as keyof Member] as string) || "-";
@@ -439,13 +340,9 @@ export default function ExportPage() {
             ))}
           </View>
           
-          {/* Footer met copyright */}
           <Text style={styles.footer}>
-            © MEFEN Moskee - Ledenadministratie | Export gegenereerd op {today} om {currentTime}
+            © MEFEN Moskee | {today}
           </Text>
-          
-          {/* Paginanummer */}
-          <Text style={styles.pageNumber}>Pagina 1</Text>
         </Page>
       </Document>
     );
