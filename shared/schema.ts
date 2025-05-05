@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, timestamp, boolean } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, timestamp, boolean, date } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -15,6 +15,8 @@ export const members = pgTable("members", {
   lastName: text("last_name").notNull(),
   email: text("email"),
   phoneNumber: text("phone_number").notNull(),
+  birthDate: date("birth_date"),
+  accountNumber: text("account_number"),
   paymentStatus: boolean("payment_status").notNull().default(false),
   registrationDate: timestamp("registration_date").notNull().defaultNow(),
   notes: text("notes"),
@@ -24,7 +26,9 @@ export const members = pgTable("members", {
 export const insertUserSchema = createInsertSchema(users);
 export const insertMemberSchema = createInsertSchema(members, {
   registrationDate: z.coerce.date(),
-  memberNumber: z.number().int().positive()
+  memberNumber: z.number().int().positive(),
+  birthDate: z.coerce.date().optional().nullable(),
+  accountNumber: z.string().optional().nullable()
 });
 
 // Export types

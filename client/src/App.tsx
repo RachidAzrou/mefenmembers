@@ -6,6 +6,10 @@ import NotFound from "@/pages/not-found";
 import Login from "@/pages/login";
 import Register from "@/pages/register";
 import Members from "@/pages/members";
+import Dashboard from "@/pages/dashboard";
+import MembersList from "@/pages/members-list";
+import MemberAdd from "@/pages/member-add";
+import Export from "@/pages/export";
 import { Sidebar } from "@/components/layout/sidebar";
 import { auth } from "./lib/firebase";
 import { useAuthState } from "react-firebase-hooks/auth";
@@ -55,8 +59,11 @@ function Router() {
     <Switch>
       <Route path="/login" component={Login} />
       <Route path="/register" component={Register} />
-      <Route path="/" component={() => <PrivateRoute component={Members} />} />
-      <Route path="/members" component={() => <PrivateRoute component={Members} />} />
+      <Route path="/" component={() => <PrivateRoute component={Dashboard} />} />
+      <Route path="/dashboard" component={() => <PrivateRoute component={Dashboard} />} />
+      <Route path="/members" component={() => <PrivateRoute component={MembersList} />} />
+      <Route path="/member/add" component={() => <PrivateRoute component={MemberAdd} />} />
+      <Route path="/export" component={() => <PrivateRoute component={Export} />} />
       <Route component={NotFound} />
     </Switch>
   );
