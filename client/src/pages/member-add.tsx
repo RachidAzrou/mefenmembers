@@ -152,12 +152,36 @@ export default function MemberAdd() {
     },
   });
   
+  // Mutation om een nieuw lidnummer te genereren
+  const generateMemberNumberMutation = useMutation({
+    mutationFn: async () => {
+      const response = await apiRequest("GET", "/api/members/generate-number");
+      return response.json();
+    }
+  });
+
   // Behandel het versturen van het formulier
-  function onSubmit(data: FormData) {
+  async function onSubmit(data: FormData) {
     if (isEditMode) {
       updateMemberMutation.mutate(data);
     } else {
-      createMemberMutation.mutate(data);
+      try {
+        // Eerst een lidnummer genereren
+        const { memberNumber } = await generateMemberNumberMutation.mutateAsync();
+        // Voeg het gegenereerde lidnummer toe aan de data
+        const completeData = {
+          ...data,
+          memberNumber
+        };
+        // Stuur het volledige data object naar de server
+        createMemberMutation.mutate(completeData);
+      } catch (error) {
+        toast({
+          title: "Fout bij aanmaken lidnummer",
+          description: "Er is een probleem opgetreden bij het genereren van een lidnummer.",
+          variant: "destructive",
+        });
+      }
     }
   }
   
