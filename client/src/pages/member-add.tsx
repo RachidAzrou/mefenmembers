@@ -248,63 +248,222 @@ export default function MemberAdd() {
                   <FormField
                     control={form.control}
                     name="birthDate"
-                    render={({ field }) => (
-                      <FormItem className="flex flex-col">
-                        <FormLabel>Geboortedatum</FormLabel>
-                        <div className="flex flex-col sm:flex-row gap-2 sm:items-center">
-                          {/* Invoerveld voor handmatige datum invoer */}
-                          <FormControl className="flex-1">
-                            <Input
-                              type="date"
-                              className="border-gray-200 focus:border-[#963E56]"
-                              value={field.value ? format(field.value, "yyyy-MM-dd") : ""}
-                              onChange={(e) => {
-                                const date = e.target.value ? new Date(e.target.value) : null;
-                                field.onChange(date);
-                              }}
-                              placeholder="DD-MM-JJJJ"
-                              min="1900-01-01"
-                              max={format(new Date(), "yyyy-MM-dd")}
-                            />
-                          </FormControl>
-                          
-                          {/* OF tekst */}
-                          <div className="text-xs text-center text-muted-foreground hidden sm:block">OF</div>
-                          
-                          {/* Kalender popup */}
-                          <Popover>
+                    render={({ field }) => {
+                      const [isOpen, setIsOpen] = React.useState(false);
+                      
+                      // Parse de huidige waarde naar dag, maand en jaar componenten
+                      const currentDate = field.value ? new Date(field.value) : null;
+                      const currentYear = currentDate ? currentDate.getFullYear() : null;
+                      const currentMonth = currentDate ? currentDate.getMonth() : null;
+                      const currentDay = currentDate ? currentDate.getDate() : null;
+                      
+                      // State voor de dropdown waarden
+                      const [selectedYear, setSelectedYear] = React.useState<number | null>(currentYear);
+                      const [selectedMonth, setSelectedMonth] = React.useState<number | null>(currentMonth);
+                      const [selectedDay, setSelectedDay] = React.useState<number | null>(currentDay);
+                      
+                      // Genereer lijst van jaren (1900 tot huidig jaar)
+                      const currentFullYear = new Date().getFullYear();
+                      const years = Array.from({ length: currentFullYear - 1899 }, (_, i) => currentFullYear - i);
+                      
+                      // Maanden lijst
+                      const months = [
+                        { value: 0, label: "Januari" },
+                        { value: 1, label: "Februari" },
+                        { value: 2, label: "Maart" },
+                        { value: 3, label: "April" },
+                        { value: 4, label: "Mei" },
+                        { value: 5, label: "Juni" },
+                        { value: 6, label: "Juli" },
+                        { value: 7, label: "Augustus" },
+                        { value: 8, label: "September" },
+                        { value: 9, label: "Oktober" },
+                        { value: 10, label: "November" },
+                        { value: 11, label: "December" }
+                      ];
+                      
+                      // Bereken het aantal dagen in de geselecteerde maand
+                      const getDaysInMonth = (year: number | null, month: number | null) => {
+                        if (year === null || month === null) return 31;
+                        return new Date(year, month + 1, 0).getDate();
+                      };
+                      
+                      // Genereer lijst van dagen
+                      const daysInMonth = selectedYear && selectedMonth !== null ? 
+                        getDaysInMonth(selectedYear, selectedMonth) : 31;
+                      
+                      const days = Array.from({ length: daysInMonth }, (_, i) => i + 1);
+                      
+                      // Update het veld wanneer dropdown waarden veranderen
+                      React.useEffect(() => {
+                        if (selectedYear !== null && selectedMonth !== null && selectedDay !== null) {
+                          const newDate = new Date(selectedYear, selectedMonth, selectedDay);
+                          // Alleen updaten als het een geldige datum is
+                          if (!isNaN(newDate.getTime()) && 
+                              newDate >= new Date(1900, 0, 1) && 
+                              newDate <= new Date()) {
+                            field.onChange(newDate);
+                          }
+                        }
+                      }, [selectedYear, selectedMonth, selectedDay, field]);
+                      
+                      // Update de dropdown waarden wanneer het veld verandert
+                      React.useEffect(() => {
+                        if (field.value) {
+                          const date = new Date(field.value);
+                          setSelectedYear(date.getFullYear());
+                          setSelectedMonth(date.getMonth());
+                          setSelectedDay(date.getDate());
+                        }
+                      }, [field.value]);
+                      
+                      // Formatteer de datum voor weergave in de knop
+                      const formattedDate = field.value ? format(field.value, "dd MMMM yyyy", { locale: nl }) : "Kies een datum";
+                      
+                      return (
+                        <FormItem className="flex flex-col">
+                          <FormLabel>Geboortedatum</FormLabel>
+                          <Popover open={isOpen} onOpenChange={setIsOpen}>
                             <PopoverTrigger asChild>
-                              <Button
-                                type="button"
-                                variant={"outline"}
-                                className="border-gray-200 sm:w-auto w-full"
-                              >
-                                <CalendarIcon className="mr-2 h-4 w-4" />
-                                <span className="text-xs sm:text-sm">Kies in kalender</span>
-                              </Button>
+                              <FormControl>
+                                <Button
+                                  variant="outline"
+                                  role="combobox"
+                                  aria-expanded={isOpen}
+                                  className={cn(
+                                    "w-full justify-between border-gray-200 hover:bg-gray-50",
+                                    !field.value && "text-muted-foreground"
+                                  )}
+                                >
+                                  {formattedDate}
+                                  <CalendarIcon className="ml-2 h-4 w-4 opacity-50" />
+                                </Button>
+                              </FormControl>
                             </PopoverTrigger>
-                            <PopoverContent className="w-auto p-0" align="start">
-                              <Calendar
-                                mode="single"
-                                selected={field.value || undefined}
-                                onSelect={field.onChange}
-                                disabled={(date) =>
-                                  date > new Date() || date < new Date("1900-01-01")
-                                }
-                                initialFocus
-                                captionLayout="dropdown-buttons"
-                                fromYear={1900}
-                                toYear={new Date().getFullYear()}
-                              />
+                            <PopoverContent className="w-auto p-4" align="start">
+                              <div className="space-y-4">
+                                <div className="grid grid-cols-3 gap-2">
+                                  {/* Dag selectie */}
+                                  <div className="space-y-1">
+                                    <Label htmlFor="birth-day" className="text-xs text-gray-500">Dag</Label>
+                                    <Select
+                                      value={selectedDay?.toString() || ""}
+                                      onValueChange={(value) => {
+                                        setSelectedDay(parseInt(value, 10));
+                                      }}
+                                    >
+                                      <SelectTrigger id="birth-day" className="h-8">
+                                        <SelectValue placeholder="Dag" />
+                                      </SelectTrigger>
+                                      <SelectContent position="popper" className="max-h-[200px]">
+                                        {days.map((day) => (
+                                          <SelectItem key={`day-${day}`} value={day.toString()}>
+                                            {day}
+                                          </SelectItem>
+                                        ))}
+                                      </SelectContent>
+                                    </Select>
+                                  </div>
+                                  
+                                  {/* Maand selectie */}
+                                  <div className="space-y-1">
+                                    <Label htmlFor="birth-month" className="text-xs text-gray-500">Maand</Label>
+                                    <Select
+                                      value={selectedMonth?.toString() || ""}
+                                      onValueChange={(value) => {
+                                        const monthValue = parseInt(value, 10);
+                                        setSelectedMonth(monthValue);
+                                        
+                                        // Pas de dag aan als de nieuwe maand minder dagen heeft
+                                        if (selectedYear !== null && selectedDay !== null) {
+                                          const daysInNewMonth = getDaysInMonth(selectedYear, monthValue);
+                                          if (selectedDay > daysInNewMonth) {
+                                            setSelectedDay(daysInNewMonth);
+                                          }
+                                        }
+                                      }}
+                                    >
+                                      <SelectTrigger id="birth-month" className="h-8">
+                                        <SelectValue placeholder="Maand" />
+                                      </SelectTrigger>
+                                      <SelectContent position="popper" className="max-h-[200px]">
+                                        {months.map((month) => (
+                                          <SelectItem key={`month-${month.value}`} value={month.value.toString()}>
+                                            {month.label}
+                                          </SelectItem>
+                                        ))}
+                                      </SelectContent>
+                                    </Select>
+                                  </div>
+                                  
+                                  {/* Jaar selectie */}
+                                  <div className="space-y-1">
+                                    <Label htmlFor="birth-year" className="text-xs text-gray-500">Jaar</Label>
+                                    <Select
+                                      value={selectedYear?.toString() || ""}
+                                      onValueChange={(value) => {
+                                        const yearValue = parseInt(value, 10);
+                                        setSelectedYear(yearValue);
+                                        
+                                        // Pas de dag aan voor schrikkeljaren
+                                        if (selectedMonth === 1 && selectedDay !== null) { // Februari
+                                          const daysInNewMonth = getDaysInMonth(yearValue, 1);
+                                          if (selectedDay > daysInNewMonth) {
+                                            setSelectedDay(daysInNewMonth);
+                                          }
+                                        }
+                                      }}
+                                    >
+                                      <SelectTrigger id="birth-year" className="h-8">
+                                        <SelectValue placeholder="Jaar" />
+                                      </SelectTrigger>
+                                      <SelectContent position="popper" className="max-h-[200px]">
+                                        {years.map((year) => (
+                                          <SelectItem key={`year-${year}`} value={year.toString()}>
+                                            {year}
+                                          </SelectItem>
+                                        ))}
+                                      </SelectContent>
+                                    </Select>
+                                  </div>
+                                </div>
+                                
+                                {/* Knoppenbalk */}
+                                <div className="flex justify-between">
+                                  <Button 
+                                    type="button" 
+                                    variant="outline" 
+                                    size="sm"
+                                    onClick={() => {
+                                      field.onChange(null);
+                                      setSelectedYear(null);
+                                      setSelectedMonth(null);
+                                      setSelectedDay(null);
+                                      setIsOpen(false);
+                                    }}
+                                    className="text-xs"
+                                  >
+                                    Wissen
+                                  </Button>
+                                  <Button 
+                                    type="button" 
+                                    size="sm" 
+                                    onClick={() => setIsOpen(false)}
+                                    className="bg-[#963E56] hover:bg-[#963E56]/90 text-white text-xs"
+                                  >
+                                    Toepassen
+                                  </Button>
+                                </div>
+                              </div>
                             </PopoverContent>
                           </Popover>
-                        </div>
-                        <FormDescription className="text-xs sm:text-sm">
-                          Typ de datum of selecteer deze via de kalender.
-                        </FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )}
+                          <FormDescription className="text-xs sm:text-sm">
+                            Selecteer de geboortedatum van het lid.
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      );
+                    }}
                   />
                 </div>
                 
