@@ -74,15 +74,6 @@ export default function Dashboard() {
               Overzicht van de ledenadministratie van Moskee MEFEN
             </p>
           </div>
-          <div className="flex items-center gap-2">
-            <Button
-              variant="secondary"
-              onClick={exportToExcel}
-              className="bg-white text-[#963E56] hover:bg-white/90 border-none shadow-sm"
-            >
-              <Download className="mr-2 h-4 w-4" /> Exporteren
-            </Button>
-          </div>
         </div>
       </div>
 
@@ -198,110 +189,62 @@ export default function Dashboard() {
         </CardContent>
       </Card>
 
-      <div className="grid gap-6 md:grid-cols-2">
-        {/* Snelle acties kaart */}
-        <Card className="border-none shadow-md overflow-hidden">
-          <div className="bg-gradient-to-r from-[#963E56]/20 to-[#963E56]/30 h-2" />
-          <CardHeader>
-            <CardTitle className="text-lg flex items-center">
-              <TrendingUp className="h-5 w-5 mr-2 text-[#963E56]" /> 
-              Snelle acties
-            </CardTitle>
-            <CardDescription>
-              Beheer uw leden snel en efficiënt
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Link href="/member/add" className="flex-1">
-                <Button className="w-full bg-[#963E56] hover:bg-[#963E56]/90 text-white shadow-sm h-auto py-6">
-                  <div className="flex flex-col items-center">
-                    <UserPlus className="h-6 w-6 mb-2" />
-                    <span>Lid toevoegen</span>
+      {/* Overzichtsstatistieken */}
+      <Card className="border-none shadow-md overflow-hidden">
+        <div className="bg-gradient-to-r from-purple-500/20 to-purple-600/20 h-2" />
+        <CardHeader>
+          <CardTitle className="text-lg flex items-center">
+            <CalendarDays className="h-5 w-5 mr-2 text-purple-600" />
+            Ledenoverzicht
+          </CardTitle>
+          <CardDescription>
+            Details en statistieken van uw ledenbestand
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-6">
+            {isLoading ? (
+              <div className="space-y-3">
+                <Skeleton className="h-5 w-full" />
+                <Skeleton className="h-5 w-full" />
+                <Skeleton className="h-5 w-full" />
+              </div>
+            ) : (
+              <>
+                <div className="flex items-center gap-4 p-4 rounded-lg bg-gray-50">
+                  <div className="bg-purple-100 p-3 rounded-full">
+                    <CalendarDays className="h-5 w-5 text-purple-600" />
                   </div>
-                </Button>
-              </Link>
-              <Link href="/members" className="flex-1">
-                <Button variant="outline" className="w-full border-[#963E56] hover:bg-[#963E56]/5 text-[#963E56] h-auto py-6">
-                  <div className="flex flex-col items-center">
-                    <Users className="h-6 w-6 mb-2" />
-                    <span>Ledenlijst bekijken</span>
+                  <div>
+                    <div className="text-sm text-gray-500">Meest recente registratie</div>
+                    <div className="font-medium">
+                      {mostRecentRegistration
+                        ? mostRecentRegistration.toLocaleDateString('nl-NL', {
+                            day: 'numeric',
+                            month: 'long',
+                            year: 'numeric'
+                          })
+                        : "-"}
+                    </div>
                   </div>
-                </Button>
-              </Link>
-            </div>
-            <div className="mt-4">
-              <Button
-                variant="outline"
-                onClick={exportToExcel}
-                className="w-full border-dashed border-gray-300 hover:border-gray-400 hover:bg-gray-50 text-gray-600 h-auto py-4"
-              >
-                <div className="flex flex-col items-center">
-                  <Download className="h-5 w-5 mb-1" />
-                  <span>Exporteren naar Excel</span>
                 </div>
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-        
-        {/* Overzichtsstatistieken */}
-        <Card className="border-none shadow-md overflow-hidden">
-          <div className="bg-gradient-to-r from-purple-500/20 to-purple-600/20 h-2" />
-          <CardHeader>
-            <CardTitle className="text-lg flex items-center">
-              <CalendarDays className="h-5 w-5 mr-2 text-purple-600" />
-              Ledenoverzicht
-            </CardTitle>
-            <CardDescription>
-              Details en statistieken van uw ledenbestand
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-6">
-              {isLoading ? (
-                <div className="space-y-3">
-                  <Skeleton className="h-5 w-full" />
-                  <Skeleton className="h-5 w-full" />
-                  <Skeleton className="h-5 w-full" />
+                
+                <div className="flex items-center gap-4 p-4 rounded-lg bg-gray-50">
+                  <div className="bg-[#963E56]/10 p-3 rounded-full">
+                    <CreditCard className="h-5 w-5 text-[#963E56]" />
+                  </div>
+                  <div>
+                    <div className="text-sm text-gray-500">Betaalstatus</div>
+                    <div className="font-medium">
+                      {paymentPercentage}% van de leden heeft betaald
+                    </div>
+                  </div>
                 </div>
-              ) : (
-                <>
-                  <div className="flex items-center gap-4 p-4 rounded-lg bg-gray-50">
-                    <div className="bg-purple-100 p-3 rounded-full">
-                      <CalendarDays className="h-5 w-5 text-purple-600" />
-                    </div>
-                    <div>
-                      <div className="text-sm text-gray-500">Meest recente registratie</div>
-                      <div className="font-medium">
-                        {mostRecentRegistration
-                          ? mostRecentRegistration.toLocaleDateString('nl-NL', {
-                              day: 'numeric',
-                              month: 'long',
-                              year: 'numeric'
-                            })
-                          : "-"}
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-center gap-4 p-4 rounded-lg bg-gray-50">
-                    <div className="bg-[#963E56]/10 p-3 rounded-full">
-                      <CreditCard className="h-5 w-5 text-[#963E56]" />
-                    </div>
-                    <div>
-                      <div className="text-sm text-gray-500">Betaalstatus</div>
-                      <div className="font-medium">
-                        {paymentPercentage}% van de leden heeft betaald
-                      </div>
-                    </div>
-                  </div>
-                </>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+              </>
+            )}
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }
