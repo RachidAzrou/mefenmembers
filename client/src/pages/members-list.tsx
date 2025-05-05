@@ -195,7 +195,6 @@ export default function MembersList() {
               <p className="text-[10px] sm:text-xs text-blue-800/70 text-center">Totaal leden</p>
               {activeFilter === "all" && (
                 <div className="mt-1 bg-blue-200 text-blue-800 px-2 py-0.5 rounded-full text-[8px] sm:text-[10px]">
-                  Actief filter
                 </div>
               )}
             </CardContent>
@@ -210,7 +209,7 @@ export default function MembersList() {
         >
           <Card className={`overflow-hidden border-none shadow-md transition-all duration-200 ${
             activeFilter === "paid" 
-              ? "bg-green-100 ring-2 ring-green-500" 
+              ? "bg-green-100 outline outline-2 outline-green-500" 
               : "bg-green-50 hover:bg-green-100/70"
           }`}>
             <CardContent className="p-3 sm:p-4 flex flex-col items-center justify-center">
@@ -250,7 +249,6 @@ export default function MembersList() {
               <p className="text-[10px] sm:text-xs text-red-800/70 text-center">Niet betaald</p>
               {activeFilter === "unpaid" && (
                 <div className="mt-1 bg-red-200 text-red-800 px-2 py-0.5 rounded-full text-[8px] sm:text-[10px]">
-                  Actief filter
                 </div>
               )}
             </CardContent>
