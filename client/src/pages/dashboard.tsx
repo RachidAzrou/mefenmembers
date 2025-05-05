@@ -170,19 +170,19 @@ export default function Dashboard() {
               )}
               {statusFilter === 'paid' && (
                 <>
-                  <span className="text-sm font-medium">100% voldoet aan filter</span>
-                  <span className="text-sm text-muted-foreground">{paidMembers} leden ({paymentPercentage}% van totaal)</span>
+                  <span className="text-sm font-medium">{paymentPercentage}% betaald</span>
+                  <span className="text-sm text-muted-foreground">{paidMembers} leden van totaal</span>
                 </>
               )}
               {statusFilter === 'unpaid' && (
                 <>
-                  <span className="text-sm font-medium">100% voldoet aan filter</span>
-                  <span className="text-sm text-muted-foreground">{unpaidMembers} leden ({100-paymentPercentage}% van totaal)</span>
+                  <span className="text-sm font-medium">{100-paymentPercentage}% niet betaald</span>
+                  <span className="text-sm text-muted-foreground">{unpaidMembers} leden van totaal</span>
                 </>
               )}
             </div>
             <Progress 
-              value={statusFilter === 'all' ? paymentPercentage : 100} 
+              value={statusFilter === 'all' || statusFilter === 'paid' ? paymentPercentage : (100-paymentPercentage)} 
               className="h-2" />
             
             <div className="grid grid-cols-3 gap-4 pt-4 text-center">
