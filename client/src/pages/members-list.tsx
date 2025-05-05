@@ -386,29 +386,29 @@ export default function MembersList() {
               </div>
               
               {viewMember.notes && (
-                <div className="mt-6">
-                  <h3 className="text-lg font-semibold text-gray-700 mb-3 flex items-center">
-                    <StickyNote className="h-5 w-5 mr-2 text-[#963E56]" /> 
+                <div className="mt-4 sm:mt-6">
+                  <h3 className="text-base sm:text-lg font-semibold text-gray-700 mb-2 sm:mb-3 flex items-center">
+                    <StickyNote className="h-4 w-4 sm:h-5 sm:w-5 mr-1.5 sm:mr-2 text-[#963E56]" /> 
                     Notities
                   </h3>
-                  <div className="bg-gray-50 p-4 rounded-lg whitespace-pre-wrap text-gray-600">
+                  <div className="bg-gray-50 p-3 sm:p-4 rounded-lg whitespace-pre-wrap text-gray-600 text-xs sm:text-sm">
                     {viewMember.notes}
                   </div>
                 </div>
               )}
             </div>
             
-            <div className="border-t p-4 flex justify-end gap-2 bg-gray-50">
+            <div className="border-t p-3 sm:p-4 flex flex-col sm:flex-row sm:justify-end gap-2 bg-gray-50">
               <Button 
                 variant="outline" 
                 onClick={() => setViewMember(null)}
-                className="border-gray-300 text-gray-700"
+                className="border-gray-300 text-gray-700 text-xs sm:text-sm w-full sm:w-auto order-2 sm:order-1"
               >
                 Sluiten
               </Button>
-              <Link href={`/member/edit/${viewMember.id}`}>
-                <Button className="bg-[#963E56] hover:bg-[#963E56]/90">
-                  <Edit className="h-4 w-4 mr-2" /> Bewerken
+              <Link href={`/member/edit/${viewMember.id}`} className="w-full sm:w-auto order-1 sm:order-2">
+                <Button className="bg-[#963E56] hover:bg-[#963E56]/90 text-xs sm:text-sm w-full">
+                  <Edit className="h-3 w-3 sm:h-4 sm:w-4 mr-1.5 sm:mr-2" /> Bewerken
                 </Button>
               </Link>
             </div>
