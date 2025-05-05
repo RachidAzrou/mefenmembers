@@ -28,7 +28,7 @@ export default function Members() {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [selectedMember, setSelectedMember] = useState<Member | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
-  const [filterPaid, setFilterPaid] = useState<string | null>(null);
+  const [filterPaid, setFilterPaid] = useState<string>("all");
   const queryClient = useQueryClient();
 
   const { data: members = [], isLoading } = useQuery<Member[]>({
@@ -115,7 +115,7 @@ export default function Members() {
       (member.email && member.email.toLowerCase().includes(searchQuery.toLowerCase())) ||
       member.phoneNumber.includes(searchQuery);
     
-    const matchesPaidStatus = filterPaid === null || 
+    const matchesPaidStatus = filterPaid === "all" || 
       (filterPaid === "paid" && member.paymentStatus === true) ||
       (filterPaid === "unpaid" && member.paymentStatus === false);
     
@@ -194,14 +194,14 @@ export default function Members() {
                 />
               </div>
               <Select
-                value={filterPaid || ""}
-                onValueChange={(value) => setFilterPaid(value || null)}
+                value={filterPaid}
+                onValueChange={(value) => setFilterPaid(value)}
               >
                 <SelectTrigger className="w-full md:w-[180px]">
                   <SelectValue placeholder="Filter op betaling" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Alle leden</SelectItem>
+                  <SelectItem value="all">Alle leden</SelectItem>
                   <SelectItem value="paid">Betaald</SelectItem>
                   <SelectItem value="unpaid">Niet betaald</SelectItem>
                 </SelectContent>

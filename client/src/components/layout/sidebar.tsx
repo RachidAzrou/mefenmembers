@@ -131,7 +131,7 @@ export function Sidebar() {
               {!collapsed && (
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium truncate">
-                    {currentUser?.displayName || currentUser?.email}
+                    {currentUser?.email}
                   </p>
                   <p className="text-xs text-gray-500 truncate">
                     {isAdmin ? "Administrator" : "Gebruiker"}
