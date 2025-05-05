@@ -110,7 +110,7 @@ export default function MemberAdd() {
   useEffect(() => {
     if (memberData) {
       // Converteer datum strings naar Date objecten
-      const birthDate = memberData.birthDate ? new Date(memberData.birthDate) : null;
+      const birthDate = memberData.birthDate ? new Date(memberData.birthDate) : undefined;
       
       form.reset({
         firstName: memberData.firstName,
@@ -337,7 +337,7 @@ export default function MemberAdd() {
                       const [isOpen, setIsOpen] = React.useState(false);
                       
                       // Parse de huidige waarde naar dag, maand en jaar componenten
-                      const currentDate = field.value ? new Date(field.value) : null;
+                      const currentDate = field.value ? new Date(field.value) : undefined;
                       const currentYear = currentDate ? currentDate.getFullYear() : null;
                       const currentMonth = currentDate ? currentDate.getMonth() : null;
                       const currentDay = currentDate ? currentDate.getDate() : null;
@@ -407,7 +407,7 @@ export default function MemberAdd() {
                       
                       return (
                         <FormItem className="flex flex-col">
-                          <FormLabel>Geboortedatum</FormLabel>
+                          <FormLabel>Geboortedatum<span className="text-destructive">*</span></FormLabel>
                           <Popover open={isOpen} onOpenChange={setIsOpen}>
                             <PopoverTrigger asChild>
                               <FormControl>
@@ -427,36 +427,65 @@ export default function MemberAdd() {
                             </PopoverTrigger>
                             <PopoverContent className="w-auto p-4" align="start">
                               <div className="space-y-4">
-                                <div className="grid grid-cols-3 gap-2">
-                                  {/* Dag selectie */}
-                                  <div className="space-y-1">
-                                    <Label htmlFor="birth-day" className="text-xs text-gray-500">Dag</Label>
-                                    <Select
-                                      value={selectedDay?.toString() || "placeholder"}
-                                      onValueChange={(value) => {
-                                        if (value !== "placeholder") {
-                                          setSelectedDay(parseInt(value, 10));
+                                {/* Eerst de jaar selectie met decennium groepering */}
+                                <div className="mb-4">
+                                  <Label htmlFor="birth-year" className="text-xs text-gray-500 mb-1 block">Geboortejaar<span className="text-destructive">*</span></Label>
+                                  <Select
+                                    value={selectedYear?.toString() || "placeholder"}
+                                    onValueChange={(value) => {
+                                      if (value !== "placeholder") {
+                                        const yearValue = parseInt(value, 10);
+                                        setSelectedYear(yearValue);
+                                        
+                                        // Pas de dag aan voor schrikkeljaren
+                                        if (selectedMonth === 1 && selectedDay !== null) { // Februari
+                                          const daysInNewMonth = getDaysInMonth(yearValue, 1);
+                                          if (selectedDay > daysInNewMonth) {
+                                            setSelectedDay(daysInNewMonth);
+                                          }
                                         }
-                                      }}
-                                    >
-                                      <SelectTrigger id="birth-day" className="h-8">
-                                        <SelectValue placeholder="Dag" />
-                                      </SelectTrigger>
-                                      <SelectContent position="popper" className="max-h-[200px]">
-                                        {days.map((day) => (
-                                          <SelectItem key={`day-${day}`} value={day.toString()}>
-                                            {day}
-                                          </SelectItem>
-                                        ))}
-                                      </SelectContent>
-                                    </Select>
-                                  </div>
-                                  
+                                      }
+                                    }}
+                                  >
+                                    <SelectTrigger id="birth-year" className="h-9">
+                                      <SelectValue placeholder="Selecteer eerst een geboortejaar" />
+                                    </SelectTrigger>
+                                    <SelectContent position="popper" className="max-h-[300px]">
+                                      {/* Groepeer jaren per decennium voor snellere selectie */}
+                                      {Array.from({ length: 13 }, (_, i) => {
+                                        const startYear = currentFullYear - (i * 10);
+                                        const decadeStart = Math.floor(startYear / 10) * 10;
+                                        return (
+                                          <div key={`decade-${decadeStart}`}>
+                                            {/* Decennium header */}
+                                            <div className="px-2 py-1.5 text-xs font-semibold text-gray-500 bg-gray-50/80">
+                                              {decadeStart}s
+                                            </div>
+                                            <div className="grid grid-cols-2 gap-0.5">
+                                              {Array.from({ length: 10 }, (_, j) => {
+                                                const year = decadeStart + 9 - j;
+                                                return year >= 1900 && year <= currentFullYear ? (
+                                                  <SelectItem key={`year-${year}`} value={year.toString()} className="p-1.5 mx-0 text-sm">
+                                                    {year}
+                                                  </SelectItem>
+                                                ) : null;
+                                              })}
+                                            </div>
+                                          </div>
+                                        );
+                                      })}
+                                    </SelectContent>
+                                  </Select>
+                                </div>
+                                
+                                {/* Daarna maand en dag selectie naast elkaar */}
+                                <div className="grid grid-cols-2 gap-3 mb-4">
                                   {/* Maand selectie */}
-                                  <div className="space-y-1">
-                                    <Label htmlFor="birth-month" className="text-xs text-gray-500">Maand</Label>
+                                  <div>
+                                    <Label htmlFor="birth-month" className="text-xs text-gray-500 mb-1 block">Maand<span className="text-destructive">*</span></Label>
                                     <Select
                                       value={selectedMonth?.toString() || "placeholder"}
+                                      disabled={selectedYear === null}
                                       onValueChange={(value) => {
                                         if (value !== "placeholder") {
                                           const monthValue = parseInt(value, 10);
@@ -472,10 +501,10 @@ export default function MemberAdd() {
                                         }
                                       }}
                                     >
-                                      <SelectTrigger id="birth-month" className="h-8">
-                                        <SelectValue placeholder="Maand" />
+                                      <SelectTrigger id="birth-month" className="h-9">
+                                        <SelectValue placeholder={selectedYear === null ? "Selecteer eerst jaar" : "Selecteer maand"} />
                                       </SelectTrigger>
-                                      <SelectContent position="popper" className="max-h-[200px]">
+                                      <SelectContent position="popper" className="max-h-[250px]">
                                         {months.map((month) => (
                                           <SelectItem key={`month-${month.value}`} value={month.value.toString()}>
                                             {month.label}
@@ -485,48 +514,42 @@ export default function MemberAdd() {
                                     </Select>
                                   </div>
                                   
-                                  {/* Jaar selectie */}
-                                  <div className="space-y-1">
-                                    <Label htmlFor="birth-year" className="text-xs text-gray-500">Jaar</Label>
+                                  {/* Dag selectie */}
+                                  <div>
+                                    <Label htmlFor="birth-day" className="text-xs text-gray-500 mb-1 block">Dag<span className="text-destructive">*</span></Label>
                                     <Select
-                                      value={selectedYear?.toString() || "placeholder"}
+                                      value={selectedDay?.toString() || "placeholder"}
+                                      disabled={selectedMonth === null}
                                       onValueChange={(value) => {
                                         if (value !== "placeholder") {
-                                          const yearValue = parseInt(value, 10);
-                                          setSelectedYear(yearValue);
-                                          
-                                          // Pas de dag aan voor schrikkeljaren
-                                          if (selectedMonth === 1 && selectedDay !== null) { // Februari
-                                            const daysInNewMonth = getDaysInMonth(yearValue, 1);
-                                            if (selectedDay > daysInNewMonth) {
-                                              setSelectedDay(daysInNewMonth);
-                                            }
-                                          }
+                                          setSelectedDay(parseInt(value, 10));
                                         }
                                       }}
                                     >
-                                      <SelectTrigger id="birth-year" className="h-8">
-                                        <SelectValue placeholder="Jaar" />
+                                      <SelectTrigger id="birth-day" className="h-9">
+                                        <SelectValue placeholder={selectedMonth === null ? "Selecteer eerst maand" : "Selecteer dag"} />
                                       </SelectTrigger>
-                                      <SelectContent position="popper" className="max-h-[200px]">
-                                        {years.map((year) => (
-                                          <SelectItem key={`year-${year}`} value={year.toString()}>
-                                            {year}
-                                          </SelectItem>
-                                        ))}
+                                      <SelectContent position="popper" className="max-h-[250px]">
+                                        <div className="grid grid-cols-7 gap-0.5">
+                                          {days.map((day) => (
+                                            <SelectItem key={`day-${day}`} value={day.toString()} className="px-1 py-1.5 mx-0 text-sm">
+                                              {day}
+                                            </SelectItem>
+                                          ))}
+                                        </div>
                                       </SelectContent>
                                     </Select>
                                   </div>
                                 </div>
                                 
                                 {/* Knoppenbalk */}
-                                <div className="flex justify-between">
+                                <div className="flex justify-between pt-2 border-t">
                                   <Button 
                                     type="button" 
                                     variant="outline" 
                                     size="sm"
                                     onClick={() => {
-                                      field.onChange(null);
+                                      field.onChange(undefined);
                                       setSelectedYear(null);
                                       setSelectedMonth(null);
                                       setSelectedDay(null);
@@ -540,6 +563,7 @@ export default function MemberAdd() {
                                     type="button" 
                                     size="sm" 
                                     onClick={() => setIsOpen(false)}
+                                    disabled={!selectedDay || !selectedMonth || !selectedYear}
                                     className="bg-[#963E56] hover:bg-[#963E56]/90 text-white text-xs"
                                   >
                                     Toepassen
