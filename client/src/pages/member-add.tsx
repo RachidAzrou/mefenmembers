@@ -12,7 +12,9 @@ import {
   ArrowLeft, 
   Loader2, 
   AlertTriangle,
-  Trash2
+  Trash2,
+  UserPlus,
+  ScrollText
 } from "lucide-react";
 import { 
   Form, 
@@ -260,12 +262,7 @@ export default function MemberAdd() {
           <div className="bg-gradient-to-r from-gray-100 to-gray-50 h-1" />
           <CardHeader className="pb-4 sm:pb-6 px-4 sm:px-6">
             <CardTitle className="text-lg sm:text-xl flex items-center">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4 sm:h-5 sm:w-5 mr-2 text-[#963E56]">
-                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
-                <circle cx="9" cy="7" r="4" />
-                <line x1="12" y1="11" x2="12" y2="17" />
-                <line x1="9" y1="14" x2="15" y2="14" />
-              </svg>
+              <UserPlus className="h-4 w-4 sm:h-5 sm:w-5 mr-2 text-[#963E56]" />
               {isEditMode ? "Lid gegevens" : "Gegevens nieuw lid"}
             </CardTitle>
             <CardDescription className="text-xs sm:text-sm mt-1">

@@ -287,7 +287,7 @@ export default function Dashboard() {
                   {/* Tieners (13-17) */}
                   <div className="flex items-center gap-4 p-4 rounded-lg bg-gray-50">
                     <div className="bg-blue-100 p-3 rounded-full">
-                      <Smartphone className="h-5 w-5 text-blue-600" />
+                      <Backpack className="h-5 w-5 text-blue-600" />
                     </div>
                     <div>
                       <div className="text-sm text-gray-500">Tieners (13-17 jaar)</div>
@@ -335,7 +335,7 @@ export default function Dashboard() {
                   {/* Ouderen (65+) */}
                   <div className="flex items-center gap-4 p-4 rounded-lg bg-gray-50">
                     <div className="bg-purple-100 p-3 rounded-full">
-                      <MountainSnow className="h-5 w-5 text-purple-600" />
+                      <BookOpen className="h-5 w-5 text-purple-600" />
                     </div>
                     <div>
                       <div className="text-sm text-gray-500">Ouderen (65+ jaar)</div>
