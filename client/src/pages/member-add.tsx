@@ -89,223 +89,355 @@ export default function MemberAdd() {
   
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-2">
-        <Link href="/dashboard">
-          <Button variant="ghost" size="icon">
-            <ArrowLeft className="h-6 w-6" />
-          </Button>
-        </Link>
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">Nieuw lid toevoegen</h1>
-          <p className="text-muted-foreground">
-            Voeg een nieuw lid toe aan de MEFEN ledenadministratie.
-          </p>
+      {/* Header met gradient achtergrond */}
+      <div className="rounded-lg bg-gradient-to-r from-[#963E56]/80 to-[#963E56] p-6 shadow-md text-white">
+        <div className="flex items-center gap-3">
+          <Link href="/members">
+            <Button variant="ghost" size="icon" className="text-white hover:bg-white/10 h-10 w-10">
+              <ArrowLeft className="h-5 w-5" />
+            </Button>
+          </Link>
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight">Nieuw lid toevoegen</h1>
+            <p className="text-white/80">
+              Voeg een nieuw lid toe aan de MEFEN ledenadministratie.
+            </p>
+          </div>
         </div>
       </div>
       
-      <Card className="max-w-2xl mx-auto">
-        <CardHeader>
-          <CardTitle>Lid gegevens</CardTitle>
-          <CardDescription>Vul alle vereiste informatie in om een nieuw lid toe te voegen.</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-              {/* Persoonlijke informatie */}
-              <div className="space-y-4">
-                <h3 className="text-lg font-medium">Persoonlijke gegevens</h3>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <FormField
-                    control={form.control}
-                    name="firstName"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Voornaam<span className="text-destructive">*</span></FormLabel>
-                        <FormControl>
-                          <Input placeholder="Voornaam" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  
-                  <FormField
-                    control={form.control}
-                    name="lastName"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Achternaam<span className="text-destructive">*</span></FormLabel>
-                        <FormControl>
-                          <Input placeholder="Achternaam" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-                
-                <FormField
-                  control={form.control}
-                  name="birthDate"
-                  render={({ field }) => (
-                    <FormItem className="flex flex-col">
-                      <FormLabel>Geboortedatum</FormLabel>
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <FormControl>
-                            <Button
-                              variant={"outline"}
-                              className={cn(
-                                "w-full pl-3 text-left font-normal",
-                                !field.value && "text-muted-foreground"
-                              )}
-                            >
-                              {field.value ? (
-                                format(field.value, "dd MMMM yyyy", { locale: nl })
-                              ) : (
-                                <span>Kies een datum</span>
-                              )}
-                              <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                            </Button>
-                          </FormControl>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0" align="start">
-                          <Calendar
-                            mode="single"
-                            selected={field.value || undefined}
-                            onSelect={field.onChange}
-                            disabled={(date) =>
-                              date > new Date() || date < new Date("1900-01-01")
-                            }
-                            initialFocus
-                          />
-                        </PopoverContent>
-                      </Popover>
-                      <FormDescription>
-                        Selecteer de geboortedatum van het lid.
-                      </FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-              
-              {/* Contactinformatie */}
-              <div className="space-y-4">
-                <h3 className="text-lg font-medium">Contactgegevens</h3>
-                
-                <FormField
-                  control={form.control}
-                  name="phoneNumber"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Telefoonnummer<span className="text-destructive">*</span></FormLabel>
-                      <FormControl>
-                        <Input placeholder="Telefoonnummer" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                
-                <FormField
-                  control={form.control}
-                  name="email"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>E-mail</FormLabel>
-                      <FormControl>
-                        <Input type="email" placeholder="E-mail (optioneel)" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-              
-              {/* Financiële informatie */}
-              <div className="space-y-4">
-                <h3 className="text-lg font-medium">Financiële gegevens</h3>
-                
-                <FormField
-                  control={form.control}
-                  name="accountNumber"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Rekeningnummer</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Rekeningnummer (optioneel)" {...field} />
-                      </FormControl>
-                      <FormDescription>
-                        Het bankrekeningnummer van het lid (optioneel).
-                      </FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                
-                <FormField
-                  control={form.control}
-                  name="paymentStatus"
-                  render={({ field }) => (
-                    <FormItem className="flex flex-row items-start space-x-3 space-y-0 pt-2">
-                      <FormControl>
-                        <Checkbox
-                          checked={field.value}
-                          onCheckedChange={field.onChange}
-                        />
-                      </FormControl>
-                      <div className="space-y-1 leading-none">
-                        <FormLabel>Ledenbijdrage betaald</FormLabel>
-                        <FormDescription>
-                          Geef aan of dit lid de ledenbijdrage heeft betaald.
-                        </FormDescription>
+      <div className="grid md:grid-cols-5 gap-6">
+        {/* Formulier in linker 3 kolommen */}
+        <div className="md:col-span-3">
+          <Card className="border-none shadow-md overflow-hidden">
+            <div className="bg-gradient-to-r from-gray-100 to-gray-50 h-1" />
+            <CardHeader className="pb-6">
+              <CardTitle className="text-xl flex items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5 mr-2 text-[#963E56]">
+                  <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+                  <circle cx="9" cy="7" r="4" />
+                  <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+                  <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                </svg>
+                Lid gegevens
+              </CardTitle>
+              <CardDescription>
+                Vul alle vereiste informatie in om een nieuw lid toe te voegen.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Form {...form}>
+                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+                  {/* Persoonlijke informatie met verbeterde styling */}
+                  <div>
+                    <div className="flex items-center mb-4">
+                      <div className="mr-2 bg-[#963E56]/10 p-2 rounded-full">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4 text-[#963E56]">
+                          <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
+                          <circle cx="12" cy="7" r="4" />
+                        </svg>
                       </div>
-                    </FormItem>
-                  )}
-                />
+                      <h3 className="text-lg font-medium text-gray-700">Persoonlijke gegevens</h3>
+                    </div>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                      <FormField
+                        control={form.control}
+                        name="firstName"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Voornaam<span className="text-destructive">*</span></FormLabel>
+                            <FormControl>
+                              <Input placeholder="Voornaam" className="border-gray-200 focus:border-[#963E56]" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      
+                      <FormField
+                        control={form.control}
+                        name="lastName"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Achternaam<span className="text-destructive">*</span></FormLabel>
+                            <FormControl>
+                              <Input placeholder="Achternaam" className="border-gray-200 focus:border-[#963E56]" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                    
+                    <FormField
+                      control={form.control}
+                      name="birthDate"
+                      render={({ field }) => (
+                        <FormItem className="flex flex-col">
+                          <FormLabel>Geboortedatum</FormLabel>
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <FormControl>
+                                <Button
+                                  variant={"outline"}
+                                  className={cn(
+                                    "w-full pl-3 text-left font-normal border-gray-200",
+                                    !field.value && "text-muted-foreground"
+                                  )}
+                                >
+                                  {field.value ? (
+                                    format(field.value, "dd MMMM yyyy", { locale: nl })
+                                  ) : (
+                                    <span>Kies een datum</span>
+                                  )}
+                                  <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                </Button>
+                              </FormControl>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0" align="start">
+                              <Calendar
+                                mode="single"
+                                selected={field.value || undefined}
+                                onSelect={field.onChange}
+                                disabled={(date) =>
+                                  date > new Date() || date < new Date("1900-01-01")
+                                }
+                                initialFocus
+                              />
+                            </PopoverContent>
+                          </Popover>
+                          <FormDescription>
+                            Selecteer de geboortedatum van het lid.
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                  
+                  {/* Contactinformatie met verbeterde styling */}
+                  <div>
+                    <div className="flex items-center mb-4">
+                      <div className="mr-2 bg-blue-50 p-2 rounded-full">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4 text-blue-600">
+                          <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
+                        </svg>
+                      </div>
+                      <h3 className="text-lg font-medium text-gray-700">Contactgegevens</h3>
+                    </div>
+                    
+                    <div className="space-y-4">
+                      <FormField
+                        control={form.control}
+                        name="phoneNumber"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Telefoonnummer<span className="text-destructive">*</span></FormLabel>
+                            <FormControl>
+                              <Input placeholder="Telefoonnummer" className="border-gray-200 focus:border-[#963E56]" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      
+                      <FormField
+                        control={form.control}
+                        name="email"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>E-mail</FormLabel>
+                            <FormControl>
+                              <Input type="email" placeholder="E-mail (optioneel)" className="border-gray-200 focus:border-[#963E56]" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                  </div>
+                  
+                  {/* Financiële informatie met verbeterde styling */}
+                  <div>
+                    <div className="flex items-center mb-4">
+                      <div className="mr-2 bg-green-50 p-2 rounded-full">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4 text-green-600">
+                          <rect x="2" y="5" width="20" height="14" rx="2" />
+                          <line x1="2" y1="10" x2="22" y2="10" />
+                        </svg>
+                      </div>
+                      <h3 className="text-lg font-medium text-gray-700">Financiële gegevens</h3>
+                    </div>
+                    
+                    <div className="space-y-4">
+                      <FormField
+                        control={form.control}
+                        name="accountNumber"
+                        render={({ field }) => {
+                          // Zorg ervoor dat de waarde nooit null is
+                          const value = field.value === null ? "" : field.value;
+                          return (
+                            <FormItem>
+                              <FormLabel>Rekeningnummer</FormLabel>
+                              <FormControl>
+                                <Input 
+                                  placeholder="Rekeningnummer (optioneel)" 
+                                  className="border-gray-200 focus:border-[#963E56]" 
+                                  value={value}
+                                  onChange={field.onChange}
+                                  onBlur={field.onBlur}
+                                  name={field.name}
+                                  ref={field.ref}
+                                />
+                              </FormControl>
+                              <FormDescription>
+                                Het bankrekeningnummer van het lid (optioneel).
+                              </FormDescription>
+                              <FormMessage />
+                            </FormItem>
+                          );
+                        }}
+                      />
+                      
+                      <FormField
+                        control={form.control}
+                        name="paymentStatus"
+                        render={({ field }) => (
+                          <FormItem className="bg-gray-50 p-4 rounded-md flex flex-row items-start space-x-3 space-y-0">
+                            <FormControl>
+                              <Checkbox
+                                checked={field.value}
+                                onCheckedChange={field.onChange}
+                                className="data-[state=checked]:bg-green-600 data-[state=checked]:border-green-600"
+                              />
+                            </FormControl>
+                            <div className="space-y-1 leading-none">
+                              <FormLabel>Ledenbijdrage betaald</FormLabel>
+                              <FormDescription>
+                                Geef aan of dit lid de ledenbijdrage heeft betaald.
+                              </FormDescription>
+                            </div>
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                  </div>
+                  
+                  {/* Notities met verbeterde styling */}
+                  <div>
+                    <div className="flex items-center mb-4">
+                      <div className="mr-2 bg-purple-50 p-2 rounded-full">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4 text-purple-600">
+                          <path d="M14 3v4a1 1 0 0 0 1 1h4" />
+                          <path d="M17 21H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7l5 5v11a2 2 0 0 1-2 2z" />
+                          <line x1="9" y1="9" x2="10" y2="9" />
+                          <line x1="9" y1="13" x2="15" y2="13" />
+                          <line x1="9" y1="17" x2="15" y2="17" />
+                        </svg>
+                      </div>
+                      <h3 className="text-lg font-medium text-gray-700">Extra informatie</h3>
+                    </div>
+                    
+                    <FormField
+                      control={form.control}
+                      name="notes"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Notities</FormLabel>
+                          <FormControl>
+                            <Textarea 
+                              placeholder="Voeg eventuele extra informatie toe over dit lid..." 
+                              className="min-h-[120px] border-gray-200 focus:border-[#963E56]" 
+                              {...field} 
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                  
+                  <div className="flex gap-3 justify-end pt-2">
+                    <Link href="/members">
+                      <Button variant="outline" type="button" className="border-gray-200">Annuleren</Button>
+                    </Link>
+                    <Button 
+                      type="submit" 
+                      className="bg-[#963E56] hover:bg-[#963E56]/90 text-white"
+                      disabled={createMemberMutation.isPending}
+                    >
+                      {createMemberMutation.isPending ? "Bezig met toevoegen..." : "Lid toevoegen"}
+                    </Button>
+                  </div>
+                </form>
+              </Form>
+            </CardContent>
+          </Card>
+        </div>
+        
+        {/* Informatieve sectie in rechter 2 kolommen */}
+        <div className="md:col-span-2">
+          <Card className="border-none shadow-md bg-gradient-to-r from-[#963E56]/5 to-white overflow-hidden sticky top-6">
+            <div className="bg-[#963E56]/70 h-1" />
+            <CardHeader className="pb-3">
+              <CardTitle className="text-lg text-[#963E56]">Informatie</CardTitle>
+              <CardDescription>Wat u moet weten bij het toevoegen van een lid</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="rounded-lg bg-blue-50 p-4 space-y-2">
+                <div className="font-medium text-blue-700 flex items-center">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5 mr-2">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z" />
+                  </svg>
+                  Belangrijk
+                </div>
+                <p className="text-sm text-blue-600">
+                  Alle velden met een <span className="text-destructive">*</span> zijn verplicht. 
+                  Een uniek lidnummer wordt automatisch gegenereerd.
+                </p>
               </div>
               
-              {/* Notities */}
               <div className="space-y-4">
-                <h3 className="text-lg font-medium">Extra informatie</h3>
-                
-                <FormField
-                  control={form.control}
-                  name="notes"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Notities</FormLabel>
-                      <FormControl>
-                        <Textarea 
-                          placeholder="Voeg eventuele extra informatie toe over dit lid..." 
-                          className="min-h-[100px]" 
-                          {...field} 
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                <h4 className="font-medium text-sm text-gray-900">Wat gebeurt er na toevoegen?</h4>
+                <div className="space-y-3 text-sm">
+                  <div className="flex items-start gap-2">
+                    <div className="rounded-full bg-green-100 text-green-700 h-5 w-5 flex items-center justify-center shrink-0 mt-0.5">
+                      <span className="text-xs">1</span>
+                    </div>
+                    <p className="text-gray-600">
+                      Het lid wordt toegevoegd aan de database met een uniek lidnummer.
+                    </p>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <div className="rounded-full bg-green-100 text-green-700 h-5 w-5 flex items-center justify-center shrink-0 mt-0.5">
+                      <span className="text-xs">2</span>
+                    </div>
+                    <p className="text-gray-600">
+                      U kunt de gegevens van het lid op elk moment bekijken en bewerken via de ledenlijst.
+                    </p>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <div className="rounded-full bg-green-100 text-green-700 h-5 w-5 flex items-center justify-center shrink-0 mt-0.5">
+                      <span className="text-xs">3</span>
+                    </div>
+                    <p className="text-gray-600">
+                      De registratiedatum wordt automatisch ingesteld op vandaag.
+                    </p>
+                  </div>
+                </div>
               </div>
               
-              <div className="flex gap-2 justify-end">
-                <Link href="/dashboard">
-                  <Button variant="outline" type="button">Annuleren</Button>
-                </Link>
-                <Button 
-                  type="submit" 
-                  className="bg-[#963E56] hover:bg-[#963E56]/90 text-white"
-                  disabled={createMemberMutation.isPending}
-                >
-                  {createMemberMutation.isPending ? "Bezig met toevoegen..." : "Lid toevoegen"}
-                </Button>
+              <div className="rounded-lg p-4 border border-gray-100 space-y-1 bg-white">
+                <h4 className="font-medium text-sm text-gray-900">Hulp nodig?</h4>
+                <p className="text-xs text-gray-500">
+                  Neem contact op met de beheerder als u vragen heeft over het toevoegen van leden.
+                </p>
               </div>
-            </form>
-          </Form>
-        </CardContent>
-      </Card>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
     </div>
   );
 }
