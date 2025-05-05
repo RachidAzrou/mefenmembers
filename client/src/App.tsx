@@ -84,6 +84,7 @@ function Router() {
       <Route path="/volunteers" component={() => <PrivateRoute component={Volunteers} />} />
       <Route path="/rooms" component={() => <PrivateRoute component={Rooms} />} />
       <Route path="/materials" component={() => <PrivateRoute component={Materials} />} />
+      <Route path="/members" component={() => <PrivateRoute component={Members} />} />
       <Route path="/import-export" component={() => <PrivateRoute component={ImportExport} />} />
       <Route path="/mosque" component={() => <PrivateRoute component={Mosque} />} />
       <Route path="/settings" component={() => <PrivateRoute component={Settings} />} />

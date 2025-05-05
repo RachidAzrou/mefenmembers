@@ -58,8 +58,9 @@ export const members = pgTable("members", {
   lastName: text("last_name").notNull(),
   email: text("email"),
   phoneNumber: text("phone_number").notNull(),
-  paymentStatus: text("payment_status").notNull().default('unpaid'),
+  paymentStatus: boolean("payment_status").notNull().default(false),
   registrationDate: timestamp("registration_date").notNull().defaultNow(),
+  notes: text("notes"),
 });
 
 // Create insert schemas
