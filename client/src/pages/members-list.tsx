@@ -185,7 +185,7 @@ export default function MembersList() {
         >
           <Card className={`overflow-hidden border-none shadow-md transition-all duration-200 ${
             activeFilter === "all" 
-              ? "bg-blue-100 ring-2 ring-blue-500" 
+              ? "bg-blue-100 border-2 border-blue-500" 
               : "bg-blue-50 hover:bg-blue-100/70"
           }`}>
             <CardContent className="p-3 sm:p-4 flex flex-col items-center justify-center">
@@ -212,7 +212,7 @@ export default function MembersList() {
         >
           <Card className={`overflow-hidden border-none shadow-md transition-all duration-200 ${
             activeFilter === "paid" 
-              ? "bg-green-100 outline outline-2 outline-green-500" 
+              ? "bg-green-100 border-2 border-green-500" 
               : "bg-green-50 hover:bg-green-100/70"
           }`}>
             <CardContent className="p-3 sm:p-4 flex flex-col items-center justify-center">
@@ -239,7 +239,7 @@ export default function MembersList() {
         >
           <Card className={`overflow-hidden border-none shadow-md transition-all duration-200 ${
             activeFilter === "unpaid" 
-              ? "bg-red-100 ring-2 ring-red-500" 
+              ? "bg-red-100 border-2 border-red-500" 
               : "bg-red-50 hover:bg-red-100/70"
           }`}>
             <CardContent className="p-3 sm:p-4 flex flex-col items-center justify-center">

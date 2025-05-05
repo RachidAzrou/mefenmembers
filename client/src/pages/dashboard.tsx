@@ -329,7 +329,7 @@ export default function Dashboard() {
                   {/* Ouderen (65+) */}
                   <div className="flex items-center gap-4 p-4 rounded-lg bg-gray-50">
                     <div className="bg-purple-100 p-3 rounded-full">
-                      <Heart className="h-5 w-5 text-purple-600" />
+                      <UserCog className="h-5 w-5 text-purple-600" />
                     </div>
                     <div>
                       <div className="text-sm text-gray-500">Ouderen (65+ jaar)</div>
