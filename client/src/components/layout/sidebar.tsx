@@ -103,7 +103,7 @@ export function Sidebar() {
           {!collapsed && (
             <div className="w-full h-full flex items-center justify-center p-4">
               <img
-                src="/static/Naamloos.png"
+                src="/mosque-logo.png"
                 alt="MEFEN"
                 className="w-full h-full object-contain transition-opacity duration-200"
               />
