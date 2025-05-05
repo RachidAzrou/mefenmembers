@@ -725,7 +725,7 @@ const Materials = () => {
               {isAdmin && (
                 <Dialog open={isTypesDialogOpen} onOpenChange={setIsTypesDialogOpen}>
                   <DialogTrigger asChild>
-                    <Button variant="outline" className="w-full sm:w-auto">
+                    <Button variant="outline" className="w-full sm:w-auto gap-2 bg-[#963E56] hover:bg-[#963E56]/90 text-white font-medium shadow-lg hover:shadow-xl transition-all duration-200 ease-in-out transform hover:-translate-y-0.5">
                       <Settings2 className="h-4 w-4 mr-2" />
                       <span className="whitespace-nowrap">Types Beheren</span>
                     </Button>
@@ -770,7 +770,10 @@ const Materials = () => {
                             </FormItem>
                           )}
                         />
-                        <Button type="submit">
+                        <Button 
+                          type="submit"
+                          className="bg-[#963E56] hover:bg-[#963E56]/90 text-white font-medium shadow-lg hover:shadow-xl transition-all duration-200 ease-in-out transform hover:-translate-y-0.5"
+                        >
                           {editingMaterialType ? "Bijwerken" : "Toevoegen"}
                         </Button>
                       </form>
@@ -1069,7 +1072,10 @@ const Materials = () => {
                         >
                           Annuleren
                         </Button>
-                        <Button type="submit">
+                        <Button 
+                          type="submit"
+                          className="bg-[#963E56] hover:bg-[#963E56]/90 text-white font-medium shadow-lg hover:shadow-xl transition-all duration-200 ease-in-out transform hover:-translate-y-0.5"
+                        >
                           Materiaal Toewijzen
                         </Button>
                       </div>

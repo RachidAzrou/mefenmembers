@@ -51,6 +51,17 @@ export const schedules = pgTable("schedules", {
   endDate: timestamp("end_date").notNull(),
 });
 
+export const members = pgTable("members", {
+  id: serial("id").primaryKey(),
+  memberNumber: integer("member_number").notNull().unique(),
+  firstName: text("first_name").notNull(),
+  lastName: text("last_name").notNull(),
+  email: text("email"),
+  phoneNumber: text("phone_number").notNull(),
+  paymentStatus: text("payment_status").notNull().default('unpaid'),
+  registrationDate: timestamp("registration_date").notNull().defaultNow(),
+});
+
 // Create insert schemas
 export const insertUserSchema = createInsertSchema(users);
 export const insertVolunteerSchema = createInsertSchema(volunteers);
@@ -61,6 +72,10 @@ export const insertRoomSchema = createInsertSchema(rooms);
 export const insertMaterialTypeSchema = createInsertSchema(materialTypes);
 export const insertMaterialSchema = createInsertSchema(materials);
 export const insertScheduleSchema = createInsertSchema(schedules);
+export const insertMemberSchema = createInsertSchema(members, {
+  registrationDate: z.coerce.date(),
+  memberNumber: z.number().int().positive()
+});
 
 // Export types
 export type User = typeof users.$inferSelect;
