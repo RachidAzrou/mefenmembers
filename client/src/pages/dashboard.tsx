@@ -3,7 +3,8 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { 
   Users, Check, X, Download, UserPlus, CalendarDays, 
   CreditCard, TrendingUp, Percent, UserCheck,
-  Baby, GraduationCap, UserRound, Heart, BarChart3
+  Baby, GraduationCap, UserRound, Heart, BarChart3,
+  PieChart
 } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { useQuery } from "@tanstack/react-query";
@@ -137,7 +138,10 @@ export default function Dashboard() {
       <Card className="border-none shadow-md">
         <CardHeader className="flex flex-row items-center justify-between">
           <div>
-            <CardTitle className="text-lg">Ledenoverzicht</CardTitle>
+            <CardTitle className="text-lg flex items-center">
+              <PieChart className="h-5 w-5 mr-2 text-[#963E56]" />
+              Ledenoverzicht
+            </CardTitle>
             <CardDescription>
               Aantal leden
             </CardDescription>
@@ -160,25 +164,25 @@ export default function Dashboard() {
             <div className="flex justify-between items-center">
               {statusFilter === 'all' && (
                 <>
-                  <span className="text-sm font-medium">{paymentPercentage}% voltooid</span>
+                  <span className="text-sm font-medium">{paymentPercentage}% betaald</span>
                   <span className="text-sm text-muted-foreground">{paidMembers} van {members.length} leden</span>
                 </>
               )}
               {statusFilter === 'paid' && (
                 <>
-                  <span className="text-sm font-medium">100% betaald</span>
+                  <span className="text-sm font-medium">100% voldoet aan filter</span>
                   <span className="text-sm text-muted-foreground">{paidMembers} leden ({paymentPercentage}% van totaal)</span>
                 </>
               )}
               {statusFilter === 'unpaid' && (
                 <>
-                  <span className="text-sm font-medium">0% betaald</span>
+                  <span className="text-sm font-medium">100% voldoet aan filter</span>
                   <span className="text-sm text-muted-foreground">{unpaidMembers} leden ({100-paymentPercentage}% van totaal)</span>
                 </>
               )}
             </div>
             <Progress 
-              value={statusFilter === 'paid' ? 100 : statusFilter === 'unpaid' ? 0 : paymentPercentage} 
+              value={statusFilter === 'all' ? paymentPercentage : 100} 
               className="h-2" />
             
             <div className="grid grid-cols-3 gap-4 pt-4 text-center">
