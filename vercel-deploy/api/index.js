@@ -121,7 +121,17 @@ app.get('/api/members/:id', async (req, res) => {
 // Lid toevoegen
 app.post('/api/members', async (req, res) => {
   try {
-    console.log('POST /api/members - Request body:', JSON.stringify(req.body));
+    // Verminder logs en gebruik meer foutafhandeling
+    console.log('POST /api/members - Verzoek ontvangen');
+    
+    // Log Firebase verbinding status
+    try {
+      const connectionRef = ref(database, '.info/connected');
+      const connectionSnap = await get(connectionRef);
+      console.log('Firebase verbinding status:', connectionSnap.val() ? 'verbonden' : 'niet verbonden');
+    } catch (connectionError) {
+      console.error('Kon Firebase verbinding niet controleren:', connectionError.message);
+    }
     
     // Basisvalidatie
     const { firstName, lastName, phoneNumber } = req.body;
@@ -132,50 +142,58 @@ app.post('/api/members', async (req, res) => {
       });
     }
     
+    // Probeer lid aan te maken met verbeterde foutafhandeling
+    let memberNumber;
     try {
       // Genereer lidnummer
-      console.log('Generating member number...');
-      const memberNumber = await getNextMemberNumber();
-      console.log('Generated member number:', memberNumber);
-      
-      // Maak nieuw lid aan
-      const newMember = {
-        memberNumber,
-        firstName,
-        lastName,
-        phoneNumber,
-        email: req.body.email || '',
-        birthDate: req.body.birthDate || null,
-        accountNumber: req.body.accountNumber || '',
-        paymentStatus: req.body.paymentStatus || false,
-        registrationDate: new Date().toISOString(),
-        notes: req.body.notes || ''
-      };
-      
-      console.log('Adding new member to database:', JSON.stringify(newMember));
-      
-      // Voeg toe aan Firebase
-      const membersRef = ref(database, 'members');
-      const newMemberRef = push(membersRef);
-      await set(newMemberRef, newMember);
-      
-      console.log('Member added successfully with ID:', newMemberRef.key);
-      
-      // Stuur antwoord terug met ID
-      res.status(201).json({
-        id: newMemberRef.key,
-        ...newMember
-      });
-    } catch (innerError) {
-      console.error('Inner error in member creation:', innerError);
-      throw innerError; // Re-throw to be caught by outer catch
+      memberNumber = await getNextMemberNumber();
+      console.log('Lidnummer gegenereerd:', memberNumber);
+    } catch (numberError) {
+      console.error('Fout bij lidnummer generatie:', numberError.message);
+      // Gebruik fallback nummer
+      memberNumber = Math.floor(Date.now() / 1000) % 10000;
+      console.log('Fallback lidnummer gebruikt:', memberNumber);
     }
+    
+    // Maak nieuw lid aan
+    const newMember = {
+      memberNumber,
+      firstName,
+      lastName,
+      phoneNumber,
+      email: req.body.email || '',
+      birthDate: req.body.birthDate || null,
+      accountNumber: req.body.accountNumber || '',
+      paymentStatus: req.body.paymentStatus || false,
+      registrationDate: new Date().toISOString(),
+      notes: req.body.notes || ''
+    };
+    
+    // Voeg toe aan Firebase
+    let newMemberRef;
+    try {
+      const membersRef = ref(database, 'members');
+      newMemberRef = push(membersRef);
+      await set(newMemberRef, newMember);
+      console.log('Lid succesvol toegevoegd met ID:', newMemberRef.key);
+    } catch (databaseError) {
+      console.error('Database fout bij toevoegen lid:', databaseError.message);
+      return res.status(500).json({ 
+        error: 'Kon lid niet opslaan in database',
+        details: databaseError.message
+      });
+    }
+    
+    // Stuur antwoord terug met ID
+    res.status(201).json({
+      id: newMemberRef.key,
+      ...newMember
+    });
   } catch (error) {
-    console.error('Error creating member:', error);
+    console.error('Algemene fout bij lid toevoegen:', error.message);
     res.status(500).json({ 
-      error: 'Failed to create member',
-      details: error.message,
-      stack: error.stack
+      error: 'Kon lid niet aanmaken',
+      details: error.message
     });
   }
 });
