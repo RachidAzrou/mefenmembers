@@ -5,7 +5,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Link, useLocation } from "wouter";
 import {
   LogOut, Menu, ChevronLeft, ChevronRight,
-  Settings, User, UsersRound, Home,
+  User, UsersRound, Home,
   PlusCircle, FileSpreadsheet
 } from "lucide-react";
 import { useState, useEffect } from "react";

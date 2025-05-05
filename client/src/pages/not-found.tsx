@@ -1,7 +1,11 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { AlertCircle } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { useLocation } from "wouter";
 
 export default function NotFound() {
+  const [, navigate] = useLocation();
+
   return (
     <div className="min-h-screen w-full flex items-center justify-center bg-gray-50">
       <Card className="w-full max-w-md mx-4">
@@ -14,6 +18,16 @@ export default function NotFound() {
           <p className="mt-4 text-sm text-gray-600">
             Deze pagina bestaat niet of is verwijderd.
           </p>
+          
+          <div className="mt-6">
+            <Button 
+              onClick={() => navigate("/dashboard")}
+              variant="default"
+              className="w-full"
+            >
+              Terug naar Dashboard
+            </Button>
+          </div>
         </CardContent>
       </Card>
     </div>
