@@ -3,7 +3,6 @@ import { createServer, type Server } from "http";
 import { storage } from "./firestore-storage"; // Gebruik de nieuwe Firestore implementatie
 import { insertMemberSchema } from "@shared/schema";
 import { fromZodError } from "zod-validation-error";
-import { setupVercelDebugging } from "./vercel-debug";
 import { setupEmergencyRoutes } from "./emergency-entry";
 
 // Debug voor Vercel deployment
@@ -16,10 +15,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Deze routes werken altijd, zelfs als Firebase initialisatie volledig mislukt
   setupEmergencyRoutes(app);
   
-  // Activeer Vercel debugging tools
-  if (process.env.VERCEL || process.env.NODE_ENV === 'development') {
-    setupVercelDebugging(app);
-  }
+  // Vercel debug functies verwijderd om build probleem op te lossen
   // Members routes
   // Generate unique member number (moet vóór /api/members/:id komen)
   app.get("/api/members/generate-number", async (_req: Request, res: Response) => {
