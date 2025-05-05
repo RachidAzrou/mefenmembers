@@ -22,14 +22,14 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { 
-  Download, Eye, MoreHorizontal, Plus, Search, SlidersHorizontal,
+  Eye, MoreHorizontal, Plus, Search, SlidersHorizontal,
   CalendarDays, Check, X, Users, User, Phone, StickyNote, Edit
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { formatPhoneNumber } from "@/lib/utils";
 import { Link } from "wouter";
 import { Skeleton } from "@/components/ui/skeleton";
-import * as XLSX from 'xlsx';
+
 import { useToast } from "@/hooks/use-toast";
 import { 
   Dialog, 
@@ -67,33 +67,7 @@ export default function MembersList() {
     return matchesSearch;
   });
   
-  // Exporteer ledenlijst naar Excel
-  const exportToExcel = () => {
-    const worksheet = XLSX.utils.json_to_sheet(filteredMembers.map(member => ({
-      "Lidnummer": member.memberNumber,
-      "Voornaam": member.firstName,
-      "Achternaam": member.lastName,
-      "Geboortedatum": member.birthDate ? new Date(member.birthDate).toLocaleDateString() : "",
-      "E-mail": member.email || "",
-      "Telefoonnummer": member.phoneNumber ? formatPhoneNumber(member.phoneNumber) : "",
-      "Rekeningnummer": member.accountNumber || "",
-      "Betaalstatus": member.paymentStatus ? "Betaald" : "Niet betaald",
-      "Registratiedatum": new Date(member.registrationDate).toLocaleDateString(),
-      "Notities": member.notes || ""
-    })));
-    
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Leden");
-    
-    // Genereer bestandsnaam met datum
-    const date = new Date().toISOString().split('T')[0];
-    XLSX.writeFile(workbook, `ledenlijst_${date}.xlsx`);
-    
-    toast({
-      title: "Lijst geëxporteerd",
-      description: "De ledenlijst is succesvol geëxporteerd naar Excel.",
-    });
-  };
+  // Hier stond voorheen de exportToExcel functie die is verwijderd
   
   // Formateer een datum voor weergave
   const formatDate = (dateString: string | Date | null | undefined) => {
@@ -129,13 +103,14 @@ export default function MembersList() {
             <Plus className="mr-2 h-4 w-4" /> Nieuw lid
           </Button>
         </Link>
-        <Button
-          variant="outline"
-          onClick={exportToExcel}
-          className="border-[#963E56] text-[#963E56] hover:bg-[#963E56]/10"
-        >
-          <Download className="mr-2 h-4 w-4" /> Exporteren
-        </Button>
+        <Link href="/members/edit">
+          <Button
+            variant="outline"
+            className="border-[#963E56] text-[#963E56] hover:bg-[#963E56]/10"
+          >
+            <SlidersHorizontal className="mr-2 h-4 w-4" /> Leden bewerken
+          </Button>
+        </Link>
       </div>
       
       {/* Statistieken strook */}
