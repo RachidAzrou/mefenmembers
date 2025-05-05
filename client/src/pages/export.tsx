@@ -83,15 +83,15 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 
 // Veldnamen en labels definitie
 const FIELDS = [
-  { id: "memberNumber", label: "Lidnummer", enabled: true },
+  { id: "memberNumber", label: "Lidnr.", enabled: true },
   { id: "firstName", label: "Voornaam", enabled: true },
   { id: "lastName", label: "Achternaam", enabled: true },
-  { id: "birthDate", label: "Geboortedatum", enabled: true },
-  { id: "email", label: "E-mailadres", enabled: true },
-  { id: "phoneNumber", label: "Telefoonnummer", enabled: true },
-  { id: "accountNumber", label: "Rekeningnummer", enabled: true },
-  { id: "paymentStatus", label: "Betaalstatus", enabled: true },
-  { id: "registrationDate", label: "Registratiedatum", enabled: true },
+  { id: "birthDate", label: "Geb.datum", enabled: true },
+  { id: "email", label: "E-mail", enabled: true },
+  { id: "phoneNumber", label: "Telefoon", enabled: true },
+  { id: "accountNumber", label: "Rekening", enabled: true },
+  { id: "paymentStatus", label: "Betaald", enabled: true },
+  { id: "registrationDate", label: "Reg.datum", enabled: true },
   { id: "notes", label: "Notities", enabled: true },
 ];
 
@@ -246,35 +246,47 @@ export default function ExportPage() {
     // Selecteer de enabled velden
     const enabledFields = exportFields.filter(field => field.enabled);
     
-    // Berekenen van de kolom breedte op basis van het aantal geselecteerde velden
+    // Optimaliseren van kolombreedte op basis van het aantal en type geselecteerde velden
     const columnWidths: Record<string, string> = {};
+    
+    // Bereken het totale percentage om te verdelen over de kolommen
+    const totalColumns = enabledFields.length;
+    
     enabledFields.forEach(field => {
       switch (field.id) {
         case "memberNumber":
-          columnWidths[field.id] = "10%";
+          // Lidnummer is meestal kort, dus minder ruimte nodig
+          columnWidths[field.id] = "8%";
           break;
         case "firstName":
+          columnWidths[field.id] = "12%";
+          break;
         case "lastName":
-          columnWidths[field.id] = "15%";
+          // Achternamen zijn vaak langer dan voornamen
+          columnWidths[field.id] = "14%";
           break;
         case "birthDate":
         case "registrationDate":
-          columnWidths[field.id] = "12%";
-          break;
-        case "paymentStatus":
+          // Datums hebben een vaste lengte, maak ze smaller
           columnWidths[field.id] = "10%";
           break;
+        case "paymentStatus":
+          // Status heeft alleen ✓ of ✗, dus zeer compact
+          columnWidths[field.id] = "6%";
+          break;
         case "email":
-          columnWidths[field.id] = "20%";
-          break;
-        case "phoneNumber":
-          columnWidths[field.id] = "15%";
-          break;
-        case "accountNumber":
+          // Email is vaak lang, dus meer ruimte
           columnWidths[field.id] = "18%";
           break;
+        case "phoneNumber":
+          columnWidths[field.id] = "12%";
+          break;
+        case "accountNumber":
+          columnWidths[field.id] = "14%";
+          break;
         case "notes":
-          columnWidths[field.id] = "20%";
+          // Notities kunnen lang zijn, maar moeten niet te veel ruimte innemen
+          columnWidths[field.id] = "16%";
           break;
         default:
           columnWidths[field.id] = "10%";
