@@ -157,13 +157,13 @@ export default function MemberAdd() {
   
   return (
     <div className="space-y-6">
-      {/* Header met gradient achtergrond */}
-      <div className="rounded-lg bg-gradient-to-r from-[#963E56]/80 to-[#963E56] p-6 shadow-md text-white">
+      {/* Header met gradient achtergrond - responsief */}
+      <div className="rounded-lg bg-gradient-to-r from-[#963E56]/80 to-[#963E56] p-4 sm:p-6 shadow-md text-white">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight">
             {isEditMode ? "Lid bewerken" : "Nieuw lid toevoegen"}
           </h1>
-          <p className="text-white/80">
+          <p className="text-white/80 text-sm sm:text-base">
             {isEditMode 
               ? "Bewerk de gegevens van het bestaande lid."
               : "Voeg een nieuw lid toe aan de MEFEN ledenadministratie."}
@@ -183,9 +183,9 @@ export default function MemberAdd() {
         {/* Formulier */}
         <Card className="border-none shadow-md overflow-hidden">
           <div className="bg-gradient-to-r from-gray-100 to-gray-50 h-1" />
-          <CardHeader className="pb-6">
-            <CardTitle className="text-xl flex items-center">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5 mr-2 text-[#963E56]">
+          <CardHeader className="pb-4 sm:pb-6 px-4 sm:px-6">
+            <CardTitle className="text-lg sm:text-xl flex items-center">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4 sm:h-5 sm:w-5 mr-2 text-[#963E56]">
                 <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
                 <circle cx="9" cy="7" r="4" />
                 <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
@@ -193,26 +193,26 @@ export default function MemberAdd() {
               </svg>
               Lid gegevens
             </CardTitle>
-            <CardDescription>
+            <CardDescription className="text-xs sm:text-sm mt-1">
               {isEditMode 
                 ? "Wijzig de gegevens van het lid. Velden met een " 
                 : "Vul alle vereiste informatie in om een nieuw lid toe te voegen. Velden met een "}
               <span className="text-destructive">*</span> zijn verplicht.
             </CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="px-4 sm:px-6">
             <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 sm:space-y-8">
                 {/* Persoonlijke informatie met verbeterde styling */}
                 <div>
-                  <div className="flex items-center mb-4">
-                    <div className="mr-2 bg-[#963E56]/10 p-2 rounded-full">
-                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4 text-[#963E56]">
+                  <div className="flex items-center mb-3 sm:mb-4">
+                    <div className="mr-2 bg-[#963E56]/10 p-1.5 sm:p-2 rounded-full">
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-[#963E56]">
                         <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
                         <circle cx="12" cy="7" r="4" />
                       </svg>
                     </div>
-                    <h3 className="text-lg font-medium text-gray-700">Persoonlijke gegevens</h3>
+                    <h3 className="text-base sm:text-lg font-medium text-gray-700">Persoonlijke gegevens</h3>
                   </div>
                   
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
