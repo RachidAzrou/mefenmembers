@@ -1,10 +1,13 @@
 import { 
   members,
+  deletedMemberNumbers,
   type Member,
-  type InsertMember
+  type InsertMember,
+  type DeletedMemberNumber,
+  type InsertDeletedMemberNumber
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, sql } from "drizzle-orm";
+import { eq, sql, asc, desc } from "drizzle-orm";
 import session from "express-session";
 import connectPg from "connect-pg-simple";
 import { pool } from "./db";
@@ -19,6 +22,12 @@ export interface IStorage {
   updateMember(id: number, member: Partial<InsertMember>): Promise<Member>;
   deleteMember(id: number): Promise<void>;
   generateMemberNumber(): Promise<number>;
+  
+  // Verwijderde lidnummers beheer
+  addDeletedMemberNumber(memberNumber: number): Promise<DeletedMemberNumber>;
+  getDeletedMemberNumbers(): Promise<DeletedMemberNumber[]>;
+  getNextAvailableMemberNumber(): Promise<number>;
+  removeDeletedMemberNumber(memberNumber: number): Promise<void>;
 
   // Session store for authentication
   sessionStore: session.Store;
@@ -77,19 +86,72 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteMember(id: number): Promise<void> {
-    await db.delete(members).where(eq(members.id, id));
+    // Haal eerst het lid op om het lidnummer te kunnen bewaren
+    const member = await this.getMember(id);
+    if (member) {
+      // Verwijder het lid
+      await db.delete(members).where(eq(members.id, id));
+      
+      // Voeg het lidnummer toe aan de lijst van verwijderde nummers voor hergebruik
+      await this.addDeletedMemberNumber(member.memberNumber);
+    }
   }
 
   async generateMemberNumber(): Promise<number> {
-    // Geoptimaliseerde versie met betere caching en minder database belasting
-    // Gebruik direct een SQL-query om het nummer te genereren in één operatie
-    // Begin bij 1 voor het eerste lid, vervolgens 2, 3, etc.
+    // Controleer eerst of er een verwijderd lidnummer beschikbaar is
+    const availableNumber = await this.getNextAvailableMemberNumber();
+    
+    // Als er een beschikbaar nummer is, gebruik dat
+    if (availableNumber !== null) {
+      return availableNumber;
+    }
+    
+    // Zo niet, genereer een nieuw nummer
     const result = await db.execute<{ next_number: number }>(
       sql`SELECT COALESCE(MAX(${members.memberNumber}), 0) + 1 AS next_number FROM ${members}`
     );
     
     // Haal het resultaat uit de query
     return result.rows[0]?.next_number || 1;
+  }
+  
+  // Methodes voor het beheren van verwijderde lidnummers
+  async addDeletedMemberNumber(memberNumber: number): Promise<DeletedMemberNumber> {
+    const [created] = await db.insert(deletedMemberNumbers)
+      .values({ memberNumber })
+      .returning();
+    
+    return created;
+  }
+  
+  async getDeletedMemberNumbers(): Promise<DeletedMemberNumber[]> {
+    return await db.select()
+      .from(deletedMemberNumbers)
+      .orderBy(asc(deletedMemberNumbers.memberNumber));
+  }
+  
+  async getNextAvailableMemberNumber(): Promise<number | null> {
+    // Haal het oudste verwijderde lidnummer op (het nummer dat het langst geleden is verwijderd)
+    const [deletedNumber] = await db.select()
+      .from(deletedMemberNumbers)
+      .orderBy(asc(deletedMemberNumbers.deletedAt))
+      .limit(1);
+    
+    if (!deletedNumber) {
+      // Geen verwijderde nummers beschikbaar
+      return null;
+    }
+    
+    // Verwijder dit nummer uit de lijst van verwijderde nummers, zodat het niet opnieuw wordt gebruikt
+    await this.removeDeletedMemberNumber(deletedNumber.memberNumber);
+    
+    // Retourneer het beschikbare nummer
+    return deletedNumber.memberNumber;
+  }
+  
+  async removeDeletedMemberNumber(memberNumber: number): Promise<void> {
+    await db.delete(deletedMemberNumbers)
+      .where(eq(deletedMemberNumbers.memberNumber, memberNumber));
   }
 }
 

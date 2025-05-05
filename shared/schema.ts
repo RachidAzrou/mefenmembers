@@ -22,6 +22,13 @@ export const members = pgTable("members", {
   notes: text("notes"),
 });
 
+// Tabel voor het bijhouden van vrijgekomen lidnummers
+export const deletedMemberNumbers = pgTable("deleted_member_numbers", {
+  id: serial("id").primaryKey(),
+  memberNumber: integer("member_number").notNull().unique(),
+  deletedAt: timestamp("deleted_at").notNull().defaultNow(),
+});
+
 // Create insert schemas
 export const insertUserSchema = createInsertSchema(users);
 export const insertMemberSchema = createInsertSchema(members, {
@@ -31,10 +38,18 @@ export const insertMemberSchema = createInsertSchema(members, {
   accountNumber: z.string().optional().nullable()
 });
 
+// Extra schema's voor deletedMemberNumbers
+export const insertDeletedMemberNumberSchema = createInsertSchema(deletedMemberNumbers, {
+  deletedAt: z.coerce.date(),
+  memberNumber: z.number().int().positive(),
+});
+
 // Export types
 export type User = typeof users.$inferSelect;
 export type Member = typeof members.$inferSelect;
+export type DeletedMemberNumber = typeof deletedMemberNumbers.$inferSelect;
 
 // Export insert types
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type InsertMember = z.infer<typeof insertMemberSchema>;
+export type InsertDeletedMemberNumber = z.infer<typeof insertDeletedMemberNumberSchema>;
