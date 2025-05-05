@@ -33,7 +33,8 @@ export const deletedMemberNumbers = pgTable("deleted_member_numbers", {
 export const insertUserSchema = createInsertSchema(users);
 export const insertMemberSchema = createInsertSchema(members, {
   registrationDate: z.coerce.date(),
-  memberNumber: z.number().int().positive(),
+  // Maak lidnummer optioneel bij toevoegen. De server genereert het automatisch als het niet is meegegeven.
+  memberNumber: z.number().int().positive().optional(),
   birthDate: z.coerce.date().optional().nullable(),
   accountNumber: z.string().optional().nullable()
 });

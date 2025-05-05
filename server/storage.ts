@@ -54,11 +54,23 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createMember(member: InsertMember): Promise<Member> {
-    // Behandel datums en null-waarden
+    // Zorg dat het lid een lidnummer heeft
+    if (!member.memberNumber) {
+      member.memberNumber = await this.generateMemberNumber();
+    }
+    
+    // Expliciete type conversie voor database compatibiliteit
     const preparedMember = {
-      ...member,
+      firstName: member.firstName,
+      lastName: member.lastName,
+      phoneNumber: member.phoneNumber,
+      memberNumber: member.memberNumber,
+      registrationDate: member.registrationDate || new Date(),
+      email: member.email || null,
       birthDate: member.birthDate ? new Date(member.birthDate) : null,
-      accountNumber: member.accountNumber || null
+      accountNumber: member.accountNumber || null,
+      paymentStatus: member.paymentStatus || false,
+      notes: member.notes || null
     };
     
     const [created] = await db.insert(members).values(preparedMember).returning();
@@ -66,22 +78,38 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateMember(id: number, member: Partial<InsertMember>): Promise<Member> {
-    // Behandel datums en null-waarden
-    const preparedMember = { ...member };
+    // Maak een expliciete update object dat alleen de gedefinieerde waarden bevat
+    const updateObj: Record<string, any> = {};
+    
+    // Voeg alleen de velden toe die worden bijgewerkt met de juiste types
+    if (member.firstName !== undefined) updateObj.firstName = member.firstName;
+    if (member.lastName !== undefined) updateObj.lastName = member.lastName;
+    if (member.phoneNumber !== undefined) updateObj.phoneNumber = member.phoneNumber;
+    if (member.memberNumber !== undefined) updateObj.memberNumber = member.memberNumber;
+    if (member.email !== undefined) updateObj.email = member.email || null;
+    if (member.paymentStatus !== undefined) updateObj.paymentStatus = member.paymentStatus;
+    if (member.notes !== undefined) updateObj.notes = member.notes || null;
+    
+    // Behandel datums en complexe types met speciale logica
+    if (member.registrationDate !== undefined) {
+      updateObj.registrationDate = member.registrationDate;
+    }
     
     if (member.birthDate !== undefined) {
-      preparedMember.birthDate = member.birthDate ? new Date(member.birthDate) : null;
+      updateObj.birthDate = member.birthDate ? new Date(member.birthDate) : null;
     }
     
     if (member.accountNumber !== undefined) {
-      preparedMember.accountNumber = member.accountNumber || null;
+      updateObj.accountNumber = member.accountNumber || null;
     }
     
+    // Voer de update uit
     const [updated] = await db
       .update(members)
-      .set(preparedMember)
+      .set(updateObj)
       .where(eq(members.id, id))
       .returning();
+    
     return updated;
   }
 
@@ -98,21 +126,9 @@ export class DatabaseStorage implements IStorage {
   }
 
   async generateMemberNumber(): Promise<number> {
-    // Controleer eerst of er een verwijderd lidnummer beschikbaar is
-    const availableNumber = await this.getNextAvailableMemberNumber();
-    
-    // Als er een beschikbaar nummer is, gebruik dat
-    if (availableNumber !== null) {
-      return availableNumber;
-    }
-    
-    // Zo niet, genereer een nieuw nummer
-    const result = await db.execute<{ next_number: number }>(
-      sql`SELECT COALESCE(MAX(${members.memberNumber}), 0) + 1 AS next_number FROM ${members}`
-    );
-    
-    // Haal het resultaat uit de query
-    return result.rows[0]?.next_number || 1;
+    // Gebruik de getNextAvailableMemberNumber functie die nu alle logica bevat
+    // voor zowel het hergebruiken van nummers als het genereren van nieuwe nummers
+    return this.getNextAvailableMemberNumber();
   }
   
   // Methodes voor het beheren van verwijderde lidnummers
@@ -130,7 +146,7 @@ export class DatabaseStorage implements IStorage {
       .orderBy(asc(deletedMemberNumbers.memberNumber));
   }
   
-  async getNextAvailableMemberNumber(): Promise<number | null> {
+  async getNextAvailableMemberNumber(): Promise<number> {
     // Haal het oudste verwijderde lidnummer op (het nummer dat het langst geleden is verwijderd)
     const [deletedNumber] = await db.select()
       .from(deletedMemberNumbers)
@@ -138,8 +154,12 @@ export class DatabaseStorage implements IStorage {
       .limit(1);
     
     if (!deletedNumber) {
-      // Geen verwijderde nummers beschikbaar
-      return null;
+      // Geen verwijderde nummers beschikbaar, genereer een nieuw nummer
+      const result = await db.execute<{ next_number: number }>(
+        sql`SELECT COALESCE(MAX(${members.memberNumber}), 0) + 1 AS next_number FROM ${members}`
+      );
+      
+      return result.rows[0]?.next_number || 1;
     }
     
     // Verwijder dit nummer uit de lijst van verwijderde nummers, zodat het niet opnieuw wordt gebruikt
