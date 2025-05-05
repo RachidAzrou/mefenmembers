@@ -18,7 +18,7 @@ export function Sidebar() {
   const [collapsed, setCollapsed] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const { isAdmin } = useRole();
-  const currentUser = auth.currentUser;
+  const currentUser = auth.currentUser || { email: "gebruiker@mefen.nl" };
 
   useEffect(() => {
     const checkMobile = () => {
@@ -62,11 +62,6 @@ export function Sidebar() {
     // Only collapse on mobile and when sidebar is expanded
     if (isMobile && !collapsed) {
       setCollapsed(true);
-    }
-
-    // Clear notifications if needed
-    if (href === '/import-export') {
-      clearUnreadCount();
     }
   };
 
@@ -179,14 +174,6 @@ export function Sidebar() {
                       isMobile && "text-base font-medium"
                     )}>
                       {item.label}
-                    </span>
-                  )}
-                  {item.notificationCount > 0 && (
-                    <span className={cn(
-                      "absolute right-2 top-1/2 -translate-y-1/2 bg-primary/20 text-primary rounded-full px-2 py-0.5 min-w-[1.5rem] text-center text-sm transition-all duration-200",
-                      collapsed && "right-1"
-                    )}>
-                      {item.notificationCount}
                     </span>
                   )}
                 </Button>
