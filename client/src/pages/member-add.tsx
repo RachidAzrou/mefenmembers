@@ -440,9 +440,16 @@ export default function MemberAdd() {
                   <Button 
                     type="submit" 
                     className="bg-[#963E56] hover:bg-[#963E56]/90 text-white"
-                    disabled={createMemberMutation.isPending}
+                    disabled={isPending}
                   >
-                    {createMemberMutation.isPending ? "Bezig met toevoegen..." : "Lid toevoegen"}
+                    {isPending ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        {isEditMode ? "Bezig met bijwerken..." : "Bezig met toevoegen..."}
+                      </>
+                    ) : (
+                      isEditMode ? "Lid bijwerken" : "Lid toevoegen"
+                    )}
                   </Button>
                 </div>
               </form>

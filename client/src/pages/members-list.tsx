@@ -103,14 +103,18 @@ export default function MembersList() {
             <Plus className="mr-2 h-4 w-4" /> Nieuw lid
           </Button>
         </Link>
-        <Link href="/members/edit">
-          <Button
+        <Button
             variant="outline"
             className="border-[#963E56] text-[#963E56] hover:bg-[#963E56]/10"
+            onClick={() => {
+              toast({
+                title: "Leden bewerken",
+                description: "Klik op de 'Bewerken' optie in het menu van een lid om het te wijzigen.",
+              });
+            }}
           >
             <SlidersHorizontal className="mr-2 h-4 w-4" /> Leden bewerken
           </Button>
-        </Link>
       </div>
       
       {/* Statistieken strook */}
