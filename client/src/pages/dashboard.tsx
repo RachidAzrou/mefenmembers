@@ -4,7 +4,8 @@ import {
   Users, Check, X, Download, UserPlus, CalendarDays, 
   CreditCard, TrendingUp, Percent, UserCheck,
   Baby, GraduationCap, UserRound, Heart, BarChart3,
-  PieChart, Briefcase, PersonStanding
+  PieChart, Briefcase, School, PersonStanding, Gamepad2,
+  Accessibility, Leaf
 } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { useQuery } from "@tanstack/react-query";
@@ -284,12 +285,7 @@ export default function Dashboard() {
                   {/* Tieners (13-17) */}
                   <div className="flex items-center gap-4 p-4 rounded-lg bg-gray-50">
                     <div className="bg-blue-100 p-3 rounded-full">
-                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5 text-blue-600">
-                        <path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z"></path>
-                        <path d="m15.54 9-.54.54A5 5 0 0 1 10.17 15H8a5 5 0 0 0-5 5"></path>
-                        <path d="M17 16a5 5 0 0 0-5 5"></path>
-                        <path d="m11.38 6.46 1.32-1.32a.5.5 0 0 1 .69 0l2.32 2.32a.5.5 0 0 0 .7 0l3.32-3.32a.5.5 0 0 1 .7 0l.84.84"></path>
-                      </svg>
+                      <Gamepad2 className="h-5 w-5 text-blue-600" />
                     </div>
                     <div>
                       <div className="text-sm text-gray-500">Tieners (13-17 jaar)</div>
@@ -305,12 +301,7 @@ export default function Dashboard() {
                   {/* Jongvolwassenen (<25) */}
                   <div className="flex items-center gap-4 p-4 rounded-lg bg-gray-50">
                     <div className="bg-green-100 p-3 rounded-full">
-                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5 text-green-600">
-                        <path d="M16.5 5.5a4.5 4.5 0 1 0-9 0 4.5 4.5 0 0 0 9 0z"/>
-                        <path d="M18 8.79l-4 4L12 15"/>
-                        <path d="M12 15v7"/>
-                        <path d="M8.835 15C6.024 15.5 4 16.795 4 18.375c0 1.97 3.582 3.625 8 3.625s8-1.655 8-3.625c0-1.58-2.024-2.875-4.835-3.375"/>
-                      </svg>
+                      <School className="h-5 w-5 text-green-600" />
                     </div>
                     <div>
                       <div className="text-sm text-gray-500">Jongvolwassenen (18-24 jaar)</div>

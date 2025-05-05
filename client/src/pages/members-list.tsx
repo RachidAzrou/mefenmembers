@@ -204,7 +204,9 @@ export default function MembersList() {
         
         <button 
           onClick={() => activeFilter === "paid" ? setActiveFilter("all") : setActiveFilter("paid")}
-          className="text-left focus:outline-none focus:ring-2 focus:ring-green-500 rounded-lg"
+          className={`text-left focus:outline-none rounded-lg ${
+            activeFilter === "paid" ? "focus:ring-2 focus:ring-green-500" : ""
+          }`}
         >
           <Card className={`overflow-hidden border-none shadow-md transition-all duration-200 ${
             activeFilter === "paid" 
@@ -230,7 +232,9 @@ export default function MembersList() {
         
         <button 
           onClick={() => activeFilter === "unpaid" ? setActiveFilter("all") : setActiveFilter("unpaid")}
-          className="text-left focus:outline-none focus:ring-2 focus:ring-red-500 rounded-lg"
+          className={`text-left focus:outline-none rounded-lg ${
+            activeFilter === "unpaid" ? "focus:ring-2 focus:ring-red-500" : ""
+          }`}
         >
           <Card className={`overflow-hidden border-none shadow-md transition-all duration-200 ${
             activeFilter === "unpaid" 
