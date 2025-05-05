@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -7,7 +7,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Calendar as CalendarIcon, ArrowLeft, Loader2 } from "lucide-react";
+import { 
+  Calendar as CalendarIcon, 
+  ArrowLeft, 
+  Loader2, 
+  AlertTriangle,
+  Trash2
+} from "lucide-react";
 import { 
   Form, 
   FormControl, 
@@ -17,6 +23,16 @@ import {
   FormLabel, 
   FormMessage 
 } from "@/components/ui/form";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle
+} from "@/components/ui/alert-dialog";
 import { format } from "date-fns";
 import { nl } from "date-fns/locale";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -52,6 +68,9 @@ export default function MemberAdd() {
   const params = useParams<{ id: string }>();
   const isEditMode = Boolean(params.id);
   const memberId = params.id ? parseInt(params.id) : undefined;
+  
+  // State voor delete dialog
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -175,7 +194,37 @@ export default function MemberAdd() {
     }
   }
   
-  const isPending = createMemberMutation.isPending || updateMemberMutation.isPending;
+  // Mutation om een lid te verwijderen
+  const deleteMemberMutation = useMutation({
+    mutationFn: async () => {
+      if (!memberId) throw new Error('Geen lid-ID gevonden om te verwijderen');
+      await apiRequest('DELETE', `/api/members/${memberId}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/members'] });
+      toast({
+        title: 'Lid verwijderd',
+        description: "Het lid is succesvol verwijderd uit de ledenadministratie.",
+      });
+      navigate('/members');
+    },
+    onError: (error) => {
+      toast({
+        title: 'Fout bij verwijderen',
+        description: `Er is een fout opgetreden: ${error.message}`,
+        variant: 'destructive',
+      });
+    },
+  });
+  
+  // Functie om lid te verwijderen
+  const handleDeleteMember = () => {
+    if (memberId) {
+      deleteMemberMutation.mutate();
+    }
+  };
+  
+  const isPending = createMemberMutation.isPending || updateMemberMutation.isPending || deleteMemberMutation.isPending;
   
   return (
     <div className="space-y-6">
