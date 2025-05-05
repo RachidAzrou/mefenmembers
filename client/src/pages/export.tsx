@@ -125,17 +125,14 @@ export default function ExportPage() {
     );
   };
   
-  // Selecteer alle velden
-  const selectAllFields = () => {
+  // Toggle tussen alle velden selecteren/deselecteren
+  const toggleAllFields = () => {
+    // Controleer of alle velden momenteel geselecteerd zijn
+    const allSelected = exportFields.every(field => field.enabled);
+    
+    // Als alle velden geselecteerd zijn, deselecteer alles, anders selecteer alles
     setExportFields(fields => 
-      fields.map(field => ({ ...field, enabled: true }))
-    );
-  };
-  
-  // Deselecteer alle velden
-  const deselectAllFields = () => {
-    setExportFields(fields => 
-      fields.map(field => ({ ...field, enabled: false }))
+      fields.map(field => ({ ...field, enabled: !allSelected }))
     );
   };
   
@@ -452,13 +449,24 @@ export default function ExportPage() {
                         </Select>
                       </div>
                       
-                      <div className="flex flex-col sm:flex-row gap-2 pt-2">
-                        <Button variant="outline" size="sm" onClick={selectAllFields} className="w-full text-xs sm:text-sm border-blue-200 text-blue-800 hover:bg-blue-50">
-                          <Check className="mr-1.5 sm:mr-2 h-3.5 w-3.5 sm:h-4 sm:w-4" />
-                          Alles selecteren
-                        </Button>
-                        <Button variant="outline" size="sm" onClick={deselectAllFields} className="w-full text-xs sm:text-sm border-blue-200 text-blue-800 hover:bg-blue-50">
-                          Alles deselecteren
+                      <div className="pt-2">
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          onClick={toggleAllFields} 
+                          className="w-full text-xs sm:text-sm border-blue-200 text-blue-800 hover:bg-blue-50"
+                        >
+                          {exportFields.every(field => field.enabled) ? (
+                            <>
+                              <Check className="mr-1.5 sm:mr-2 h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                              Alles deselecteren
+                            </>
+                          ) : (
+                            <>
+                              <Check className="mr-1.5 sm:mr-2 h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                              Alles selecteren
+                            </>
+                          )}
                         </Button>
                       </div>
                     </div>
@@ -583,13 +591,24 @@ export default function ExportPage() {
                         </Select>
                       </div>
                       
-                      <div className="flex flex-col sm:flex-row gap-2 pt-2">
-                        <Button variant="outline" size="sm" onClick={selectAllFields} className="w-full text-xs sm:text-sm border-green-200 text-green-800 hover:bg-green-50">
-                          <Check className="mr-1.5 sm:mr-2 h-3.5 w-3.5 sm:h-4 sm:w-4" />
-                          Alles selecteren
-                        </Button>
-                        <Button variant="outline" size="sm" onClick={deselectAllFields} className="w-full text-xs sm:text-sm border-green-200 text-green-800 hover:bg-green-50">
-                          Alles deselecteren
+                      <div className="pt-2">
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          onClick={toggleAllFields} 
+                          className="w-full text-xs sm:text-sm border-green-200 text-green-800 hover:bg-green-50"
+                        >
+                          {exportFields.every(field => field.enabled) ? (
+                            <>
+                              <Check className="mr-1.5 sm:mr-2 h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                              Alles deselecteren
+                            </>
+                          ) : (
+                            <>
+                              <Check className="mr-1.5 sm:mr-2 h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                              Alles selecteren
+                            </>
+                          )}
                         </Button>
                       </div>
                     </div>
@@ -715,13 +734,24 @@ export default function ExportPage() {
                         </Select>
                       </div>
                       
-                      <div className="flex flex-col sm:flex-row gap-2 pt-2">
-                        <Button variant="outline" size="sm" onClick={selectAllFields} className="w-full text-xs sm:text-sm border-purple-200 text-purple-800 hover:bg-purple-50">
-                          <Check className="mr-1.5 sm:mr-2 h-3.5 w-3.5 sm:h-4 sm:w-4" />
-                          Alles selecteren
-                        </Button>
-                        <Button variant="outline" size="sm" onClick={deselectAllFields} className="w-full text-xs sm:text-sm border-purple-200 text-purple-800 hover:bg-purple-50">
-                          Alles deselecteren
+                      <div className="pt-2">
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          onClick={toggleAllFields} 
+                          className="w-full text-xs sm:text-sm border-purple-200 text-purple-800 hover:bg-purple-50"
+                        >
+                          {exportFields.every(field => field.enabled) ? (
+                            <>
+                              <Check className="mr-1.5 sm:mr-2 h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                              Alles deselecteren
+                            </>
+                          ) : (
+                            <>
+                              <Check className="mr-1.5 sm:mr-2 h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                              Alles selecteren
+                            </>
+                          )}
                         </Button>
                       </div>
                     </div>
@@ -780,18 +810,18 @@ export default function ExportPage() {
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 sm:gap-3">
                       {exportFields.map((field) => (
                         <div 
-                          className={`flex items-center p-2 sm:p-3 rounded-md border ${field.enabled ? 'bg-purple-50 border-purple-200' : 'bg-gray-50 border-gray-200'}`}
+                          className={`flex items-center p-2 sm:p-3 rounded-md border ${field.enabled ? 'bg-[#963E56]/5 border-[#963E56]/20' : 'bg-gray-50 border-gray-200'}`}
                           key={`pdf-${field.id}`}
                         >
                           <Checkbox
                             id={`pdf-field-${field.id}`}
                             checked={field.enabled}
                             onCheckedChange={() => toggleField(field.id)}
-                            className={field.enabled ? 'data-[state=checked]:bg-purple-600 data-[state=checked]:border-purple-600 h-3.5 w-3.5 sm:h-4 sm:w-4' : 'h-3.5 w-3.5 sm:h-4 sm:w-4'}
+                            className={field.enabled ? 'data-[state=checked]:bg-[#963E56] data-[state=checked]:border-[#963E56] h-3.5 w-3.5 sm:h-4 sm:w-4' : 'h-3.5 w-3.5 sm:h-4 sm:w-4'}
                           />
                           <Label 
                             htmlFor={`pdf-field-${field.id}`}
-                            className={`ml-2 text-xs sm:text-sm font-medium ${field.enabled ? 'text-purple-800' : 'text-gray-600'}`}
+                            className={`ml-2 text-xs sm:text-sm font-medium ${field.enabled ? 'text-[#963E56]' : 'text-gray-600'}`}
                           >
                             {field.label}
                           </Label>
@@ -803,7 +833,7 @@ export default function ExportPage() {
                       <PDFDownloadLink
                         document={MembersPDF}
                         fileName={`ledenlijst_${new Date().toISOString().split('T')[0]}.pdf`}
-                        className={`inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-purple-600 hover:bg-purple-700 text-white h-10 px-4 py-2 w-full sm:w-auto ${
+                        className={`inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-[#963E56] hover:bg-[#963E56]/90 text-white h-10 px-4 py-2 w-full sm:w-auto ${
                           isLoading || exportFields.filter(f => f.enabled).length === 0 ? 'opacity-50 pointer-events-none' : ''
                         }`}
                       >
