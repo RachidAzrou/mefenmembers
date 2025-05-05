@@ -24,7 +24,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
-import { Link, useLocation, useParams } from "wouter";
+import { useLocation, useParams } from "wouter";
 import { insertMemberSchema, Member } from "@shared/schema";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
@@ -672,13 +672,37 @@ export default function MemberAdd() {
                 </div>
                 
                 <div className="flex flex-col sm:flex-row gap-3 sm:justify-end pt-4 sm:pt-2">
-                  <Link href="/members" className="order-2 sm:order-1 w-full sm:w-auto">
-                    <Button variant="outline" type="button" className="border-gray-200 w-full sm:w-auto">Annuleren</Button>
-                  </Link>
+                  {/* Test knop voor debug */}
+                  <Button 
+                    type="button" 
+                    variant="secondary"
+                    className="order-3 w-full sm:w-auto mb-3 sm:mb-0"
+                    onClick={() => {
+                      console.log("Test knop geklikt");
+                      console.log("Form state:", form.getValues());
+                      console.log("Form errors:", form.formState.errors);
+                      console.log("Form is valid:", form.formState.isValid);
+                    }}
+                  >
+                    <span className="mr-2">🔍</span> Test Formulier
+                  </Button>
+                
+                  <Button 
+                    type="button"
+                    variant="outline"
+                    className="border-gray-200 order-2 sm:order-1 w-full sm:w-auto"
+                    onClick={() => navigate('/members')}
+                  >
+                    Annuleren
+                  </Button>
+                  
                   <Button 
                     type="submit" 
                     className="bg-[#963E56] hover:bg-[#963E56]/90 text-white order-1 sm:order-2 w-full sm:w-auto"
                     disabled={isPending}
+                    onClick={() => {
+                      console.log("Submit knop geklikt - voor submit handler");
+                    }}
                   >
                     {isPending ? (
                       <>
