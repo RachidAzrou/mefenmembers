@@ -1,10 +1,10 @@
 import { 
-  volunteers, rooms, materials, schedules, materialTypes, pendingVolunteers,
-  type Volunteer, type Room, type Material, type Schedule, type MaterialType, type PendingVolunteer,
-  type InsertVolunteer, type InsertRoom, type InsertMaterial, type InsertSchedule, type InsertMaterialType, type InsertPendingVolunteer
+  volunteers, rooms, materials, schedules, materialTypes, pendingVolunteers, members,
+  type Volunteer, type Room, type Material, type Schedule, type MaterialType, type PendingVolunteer, type Member,
+  type InsertVolunteer, type InsertRoom, type InsertMaterial, type InsertSchedule, type InsertMaterialType, type InsertPendingVolunteer, type InsertMember
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, gte } from "drizzle-orm";
+import { eq, and, gte, sql } from "drizzle-orm";
 import session from "express-session";
 import connectPg from "connect-pg-simple";
 import { pool } from "./db";
@@ -44,6 +44,14 @@ export interface IStorage {
   getMaterialType(id: number): Promise<MaterialType | undefined>;
   listMaterialTypes(): Promise<MaterialType[]>;
   createMaterialType(materialType: InsertMaterialType): Promise<MaterialType>;
+
+  // Member operations
+  getMember(id: number): Promise<Member | undefined>;
+  listMembers(): Promise<Member[]>;
+  createMember(member: InsertMember): Promise<Member>;
+  updateMember(id: number, member: Partial<InsertMember>): Promise<Member>;
+  deleteMember(id: number): Promise<void>;
+  generateMemberNumber(): Promise<number>;
 
   // Session store for authentication
   sessionStore: session.Store;
@@ -167,6 +175,47 @@ export class DatabaseStorage implements IStorage {
   async createMaterialType(materialType: InsertMaterialType): Promise<MaterialType> {
     const [created] = await db.insert(materialTypes).values(materialType).returning();
     return created;
+  }
+
+  // Member operations
+  async getMember(id: number): Promise<Member | undefined> {
+    const [member] = await db.select().from(members).where(eq(members.id, id));
+    return member;
+  }
+
+  async listMembers(): Promise<Member[]> {
+    return await db.select().from(members);
+  }
+
+  async createMember(member: InsertMember): Promise<Member> {
+    const [created] = await db.insert(members).values(member).returning();
+    return created;
+  }
+
+  async updateMember(id: number, member: Partial<InsertMember>): Promise<Member> {
+    const [updated] = await db
+      .update(members)
+      .set(member)
+      .where(eq(members.id, id))
+      .returning();
+    return updated;
+  }
+
+  async deleteMember(id: number): Promise<void> {
+    await db.delete(members).where(eq(members.id, id));
+  }
+
+  async generateMemberNumber(): Promise<number> {
+    // Haal het hoogste huidige lidnummer op
+    const result = await db
+      .select({ max: sql<number>`MAX(${members.memberNumber})` })
+      .from(members);
+    
+    // Als er geen leden zijn, begin bij 10000
+    const currentMaxNumber = result[0]?.max || 9999;
+    
+    // Genereer een nieuw nummer dat 1 hoger is dan het huidige maximum
+    return currentMaxNumber + 1;
   }
 }
 

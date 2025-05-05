@@ -17,6 +17,7 @@ import ImportExport from "@/pages/import-export";
 import Mosque from "@/pages/mosque";
 import Settings from "@/pages/settings";
 import Communication from "@/pages/communication";
+import Members from "@/pages/members";
 import { Sidebar } from "@/components/layout/sidebar";
 import { auth } from "./lib/firebase";
 import { useAuthState } from "react-firebase-hooks/auth";

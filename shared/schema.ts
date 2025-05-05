@@ -85,6 +85,7 @@ export type Room = typeof rooms.$inferSelect;
 export type MaterialType = typeof materialTypes.$inferSelect;
 export type Material = typeof materials.$inferSelect;
 export type Schedule = typeof schedules.$inferSelect;
+export type Member = typeof members.$inferSelect;
 
 // Export insert types
 export type InsertUser = z.infer<typeof insertUserSchema>;
@@ -94,3 +95,4 @@ export type InsertRoom = z.infer<typeof insertRoomSchema>;
 export type InsertMaterial = z.infer<typeof insertMaterialSchema>;
 export type InsertSchedule = z.infer<typeof insertScheduleSchema>;
 export type InsertMaterialType = z.infer<typeof insertMaterialTypeSchema>;
+export type InsertMember = z.infer<typeof insertMemberSchema>;
