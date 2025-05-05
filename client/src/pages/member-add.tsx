@@ -696,38 +696,93 @@ export default function MemberAdd() {
                   />
                 </div>
                 
-                <div className="flex flex-col sm:flex-row gap-3 sm:justify-end pt-4 sm:pt-2">
-                  <Button 
-                    type="button"
-                    variant="outline"
-                    className="border-gray-200 order-2 sm:order-1 w-full sm:w-auto"
-                    onClick={() => navigate('/members')}
-                  >
-                    Annuleren
-                  </Button>
-                  
-                  <Button 
-                    type="submit" 
-                    className="bg-[#963E56] hover:bg-[#963E56]/90 text-white order-1 sm:order-2 w-full sm:w-auto"
-                    disabled={isPending}
-                  >
-                    {isPending ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        <span className="whitespace-nowrap">
-                          {isEditMode ? "Bezig met bijwerken..." : "Bezig met toevoegen..."}
-                        </span>
-                      </>
-                    ) : (
-                      isEditMode ? "Lid bijwerken" : "Lid toevoegen"
+                <div className="flex flex-col sm:flex-row gap-3 sm:justify-between pt-4 sm:pt-2">
+                  {/* Links: Verwijder-knop (alleen in bewerkingsmodus) */}
+                  <div className="order-3 sm:order-1">
+                    {isEditMode && (
+                      <Button 
+                        type="button"
+                        variant="outline"
+                        className="border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700 w-full sm:w-auto"
+                        onClick={() => setDeleteDialogOpen(true)}
+                      >
+                        <Trash2 className="mr-2 h-4 w-4" />
+                        Lid verwijderen
+                      </Button>
                     )}
-                  </Button>
+                  </div>
+                  
+                  {/* Rechts: Annuleren en Opslaan knoppen */}
+                  <div className="flex flex-col sm:flex-row gap-3 order-1 sm:order-2 sm:justify-end">
+                    <Button 
+                      type="button"
+                      variant="outline"
+                      className="border-gray-200 order-2 sm:order-1 w-full sm:w-auto"
+                      onClick={() => navigate('/members')}
+                    >
+                      Annuleren
+                    </Button>
+                    
+                    <Button 
+                      type="submit" 
+                      className="bg-[#963E56] hover:bg-[#963E56]/90 text-white order-1 sm:order-2 w-full sm:w-auto"
+                      disabled={isPending}
+                    >
+                      {isPending ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          <span className="whitespace-nowrap">
+                            {isEditMode ? "Bezig met bijwerken..." : "Bezig met toevoegen..."}
+                          </span>
+                        </>
+                      ) : (
+                        isEditMode ? "Lid bijwerken" : "Lid toevoegen"
+                      )}
+                    </Button>
+                  </div>
                 </div>
               </form>
             </Form>
           </CardContent>
         </Card>
       </div>
+
+      {/* Alert Dialog voor verwijderbevestiging */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center text-red-600">
+              <AlertTriangle className="h-5 w-5 mr-2" />
+              Lid verwijderen
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              Weet u zeker dat u dit lid wilt verwijderen? Deze actie kan niet ongedaan worden gemaakt.
+              {memberData && (
+                <div className="mt-3 p-3 border border-gray-200 rounded-md bg-gray-50">
+                  <p className="text-sm font-medium text-gray-700">{memberData.firstName} {memberData.lastName}</p>
+                  <p className="text-xs text-gray-500">Lidnummer: {memberData.memberNumber.toString().padStart(4, '0')}</p>
+                </div>
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="border-gray-200">Annuleren</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteMember}
+              className="bg-red-600 hover:bg-red-700 focus:ring-red-600"
+            >
+              {deleteMemberMutation.isPending ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Bezig met verwijderen...
+                </>
+              ) : (
+                "Definitief verwijderen"
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
