@@ -43,7 +43,7 @@ const memberFormSchema = insertMemberSchema.extend({
   notes: z.string().optional(),
   birthDate: z.date().optional().nullable(),
   accountNumber: z.string().optional().nullable(),
-}).omit({ id: true, memberNumber: true });
+}).omit({ id: true, memberNumber: true, registrationDate: true });
 
 type FormData = z.infer<typeof memberFormSchema>;
 
