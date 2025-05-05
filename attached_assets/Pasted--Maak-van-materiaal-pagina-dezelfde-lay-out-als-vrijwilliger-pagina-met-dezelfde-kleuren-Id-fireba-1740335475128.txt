@@ -1,22 +1,0 @@
-
-Maak van materiaal pagina dezelfde lay-out als vrijwilliger pagina met dezelfde kleuren.
-
-Id firebase moeten we een lijst met materiaal opmaken. Wij gebruiken de volgende items:
-- Jas (genummerd van 1 tot 100)
-- Hesje (genummerd van 1 tot 100)
-- Lamp (genummerd van 1 tot 20)
-- Walkie Talkie (genummerd van 1 tot 20)
-
-Deze zijn vast genummerd en elke vrijwilliger kiest een nummer. Als een vrijwilliger deze nummer heeft dan kan geen andere vrijwilliger diezelfde combinatie hebben van item + nummer tot het terug is gebracht.  Ik wil materiaal en nummer kunnen toewijzen aan bepaalde vrijwilligers en dat dit wordt opgeslagen in FIREBASE DB maar ook getoond wordt in de front-end app
-
-
-
-Maak een vrijwilligersbeheer app genaamd MEFEN.
-Je logt in via email en wachtwoord. Je logt in en ziet als dashboard een kalender van maandag tot zondag. Met filter om naar vorige en volgende week te gaan en een snelknop genaamd vandaag. En een knop publiceer. je hebt twee opties, pdf download van de kalender en publiceer. Publiceer -> publiceert de huidige weekkalender naar een html pagina.  Je hebt een inklapbare sidebar met bovenaan het logo van de app. En daaronder een menu met hoofdtitels: Planning, Vrijwilligers, Ruimtes, Materiaalbeheer en instellingen  Onder Planning heb je subtitel 
-Plan je vrijwilligers in
-Als je op Planning zelf klikt brengt het je naar be dashboard.  Plan je vrijwilligers brengt je naar een pagina waar je bestaande vrijwilligers kunt inplannen voor bestaande ruimtes voor bepaalde data. Dit is te zien in de kalender op je dashboard.  Als je op vrijwiligers klikt opent een pagina met een lijst met alle bestaande vrijwilligers hun naam, voornaam en telefoonnummer. Rechtsbovenaan heb je een knop genaamd vrijwilliger toevoegen. Als je daarop klikt pop-up met velden, naam, voornaam en telefoonnummer en knop opslaan om deze op te slaan. Deze komt id lijst te staan. Je kan ze ook bewerken in de lijst want naast elke vrijwilliger id lijst heb je en pen en x symbool om te bewerken of verwijderen. Verwijderen vraagtaltijd om bevestiging of je zeker bent. 
-Als je op ruimtebeheer klikt opent een pagina met alle bestaande ruimtes. Je kan daar nieuwe ruimtes toevoegen door op de knop die rechtsboven staat te klikken genaamd “voeg ruimte toe”. Pop up komt met naam ruimte.  Als je klikt op materiaal beheer, kom j top pagina waarin je bestaande materialen kunt uitlenen aan bestaande vrijwilligers. Als je klikt op materiaal toewijzen (rechtsboven) -> pop up met dropdown menu voor welke bestaand materiaal, dropdown menu welk bestaande vrijwilliger en veldje welke nummer want alle materialen zijn genummerd en kunnen maar één keer tegelijk uitgeleend worden.
-  Als je het opslaat komt dit in de lijst te staan en je kan deze eruit halen door op de knop id lijst te klikken genaamd “Inleveren” 
-Je hebt ook een snelkoppeling boven kalender genaamd kopieer vorige week -> dan wordt de zelfde planning gekopieerd naar de huidige week en een knop bulk toewijzing. Dan kun je verschillende vrijwilligers toewijzen aan bepaalde ruimtes voor meerderedagen.
-
- 
