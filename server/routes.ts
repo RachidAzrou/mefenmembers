@@ -4,6 +4,11 @@ import { storage } from "./firestore-storage"; // Gebruik de nieuwe Firestore im
 import { insertMemberSchema } from "@shared/schema";
 import { fromZodError } from "zod-validation-error";
 
+// Debug voor Vercel deployment
+const isVercel = !!process.env.VERCEL;
+console.log('[Server Routes] Draait in Vercel omgeving:', isVercel);
+console.log('[Server Routes] NODE_ENV:', process.env.NODE_ENV);
+
 export async function registerRoutes(app: Express): Promise<Server> {
   // Members routes
   // Generate unique member number (moet vóór /api/members/:id komen)
@@ -50,67 +55,95 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/members", async (req: Request, res: Response) => {
     try {
-      console.log("POST /api/members - Start request");
-      console.log("Request body:", JSON.stringify(req.body));
+      console.log("[API] POST /api/members - Start request");
+      console.log("[API] Request body:", JSON.stringify(req.body));
+      
+      // Fix voor Vercel: Controleer of de Firestore service beschikbaar is
+      if (!storage.firestore) {
+        console.error("[API] CRITICAL: Firestore service is niet beschikbaar!");
+        return res.status(500).json({ 
+          error: "Database service is niet beschikbaar. Controleer server configuratie.", 
+          code: "FIRESTORE_UNAVAILABLE" 
+        });
+      }
       
       const validationResult = insertMemberSchema.safeParse(req.body);
       
       if (!validationResult.success) {
         const errorMessage = fromZodError(validationResult.error).message;
-        console.log("Validation failed:", errorMessage);
+        console.log("[API] Validation failed:", errorMessage);
         return res.status(400).json({ error: errorMessage });
       }
       
-      console.log("Validation successful");
+      console.log("[API] Validation successful");
 
-      // Altijd een lidnummer genereren voor nieuwe leden (zelfs als er een is meegegeven)
-      // Dit is een snelle database bewerking die potentiële dubbele nummers voorkomt
-      console.log("Generating member number...");
-      const rawNumber = await storage.generateMemberNumber();
-      console.log("Generated member number:", rawNumber);
-      
-      // We moeten het ruwe nummer gebruiken omdat we in de database integers opslaan
-      // Het nummer wordt bij weergave in de UI als string met voorloop-nullen weergegeven
-      const memberNumber = rawNumber;
-      
-      // Voeg het lidnummer toe aan de data
-      const memberData = {
-        ...validationResult.data,
-        memberNumber
-      };
-      
-      // Zorg dat de registratiedatum goed is ingesteld
-      if (!memberData.registrationDate) {
-        memberData.registrationDate = new Date();
+      try {
+        // Altijd een lidnummer genereren voor nieuwe leden (zelfs als er een is meegegeven)
+        console.log("[API] Generating member number...");
+        const rawNumber = await storage.generateMemberNumber();
+        console.log("[API] Generated member number:", rawNumber);
+        
+        // We moeten het ruwe nummer gebruiken omdat we in de database integers opslaan
+        // Het nummer wordt bij weergave in de UI als string met voorloop-nullen weergegeven
+        const memberNumber = rawNumber;
+        
+        // Voeg het lidnummer toe aan de data
+        const memberData = {
+          ...validationResult.data,
+          memberNumber
+        };
+        
+        // Zorg dat de registratiedatum goed is ingesteld
+        if (!memberData.registrationDate) {
+          memberData.registrationDate = new Date();
+        }
+        
+        console.log("[API] Creating member with data:", JSON.stringify(memberData));
+        
+        // Geoptimaliseerde verwerking met minder SQL-queries
+        const member = await storage.createMember(memberData);
+        console.log("[API] Member created with ID:", member.id);
+        
+        // Stuur direct een 201 Created status met minimale data terug
+        // voor snellere respons, met alleen de essentiële velden
+        res.status(201).json({
+          id: member.id,
+          memberNumber: member.memberNumber,
+          firstName: member.firstName,
+          lastName: member.lastName,
+        });
+        
+        console.log("[API] POST /api/members - Request completed successfully");
+      } catch (memberError) {
+        console.error("[API] Error tijdens lid toevoegen:", memberError);
+        
+        // Gedetailleerde foutinformatie voor debugging
+        if (memberError instanceof Error) {
+          console.error("[API] Error type:", memberError.constructor.name);
+          console.error("[API] Error name:", memberError.name);
+          console.error("[API] Error message:", memberError.message);
+          console.error("[API] Error stack:", memberError.stack);
+        }
+        
+        throw memberError; // Doorgooien naar de buitenste catch
       }
-      
-      console.log("Creating member with data:", JSON.stringify(memberData));
-      
-      // Geoptimaliseerde verwerking met minder SQL-queries
-      const member = await storage.createMember(memberData);
-      console.log("Member created with ID:", member.id);
-      
-      // Stuur direct een 201 Created status met minimale data terug
-      // voor snellere respons, met alleen de essentiële velden
-      res.status(201).json({
-        id: member.id,
-        memberNumber: member.memberNumber,
-        firstName: member.firstName,
-        lastName: member.lastName,
-      });
-      
-      console.log("POST /api/members - Request completed successfully");
     } catch (error) {
-      console.error("Error creating member:", error);
+      console.error("[API] TOP-LEVEL Error creating member:", error);
       
       // Gedetailleerde foutinformatie voor debugging
       if (error instanceof Error) {
-        console.error("Error name:", error.name);
-        console.error("Error message:", error.message);
-        console.error("Error stack:", error.stack);
+        console.error("[API] TOP-LEVEL Error name:", error.name);
+        console.error("[API] TOP-LEVEL Error message:", error.message);
+        console.error("[API] TOP-LEVEL Error stack:", error.stack);
       }
       
-      res.status(500).json({ error: "Failed to create member" });
+      // Stuur een gedetailleerde foutmelding terug om de diagnose te vergemakkelijken
+      res.status(500).json({ 
+        error: "Failed to create member", 
+        message: error instanceof Error ? error.message : "Unknown error",
+        errorType: error instanceof Error ? error.constructor.name : typeof error,
+        vercel: !!process.env.VERCEL
+      });
     }
   });
 

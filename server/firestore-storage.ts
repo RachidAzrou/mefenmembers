@@ -7,11 +7,18 @@ import {
 import { firestore } from "./firebase-admin";
 import session from "express-session";
 import memorystore from "memorystore";
+import * as admin from 'firebase-admin';
+
+// Import FirebaseFirestore namespace voor type definitie
+import FirebaseFirestore = admin.firestore.Firestore;
 
 // We gebruiken memorystore voor sessies in plaats van Firestore
 const MemoryStore = memorystore(session);
 
 export interface IStorage {
+  // Reference to Firestore 
+  firestore: FirebaseFirestore;
+
   // Member operations
   getMember(id: string): Promise<Member | undefined>;
   listMembers(): Promise<Member[]>;
@@ -32,6 +39,7 @@ export interface IStorage {
 
 export class FirestoreStorage implements IStorage {
   sessionStore: session.Store;
+  firestore = firestore; // Exporteer firestore voor controles in de routes
   private membersCollection = firestore.collection('members');
   private deletedMemberNumbersCollection = firestore.collection('deletedMemberNumbers');
   private countersCollection = firestore.collection('counters');
