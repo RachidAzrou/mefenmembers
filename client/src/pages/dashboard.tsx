@@ -1,8 +1,9 @@
-import React from "react";
+import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { 
   Users, Check, X, Download, UserPlus, CalendarDays, 
-  CreditCard, TrendingUp, Percent, UserCheck 
+  CreditCard, TrendingUp, Percent, UserCheck,
+  Baby, GraduationCap, UserRound, Heart
 } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { useQuery } from "@tanstack/react-query";
@@ -13,8 +14,12 @@ import { Link } from "wouter";
 import { Skeleton } from "@/components/ui/skeleton";
 import * as XLSX from 'xlsx';
 import { Progress } from "@/components/ui/progress";
+import { Badge } from "@/components/ui/badge";
 
 export default function Dashboard() {
+  // State voor filters
+  const [statusFilter, setStatusFilter] = useState<'all' | 'paid' | 'unpaid'>('all');
+  
   // Haal alle leden op
   const { data: members = [], isLoading } = useQuery<Member[]>({
     queryKey: ["/api/members"],
@@ -22,6 +27,14 @@ export default function Dashboard() {
       const response = await apiRequest("GET", "/api/members");
       return response.json();
     }
+  });
+  
+  // Filter leden op basis van betalingsstatus
+  const filteredMembers = members.filter(member => {
+    if (statusFilter === 'all') return true;
+    if (statusFilter === 'paid') return member.paymentStatus;
+    if (statusFilter === 'unpaid') return !member.paymentStatus;
+    return true;
   });
 
   // Tel het aantal leden dat betaald heeft
@@ -61,6 +74,47 @@ export default function Dashboard() {
     ? new Date(Math.max(...members.map(m => new Date(m.registrationDate).getTime())))
     : null;
     
+  // Bereken leeftijdsstatistieken
+  const calculateAge = (birthDate: string | null) => {
+    if (!birthDate) return null;
+    const today = new Date();
+    const bDate = new Date(birthDate);
+    let age = today.getFullYear() - bDate.getFullYear();
+    const monthDiff = today.getMonth() - bDate.getMonth();
+    
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < bDate.getDate())) {
+      age--;
+    }
+    
+    return age;
+  };
+  
+  // Leeftijdscategorieën
+  const teenagers = members.filter(m => {
+    const age = calculateAge(m.birthDate);
+    return age !== null && age >= 13 && age <= 17;
+  }).length;
+  
+  const youngAdults = members.filter(m => {
+    const age = calculateAge(m.birthDate);
+    return age !== null && age >= 18 && age <= 24;
+  }).length;
+  
+  const adults = members.filter(m => {
+    const age = calculateAge(m.birthDate);
+    return age !== null && age >= 25 && age <= 64;
+  }).length;
+  
+  const elderly = members.filter(m => {
+    const age = calculateAge(m.birthDate);
+    return age !== null && age >= 65;
+  }).length;
+  
+  // Behandel klikken op widgets
+  const handleStatusFilterChange = (filter: 'all' | 'paid' | 'unpaid') => {
+    setStatusFilter(filter);
+  };
+    
   return (
     <div className="space-y-8">
       {/* Header section met gradient achtergrond */}
@@ -79,13 +133,27 @@ export default function Dashboard() {
 
       {/* Hier stonden voorheen de statistiek widgets die zijn verwijderd */}
 
-      {/* Betaalstatus voortgangsbalk */}
+      {/* Betaalstatus voortgangsbalk - vernieuwd */}
       <Card className="border-none shadow-md">
-        <CardHeader>
-          <CardTitle className="text-lg">Betalingsoverzicht</CardTitle>
-          <CardDescription>
-            Percentage leden dat heeft betaald
-          </CardDescription>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <div>
+            <CardTitle className="text-lg">Ledenoverzicht</CardTitle>
+            <CardDescription>
+              Aantal leden
+            </CardDescription>
+          </div>
+          
+          {statusFilter !== 'all' && (
+            <Badge variant="outline" className="flex items-center gap-1 px-3 py-1">
+              {statusFilter === 'paid' ? 'Alleen betaald' : 'Alleen niet betaald'}
+              <button 
+                onClick={() => setStatusFilter('all')} 
+                className="ml-1 text-gray-500 hover:text-gray-700"
+              >
+                <X className="h-3 w-3" />
+              </button>
+            </Badge>
+          )}
         </CardHeader>
         <CardContent>
           <div className="space-y-2">
@@ -96,29 +164,76 @@ export default function Dashboard() {
             <Progress value={paymentPercentage} className="h-2" />
             
             <div className="grid grid-cols-3 gap-4 pt-4 text-center">
-              <div className="bg-green-50 py-3 px-4 rounded-lg">
-                <div className="text-green-600 font-semibold">{paidMembers}</div>
-                <div className="text-xs text-muted-foreground">Betaald</div>
-              </div>
-              <div className="bg-red-50 py-3 px-4 rounded-lg">
-                <div className="text-red-600 font-semibold">{unpaidMembers}</div>
-                <div className="text-xs text-muted-foreground">Niet betaald</div>
-              </div>
-              <div className="bg-blue-50 py-3 px-4 rounded-lg">
-                <div className="text-blue-600 font-semibold">{members.length}</div>
-                <div className="text-xs text-muted-foreground">Totaal</div>
-              </div>
+              {/* Totaal leden widget - komt als eerste */}
+              <button
+                onClick={() => handleStatusFilterChange('all')}
+                className={cn(
+                  "bg-blue-50 py-3 px-4 rounded-lg transition-all duration-150",
+                  statusFilter === 'all' ? "ring-2 ring-blue-300" : "hover:bg-blue-100"
+                )}
+              >
+                <div className="text-blue-600 font-semibold flex justify-center items-center">
+                  <Users className="h-4 w-4 mr-1.5" />
+                  {members.length}
+                </div>
+                <div className="text-xs text-muted-foreground mt-1">Totaal</div>
+                {statusFilter === 'all' && (
+                  <div className="text-[10px] text-blue-600 mt-1">
+                    100% van alle leden
+                  </div>
+                )}
+              </button>
+              
+              {/* Betaald widget - komt als tweede */}
+              <button
+                onClick={() => handleStatusFilterChange('paid')}
+                className={cn(
+                  "bg-green-50 py-3 px-4 rounded-lg transition-all duration-150",
+                  statusFilter === 'paid' ? "ring-2 ring-green-300" : "hover:bg-green-100"
+                )}
+              >
+                <div className="text-green-600 font-semibold flex justify-center items-center">
+                  <Check className="h-4 w-4 mr-1.5" />
+                  {paidMembers}
+                </div>
+                <div className="text-xs text-muted-foreground mt-1">Betaald</div>
+                {statusFilter === 'paid' && (
+                  <div className="text-[10px] text-green-600 mt-1">
+                    {paymentPercentage}% van alle leden
+                  </div>
+                )}
+              </button>
+              
+              {/* Niet betaald widget - komt als derde */}
+              <button
+                onClick={() => handleStatusFilterChange('unpaid')}
+                className={cn(
+                  "bg-red-50 py-3 px-4 rounded-lg transition-all duration-150",
+                  statusFilter === 'unpaid' ? "ring-2 ring-red-300" : "hover:bg-red-100"
+                )}
+              >
+                <div className="text-red-600 font-semibold flex justify-center items-center">
+                  <X className="h-4 w-4 mr-1.5" />
+                  {unpaidMembers}
+                </div>
+                <div className="text-xs text-muted-foreground mt-1">Niet betaald</div>
+                {statusFilter === 'unpaid' && (
+                  <div className="text-[10px] text-red-600 mt-1">
+                    {members.length > 0 ? (100 - paymentPercentage) : 0}% van alle leden
+                  </div>
+                )}
+              </button>
             </div>
           </div>
         </CardContent>
       </Card>
 
-      {/* Overzichtsstatistieken */}
+      {/* Overzichtsstatistieken - Nu met leeftijdscategorieën */}
       <Card className="border-none shadow-md overflow-hidden">
         <div className="bg-gradient-to-r from-purple-500/20 to-purple-600/20 h-2" />
         <CardHeader>
           <CardTitle className="text-lg flex items-center">
-            <CalendarDays className="h-5 w-5 mr-2 text-purple-600" />
+            <Users className="h-5 w-5 mr-2 text-purple-600" />
             Ledenoverzicht
           </CardTitle>
           <CardDescription>
@@ -135,6 +250,7 @@ export default function Dashboard() {
               </div>
             ) : (
               <>
+                {/* Meest recente registratie */}
                 <div className="flex items-center gap-4 p-4 rounded-lg bg-gray-50">
                   <div className="bg-purple-100 p-3 rounded-full">
                     <CalendarDays className="h-5 w-5 text-purple-600" />
@@ -153,14 +269,69 @@ export default function Dashboard() {
                   </div>
                 </div>
                 
-                <div className="flex items-center gap-4 p-4 rounded-lg bg-gray-50">
-                  <div className="bg-[#963E56]/10 p-3 rounded-full">
-                    <CreditCard className="h-5 w-5 text-[#963E56]" />
+                {/* Leeftijdscategorieën */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {/* Tieners (13-17) */}
+                  <div className="flex items-center gap-4 p-4 rounded-lg bg-gray-50">
+                    <div className="bg-blue-100 p-3 rounded-full">
+                      <GraduationCap className="h-5 w-5 text-blue-600" />
+                    </div>
+                    <div>
+                      <div className="text-sm text-gray-500">Tieners (13-17 jaar)</div>
+                      <div className="font-medium flex items-center">
+                        {teenagers} {teenagers === 1 ? "lid" : "leden"}
+                        <span className="text-xs text-gray-400 ml-2">
+                          ({members.length > 0 ? Math.round((teenagers / members.length) * 100) : 0}%)
+                        </span>
+                      </div>
+                    </div>
                   </div>
-                  <div>
-                    <div className="text-sm text-gray-500">Betaalstatus</div>
-                    <div className="font-medium">
-                      {paymentPercentage}% van de leden heeft betaald
+                  
+                  {/* Jongvolwassenen (<25) */}
+                  <div className="flex items-center gap-4 p-4 rounded-lg bg-gray-50">
+                    <div className="bg-green-100 p-3 rounded-full">
+                      <UserCheck className="h-5 w-5 text-green-600" />
+                    </div>
+                    <div>
+                      <div className="text-sm text-gray-500">Jongvolwassenen (18-24 jaar)</div>
+                      <div className="font-medium flex items-center">
+                        {youngAdults} {youngAdults === 1 ? "lid" : "leden"}
+                        <span className="text-xs text-gray-400 ml-2">
+                          ({members.length > 0 ? Math.round((youngAdults / members.length) * 100) : 0}%)
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Volwassenen (25-64) */}
+                  <div className="flex items-center gap-4 p-4 rounded-lg bg-gray-50">
+                    <div className="bg-orange-100 p-3 rounded-full">
+                      <UserRound className="h-5 w-5 text-orange-600" />
+                    </div>
+                    <div>
+                      <div className="text-sm text-gray-500">Volwassenen (25-64 jaar)</div>
+                      <div className="font-medium flex items-center">
+                        {adults} {adults === 1 ? "lid" : "leden"}
+                        <span className="text-xs text-gray-400 ml-2">
+                          ({members.length > 0 ? Math.round((adults / members.length) * 100) : 0}%)
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Ouderen (65+) */}
+                  <div className="flex items-center gap-4 p-4 rounded-lg bg-gray-50">
+                    <div className="bg-purple-100 p-3 rounded-full">
+                      <Heart className="h-5 w-5 text-purple-600" />
+                    </div>
+                    <div>
+                      <div className="text-sm text-gray-500">Ouderen (65+ jaar)</div>
+                      <div className="font-medium flex items-center">
+                        {elderly} {elderly === 1 ? "lid" : "leden"}
+                        <span className="text-xs text-gray-400 ml-2">
+                          ({members.length > 0 ? Math.round((elderly / members.length) * 100) : 0}%)
+                        </span>
+                      </div>
                     </div>
                   </div>
                 </div>
