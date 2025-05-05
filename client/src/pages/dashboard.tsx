@@ -285,7 +285,7 @@ export default function Dashboard() {
                   {/* Tieners (13-17) */}
                   <div className="flex items-center gap-4 p-4 rounded-lg bg-gray-50">
                     <div className="bg-blue-100 p-3 rounded-full">
-                      <Gamepad2 className="h-5 w-5 text-blue-600" />
+                      <PersonStanding className="h-5 w-5 text-blue-600" />
                     </div>
                     <div>
                       <div className="text-sm text-gray-500">Tieners (13-17 jaar)</div>
@@ -301,7 +301,7 @@ export default function Dashboard() {
                   {/* Jongvolwassenen (<25) */}
                   <div className="flex items-center gap-4 p-4 rounded-lg bg-gray-50">
                     <div className="bg-green-100 p-3 rounded-full">
-                      <School className="h-5 w-5 text-green-600" />
+                      <GraduationCap className="h-5 w-5 text-green-600" />
                     </div>
                     <div>
                       <div className="text-sm text-gray-500">Jongvolwassenen (18-24 jaar)</div>
@@ -317,7 +317,7 @@ export default function Dashboard() {
                   {/* Volwassenen (25-64) */}
                   <div className="flex items-center gap-4 p-4 rounded-lg bg-gray-50">
                     <div className="bg-orange-100 p-3 rounded-full">
-                      <Briefcase className="h-5 w-5 text-orange-600" />
+                      <UserRound className="h-5 w-5 text-orange-600" />
                     </div>
                     <div>
                       <div className="text-sm text-gray-500">Volwassenen (25-64 jaar)</div>
