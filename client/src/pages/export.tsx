@@ -184,42 +184,42 @@ export default function ExportPage() {
   
   return (
     <div className="space-y-6">
-      {/* Header met gradient */}
-      <div className="rounded-lg bg-gradient-to-r from-[#963E56]/80 to-[#963E56] p-6 shadow-md text-white">
+      {/* Header met gradient - met responsieve padding en tekstgrootte */}
+      <div className="rounded-lg bg-gradient-to-r from-[#963E56]/80 to-[#963E56] p-4 sm:p-6 shadow-md text-white">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Exporteren</h1>
-          <p className="text-white/80">
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight">Exporteren</h1>
+          <p className="text-sm sm:text-base text-white/80">
             Exporteer de ledenlijst naar verschillende bestandsformaten.
           </p>
         </div>
       </div>
       
-      {/* Statuskaart */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card className="bg-blue-50 border-blue-100">
-          <CardContent className="p-4 flex items-center space-x-4">
-            <div className="rounded-full bg-blue-100 p-3">
-              <List className="h-5 w-5 text-blue-700" />
+      {/* Statuskaart - verbeterd voor mobiel */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
+        <Card className="bg-blue-50 border-blue-100 shadow-sm">
+          <CardContent className="p-3 sm:p-4 flex items-center space-x-3 sm:space-x-4">
+            <div className="rounded-full bg-blue-100 p-2 sm:p-3">
+              <List className="h-4 w-4 sm:h-5 sm:w-5 text-blue-700" />
             </div>
             <div>
-              <p className="text-sm font-medium text-blue-900">Totaal leden</p>
-              <p className="text-2xl font-bold text-blue-700">
-                {isLoading ? <Skeleton className="h-8 w-16" /> : filteredMembers.length}
+              <p className="text-xs sm:text-sm font-medium text-blue-900">Totaal leden</p>
+              <p className="text-xl sm:text-2xl font-bold text-blue-700">
+                {isLoading ? <Skeleton className="h-6 sm:h-8 w-12 sm:w-16" /> : filteredMembers.length}
               </p>
             </div>
           </CardContent>
         </Card>
         
-        <Card className="bg-green-50 border-green-100">
-          <CardContent className="p-4 flex items-center space-x-4">
-            <div className="rounded-full bg-green-100 p-3">
-              <Check className="h-5 w-5 text-green-700" />
+        <Card className="bg-green-50 border-green-100 shadow-sm">
+          <CardContent className="p-3 sm:p-4 flex items-center space-x-3 sm:space-x-4">
+            <div className="rounded-full bg-green-100 p-2 sm:p-3">
+              <Check className="h-4 w-4 sm:h-5 sm:w-5 text-green-700" />
             </div>
             <div>
-              <p className="text-sm font-medium text-green-900">Betaalde leden</p>
-              <p className="text-2xl font-bold text-green-700">
+              <p className="text-xs sm:text-sm font-medium text-green-900">Betaalde leden</p>
+              <p className="text-xl sm:text-2xl font-bold text-green-700">
                 {isLoading ? 
-                  <Skeleton className="h-8 w-16" /> : 
+                  <Skeleton className="h-6 sm:h-8 w-12 sm:w-16" /> : 
                   members.filter(m => m.paymentStatus).length
                 }
               </p>
@@ -227,14 +227,14 @@ export default function ExportPage() {
           </CardContent>
         </Card>
         
-        <Card className="bg-purple-50 border-purple-100">
-          <CardContent className="p-4 flex items-center space-x-4">
-            <div className="rounded-full bg-purple-100 p-3">
-              <FileSpreadsheet className="h-5 w-5 text-purple-700" />
+        <Card className="bg-purple-50 border-purple-100 shadow-sm sm:col-span-2 md:col-span-1">
+          <CardContent className="p-3 sm:p-4 flex items-center space-x-3 sm:space-x-4">
+            <div className="rounded-full bg-purple-100 p-2 sm:p-3">
+              <FileSpreadsheet className="h-4 w-4 sm:h-5 sm:w-5 text-purple-700" />
             </div>
             <div>
-              <p className="text-sm font-medium text-purple-900">Velden geselecteerd</p>
-              <p className="text-2xl font-bold text-purple-700">
+              <p className="text-xs sm:text-sm font-medium text-purple-900">Velden geselecteerd</p>
+              <p className="text-xl sm:text-2xl font-bold text-purple-700">
                 {exportFields.filter(f => f.enabled).length} / {exportFields.length}
               </p>
             </div>
@@ -242,43 +242,43 @@ export default function ExportPage() {
         </Card>
       </div>
       
-      {/* Tabbladen voor de verschillende exportformaten */}
+      {/* Tabbladen voor de verschillende exportformaten - verbeterd voor mobiel */}
       <Card className="overflow-hidden border-none shadow-md">
         <div className="bg-gradient-to-r from-gray-100 to-gray-50 h-1" />
         <Tabs defaultValue="excel">
-          <div className="px-6 pt-6 pb-2 border-b">
-            <TabsList className="grid w-full grid-cols-2 max-w-md mx-auto">
-              <TabsTrigger value="excel" className="rounded-l-lg data-[state=active]:bg-[#963E56] data-[state=active]:text-white">
-                <FileSpreadsheet className="mr-2 h-4 w-4" />
+          <div className="px-4 sm:px-6 pt-4 sm:pt-6 pb-2 border-b">
+            <TabsList className="grid w-full grid-cols-2 max-w-xs sm:max-w-md mx-auto">
+              <TabsTrigger value="excel" className="text-xs sm:text-sm rounded-l-lg data-[state=active]:bg-[#963E56] data-[state=active]:text-white">
+                <FileSpreadsheet className="mr-1 sm:mr-2 h-3.5 w-3.5 sm:h-4 sm:w-4" />
                 Excel (.xlsx)
               </TabsTrigger>
-              <TabsTrigger value="csv" className="rounded-r-lg data-[state=active]:bg-[#963E56] data-[state=active]:text-white">
-                <FileText className="mr-2 h-4 w-4" />
+              <TabsTrigger value="csv" className="text-xs sm:text-sm rounded-r-lg data-[state=active]:bg-[#963E56] data-[state=active]:text-white">
+                <FileText className="mr-1 sm:mr-2 h-3.5 w-3.5 sm:h-4 sm:w-4" />
                 CSV (.csv)
               </TabsTrigger>
             </TabsList>
           </div>
           
           <TabsContent value="excel" className="m-0">
-            <div className="p-6">
-              <div className="grid md:grid-cols-3 gap-6">
+            <div className="p-4 sm:p-6">
+              <div className="grid md:grid-cols-3 gap-4 sm:gap-6">
                 {/* Linker kolom: filter opties */}
                 <div className="space-y-4">
-                  <div className="bg-blue-50/50 rounded-lg p-4 border border-blue-100">
-                    <h3 className="text-base font-medium mb-3 text-blue-900 flex items-center">
-                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4 mr-2 text-blue-700">
+                  <div className="bg-blue-50/50 rounded-lg p-3 sm:p-4 border border-blue-100">
+                    <h3 className="text-sm sm:text-base font-medium mb-2 sm:mb-3 text-blue-900 flex items-center">
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1.5 sm:mr-2 text-blue-700">
                         <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
                       </svg>
                       Exporteer instellingen
                     </h3>
                     <div className="space-y-3">
                       <div>
-                        <Label htmlFor="payment-filter" className="text-blue-800">Filter op betaling</Label>
+                        <Label htmlFor="payment-filter" className="text-xs sm:text-sm text-blue-800">Filter op betaling</Label>
                         <Select 
                           value={paymentFilter} 
                           onValueChange={setPaymentFilter}
                         >
-                          <SelectTrigger id="payment-filter" className="bg-white border-blue-100 mt-1">
+                          <SelectTrigger id="payment-filter" className="bg-white text-xs sm:text-sm border-blue-100 mt-1 h-8 sm:h-10">
                             <SelectValue placeholder="Filter op betaling" />
                           </SelectTrigger>
                           <SelectContent>
@@ -289,12 +289,12 @@ export default function ExportPage() {
                         </Select>
                       </div>
                       
-                      <div className="flex gap-2 pt-2">
-                        <Button variant="outline" size="sm" onClick={selectAllFields} className="w-full border-blue-200 text-blue-800 hover:bg-blue-50">
-                          <Check className="mr-2 h-4 w-4" />
+                      <div className="flex flex-col sm:flex-row gap-2 pt-2">
+                        <Button variant="outline" size="sm" onClick={selectAllFields} className="w-full text-xs sm:text-sm border-blue-200 text-blue-800 hover:bg-blue-50">
+                          <Check className="mr-1.5 sm:mr-2 h-3.5 w-3.5 sm:h-4 sm:w-4" />
                           Alles selecteren
                         </Button>
-                        <Button variant="outline" size="sm" onClick={deselectAllFields} className="w-full border-blue-200 text-blue-800 hover:bg-blue-50">
+                        <Button variant="outline" size="sm" onClick={deselectAllFields} className="w-full text-xs sm:text-sm border-blue-200 text-blue-800 hover:bg-blue-50">
                           Alles deselecteren
                         </Button>
                       </div>
@@ -302,16 +302,16 @@ export default function ExportPage() {
                   </div>
                   
                   <Card className="shadow-sm border-gray-100">
-                    <CardHeader className="pb-2 pt-4">
-                      <CardTitle className="text-base">Voorvertoning export</CardTitle>
+                    <CardHeader className="pb-2 pt-3 sm:pt-4 px-3 sm:px-4">
+                      <CardTitle className="text-sm sm:text-base">Voorvertoning export</CardTitle>
                     </CardHeader>
-                    <CardContent>
+                    <CardContent className="px-3 sm:px-4 pb-3 sm:pb-4">
                       {isLoading ? (
                         <div className="p-2">
-                          <Skeleton className="h-24 w-full" />
+                          <Skeleton className="h-20 sm:h-24 w-full" />
                         </div>
                       ) : (
-                        <div className="text-sm">
+                        <div className="text-xs sm:text-sm">
                           <div className="flex items-center justify-between mb-1 pb-1 border-b">
                             <span className="text-muted-foreground">Totaal</span>
                             <span className="font-medium">{filteredMembers.length} leden</span>
@@ -339,9 +339,9 @@ export default function ExportPage() {
                 
                 {/* Middelste en rechter kolom: velden selectie */}
                 <div className="md:col-span-2">
-                  <div className="bg-white rounded-lg shadow-sm border p-4">
-                    <h3 className="text-base font-medium mb-4 flex items-center text-gray-800">
-                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4 mr-2 text-[#963E56]">
+                  <div className="bg-white rounded-lg shadow-sm border p-3 sm:p-4">
+                    <h3 className="text-sm sm:text-base font-medium mb-3 sm:mb-4 flex items-center text-gray-800">
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1.5 sm:mr-2 text-[#963E56]">
                         <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
                         <polyline points="14 2 14 8 20 8" />
                         <line x1="16" y1="13" x2="8" y2="13" />
@@ -351,21 +351,21 @@ export default function ExportPage() {
                       Selecteer te exporteren velden
                     </h3>
                     
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 sm:gap-3">
                       {exportFields.map((field) => (
                         <div 
-                          className={`flex items-center p-3 rounded-md border ${field.enabled ? 'bg-[#963E56]/5 border-[#963E56]/20' : 'bg-gray-50 border-gray-200'}`}
+                          className={`flex items-center p-2 sm:p-3 rounded-md border ${field.enabled ? 'bg-[#963E56]/5 border-[#963E56]/20' : 'bg-gray-50 border-gray-200'}`}
                           key={field.id}
                         >
                           <Checkbox
                             id={`field-${field.id}`}
                             checked={field.enabled}
                             onCheckedChange={() => toggleField(field.id)}
-                            className={field.enabled ? 'data-[state=checked]:bg-[#963E56] data-[state=checked]:border-[#963E56]' : ''}
+                            className={field.enabled ? 'data-[state=checked]:bg-[#963E56] data-[state=checked]:border-[#963E56] h-3.5 w-3.5 sm:h-4 sm:w-4' : 'h-3.5 w-3.5 sm:h-4 sm:w-4'}
                           />
                           <Label 
                             htmlFor={`field-${field.id}`}
-                            className={`ml-2 font-medium ${field.enabled ? 'text-[#963E56]' : 'text-gray-600'}`}
+                            className={`ml-2 text-xs sm:text-sm font-medium ${field.enabled ? 'text-[#963E56]' : 'text-gray-600'}`}
                           >
                             {field.label}
                           </Label>
@@ -373,15 +373,15 @@ export default function ExportPage() {
                       ))}
                     </div>
                     
-                    <div className="flex justify-end pt-6 mt-2 border-t">
+                    <div className="flex justify-center sm:justify-end pt-4 sm:pt-6 mt-2 border-t">
                       <Button
                         onClick={exportToExcel}
                         disabled={isLoading || exportFields.filter(f => f.enabled).length === 0}
-                        className="bg-[#963E56] hover:bg-[#963E56]/90 text-white"
-                        size="lg"
+                        className="bg-[#963E56] hover:bg-[#963E56]/90 text-white w-full sm:w-auto"
+                        size="default"
                       >
-                        <Download className="mr-2 h-5 w-5" />
-                        Exporteren naar Excel
+                        <Download className="mr-1.5 sm:mr-2 h-4 w-4 sm:h-5 sm:w-5" />
+                        <span className="text-xs sm:text-sm">Exporteren naar Excel</span>
                       </Button>
                     </div>
                   </div>
@@ -391,25 +391,25 @@ export default function ExportPage() {
           </TabsContent>
           
           <TabsContent value="csv" className="m-0">
-            <div className="p-6">
-              <div className="grid md:grid-cols-3 gap-6">
+            <div className="p-4 sm:p-6">
+              <div className="grid md:grid-cols-3 gap-4 sm:gap-6">
                 {/* Linker kolom: filter opties */}
                 <div className="space-y-4">
-                  <div className="bg-green-50/50 rounded-lg p-4 border border-green-100">
-                    <h3 className="text-base font-medium mb-3 text-green-900 flex items-center">
-                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4 mr-2 text-green-700">
+                  <div className="bg-green-50/50 rounded-lg p-3 sm:p-4 border border-green-100">
+                    <h3 className="text-sm sm:text-base font-medium mb-2 sm:mb-3 text-green-900 flex items-center">
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1.5 sm:mr-2 text-green-700">
                         <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
                       </svg>
                       Exporteer instellingen
                     </h3>
                     <div className="space-y-3">
                       <div>
-                        <Label htmlFor="payment-filter-csv" className="text-green-800">Filter op betaling</Label>
+                        <Label htmlFor="payment-filter-csv" className="text-xs sm:text-sm text-green-800">Filter op betaling</Label>
                         <Select 
                           value={paymentFilter} 
                           onValueChange={setPaymentFilter}
                         >
-                          <SelectTrigger id="payment-filter-csv" className="bg-white border-green-100 mt-1">
+                          <SelectTrigger id="payment-filter-csv" className="bg-white text-xs sm:text-sm border-green-100 mt-1 h-8 sm:h-10">
                             <SelectValue placeholder="Filter op betaling" />
                           </SelectTrigger>
                           <SelectContent>
@@ -420,12 +420,12 @@ export default function ExportPage() {
                         </Select>
                       </div>
                       
-                      <div className="flex gap-2 pt-2">
-                        <Button variant="outline" size="sm" onClick={selectAllFields} className="w-full border-green-200 text-green-800 hover:bg-green-50">
-                          <Check className="mr-2 h-4 w-4" />
+                      <div className="flex flex-col sm:flex-row gap-2 pt-2">
+                        <Button variant="outline" size="sm" onClick={selectAllFields} className="w-full text-xs sm:text-sm border-green-200 text-green-800 hover:bg-green-50">
+                          <Check className="mr-1.5 sm:mr-2 h-3.5 w-3.5 sm:h-4 sm:w-4" />
                           Alles selecteren
                         </Button>
-                        <Button variant="outline" size="sm" onClick={deselectAllFields} className="w-full border-green-200 text-green-800 hover:bg-green-50">
+                        <Button variant="outline" size="sm" onClick={deselectAllFields} className="w-full text-xs sm:text-sm border-green-200 text-green-800 hover:bg-green-50">
                           Alles deselecteren
                         </Button>
                       </div>
@@ -433,16 +433,16 @@ export default function ExportPage() {
                   </div>
                   
                   <Card className="shadow-sm border-gray-100">
-                    <CardHeader className="pb-2 pt-4">
-                      <CardTitle className="text-base">Voorvertoning export</CardTitle>
+                    <CardHeader className="pb-2 pt-3 sm:pt-4 px-3 sm:px-4">
+                      <CardTitle className="text-sm sm:text-base">Voorvertoning export</CardTitle>
                     </CardHeader>
-                    <CardContent>
+                    <CardContent className="px-3 sm:px-4 pb-3 sm:pb-4">
                       {isLoading ? (
                         <div className="p-2">
-                          <Skeleton className="h-24 w-full" />
+                          <Skeleton className="h-20 sm:h-24 w-full" />
                         </div>
                       ) : (
-                        <div className="text-sm">
+                        <div className="text-xs sm:text-sm">
                           <div className="flex items-center justify-between mb-1 pb-1 border-b">
                             <span className="text-muted-foreground">Totaal</span>
                             <span className="font-medium">{filteredMembers.length} leden</span>
@@ -470,9 +470,9 @@ export default function ExportPage() {
                 
                 {/* Middelste en rechter kolom: velden selectie */}
                 <div className="md:col-span-2">
-                  <div className="bg-white rounded-lg shadow-sm border p-4">
-                    <h3 className="text-base font-medium mb-4 flex items-center text-gray-800">
-                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4 mr-2 text-[#963E56]">
+                  <div className="bg-white rounded-lg shadow-sm border p-3 sm:p-4">
+                    <h3 className="text-sm sm:text-base font-medium mb-3 sm:mb-4 flex items-center text-gray-800">
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1.5 sm:mr-2 text-[#963E56]">
                         <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
                         <polyline points="14 2 14 8 20 8" />
                         <line x1="16" y1="13" x2="8" y2="13" />
@@ -482,21 +482,21 @@ export default function ExportPage() {
                       Selecteer te exporteren velden
                     </h3>
                     
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 sm:gap-3">
                       {exportFields.map((field) => (
                         <div 
-                          className={`flex items-center p-3 rounded-md border ${field.enabled ? 'bg-[#963E56]/5 border-[#963E56]/20' : 'bg-gray-50 border-gray-200'}`}
+                          className={`flex items-center p-2 sm:p-3 rounded-md border ${field.enabled ? 'bg-[#963E56]/5 border-[#963E56]/20' : 'bg-gray-50 border-gray-200'}`}
                           key={`csv-${field.id}`}
                         >
                           <Checkbox
                             id={`csv-field-${field.id}`}
                             checked={field.enabled}
                             onCheckedChange={() => toggleField(field.id)}
-                            className={field.enabled ? 'data-[state=checked]:bg-[#963E56] data-[state=checked]:border-[#963E56]' : ''}
+                            className={field.enabled ? 'data-[state=checked]:bg-[#963E56] data-[state=checked]:border-[#963E56] h-3.5 w-3.5 sm:h-4 sm:w-4' : 'h-3.5 w-3.5 sm:h-4 sm:w-4'}
                           />
                           <Label 
                             htmlFor={`csv-field-${field.id}`}
-                            className={`ml-2 font-medium ${field.enabled ? 'text-[#963E56]' : 'text-gray-600'}`}
+                            className={`ml-2 text-xs sm:text-sm font-medium ${field.enabled ? 'text-[#963E56]' : 'text-gray-600'}`}
                           >
                             {field.label}
                           </Label>
@@ -504,15 +504,15 @@ export default function ExportPage() {
                       ))}
                     </div>
                     
-                    <div className="flex justify-end pt-6 mt-2 border-t">
+                    <div className="flex justify-center sm:justify-end pt-4 sm:pt-6 mt-2 border-t">
                       <Button
                         onClick={exportToCsv}
                         disabled={isLoading || exportFields.filter(f => f.enabled).length === 0}
-                        className="bg-[#963E56] hover:bg-[#963E56]/90 text-white"
-                        size="lg"
+                        className="bg-[#963E56] hover:bg-[#963E56]/90 text-white w-full sm:w-auto"
+                        size="default"
                       >
-                        <Download className="mr-2 h-5 w-5" />
-                        Exporteren naar CSV
+                        <Download className="mr-1.5 sm:mr-2 h-4 w-4 sm:h-5 sm:w-5" />
+                        <span className="text-xs sm:text-sm">Exporteren naar CSV</span>
                       </Button>
                     </div>
                   </div>
