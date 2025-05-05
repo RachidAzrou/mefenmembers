@@ -94,28 +94,8 @@ export default function MembersList() {
         </div>
       </div>
       
-      {/* Actieknoppen onder de header */}
-      <div className="flex flex-wrap gap-2 my-4">
-        <Link href="/member/add">
-          <Button
-            className="bg-[#963E56] hover:bg-[#963E56]/90 text-white border-none shadow-sm"
-          >
-            <Plus className="mr-2 h-4 w-4" /> Nieuw lid
-          </Button>
-        </Link>
-        <Button
-            variant="outline"
-            className="border-[#963E56] text-[#963E56] hover:bg-[#963E56]/10"
-            onClick={() => {
-              toast({
-                title: "Leden bewerken",
-                description: "Klik op de 'Bewerken' optie in het menu van een lid om het te wijzigen.",
-              });
-            }}
-          >
-            <SlidersHorizontal className="mr-2 h-4 w-4" /> Leden bewerken
-          </Button>
-      </div>
+      {/* Ruimte voor header en statistieken */}
+      <div className="my-4"></div>
       
       {/* Statistieken strook - responsieve verbeteringen */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
@@ -287,12 +267,7 @@ export default function MembersList() {
                               <Eye className="mr-2 h-4 w-4" />
                               Details bekijken
                             </DropdownMenuItem>
-                            <DropdownMenuItem className="cursor-pointer">
-                              <Link href={`/member/edit/${member.id}`} className="flex items-center w-full">
-                                <SlidersHorizontal className="mr-2 h-4 w-4" />
-                                Bewerken
-                              </Link>
-                            </DropdownMenuItem>
+                            {/* Bewerk knop verwijderd op verzoek */}
                           </DropdownMenuContent>
                         </DropdownMenu>
                       </TableCell>
@@ -406,11 +381,7 @@ export default function MembersList() {
               >
                 Sluiten
               </Button>
-              <Link href={`/member/edit/${viewMember.id}`} className="w-full sm:w-auto order-1 sm:order-2">
-                <Button className="bg-[#963E56] hover:bg-[#963E56]/90 text-xs sm:text-sm w-full">
-                  <Edit className="h-3 w-3 sm:h-4 sm:w-4 mr-1.5 sm:mr-2" /> Bewerken
-                </Button>
-              </Link>
+              {/* Bewerken knop verwijderd op verzoek */}
             </div>
           </DialogContent>
         </Dialog>
