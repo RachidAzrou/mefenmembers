@@ -110,32 +110,32 @@ export default function MembersList() {
     <div className="space-y-6">
       {/* Header section met gradient achtergrond */}
       <div className="rounded-lg bg-gradient-to-r from-[#963E56]/80 to-[#963E56] p-6 shadow-md">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight text-white mb-1">
-              Ledenlijst
-            </h1>
-            <p className="text-white/80">
-              Beheer en bekijk alle leden van Moskee MEFEN
-            </p>
-          </div>
-          <div className="flex flex-wrap items-center gap-2">
-            <Link href="/member/add">
-              <Button
-                className="bg-white text-[#963E56] hover:bg-white/90 border-none shadow-sm"
-              >
-                <Plus className="mr-2 h-4 w-4" /> Nieuw lid
-              </Button>
-            </Link>
-            <Button
-              variant="outline"
-              onClick={exportToExcel}
-              className="bg-transparent border-white text-white hover:bg-white/10"
-            >
-              <Download className="mr-2 h-4 w-4" /> Exporteren
-            </Button>
-          </div>
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight text-white mb-1">
+            Ledenlijst
+          </h1>
+          <p className="text-white/80">
+            Beheer en bekijk alle leden van Moskee MEFEN
+          </p>
         </div>
+      </div>
+      
+      {/* Actieknoppen onder de header */}
+      <div className="flex flex-wrap gap-2 my-4">
+        <Link href="/member/add">
+          <Button
+            className="bg-[#963E56] hover:bg-[#963E56]/90 text-white border-none shadow-sm"
+          >
+            <Plus className="mr-2 h-4 w-4" /> Nieuw lid
+          </Button>
+        </Link>
+        <Button
+          variant="outline"
+          onClick={exportToExcel}
+          className="border-[#963E56] text-[#963E56] hover:bg-[#963E56]/10"
+        >
+          <Download className="mr-2 h-4 w-4" /> Exporteren
+        </Button>
       </div>
       
       {/* Statistieken strook */}
