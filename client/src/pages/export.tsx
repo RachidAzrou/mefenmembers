@@ -1,10 +1,10 @@
 import React, { useState, useMemo } from "react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { Member } from "@shared/schema";
 import { Button } from "@/components/ui/button";
-import { Download, FileSpreadsheet, FileText, List, Check, FileDown } from "lucide-react";
+import { Download, FileSpreadsheet, FileText, Check, FileDown } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import * as XLSX from 'xlsx';
 import { useToast } from "@/hooks/use-toast";
@@ -155,7 +155,6 @@ import {
 import { Link } from "wouter";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 // Veldnamen en labels definitie
 const FIELDS = [
@@ -400,140 +399,156 @@ export default function ExportPage() {
           {/* Header met logo en titel */}
           <View style={styles.headerContainer}>
             <View style={styles.headerLeft}>
-              <Text style={styles.header}>Ledenlijst MEFEN Moskee</Text>
-              <Text style={styles.subtitle}>
-                {enabledFields.length} geselecteerde velden • {totalMembers} leden
-              </Text>
+              <Text style={styles.header}>MEFEN Ledenlijst</Text>
+              <Text style={styles.subtitle}>Exported: {formattedDate} om {time}</Text>
             </View>
             <View style={styles.headerRight}>
-              <Text style={styles.date}>Gegenereerd op {formattedDate}</Text>
               <Text style={styles.filterInfo}>
-                {paymentFilter === "all" ? "Alle leden" : 
-                 paymentFilter === "paid" ? "Alleen betalende leden" : 
-                 "Alleen niet-betalende leden"}
+                {paymentFilter === "all" 
+                  ? "Alle leden" 
+                  : paymentFilter === "paid" 
+                    ? "Alleen betaalde leden" 
+                    : "Alleen onbetaalde leden"
+                }
               </Text>
+              <Text style={styles.date}>Totaal: {filteredMembers.length} leden</Text>
             </View>
           </View>
-          
-          {/* Samenvatting statistieken blokjes */}
+
+          {/* Samenvatting sectie */}
           <View style={styles.summary}>
             <View style={styles.summaryBox}>
-              <Text style={styles.summaryTitle}>Totaal</Text>
+              <Text style={styles.summaryTitle}>Aantal leden</Text>
               <Text style={styles.summaryValue}>{totalMembers}</Text>
-              <Text style={styles.summaryLabel}>Geregistreerde leden</Text>
+              <Text style={styles.summaryLabel}>Totaal in database</Text>
             </View>
             
             <View style={styles.summaryBox}>
               <Text style={styles.summaryTitle}>Betaald</Text>
-              <Text style={[styles.summaryValue, { color: '#22c55e' }]}>{paidMembers}</Text>
-              <Text style={styles.summaryLabel}>{paidPercentage}% van totaal</Text>
+              <Text style={styles.summaryValue}>{paidMembers}</Text>
+              <Text style={styles.summaryLabel}>{paidPercentage}% van alle leden</Text>
             </View>
             
             <View style={styles.summaryBox}>
               <Text style={styles.summaryTitle}>Niet betaald</Text>
-              <Text style={[styles.summaryValue, { color: '#ef4444' }]}>{unpaidMembers}</Text>
-              <Text style={styles.summaryLabel}>{100 - paidPercentage}% van totaal</Text>
+              <Text style={styles.summaryValue}>{unpaidMembers}</Text>
+              <Text style={styles.summaryLabel}>{100 - paidPercentage}% van alle leden</Text>
             </View>
           </View>
           
           {/* Tabel met leden */}
           <View style={styles.tableWrapper}>
-            <View style={styles.table}>
-              {/* Tabel header */}
-              <View style={styles.tableHeader}>
-                {enabledFields.map(field => (
-                  <Text key={field.id} style={[styles.tableHeaderCell, { width: columnWidths[field.id] }]}>
-                    {field.label}
-                  </Text>
-                ))}
-              </View>
-              
-              {/* Tabel rijen */}
-              {filteredMembers.map((member, index) => (
-                <View key={member.id} style={[
-                  styles.tableRow, 
-                  index % 2 === 0 ? { backgroundColor: '#F8F9FA' } : {}
-                ]}>
-                  {enabledFields.map(field => {
-                    let value: string = "";
-                    let cellStyle = styles.tableCell;
-                    
-                    switch (field.id) {
-                      case "memberNumber":
-                        value = member.memberNumber.toString().padStart(4, '0');
-                        break;
-                      case "birthDate":
-                        if (member.birthDate) {
-                          // Compacte datumnotatie: DD-MM-YYYY
-                          const bdate = new Date(member.birthDate);
-                          value = `${bdate.getDate().toString().padStart(2,'0')}-${(bdate.getMonth()+1).toString().padStart(2,'0')}-${bdate.getFullYear()}`;
-                        } else {
-                          value = "-";
-                        }
-                        break;
-                      case "registrationDate":
-                        // Compacte datumnotatie: DD-MM-YYYY
-                        const rdate = new Date(member.registrationDate);
-                        value = `${rdate.getDate().toString().padStart(2,'0')}-${(rdate.getMonth()+1).toString().padStart(2,'0')}-${rdate.getFullYear()}`;
-                        break;
-                      case "paymentStatus":
-                        // Gebruik symbolen met kleur
-                        if (member.paymentStatus) {
-                          value = "✓";
-                          cellStyle = {...cellStyle, ...styles.paidCell};
-                        } else {
-                          value = "✗";
-                          cellStyle = {...cellStyle, ...styles.unpaidCell};
-                        }
-                        break;
-                      default:
-                        value = (member[field.id as keyof Member] as string) || "-";
-                    }
-                    
-                    return (
-                      <Text key={field.id} style={[cellStyle, { width: columnWidths[field.id] }]}>
-                        {value}
-                      </Text>
-                    );
-                  })}
-                </View>
+            {/* Tabelheader */}
+            <View style={styles.tableHeader}>
+              {enabledFields.map(field => (
+                <Text 
+                  key={field.id} 
+                  style={{
+                    ...styles.tableHeaderCell,
+                    width: columnWidths[field.id]
+                  }}
+                >
+                  {field.label}
+                </Text>
               ))}
             </View>
+            
+            {/* Tabelrijen */}
+            {filteredMembers.map((member, index) => (
+              <View 
+                key={member.id} 
+                style={{
+                  ...styles.tableRow,
+                  backgroundColor: index % 2 === 0 ? '#FFFFFF' : '#F9FAFB',
+                }}
+              >
+                {enabledFields.map(field => {
+                  let value;
+                  
+                  switch (field.id) {
+                    case "birthDate":
+                      // Compacte datumnotatie: DD-MM-YYYY
+                      const bdate = new Date(member.birthDate);
+                      value = member.birthDate ? `${bdate.getDate().toString().padStart(2, '0')}-${(bdate.getMonth() + 1).toString().padStart(2, '0')}-${bdate.getFullYear()}` : "";
+                      break;
+                    case "registrationDate":
+                      // Compacte datumnotatie: DD-MM-YYYY
+                      const rdate = new Date(member.registrationDate);
+                      value = `${rdate.getDate().toString().padStart(2, '0')}-${(rdate.getMonth() + 1).toString().padStart(2, '0')}-${rdate.getFullYear()}`;
+                      break;
+                    case "paymentStatus":
+                      value = member.paymentStatus ? "✓" : "✗";
+                      return (
+                        <Text 
+                          key={field.id} 
+                          style={{
+                            ...styles.tableCell,
+                            width: columnWidths[field.id],
+                            textAlign: 'center',
+                            ...(member.paymentStatus ? styles.paidCell : styles.unpaidCell)
+                          }}
+                        >
+                          {value}
+                        </Text>
+                      );
+                    case "memberNumber":
+                      // Lidnummers altijd met voorloopnullen voor consistentie
+                      value = member.memberNumber.toString().padStart(4, '0');
+                      break;
+                    default:
+                      value = member[field.id as keyof Member] || "";
+                  }
+                  
+                  return (
+                    <Text 
+                      key={field.id} 
+                      style={{
+                        ...styles.tableCell,
+                        width: columnWidths[field.id]
+                      }}
+                    >
+                      {value}
+                    </Text>
+                  );
+                })}
+              </View>
+            ))}
           </View>
           
-          {/* Footer met copyright en paginanummer */}
+          {/* Footer */}
           <View style={styles.footer}>
-            <Text style={styles.footerText}>© MEFEN Moskee | Ledenlijst {formattedDate}</Text>
-            <Text style={styles.pageNumber}>Pagina 1</Text>
+            <Text style={styles.footerText}>MEFEN Ledenbeheer • Automatisch gegenereerd</Text>
+            <Text style={styles.pageNumber}>Pagina 1 van 1</Text>
           </View>
         </Page>
       </Document>
     );
-  }, [filteredMembers, exportFields, paymentFilter]);
-  
+  }, [exportFields, filteredMembers, paymentFilter]);
+
   return (
-    <div className="space-y-6">
-      {/* Header met gradient - met responsieve padding en tekstgrootte */}
+    <div className="space-y-4 sm:space-y-6">
+      {/* Header */}
       <div className="rounded-lg bg-gradient-to-r from-[#963E56]/80 to-[#963E56] p-4 sm:p-6 shadow-md text-white">
-        <div>
-          <h1 className="text-xl sm:text-2xl font-bold tracking-tight">Exporteren</h1>
-          <p className="text-sm sm:text-base text-white/80">
-            Exporteer de ledenlijst naar verschillende bestandsformaten.
-          </p>
-        </div>
+        <h1 className="text-xl sm:text-2xl font-bold tracking-tight">Exporteer ledenlijst</h1>
+        <p className="text-white/80 text-sm sm:text-base mt-1">
+          Exporteer de ledenlijst in verschillende formaten voor gebruik buiten het systeem.
+        </p>
       </div>
       
-      {/* Statuskaart - verbeterd voor mobiel */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
+      {/* Statistieken */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
         <Card className="bg-blue-50 border-blue-100 shadow-sm">
           <CardContent className="p-3 sm:p-4 flex items-center space-x-3 sm:space-x-4">
             <div className="rounded-full bg-blue-100 p-2 sm:p-3">
-              <List className="h-4 w-4 sm:h-5 sm:w-5 text-blue-700" />
+              <FileText className="h-4 w-4 sm:h-5 sm:w-5 text-blue-700" />
             </div>
             <div>
               <p className="text-xs sm:text-sm font-medium text-blue-900">Totaal leden</p>
               <p className="text-xl sm:text-2xl font-bold text-blue-700">
-                {isLoading ? <Skeleton className="h-6 sm:h-8 w-12 sm:w-16" /> : filteredMembers.length}
+                {isLoading ? 
+                  <Skeleton className="h-6 sm:h-8 w-12 sm:w-16" /> : 
+                  members.length
+                }
               </p>
             </div>
           </CardContent>
@@ -542,10 +557,10 @@ export default function ExportPage() {
         <Card className="bg-green-50 border-green-100 shadow-sm">
           <CardContent className="p-3 sm:p-4 flex items-center space-x-3 sm:space-x-4">
             <div className="rounded-full bg-green-100 p-2 sm:p-3">
-              <Check className="h-4 w-4 sm:h-5 sm:w-5 text-green-700" />
+              <FileText className="h-4 w-4 sm:h-5 sm:w-5 text-green-700" />
             </div>
             <div>
-              <p className="text-xs sm:text-sm font-medium text-green-900">Betaalde leden</p>
+              <p className="text-xs sm:text-sm font-medium text-green-900">Betaald</p>
               <p className="text-xl sm:text-2xl font-bold text-green-700">
                 {isLoading ? 
                   <Skeleton className="h-6 sm:h-8 w-12 sm:w-16" /> : 
@@ -605,7 +620,6 @@ export default function ExportPage() {
                       Filters
                     </h3>
                     <div className="space-y-3">
-                      
                       <div className="pt-2">
                         <Button 
                           variant="outline" 
@@ -628,41 +642,6 @@ export default function ExportPage() {
                       </div>
                     </div>
                   </div>
-                  
-                  <Card className="shadow-sm border-gray-100">
-                    <CardHeader className="pb-2 pt-3 sm:pt-4 px-3 sm:px-4">
-                      <CardTitle className="text-sm sm:text-base">Voorvertoning export</CardTitle>
-                    </CardHeader>
-                    <CardContent className="px-3 sm:px-4 pb-3 sm:pb-4">
-                      {isLoading ? (
-                        <div className="p-2">
-                          <Skeleton className="h-20 sm:h-24 w-full" />
-                        </div>
-                      ) : (
-                        <div className="text-xs sm:text-sm">
-                          <div className="flex items-center justify-between mb-1 pb-1 border-b">
-                            <span className="text-muted-foreground">Totaal</span>
-                            <span className="font-medium">{filteredMembers.length} leden</span>
-                          </div>
-                          <div className="flex items-center justify-between mb-1 pb-1 border-b">
-                            <span className="text-muted-foreground">Velden</span>
-                            <span className="font-medium">{exportFields.filter(f => f.enabled).length}</span>
-                          </div>
-                          <div className="flex items-center justify-between">
-                            <span className="text-muted-foreground">Filter</span>
-                            <span className="font-medium">
-                              {paymentFilter === "all" 
-                                ? "Alle leden" 
-                                : paymentFilter === "paid" 
-                                  ? "Alleen betaald" 
-                                  : "Alleen niet betaald"
-                              }
-                            </span>
-                          </div>
-                        </div>
-                      )}
-                    </CardContent>
-                  </Card>
                 </div>
                 
                 {/* Middelste en rechter kolom: velden selectie */}
@@ -731,7 +710,6 @@ export default function ExportPage() {
                       Filters
                     </h3>
                     <div className="space-y-3">
-                      
                       <div className="pt-2">
                         <Button 
                           variant="outline" 
@@ -754,41 +732,6 @@ export default function ExportPage() {
                       </div>
                     </div>
                   </div>
-                  
-                  <Card className="shadow-sm border-gray-100">
-                    <CardHeader className="pb-2 pt-3 sm:pt-4 px-3 sm:px-4">
-                      <CardTitle className="text-sm sm:text-base">Voorvertoning export</CardTitle>
-                    </CardHeader>
-                    <CardContent className="px-3 sm:px-4 pb-3 sm:pb-4">
-                      {isLoading ? (
-                        <div className="p-2">
-                          <Skeleton className="h-20 sm:h-24 w-full" />
-                        </div>
-                      ) : (
-                        <div className="text-xs sm:text-sm">
-                          <div className="flex items-center justify-between mb-1 pb-1 border-b">
-                            <span className="text-muted-foreground">Totaal</span>
-                            <span className="font-medium">{filteredMembers.length} leden</span>
-                          </div>
-                          <div className="flex items-center justify-between mb-1 pb-1 border-b">
-                            <span className="text-muted-foreground">Velden</span>
-                            <span className="font-medium">{exportFields.filter(f => f.enabled).length}</span>
-                          </div>
-                          <div className="flex items-center justify-between">
-                            <span className="text-muted-foreground">Filter</span>
-                            <span className="font-medium">
-                              {paymentFilter === "all" 
-                                ? "Alle leden" 
-                                : paymentFilter === "paid" 
-                                  ? "Alleen betaald" 
-                                  : "Alleen niet betaald"
-                              }
-                            </span>
-                          </div>
-                        </div>
-                      )}
-                    </CardContent>
-                  </Card>
                 </div>
                 
                 {/* Middelste en rechter kolom: velden selectie */}
@@ -858,7 +801,6 @@ export default function ExportPage() {
                       Filters
                     </h3>
                     <div className="space-y-3">
-                      
                       <div className="pt-2">
                         <Button 
                           variant="outline" 
@@ -881,41 +823,6 @@ export default function ExportPage() {
                       </div>
                     </div>
                   </div>
-                  
-                  <Card className="shadow-sm border-gray-100">
-                    <CardHeader className="pb-2 pt-3 sm:pt-4 px-3 sm:px-4">
-                      <CardTitle className="text-sm sm:text-base">Voorvertoning export</CardTitle>
-                    </CardHeader>
-                    <CardContent className="px-3 sm:px-4 pb-3 sm:pb-4">
-                      {isLoading ? (
-                        <div className="p-2">
-                          <Skeleton className="h-20 sm:h-24 w-full" />
-                        </div>
-                      ) : (
-                        <div className="text-xs sm:text-sm">
-                          <div className="flex items-center justify-between mb-1 pb-1 border-b">
-                            <span className="text-muted-foreground">Totaal</span>
-                            <span className="font-medium">{filteredMembers.length} leden</span>
-                          </div>
-                          <div className="flex items-center justify-between mb-1 pb-1 border-b">
-                            <span className="text-muted-foreground">Velden</span>
-                            <span className="font-medium">{exportFields.filter(f => f.enabled).length}</span>
-                          </div>
-                          <div className="flex items-center justify-between">
-                            <span className="text-muted-foreground">Filter</span>
-                            <span className="font-medium">
-                              {paymentFilter === "all" 
-                                ? "Alle leden" 
-                                : paymentFilter === "paid" 
-                                  ? "Alleen betaald" 
-                                  : "Alleen niet betaald"
-                              }
-                            </span>
-                          </div>
-                        </div>
-                      )}
-                    </CardContent>
-                  </Card>
                 </div>
                 
                 {/* Middelste en rechter kolom: velden selectie */}
