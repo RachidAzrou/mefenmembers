@@ -21,7 +21,10 @@ import {
   DropdownMenuTrigger 
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
-import { Download, Eye, MoreHorizontal, Plus, Search, SlidersHorizontal } from "lucide-react";
+import { 
+  Download, Eye, MoreHorizontal, Plus, Search, SlidersHorizontal,
+  CalendarDays, Check, X, Users, User, Phone, StickyNote, Edit
+} from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { formatPhoneNumber } from "@/lib/utils";
 import { Link } from "wouter";
@@ -105,127 +108,209 @@ export default function MembersList() {
   
   return (
     <div className="space-y-6">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">Ledenlijst</h1>
-          <p className="text-muted-foreground">
-            Beheer en bekijk alle leden van Moskee MEFEN.
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
-          <Link href="/member/add">
+      {/* Header section met gradient achtergrond */}
+      <div className="rounded-lg bg-gradient-to-r from-[#963E56]/80 to-[#963E56] p-6 shadow-md">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight text-white mb-1">
+              Ledenlijst
+            </h1>
+            <p className="text-white/80">
+              Beheer en bekijk alle leden van Moskee MEFEN
+            </p>
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <Link href="/member/add">
+              <Button
+                className="bg-white text-[#963E56] hover:bg-white/90 border-none shadow-sm"
+              >
+                <Plus className="mr-2 h-4 w-4" /> Nieuw lid
+              </Button>
+            </Link>
             <Button
-              className="bg-[#963E56] hover:bg-[#963E56]/90 text-white"
+              variant="outline"
+              onClick={exportToExcel}
+              className="bg-transparent border-white text-white hover:bg-white/10"
             >
-              <Plus className="mr-2 h-4 w-4" /> Nieuw lid
+              <Download className="mr-2 h-4 w-4" /> Exporteren
             </Button>
-          </Link>
-          <Button
-            variant="outline"
-            onClick={exportToExcel}
-            className="border-[#963E56] text-[#963E56] hover:bg-[#963E56]/10"
-          >
-            <Download className="mr-2 h-4 w-4" /> Exporteren
-          </Button>
+          </div>
         </div>
       </div>
       
-      <Card>
+      {/* Statistieken strook */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <Card className="overflow-hidden border-none shadow-md bg-blue-50">
+          <CardContent className="p-4 flex flex-col items-center justify-center">
+            <div className="rounded-full p-2 bg-blue-100 mb-2">
+              <Users className="h-5 w-5 text-blue-600"/>
+            </div>
+            <div className="text-xl font-bold text-blue-600">
+              {isLoading ? <Skeleton className="h-6 w-12" /> : members.length}
+            </div>
+            <p className="text-xs text-blue-800/60 text-center">Totaal leden</p>
+          </CardContent>
+        </Card>
+        
+        <Card className="overflow-hidden border-none shadow-md bg-green-50">
+          <CardContent className="p-4 flex flex-col items-center justify-center">
+            <div className="rounded-full p-2 bg-green-100 mb-2">
+              <Check className="h-5 w-5 text-green-600"/>
+            </div>
+            <div className="text-xl font-bold text-green-600">
+              {isLoading ? <Skeleton className="h-6 w-12" /> : members.filter(m => m.paymentStatus).length}
+            </div>
+            <p className="text-xs text-green-800/60 text-center">Betaald</p>
+          </CardContent>
+        </Card>
+        
+        <Card className="overflow-hidden border-none shadow-md bg-red-50">
+          <CardContent className="p-4 flex flex-col items-center justify-center">
+            <div className="rounded-full p-2 bg-red-100 mb-2">
+              <X className="h-5 w-5 text-red-600"/>
+            </div>
+            <div className="text-xl font-bold text-red-600">
+              {isLoading ? <Skeleton className="h-6 w-12" /> : members.length - members.filter(m => m.paymentStatus).length}
+            </div>
+            <p className="text-xs text-red-800/60 text-center">Niet betaald</p>
+          </CardContent>
+        </Card>
+        
+        <Card className="overflow-hidden border-none shadow-md bg-purple-50">
+          <CardContent className="p-4 flex flex-col items-center justify-center">
+            <div className="rounded-full p-2 bg-purple-100 mb-2">
+              <CalendarDays className="h-5 w-5 text-purple-600"/>
+            </div>
+            <div className="text-xl font-bold text-purple-600">
+              {isLoading ? (
+                <Skeleton className="h-6 w-12" />
+              ) : (
+                members.length > 0
+                  ? new Date(Math.max(...members.map(m => new Date(m.registrationDate).getTime())))
+                    .toLocaleDateString('nl-NL', { day: 'numeric', month: 'numeric' })
+                  : "-"
+              )}
+            </div>
+            <p className="text-xs text-purple-800/60 text-center">Laatste registratie</p>
+          </CardContent>
+        </Card>
+      </div>
+      
+      <Card className="border-none shadow-md overflow-hidden">
+        <div className="bg-gradient-to-r from-gray-100 to-gray-50 h-1" />
         <CardHeader className="pb-3">
-          <CardTitle>Leden</CardTitle>
+          <CardTitle className="text-lg flex items-center">
+            <Users className="h-5 w-5 mr-2 text-[#963E56]" /> Ledenbestand
+          </CardTitle>
           <CardDescription>
-            {filteredMembers.length} leden in totaal, {members.filter(m => m.paymentStatus).length} hebben betaald.
+            {filteredMembers.length} leden gevonden
+            {searchQuery ? ` voor zoekterm "${searchQuery}"` : ""}
           </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="flex flex-col md:flex-row gap-4 mb-6">
             <div className="relative flex-1">
-              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+              <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+                <Search className="h-4 w-4" />
+              </div>
               <Input
                 type="search"
                 placeholder="Zoeken op naam, lidnummer, e-mail of telefoon..."
-                className="pl-8"
+                className="pl-10 py-6 border-gray-200 bg-gray-50 focus:bg-white transition-colors shadow-sm"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
             </div>
           </div>
           
-          <div className="rounded-md border">
+          <div className="rounded-lg overflow-hidden border border-gray-100 shadow-sm">
             <Table>
-              <TableHeader>
+              <TableHeader className="bg-gray-50">
                 <TableRow>
-                  <TableHead>Lidnummer</TableHead>
-                  <TableHead>Naam</TableHead>
-                  <TableHead className="hidden md:table-cell">Geboortedatum</TableHead>
-                  <TableHead className="hidden md:table-cell">E-mail</TableHead>
-                  <TableHead className="hidden md:table-cell">Telefoon</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className="text-right">Acties</TableHead>
+                  <TableHead className="font-semibold text-gray-700">Lidnummer</TableHead>
+                  <TableHead className="font-semibold text-gray-700">Naam</TableHead>
+                  <TableHead className="hidden md:table-cell font-semibold text-gray-700">Geboortedatum</TableHead>
+                  <TableHead className="hidden md:table-cell font-semibold text-gray-700">E-mail</TableHead>
+                  <TableHead className="hidden md:table-cell font-semibold text-gray-700">Telefoon</TableHead>
+                  <TableHead className="font-semibold text-gray-700">Status</TableHead>
+                  <TableHead className="text-right font-semibold text-gray-700">Acties</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {isLoading ? (
                   Array(5).fill(0).map((_, i) => (
-                    <TableRow key={i}>
-                      <TableCell><Skeleton className="h-4 w-10" /></TableCell>
-                      <TableCell><Skeleton className="h-4 w-32" /></TableCell>
-                      <TableCell className="hidden md:table-cell"><Skeleton className="h-4 w-20" /></TableCell>
-                      <TableCell className="hidden md:table-cell"><Skeleton className="h-4 w-32" /></TableCell>
-                      <TableCell className="hidden md:table-cell"><Skeleton className="h-4 w-24" /></TableCell>
-                      <TableCell><Skeleton className="h-4 w-16" /></TableCell>
-                      <TableCell className="text-right"><Skeleton className="h-4 w-8 ml-auto" /></TableCell>
+                    <TableRow key={i} className="hover:bg-gray-50">
+                      <TableCell><Skeleton className="h-5 w-12" /></TableCell>
+                      <TableCell><Skeleton className="h-5 w-32" /></TableCell>
+                      <TableCell className="hidden md:table-cell"><Skeleton className="h-5 w-20" /></TableCell>
+                      <TableCell className="hidden md:table-cell"><Skeleton className="h-5 w-32" /></TableCell>
+                      <TableCell className="hidden md:table-cell"><Skeleton className="h-5 w-24" /></TableCell>
+                      <TableCell><Skeleton className="h-5 w-16" /></TableCell>
+                      <TableCell className="text-right"><Skeleton className="h-5 w-8 ml-auto" /></TableCell>
                     </TableRow>
                   ))
                 ) : filteredMembers.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={7} className="h-24 text-center">
-                      Geen leden gevonden.
+                    <TableCell colSpan={7} className="h-32 text-center">
+                      <div className="flex flex-col items-center justify-center text-gray-500">
+                        <Users className="h-10 w-10 mb-2 text-gray-300" />
+                        <p className="mb-1">Geen leden gevonden</p>
+                        <p className="text-sm text-gray-400">
+                          {searchQuery ? 
+                            "Probeer een andere zoekterm of voeg een nieuw lid toe" : 
+                            "Voeg een nieuw lid toe om te beginnen"}
+                        </p>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ) : (
                   filteredMembers.map((member) => (
-                    <TableRow key={member.id}>
-                      <TableCell className="font-medium">
+                    <TableRow key={member.id} className="hover:bg-gray-50/50 transition-colors">
+                      <TableCell className="font-medium text-[#963E56]">
                         {member.memberNumber}
                       </TableCell>
-                      <TableCell>
+                      <TableCell className="font-medium">
                         {member.firstName} {member.lastName}
                       </TableCell>
-                      <TableCell className="hidden md:table-cell">
+                      <TableCell className="hidden md:table-cell text-gray-600">
                         {formatDate(member.birthDate)}
                       </TableCell>
-                      <TableCell className="hidden md:table-cell">
+                      <TableCell className="hidden md:table-cell text-gray-600">
                         {member.email || "-"}
                       </TableCell>
-                      <TableCell className="hidden md:table-cell">
+                      <TableCell className="hidden md:table-cell text-gray-600">
                         {member.phoneNumber ? formatPhoneNumber(member.phoneNumber) : "-"}
                       </TableCell>
                       <TableCell>
                         <Badge 
                           variant={member.paymentStatus ? "default" : "outline"}
-                          className={member.paymentStatus ? "bg-green-500 hover:bg-green-600" : ""}
+                          className={member.paymentStatus 
+                            ? "bg-green-100 text-green-800 hover:bg-green-200 hover:text-green-900"
+                            : "bg-red-50 border-red-200 text-red-700 hover:bg-red-100"}
                         >
-                          {member.paymentStatus ? "Betaald" : "Niet betaald"}
+                          {member.paymentStatus 
+                            ? "✓ Betaald" 
+                            : "Niet betaald"}
                         </Badge>
                       </TableCell>
                       <TableCell className="text-right">
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon">
+                            <Button variant="ghost" size="icon" className="h-8 w-8 text-gray-500 hover:text-gray-900">
                               <MoreHorizontal className="h-4 w-4" />
                               <span className="sr-only">Menu openen</span>
                             </Button>
                           </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
+                          <DropdownMenuContent align="end" className="w-[160px]">
                             <DropdownMenuLabel>Acties</DropdownMenuLabel>
                             <DropdownMenuSeparator />
-                            <DropdownMenuItem onClick={() => setViewMember(member)}>
+                            <DropdownMenuItem onClick={() => setViewMember(member)} className="cursor-pointer">
                               <Eye className="mr-2 h-4 w-4" />
                               Details bekijken
                             </DropdownMenuItem>
-                            <DropdownMenuItem>
-                              <Link href={`/member/edit/${member.id}`}>
+                            <DropdownMenuItem className="cursor-pointer">
+                              <Link href={`/member/edit/${member.id}`} className="flex items-center w-full">
+                                <SlidersHorizontal className="mr-2 h-4 w-4" />
                                 Bewerken
                               </Link>
                             </DropdownMenuItem>
@@ -244,80 +329,110 @@ export default function MembersList() {
       {/* Lid details dialoog */}
       {viewMember && (
         <Dialog open={!!viewMember} onOpenChange={() => setViewMember(null)}>
-          <DialogContent className="sm:max-w-[600px]">
-            <DialogHeader>
-              <DialogTitle>Lid details</DialogTitle>
-              <DialogDescription>
-                Gedetailleerde informatie over {viewMember.firstName} {viewMember.lastName}.
-              </DialogDescription>
-            </DialogHeader>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <h3 className="font-medium mb-2">Persoonlijke gegevens</h3>
-                <ul className="space-y-2 text-sm">
-                  <li>
-                    <span className="text-muted-foreground">Lidnummer:</span>{" "}
-                    <span className="font-medium">{viewMember.memberNumber}</span>
-                  </li>
-                  <li>
-                    <span className="text-muted-foreground">Naam:</span>{" "}
-                    <span className="font-medium">{viewMember.firstName} {viewMember.lastName}</span>
-                  </li>
-                  <li>
-                    <span className="text-muted-foreground">Geboortedatum:</span>{" "}
-                    <span className="font-medium">{formatDate(viewMember.birthDate)}</span>
-                  </li>
-                  <li>
-                    <span className="text-muted-foreground">Lid sinds:</span>{" "}
-                    <span className="font-medium">{formatDate(viewMember.registrationDate)}</span>
-                  </li>
-                </ul>
-              </div>
-              
-              <div>
-                <h3 className="font-medium mb-2">Contact & betaling</h3>
-                <ul className="space-y-2 text-sm">
-                  <li>
-                    <span className="text-muted-foreground">E-mail:</span>{" "}
-                    <span className="font-medium">{viewMember.email || "-"}</span>
-                  </li>
-                  <li>
-                    <span className="text-muted-foreground">Telefoon:</span>{" "}
-                    <span className="font-medium">{formatPhoneNumber(viewMember.phoneNumber)}</span>
-                  </li>
-                  <li>
-                    <span className="text-muted-foreground">Rekeningnummer:</span>{" "}
-                    <span className="font-medium">{viewMember.accountNumber || "-"}</span>
-                  </li>
-                  <li>
-                    <span className="text-muted-foreground">Betaalstatus:</span>{" "}
-                    <Badge 
-                      variant={viewMember.paymentStatus ? "default" : "outline"}
-                      className={viewMember.paymentStatus ? "bg-green-500 hover:bg-green-600" : ""}
-                    >
-                      {viewMember.paymentStatus ? "Betaald" : "Niet betaald"}
-                    </Badge>
-                  </li>
-                </ul>
-              </div>
+          <DialogContent className="sm:max-w-[650px] p-0 overflow-hidden">
+            <div className="bg-gradient-to-r from-[#963E56]/90 to-[#963E56] p-6 text-white">
+              <DialogHeader className="text-white">
+                <DialogTitle className="text-xl">
+                  {viewMember.firstName} {viewMember.lastName}
+                </DialogTitle>
+                <DialogDescription className="text-white/80 text-sm">
+                  Lidnummer: {viewMember.memberNumber} • Lid sinds {formatDate(viewMember.registrationDate)}
+                </DialogDescription>
+              </DialogHeader>
             </div>
             
-            {viewMember.notes && (
-              <div className="mt-4">
-                <h3 className="font-medium mb-2">Notities</h3>
-                <p className="text-sm whitespace-pre-wrap bg-muted p-3 rounded-md">
-                  {viewMember.notes}
-                </p>
+            <div className="p-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-700 mb-3 flex items-center">
+                    <User className="h-5 w-5 mr-2 text-[#963E56]" /> 
+                    Persoonlijke gegevens
+                  </h3>
+                  <div className="space-y-3">
+                    <div className="bg-gray-50 rounded-lg p-3">
+                      <div className="text-sm text-gray-500">Volledige naam</div>
+                      <div className="font-medium">{viewMember.firstName} {viewMember.lastName}</div>
+                    </div>
+                    
+                    <div className="bg-gray-50 rounded-lg p-3">
+                      <div className="text-sm text-gray-500">Geboortedatum</div>
+                      <div className="font-medium">{formatDate(viewMember.birthDate)}</div>
+                    </div>
+                    
+                    <div className="bg-gray-50 rounded-lg p-3">
+                      <div className="text-sm text-gray-500">Lid sinds</div>
+                      <div className="font-medium">{formatDate(viewMember.registrationDate)}</div>
+                    </div>
+                  </div>
+                </div>
+                
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-700 mb-3 flex items-center">
+                    <Phone className="h-5 w-5 mr-2 text-[#963E56]" /> 
+                    Contact & betaling
+                  </h3>
+                  <div className="space-y-3">
+                    <div className="bg-gray-50 rounded-lg p-3">
+                      <div className="text-sm text-gray-500">E-mail</div>
+                      <div className="font-medium">{viewMember.email || "Niet opgegeven"}</div>
+                    </div>
+                    
+                    <div className="bg-gray-50 rounded-lg p-3">
+                      <div className="text-sm text-gray-500">Telefoon</div>
+                      <div className="font-medium">{formatPhoneNumber(viewMember.phoneNumber)}</div>
+                    </div>
+                    
+                    <div className="bg-gray-50 rounded-lg p-3">
+                      <div className="text-sm text-gray-500">Rekeningnummer</div>
+                      <div className="font-medium">{viewMember.accountNumber || "Niet opgegeven"}</div>
+                    </div>
+                  </div>
+                </div>
               </div>
-            )}
+              
+              <div className="mt-6 flex items-center p-4 rounded-lg bg-gray-50 gap-4">
+                <div className={`p-3 rounded-full ${viewMember.paymentStatus ? 'bg-green-100' : 'bg-red-100'}`}>
+                  {viewMember.paymentStatus ? (
+                    <Check className="h-5 w-5 text-green-600" />
+                  ) : (
+                    <X className="h-5 w-5 text-red-600" />
+                  )}
+                </div>
+                <div>
+                  <div className="text-sm text-gray-500">Betaalstatus</div>
+                  <div className="font-medium">
+                    {viewMember.paymentStatus ? "Betaald" : "Niet betaald"}
+                  </div>
+                </div>
+              </div>
+              
+              {viewMember.notes && (
+                <div className="mt-6">
+                  <h3 className="text-lg font-semibold text-gray-700 mb-3 flex items-center">
+                    <StickyNote className="h-5 w-5 mr-2 text-[#963E56]" /> 
+                    Notities
+                  </h3>
+                  <div className="bg-gray-50 p-4 rounded-lg whitespace-pre-wrap text-gray-600">
+                    {viewMember.notes}
+                  </div>
+                </div>
+              )}
+            </div>
             
-            <DialogFooter className="mt-6">
+            <div className="border-t p-4 flex justify-end gap-2 bg-gray-50">
+              <Button 
+                variant="outline" 
+                onClick={() => setViewMember(null)}
+                className="border-gray-300 text-gray-700"
+              >
+                Sluiten
+              </Button>
               <Link href={`/member/edit/${viewMember.id}`}>
-                <Button variant="outline">Bewerken</Button>
+                <Button className="bg-[#963E56] hover:bg-[#963E56]/90">
+                  <Edit className="h-4 w-4 mr-2" /> Bewerken
+                </Button>
               </Link>
-              <Button onClick={() => setViewMember(null)}>Sluiten</Button>
-            </DialogFooter>
+            </div>
           </DialogContent>
         </Dialog>
       )}
