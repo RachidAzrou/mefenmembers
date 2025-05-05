@@ -1,18 +1,21 @@
 import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 import { getDatabase } from "firebase/database";
+import { getAnalytics } from "firebase/analytics";
 
+// Nieuwe Firebase configuratie voor MEFEN-leden
 const firebaseConfig = {
-  apiKey: "AIzaSyBcMISrNicWXlTHIfZv7V4ygIwWX_mSJmA",
-  authDomain: "mefen-6da3c.firebaseapp.com",
-  databaseURL: "https://mefen-6da3c-default-rtdb.europe-west1.firebasedatabase.app",
-  projectId: "mefen-6da3c",
-  storageBucket: "mefen-6da3c.firebasestorage.app",
-  messagingSenderId: "92917846687",
-  appId: "1:92917846687:web:55bb36fd0734f3833a48aa",
-  measurementId: "G-RQDM8X2GZE"
+  apiKey: "AIzaSyCw3uxCv7SdAa4xtmRimVjXlLjr_4hyeTE",
+  authDomain: "mefen-leden.firebaseapp.com",
+  projectId: "mefen-leden",
+  storageBucket: "mefen-leden.firebasestorage.app",
+  messagingSenderId: "1032362907538",
+  appId: "1:1032362907538:web:568add0016024ddf17534b",
+  measurementId: "G-SJQC5FGE6H",
+  databaseURL: "https://mefen-leden-default-rtdb.europe-west1.firebasedatabase.app"
 };
 
 export const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 export const db = getDatabase(app);
+export const analytics = getAnalytics(app);
