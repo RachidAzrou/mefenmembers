@@ -2,20 +2,20 @@
   "name": "MEFEN Ledenbeheer",
   "short_name": "MEFEN",
   "description": "Leden administratie systeem voor MEFEN moskee",
-  "version": "2.1.4",
+  "version": "1.1.0",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#963E56",
   "icons": [
     {
-      "src": "/static/membership_7548050.png",
+      "src": "/membership_7548050.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/static/membership_7548050.png",
+      "src": "/membership_7548050.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"

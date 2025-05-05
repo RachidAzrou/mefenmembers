@@ -1,18 +1,18 @@
-const CACHE_NAME = 'mefen-volunteerapp-v2.1.4'; // Updated version number
+const CACHE_NAME = 'mefen-memberapp-v1.1.0'; // Updated version number and name
 const urlsToCache = [
   '/',
   '/index.html',
   '/manifest.json',
-  '/static/mosque_15418029.png',
+  '/membership_7548050.png',
   '/src/main.tsx',
   '/src/index.css',
   '/src/App.tsx',
   '/src/pages/login.tsx',
   '/src/pages/register.tsx',
-  '/src/pages/volunteers.tsx',
-  '/src/pages/materials.tsx',
-  '/src/pages/planning.tsx',
-  '/src/pages/import-export.tsx'
+  '/src/pages/members.tsx',
+  '/src/pages/members-list.tsx',
+  '/src/pages/dashboard.tsx',
+  '/src/pages/export.tsx'
 ];
 
 // Pre-cache during installation
