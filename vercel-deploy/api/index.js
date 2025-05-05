@@ -2,7 +2,19 @@
 import express from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { database, ref, get, set, push, update, remove, query, orderByChild, getNextMemberNumber, formatMemberNumber } from './database.js';
+import { 
+  database, 
+  ref, 
+  get, 
+  set, 
+  push, 
+  update, 
+  remove, 
+  query, 
+  orderByChild, 
+  getNextMemberNumber,
+  formatMemberNumber 
+} from './database.js';
 
 // Padconfiguratie voor statische bestanden
 const __filename = fileURLToPath(import.meta.url);
@@ -109,6 +121,8 @@ app.get('/api/members/:id', async (req, res) => {
 // Lid toevoegen
 app.post('/api/members', async (req, res) => {
   try {
+    console.log('POST /api/members - Request body:', JSON.stringify(req.body));
+    
     // Basisvalidatie
     const { firstName, lastName, phoneNumber } = req.body;
     if (!firstName || !lastName || !phoneNumber) {
@@ -118,38 +132,50 @@ app.post('/api/members', async (req, res) => {
       });
     }
     
-    // Genereer lidnummer
-    const memberNumber = await getNextMemberNumber();
-    
-    // Maak nieuw lid aan
-    const newMember = {
-      memberNumber,
-      firstName,
-      lastName,
-      phoneNumber,
-      email: req.body.email || '',
-      birthDate: req.body.birthDate || null,
-      accountNumber: req.body.accountNumber || '',
-      paymentStatus: req.body.paymentStatus || false,
-      registrationDate: new Date().toISOString(),
-      notes: req.body.notes || ''
-    };
-    
-    // Voeg toe aan Firebase
-    const membersRef = ref(database, 'members');
-    const newMemberRef = push(membersRef);
-    await set(newMemberRef, newMember);
-    
-    // Stuur antwoord terug met ID
-    res.status(201).json({
-      id: newMemberRef.key,
-      ...newMember
-    });
+    try {
+      // Genereer lidnummer
+      console.log('Generating member number...');
+      const memberNumber = await getNextMemberNumber();
+      console.log('Generated member number:', memberNumber);
+      
+      // Maak nieuw lid aan
+      const newMember = {
+        memberNumber,
+        firstName,
+        lastName,
+        phoneNumber,
+        email: req.body.email || '',
+        birthDate: req.body.birthDate || null,
+        accountNumber: req.body.accountNumber || '',
+        paymentStatus: req.body.paymentStatus || false,
+        registrationDate: new Date().toISOString(),
+        notes: req.body.notes || ''
+      };
+      
+      console.log('Adding new member to database:', JSON.stringify(newMember));
+      
+      // Voeg toe aan Firebase
+      const membersRef = ref(database, 'members');
+      const newMemberRef = push(membersRef);
+      await set(newMemberRef, newMember);
+      
+      console.log('Member added successfully with ID:', newMemberRef.key);
+      
+      // Stuur antwoord terug met ID
+      res.status(201).json({
+        id: newMemberRef.key,
+        ...newMember
+      });
+    } catch (innerError) {
+      console.error('Inner error in member creation:', innerError);
+      throw innerError; // Re-throw to be caught by outer catch
+    }
   } catch (error) {
     console.error('Error creating member:', error);
     res.status(500).json({ 
       error: 'Failed to create member',
-      details: error.message
+      details: error.message,
+      stack: error.stack
     });
   }
 });
