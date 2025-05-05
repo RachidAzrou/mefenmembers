@@ -211,10 +211,12 @@ export class RTDBStorage implements IStorage {
       
       // Zorg dat datums correct worden opgeslagen
       if (updateData.registrationDate instanceof Date) {
+        // @ts-ignore - We slaan het op als string in de database maar converteren bij ophalen
         updateData.registrationDate = updateData.registrationDate.toISOString();
       }
       
       if (updateData.birthDate instanceof Date) {
+        // @ts-ignore - We slaan het op als string in de database maar converteren bij ophalen
         updateData.birthDate = updateData.birthDate.toISOString();
       }
       
@@ -298,6 +300,9 @@ export class RTDBStorage implements IStorage {
           } else if (!committed) {
             console.error('[RTDB] Transaction niet committed');
             reject(new Error('Transaction niet committed'));
+          } else if (!snapshot) {
+            console.error('[RTDB] Snapshot is null');
+            reject(new Error('Transaction snapshot is null'));
           } else {
             const newValue = snapshot.val();
             console.log('[RTDB] Nieuwe counter waarde:', newValue);

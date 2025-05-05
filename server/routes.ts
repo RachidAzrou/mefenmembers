@@ -1,9 +1,43 @@
 import type { Express, Request, Response } from "express";
 import { createServer, type Server } from "http";
-import { storage } from "./firestore-storage"; // Gebruik de nieuwe Firestore implementatie
+import { storage as firestoreStorage } from "./firestore-storage"; // Firestore implementatie
+import { rtdbStorage } from "./rtdb-storage"; // Realtime Database implementatie
 import { insertMemberSchema } from "@shared/schema";
 import { fromZodError } from "zod-validation-error";
 import { setupEmergencyRoutes } from "./emergency-entry";
+
+// We maken een interface die alle gedeelde eigenschappen bevat
+// Dit helpt TypeScript te begrijpen dat beide implementaties compatibel zijn
+interface IDatabaseStorage {
+  firestore: any;
+  rtdb: any;
+  getMember(id: string): Promise<any>;
+  listMembers(): Promise<any[]>;
+  createMember(member: any): Promise<any>;
+  updateMember(id: string, member: any): Promise<any>;
+  deleteMember(id: string): Promise<void>;
+  generateMemberNumber(): Promise<number>;
+  addDeletedMemberNumber(memberNumber: number): Promise<any>;
+  getDeletedMemberNumbers(): Promise<any[]>;
+  getNextAvailableMemberNumber(): Promise<number>;
+  removeDeletedMemberNumber(memberNumber: number): Promise<void>;
+  sessionStore: any;
+}
+
+// Bepaal welke storage implementatie te gebruiken
+// Voorkeursvolgorde: 1) Firestore, 2) Realtime Database
+// In productieomgeving moeten beide werken, maar RTDB is eenvoudiger
+let storage: IDatabaseStorage = firestoreStorage; // Default naar Firestore
+
+// Als Firestore niet beschikbaar is (vooral in Vercel), val terug op RTDB
+if (!firestoreStorage.firestore && rtdbStorage.rtdb) {
+  console.log('[ROUTES] Firestore niet beschikbaar, gebruik Realtime Database als fallback');
+  storage = rtdbStorage;
+} else if (!firestoreStorage.firestore && !rtdbStorage.rtdb) {
+  console.error('[ROUTES] KRITIEKE FOUT: Geen database beschikbaar (Firestore en RTDB allebei onbeschikbaar)');
+} else {
+  console.log('[ROUTES] Gebruik Firestore als primaire database');
+}
 
 // Debug voor Vercel deployment
 const isVercel = !!process.env.VERCEL;
@@ -34,21 +68,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/members", async (_req: Request, res: Response) => {
     try {
-      // Controleer of Firestore beschikbaar is (vooral belangrijk in Vercel-omgeving)
-      if (!storage.firestore) {
-        console.error("[API] CRITICAL: Firestore service is niet beschikbaar!");
+      // Controleer of een database-implementatie beschikbaar is
+      if (!storage.firestore && !storage.rtdb) {
+        console.error("[API] CRITICAL: Geen database service is beschikbaar!");
         
         if (process.env.VERCEL) {
-          // Als we in productie zijn en geen toegang hebben tot Firestore,
+          // Als we in productie zijn en geen toegang hebben tot beide databases,
           // stuur een duidelijk geformatteerde foutmelding
           return res.status(503).json({ 
             error: "Database service is tijdelijk niet beschikbaar.",
             vercelDeployment: true,
-            message: "De database is momenteel niet toegankelijk. Dit is waarschijnlijk een configuratieprobleem met Vercel.",
+            message: "Geen van beide databases (Firestore en RTDB) is toegankelijk. Dit is waarschijnlijk een configuratieprobleem met Vercel.",
             suggestion: "Controleer of de Firebase-geheimen correct zijn geconfigureerd in de Vercel dashboard."
           });
         } else {
-          return res.status(500).json({ error: "Database service is niet beschikbaar" });
+          return res.status(500).json({ error: "Geen database service is beschikbaar" });
         }
       }
       
@@ -92,12 +126,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log("[API] POST /api/members - Start request");
       console.log("[API] Request body:", JSON.stringify(req.body));
       
-      // Fix voor Vercel: Controleer of de Firestore service beschikbaar is
-      if (!storage.firestore) {
-        console.error("[API] CRITICAL: Firestore service is niet beschikbaar!");
+            // Controleer de beschikbaarheid van een database service
+      // Met de RTDB-fallback zou dit eigenlijk niet nodig moeten zijn,
+      // behalve als beide databaseservices onbeschikbaar zijn
+      if ((storage.firestore === null || storage.firestore === undefined) && 
+          (storage.rtdb === null || storage.rtdb === undefined)) {
+        console.error("[API] CRITICAL: Geen database service is beschikbaar!");
         return res.status(500).json({ 
           error: "Database service is niet beschikbaar. Controleer server configuratie.", 
-          code: "FIRESTORE_UNAVAILABLE" 
+          code: "DATABASE_UNAVAILABLE" 
         });
       }
       

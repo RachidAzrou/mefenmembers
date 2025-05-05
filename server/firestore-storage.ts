@@ -40,6 +40,7 @@ export interface IStorage {
 export class FirestoreStorage implements IStorage {
   sessionStore: session.Store;
   firestore = firestore; // Exporteer firestore voor controles in de routes
+  rtdb = null; // Voor compatibiliteit met de gecombineerde interface
   private membersCollection;
   private deletedMemberNumbersCollection;
   private countersCollection;

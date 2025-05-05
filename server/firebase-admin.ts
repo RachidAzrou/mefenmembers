@@ -129,7 +129,8 @@ try {
   try {
     firestoreInstance = firebaseAdmin.firestore();
     console.log('[FirebaseAdmin] Firestore ook succesvol geïnitialiseerd');
-  } catch (firestoreError) {
+  } catch (error) {
+    const firestoreError = error as Error;
     console.log('[FirebaseAdmin] Firestore niet beschikbaar (niet erg, we gebruiken RTDB):', firestoreError.message);
     firestoreInstance = null;
   }
