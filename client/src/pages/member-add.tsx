@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Calendar as CalendarIcon, ArrowLeft } from "lucide-react";
+import { Calendar as CalendarIcon, ArrowLeft, Loader2 } from "lucide-react";
 import { 
   Form, 
   FormControl, 
@@ -22,10 +22,10 @@ import { nl } from "date-fns/locale";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
-import { Link, useLocation } from "wouter";
-import { insertMemberSchema } from "@shared/schema";
+import { Link, useLocation, useParams } from "wouter";
+import { insertMemberSchema, Member } from "@shared/schema";
 import { Textarea } from "@/components/ui/textarea";
 
 // Form validator schema met alle vereiste velden
@@ -40,6 +40,11 @@ const memberFormSchema = insertMemberSchema.extend({
 type FormData = z.infer<typeof memberFormSchema>;
 
 export default function MemberAdd() {
+  // Controleer of we een lid aan het bewerken zijn
+  const params = useParams<{ id: string }>();
+  const isEditMode = Boolean(params.id);
+  const memberId = params.id ? parseInt(params.id) : undefined;
+  
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [location, navigate] = useLocation();
@@ -58,6 +63,36 @@ export default function MemberAdd() {
       accountNumber: ""
     }
   });
+  
+  // Ophalen van lidgegevens bij bewerken
+  const { data: memberData, isLoading: isLoadingMember } = useQuery<Member>({
+    queryKey: [`/api/members/${memberId}`],
+    queryFn: async () => {
+      if (!memberId) return undefined;
+      const response = await apiRequest('GET', `/api/members/${memberId}`);
+      return await response.json();
+    },
+    enabled: isEditMode && memberId !== undefined,
+  });
+  
+  // Update formulier met bestaande gegevens bij bewerken
+  useEffect(() => {
+    if (memberData) {
+      // Converteer datum strings naar Date objecten
+      const birthDate = memberData.birthDate ? new Date(memberData.birthDate) : null;
+      
+      form.reset({
+        firstName: memberData.firstName,
+        lastName: memberData.lastName,
+        email: memberData.email || "",
+        phoneNumber: memberData.phoneNumber,
+        paymentStatus: memberData.paymentStatus || false,
+        notes: memberData.notes || "",
+        birthDate: birthDate,
+        accountNumber: memberData.accountNumber || "",
+      });
+    }
+  }, [memberData, form]);
   
   // Mutation om een nieuw lid aan te maken
   const createMemberMutation = useMutation({
@@ -82,22 +117,67 @@ export default function MemberAdd() {
     }
   });
   
+  // Mutation om een bestaand lid bij te werken
+  const updateMemberMutation = useMutation({
+    mutationFn: async (data: FormData) => {
+      if (!memberId) throw new Error('Geen lid-ID gevonden om bij te werken');
+      
+      const response = await apiRequest('PUT', `/api/members/${memberId}`, data);
+      return response.json();
+    },
+    onSuccess: () => {
+      // Update de cache en navigeer naar de ledenlijst
+      queryClient.invalidateQueries({ queryKey: ['/api/members'] });
+      queryClient.invalidateQueries({ queryKey: [`/api/members/${memberId}`] });
+      toast({
+        title: 'Lid bijgewerkt',
+        description: "De gegevens van het lid zijn succesvol bijgewerkt.",
+      });
+      navigate('/members');
+    },
+    onError: (error) => {
+      toast({
+        title: 'Fout bij bijwerken',
+        description: `Er is een fout opgetreden: ${error.message}`,
+        variant: 'destructive',
+      });
+    },
+  });
+  
   // Behandel het versturen van het formulier
   function onSubmit(data: FormData) {
-    createMemberMutation.mutate(data);
+    if (isEditMode) {
+      updateMemberMutation.mutate(data);
+    } else {
+      createMemberMutation.mutate(data);
+    }
   }
+  
+  const isPending = createMemberMutation.isPending || updateMemberMutation.isPending;
   
   return (
     <div className="space-y-6">
       {/* Header met gradient achtergrond */}
       <div className="rounded-lg bg-gradient-to-r from-[#963E56]/80 to-[#963E56] p-6 shadow-md text-white">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Nieuw lid toevoegen</h1>
+          <h1 className="text-2xl font-bold tracking-tight">
+            {isEditMode ? "Lid bewerken" : "Nieuw lid toevoegen"}
+          </h1>
           <p className="text-white/80">
-            Voeg een nieuw lid toe aan de MEFEN ledenadministratie.
+            {isEditMode 
+              ? "Bewerk de gegevens van het bestaande lid."
+              : "Voeg een nieuw lid toe aan de MEFEN ledenadministratie."}
           </p>
         </div>
       </div>
+      
+      {/* Laad indicator tijdens het ophalen van gegevens */}
+      {isEditMode && isLoadingMember && (
+        <div className="flex items-center justify-center p-6 bg-gray-50 rounded-lg border border-gray-100">
+          <Loader2 className="h-6 w-6 text-[#963E56] animate-spin mr-2" />
+          <p>Bezig met laden van lidgegevens...</p>
+        </div>
+      )}
       
       <div>
         {/* Formulier */}
@@ -114,7 +194,10 @@ export default function MemberAdd() {
               Lid gegevens
             </CardTitle>
             <CardDescription>
-              Vul alle vereiste informatie in om een nieuw lid toe te voegen. Velden met een <span className="text-destructive">*</span> zijn verplicht.
+              {isEditMode 
+                ? "Wijzig de gegevens van het lid. Velden met een " 
+                : "Vul alle vereiste informatie in om een nieuw lid toe te voegen. Velden met een "}
+              <span className="text-destructive">*</span> zijn verplicht.
             </CardDescription>
           </CardHeader>
           <CardContent>
