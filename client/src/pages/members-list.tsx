@@ -223,7 +223,6 @@ export default function MembersList() {
               <p className="text-[10px] sm:text-xs text-green-800/70 text-center">Betaald</p>
               {activeFilter === "paid" && (
                 <div className="mt-1 bg-green-200 text-green-800 px-2 py-0.5 rounded-full text-[8px] sm:text-[10px]">
-                  Actief filter
                 </div>
               )}
             </CardContent>

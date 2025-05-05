@@ -180,7 +180,7 @@ export default function Dashboard() {
               )}
             </div>
             <Progress 
-              value={statusFilter === 'all' || statusFilter === 'paid' ? paymentPercentage : (100-paymentPercentage)} 
+              value={statusFilter === 'paid' ? paymentPercentage : (statusFilter === 'unpaid' ? (100-paymentPercentage) : 0)} 
               className="h-2" />
             
             <div className="grid grid-cols-3 gap-4 pt-4 text-center">
@@ -196,11 +196,7 @@ export default function Dashboard() {
                   {members.length}
                 </div>
                 <div className="text-xs text-muted-foreground mt-1">Totaal</div>
-                {statusFilter === 'all' && (
-                  <div className="text-[10px] text-blue-600 mt-1">
-                    100% van alle leden
-                  </div>
-                )}
+
               </div>
               
               {/* Betaald widget - komt als tweede */}
@@ -335,7 +331,7 @@ export default function Dashboard() {
                   {/* Ouderen (65+) */}
                   <div className="flex items-center gap-4 p-4 rounded-lg bg-gray-50">
                     <div className="bg-purple-100 p-3 rounded-full">
-                      <BookOpen className="h-5 w-5 text-purple-600" />
+                      <UserCog className="h-5 w-5 text-purple-600" />
                     </div>
                     <div>
                       <div className="text-sm text-gray-500">Ouderen (65+ jaar)</div>
