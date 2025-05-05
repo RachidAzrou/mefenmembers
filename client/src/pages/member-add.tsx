@@ -43,7 +43,7 @@ const memberFormSchema = insertMemberSchema.extend({
   notes: z.string().optional(),
   birthDate: z.date().optional().nullable(),
   accountNumber: z.string().optional().nullable(),
-}).omit({ id: true, registrationDate: true, memberNumber: true });
+}).omit({ id: true, memberNumber: true });
 
 type FormData = z.infer<typeof memberFormSchema>;
 
@@ -168,10 +168,11 @@ export default function MemberAdd() {
       try {
         // Eerst een lidnummer genereren
         const { memberNumber } = await generateMemberNumberMutation.mutateAsync();
-        // Voeg het gegenereerde lidnummer toe aan de data
+        // Voeg het gegenereerde lidnummer en een registratiedatum toe aan de data
         const completeData = {
           ...data,
-          memberNumber
+          memberNumber,
+          registrationDate: new Date()
         };
         // Stuur het volledige data object naar de server
         createMemberMutation.mutate(completeData);
