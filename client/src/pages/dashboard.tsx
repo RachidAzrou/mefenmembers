@@ -159,29 +159,27 @@ export default function Dashboard() {
         </CardHeader>
         <CardContent>
           <div className="space-y-2">
-            <div className="flex justify-between items-center">
-              {statusFilter === 'all' && (
-                <>
-                  <span className="text-sm font-medium">{paymentPercentage}% betaald</span>
-                  <span className="text-sm text-muted-foreground">{paidMembers} van {members.length} leden</span>
-                </>
-              )}
-              {statusFilter === 'paid' && (
-                <>
-                  <span className="text-sm font-medium">{paymentPercentage}% betaald</span>
-                  <span className="text-sm text-muted-foreground">{paidMembers} leden van totaal</span>
-                </>
-              )}
-              {statusFilter === 'unpaid' && (
-                <>
-                  <span className="text-sm font-medium">{100-paymentPercentage}% niet betaald</span>
-                  <span className="text-sm text-muted-foreground">{unpaidMembers} leden van totaal</span>
-                </>
-              )}
-            </div>
-            <Progress 
-              value={statusFilter === 'paid' ? paymentPercentage : (statusFilter === 'unpaid' ? (100-paymentPercentage) : 0)} 
-              className="h-2" />
+            {statusFilter !== 'all' && (
+              <div className="flex justify-between items-center">
+                {statusFilter === 'paid' && (
+                  <>
+                    <span className="text-sm font-medium">{paymentPercentage}% betaald</span>
+                    <span className="text-sm text-muted-foreground">{paidMembers} van {members.length} leden</span>
+                  </>
+                )}
+                {statusFilter === 'unpaid' && (
+                  <>
+                    <span className="text-sm font-medium">{100-paymentPercentage}% niet betaald</span>
+                    <span className="text-sm text-muted-foreground">{unpaidMembers} van {members.length} leden</span>
+                  </>
+                )}
+              </div>
+            )}
+            {statusFilter !== 'all' && (
+              <Progress 
+                value={statusFilter === 'paid' ? paymentPercentage : (statusFilter === 'unpaid' ? (100-paymentPercentage) : 0)} 
+                className="h-2" />
+            )}
             
             <div className="grid grid-cols-3 gap-4 pt-4 text-center">
               {/* Totaal leden widget - komt als eerste */}
@@ -331,7 +329,7 @@ export default function Dashboard() {
                   {/* Ouderen (65+) */}
                   <div className="flex items-center gap-4 p-4 rounded-lg bg-gray-50">
                     <div className="bg-purple-100 p-3 rounded-full">
-                      <UserCog className="h-5 w-5 text-purple-600" />
+                      <Heart className="h-5 w-5 text-purple-600" />
                     </div>
                     <div>
                       <div className="text-sm text-gray-500">Ouderen (65+ jaar)</div>

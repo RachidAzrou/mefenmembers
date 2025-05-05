@@ -49,7 +49,7 @@ export default function MembersList() {
   const [searchQuery, setSearchQuery] = useState("");
   const [viewMember, setViewMember] = useState<Member | null>(null);
   const [activeFilter, setActiveFilter] = useState<"all" | "paid" | "unpaid" | "recent">("all");
-  const [sortField, setSortField] = useState<string>("name");
+  const [sortField, setSortField] = useState<string>("memberNumber");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
   const { toast } = useToast();
   const [, navigate] = useLocation();
@@ -144,12 +144,15 @@ export default function MembersList() {
   
   // Hier stond voorheen de exportToExcel functie die is verwijderd
   
-  // Formateer een datum voor weergave
+  // Formateer een datum voor weergave in DD/MM/YYYY formaat
   const formatDate = (dateString: string | Date | null | undefined) => {
     if (!dateString) return "-";
     try {
       const date = new Date(dateString);
-      return format(date, "dd MMMM yyyy", { locale: nl });
+      const day = date.getDate().toString().padStart(2, '0');
+      const month = (date.getMonth() + 1).toString().padStart(2, '0');
+      const year = date.getFullYear();
+      return `${day}/${month}/${year}`;
     } catch (e) {
       return "-";
     }
