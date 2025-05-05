@@ -343,7 +343,7 @@ export default function MembersList() {
                               <Eye className="mr-2 h-4 w-4" />
                               Details bekijken
                             </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => navigate(`/member-add?id=${member.id}`)} className="cursor-pointer">
+                            <DropdownMenuItem onClick={() => navigate(`/member/edit/${member.id}`)} className="cursor-pointer">
                               <Edit className="mr-2 h-4 w-4" />
                               Bewerken
                             </DropdownMenuItem>

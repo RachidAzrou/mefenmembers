@@ -804,9 +804,8 @@ export default function ExportPage() {
                         document={MembersPDF}
                         fileName={`ledenlijst_${new Date().toISOString().split('T')[0]}.pdf`}
                         className={`inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-purple-600 hover:bg-purple-700 text-white h-10 px-4 py-2 w-full sm:w-auto ${
-                          isLoading || exportFields.filter(f => f.enabled).length === 0 ? 'opacity-50 cursor-not-allowed' : ''
+                          isLoading || exportFields.filter(f => f.enabled).length === 0 ? 'opacity-50 pointer-events-none' : ''
                         }`}
-                        disabled={isLoading || exportFields.filter(f => f.enabled).length === 0}
                       >
                         {({ loading }) => 
                           loading ? (
