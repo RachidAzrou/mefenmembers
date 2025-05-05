@@ -4,6 +4,7 @@ import { storage } from "./firestore-storage"; // Gebruik de nieuwe Firestore im
 import { insertMemberSchema } from "@shared/schema";
 import { fromZodError } from "zod-validation-error";
 import { setupVercelDebugging } from "./vercel-debug";
+import { setupEmergencyRoutes } from "./emergency-entry";
 
 // Debug voor Vercel deployment
 const isVercel = !!process.env.VERCEL;
@@ -11,6 +12,10 @@ console.log('[Server Routes] Draait in Vercel omgeving:', isVercel);
 console.log('[Server Routes] NODE_ENV:', process.env.NODE_ENV);
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Activeer noodfunctionaliteit (altijd ingeschakeld, ongeacht omgeving)
+  // Deze routes werken altijd, zelfs als Firebase initialisatie volledig mislukt
+  setupEmergencyRoutes(app);
+  
   // Activeer Vercel debugging tools
   if (process.env.VERCEL || process.env.NODE_ENV === 'development') {
     setupVercelDebugging(app);
