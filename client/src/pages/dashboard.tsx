@@ -285,11 +285,8 @@ export default function Dashboard() {
                     </div>
                     <div>
                       <div className="text-sm text-gray-500">Tieners (13-17 jaar)</div>
-                      <div className="font-medium flex items-center">
+                      <div className="font-medium">
                         {teenagers} {teenagers === 1 ? "lid" : "leden"}
-                        <span className="text-xs text-gray-400 ml-2">
-                          ({members.length > 0 ? Math.round((teenagers / members.length) * 100) : 0}%)
-                        </span>
                       </div>
                     </div>
                   </div>
@@ -301,11 +298,8 @@ export default function Dashboard() {
                     </div>
                     <div>
                       <div className="text-sm text-gray-500">Jongvolwassenen (18-24 jaar)</div>
-                      <div className="font-medium flex items-center">
+                      <div className="font-medium">
                         {youngAdults} {youngAdults === 1 ? "lid" : "leden"}
-                        <span className="text-xs text-gray-400 ml-2">
-                          ({members.length > 0 ? Math.round((youngAdults / members.length) * 100) : 0}%)
-                        </span>
                       </div>
                     </div>
                   </div>
@@ -317,11 +311,8 @@ export default function Dashboard() {
                     </div>
                     <div>
                       <div className="text-sm text-gray-500">Volwassenen (25-64 jaar)</div>
-                      <div className="font-medium flex items-center">
+                      <div className="font-medium">
                         {adults} {adults === 1 ? "lid" : "leden"}
-                        <span className="text-xs text-gray-400 ml-2">
-                          ({members.length > 0 ? Math.round((adults / members.length) * 100) : 0}%)
-                        </span>
                       </div>
                     </div>
                   </div>
@@ -339,23 +330,17 @@ export default function Dashboard() {
                         strokeLinejoin="round" 
                         className="h-5 w-5 text-purple-600"
                       >
-                        <path d="M12 8a2 2 0 1 0 0-4 2 2 0 0 0 0 4Z" />
-                        <path d="M9 10h.01" />
-                        <path d="M15 10h.01" />
-                        <path d="M10 14a4 4 0 0 1 0-8" />
-                        <path d="M14 14a4 4 0 0 0 0-8" />
-                        <path d="M16 18a8 8 0 0 0-8 0" />
-                        <path d="M7 21h10" />
-                        <path d="M12 21v-3" />
+                        <path d="M20 22h-2"/>
+                        <path d="M20 15v7"/>
+                        <path d="M10 22V8l3-6 1 0c2 0 3 1 3 4v2a3 3 0 0 0 3 3h0"/>
+                        <path d="M15 8h-5"/>
+                        <path d="M18 12v0"/>
                       </svg>
                     </div>
                     <div>
                       <div className="text-sm text-gray-500">Ouderen (65+ jaar)</div>
-                      <div className="font-medium flex items-center">
+                      <div className="font-medium">
                         {elderly} {elderly === 1 ? "lid" : "leden"}
-                        <span className="text-xs text-gray-400 ml-2">
-                          ({members.length > 0 ? Math.round((elderly / members.length) * 100) : 0}%)
-                        </span>
                       </div>
                     </div>
                   </div>
