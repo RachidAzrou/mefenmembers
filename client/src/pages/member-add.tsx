@@ -162,24 +162,37 @@ export default function MemberAdd() {
 
   // Behandel het versturen van het formulier
   async function onSubmit(data: FormData) {
+    console.log("Form submitted with data:", data); // Debug log
+    
     if (isEditMode) {
       updateMemberMutation.mutate(data);
     } else {
       try {
         // Eerst een lidnummer genereren
+        console.log("Generating member number...");
         const { memberNumber } = await generateMemberNumberMutation.mutateAsync();
+        console.log("Generated member number:", memberNumber);
+        
         // Voeg het gegenereerde lidnummer en een registratiedatum toe aan de data
         const completeData = {
           ...data,
           memberNumber,
           registrationDate: new Date()
         };
+        console.log("Complete data to send:", completeData);
+        
         // Stuur het volledige data object naar de server
+        toast({
+          title: "Bezig met toevoegen",
+          description: "Bezig met toevoegen van nieuw lid...",
+        });
+        
         createMemberMutation.mutate(completeData);
       } catch (error) {
+        console.error("Error during submission:", error);
         toast({
           title: "Fout bij aanmaken lidnummer",
-          description: "Er is een probleem opgetreden bij het genereren van een lidnummer.",
+          description: `Er is een probleem opgetreden: ${error instanceof Error ? error.message : 'Onbekende fout'}`,
           variant: "destructive",
         });
       }
@@ -232,6 +245,16 @@ export default function MemberAdd() {
                 : "Vul alle vereiste informatie in om een nieuw lid toe te voegen. Velden met een "}
               <span className="text-destructive">*</span> zijn verplicht.
             </CardDescription>
+            
+            {/* Debug informatie */}
+            {Object.keys(form.formState.errors).length > 0 && (
+              <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-md">
+                <h4 className="font-medium text-red-800 mb-1">Form validation errors:</h4>
+                <pre className="text-xs overflow-auto text-red-700">
+                  {JSON.stringify(form.formState.errors, null, 2)}
+                </pre>
+              </div>
+            )}
           </CardHeader>
           <CardContent className="px-4 sm:px-6">
             <Form {...form}>
