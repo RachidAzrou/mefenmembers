@@ -1,89 +1,82 @@
 import admin from 'firebase-admin';
+import fs from 'fs';
+import path from 'path';
 
-// SERVERLESS-VRIENDELIJKE VERSIE
-// De Firebase Admin initialisatie is zo geschreven dat deze werkt in zowel serverless (Vercel)
-// als traditionele Node.js-omgevingen (lokale ontwikkeling)
+// SERVERLESS-VRIENDELIJKE VERSIE met serviceaccount.json ondersteuning
 console.log('[FirebaseAdmin] Initialisatie start...');
 
-// Vercel serverless hack om te onderzoeken
-//process.env.FIREBASE_PRIVATE_KEY_STRING = process.env.FIREBASE_PRIVATE_KEY || '';
+// Paden naar serviceaccount bestanden
+const serviceAccountPaths = [
+  path.join(process.cwd(), 'secrets', 'firebase-serviceaccount.json'),
+  path.join(process.cwd(), 'firebase-serviceaccount.json'),
+  path.join(process.cwd(), 'mefen-leden-firebase-adminsdk.json')
+];
 
 // Eén keer initialiseren op een veilige manier die werkt in serverless omgevingen
 const getFirebaseAdmin = () => {
   try {
     if (admin.apps.length === 0) {
-      // Debug info (veilig zonder gevoelige data te tonen)
-      console.log('[FirebaseAdmin] Project ID aanwezig:', !!process.env.FIREBASE_PROJECT_ID);
-      console.log('[FirebaseAdmin] Client Email aanwezig:', !!process.env.FIREBASE_CLIENT_EMAIL);
-      console.log('[FirebaseAdmin] Private Key aanwezig:', !!process.env.FIREBASE_PRIVATE_KEY);
       console.log('[FirebaseAdmin] Vercel omgeving:', !!process.env.VERCEL);
       
-      // Bereid de credentials voor op een serverless-vriendelijke manier
-      // Specifieke aanpassingen voor Vercel omgeving
-      let privateKey;
+      // METHODE 1: Probeer serviceaccount JSON bestand te laden
+      let serviceAccount = null;
       
-      if (process.env.VERCEL) {
-        console.log('[FirebaseAdmin] Vercel-specifieke private key verwerking');
-        // Vercel vereist deze vorm van verwerking voor private keys
-        privateKey = process.env.FIREBASE_PRIVATE_KEY ? 
+      // Loop door mogelijke locaties van het serviceaccount bestand
+      for (const filePath of serviceAccountPaths) {
+        try {
+          if (fs.existsSync(filePath)) {
+            console.log(`[FirebaseAdmin] Serviceaccount JSON gevonden op: ${filePath}`);
+            const fileContent = fs.readFileSync(filePath, 'utf8');
+            serviceAccount = JSON.parse(fileContent);
+            break;
+          }
+        } catch (err) {
+          console.log(`[FirebaseAdmin] Kon bestand niet lezen: ${filePath}`);
+        }
+      }
+      
+      // Als we een serviceaccount bestand hebben gevonden, gebruik het
+      if (serviceAccount) {
+        console.log('[FirebaseAdmin] Initialisatie met serviceaccount JSON bestand');
+        admin.initializeApp({
+          credential: admin.credential.cert(serviceAccount),
+          databaseURL: 'https://mefen-leden-default-rtdb.europe-west1.firebasedatabase.app'
+        });
+      } 
+      // METHODE 2: Gebruik omgevingsvariabelen als fallback
+      else {
+        console.log('[FirebaseAdmin] Serviceaccount JSON niet gevonden, gebruik omgevingsvariabelen');
+        console.log('[FirebaseAdmin] Project ID aanwezig:', !!process.env.FIREBASE_PROJECT_ID);
+        console.log('[FirebaseAdmin] Client Email aanwezig:', !!process.env.FIREBASE_CLIENT_EMAIL);
+        console.log('[FirebaseAdmin] Private Key aanwezig:', !!process.env.FIREBASE_PRIVATE_KEY);
+        
+        // Verwerk de private key
+        const privateKey = process.env.FIREBASE_PRIVATE_KEY ? 
           process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n') : 
           undefined;
-      } else {
-        // Standaard ontwikkelomgeving
-        privateKey = process.env.FIREBASE_PRIVATE_KEY ? 
-          process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n') : 
-          '-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----\n';
-      }
-      
-      // Voor debugging (alleen veilige informatie)
-      if (process.env.VERCEL) {
-        console.log('[FirebaseAdmin] Private key lengte:', privateKey ? privateKey.length : 0);
-        console.log('[FirebaseAdmin] Private key begint met:', privateKey ? privateKey.substring(0, 20) + '...' : 'undefined');
-      }
         
-      // Verschillende configuratiemethode voor Vercel vs. lokale omgeving
-      if (process.env.VERCEL) {
-        console.log('[FirebaseAdmin] Vercel-specifieke initialisatie');
+        // Voor debugging (alleen veilige informatie)
+        if (process.env.VERCEL) {
+          console.log('[FirebaseAdmin] Private key lengte:', privateKey ? privateKey.length : 0);
+          if (privateKey) {
+            console.log('[FirebaseAdmin] Private key begint met:', privateKey.substring(0, 20) + '...');
+            console.log('[FirebaseAdmin] Private key eindigt met:', '...' + privateKey.substring(privateKey.length - 20));
+          }
+        }
         
         try {
-          // Poging 1: Met verwerkte serviceaccount 
           admin.initializeApp({
             credential: admin.credential.cert({
-              projectId: process.env.FIREBASE_PROJECT_ID,
-              clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+              projectId: process.env.FIREBASE_PROJECT_ID || 'mefen-leden',
+              clientEmail: process.env.FIREBASE_CLIENT_EMAIL || 'firebase-adminsdk-j4oqr@mefen-leden.iam.gserviceaccount.com',
               privateKey: privateKey
             } as admin.ServiceAccount),
             databaseURL: 'https://mefen-leden-default-rtdb.europe-west1.firebasedatabase.app'
           });
         } catch (e) {
-          console.error('[FirebaseAdmin] Eerste initialisatiemethode mislukt, alternatief proberen:', e);
-          
-          try {
-            // Poging 2: Met projectId en clientEmail als directe waarden
-            admin.initializeApp({
-              credential: admin.credential.cert({
-                projectId: "mefen-leden",
-                clientEmail: "firebase-adminsdk-j4oqr@mefen-leden.iam.gserviceaccount.com",
-                privateKey: privateKey
-              } as admin.ServiceAccount),
-              databaseURL: "https://mefen-leden-default-rtdb.europe-west1.firebasedatabase.app"
-            });
-          } catch (e2) {
-            console.error('[FirebaseAdmin] Tweede initialisatiemethode mislukt:', e2);
-            // We laten de fout doorbubbelen naar de volgende catch
-            throw e2;
-          }
+          console.error('[FirebaseAdmin] Initialisatie met omgevingsvariabelen mislukt:', e);
+          throw e;
         }
-      } else {
-        // Standaard lokale ontwikkelomgeving
-        admin.initializeApp({
-          credential: admin.credential.cert({
-            projectId: process.env.FIREBASE_PROJECT_ID || 'mefen-leden',
-            clientEmail: process.env.FIREBASE_CLIENT_EMAIL || 'firebase-adminsdk-j4oqr@mefen-leden.iam.gserviceaccount.com',
-            privateKey: privateKey
-          } as admin.ServiceAccount),
-          databaseURL: 'https://mefen-leden-default-rtdb.europe-west1.firebasedatabase.app'
-        });
       }
       
       console.log('[FirebaseAdmin] Initialisatie succesvol voltooid');

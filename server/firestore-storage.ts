@@ -62,6 +62,12 @@ export class FirestoreStorage implements IStorage {
   }
 
   async getMember(id: string): Promise<Member | undefined> {
+    // Controleer of Firebase geïnitialiseerd is
+    if (!this.firestore || !this.membersCollection) {
+      console.error('[Storage] Firebase niet beschikbaar, kan lid niet ophalen');
+      return undefined;
+    }
+    
     // In Firestore kunnen we direct op document ID zoeken
     const docRef = this.membersCollection.doc(id);
     const doc = await docRef.get();
@@ -74,6 +80,12 @@ export class FirestoreStorage implements IStorage {
   }
 
   async listMembers(): Promise<Member[]> {
+    // Controleer of Firebase geïnitialiseerd is
+    if (!this.firestore || !this.membersCollection) {
+      console.error('[Storage] Firebase niet beschikbaar, kan leden niet ophalen');
+      return [];
+    }
+    
     const snapshot = await this.membersCollection.orderBy('memberNumber', 'asc').get();
     return snapshot.docs.map(doc => {
       const data = doc.data();
@@ -98,6 +110,12 @@ export class FirestoreStorage implements IStorage {
   async createMember(member: InsertMember): Promise<Member> {
     try {
       console.log("createMember - Start with data:", JSON.stringify(member));
+      
+      // Controleer of Firebase geïnitialiseerd is
+      if (!this.firestore || !this.membersCollection) {
+        console.error('[Storage] Firebase niet beschikbaar, kan lid niet toevoegen');
+        throw new Error('Database service is tijdelijk niet beschikbaar');
+      }
       
       // Genereer een nieuw document ID
       const memberRef = this.membersCollection.doc();
