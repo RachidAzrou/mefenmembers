@@ -9,7 +9,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Generate unique member number (moet vóór /api/members/:id komen)
   app.get("/api/members/generate-number", async (_req: Request, res: Response) => {
     try {
-      const memberNumber = await storage.generateMemberNumber();
+      const rawNumber = await storage.generateMemberNumber();
+      
+      // Format lidnummer met voorloopnullen: 0001, 0002, etc.
+      const memberNumber = rawNumber.toString().padStart(4, '0');
+      
       res.json({ memberNumber });
     } catch (error) {
       console.error("Error generating member number:", error);
@@ -57,7 +61,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Altijd een lidnummer genereren voor nieuwe leden (zelfs als er een is meegegeven)
       // Dit is een snelle database bewerking die potentiële dubbele nummers voorkomt
-      const memberNumber = await storage.generateMemberNumber();
+      const rawNumber = await storage.generateMemberNumber();
+      
+      // We moeten het ruwe nummer gebruiken omdat we in de database integers opslaan
+      // Het nummer wordt bij weergave in de UI als string met voorloop-nullen weergegeven
+      const memberNumber = rawNumber;
       
       // Voeg het lidnummer toe aan de data
       const memberData = {

@@ -83,12 +83,13 @@ export class DatabaseStorage implements IStorage {
   async generateMemberNumber(): Promise<number> {
     // Geoptimaliseerde versie met betere caching en minder database belasting
     // Gebruik direct een SQL-query om het nummer te genereren in één operatie
+    // Begin bij 1 voor het eerste lid, vervolgens 2, 3, etc.
     const result = await db.execute<{ next_number: number }>(
-      sql`SELECT COALESCE(MAX(${members.memberNumber}), 9999) + 1 AS next_number FROM ${members}`
+      sql`SELECT COALESCE(MAX(${members.memberNumber}), 0) + 1 AS next_number FROM ${members}`
     );
     
     // Haal het resultaat uit de query
-    return result.rows[0]?.next_number || 10000;
+    return result.rows[0]?.next_number || 1;
   }
 }
 
