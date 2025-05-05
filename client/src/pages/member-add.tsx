@@ -251,39 +251,56 @@ export default function MemberAdd() {
                     render={({ field }) => (
                       <FormItem className="flex flex-col">
                         <FormLabel>Geboortedatum</FormLabel>
-                        <Popover>
-                          <PopoverTrigger asChild>
-                            <FormControl>
-                              <Button
-                                variant={"outline"}
-                                className={cn(
-                                  "w-full pl-3 text-left font-normal border-gray-200",
-                                  !field.value && "text-muted-foreground"
-                                )}
-                              >
-                                {field.value ? (
-                                  format(field.value, "dd MMMM yyyy", { locale: nl })
-                                ) : (
-                                  <span>Kies een datum</span>
-                                )}
-                                <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                              </Button>
-                            </FormControl>
-                          </PopoverTrigger>
-                          <PopoverContent className="w-auto p-0" align="start">
-                            <Calendar
-                              mode="single"
-                              selected={field.value || undefined}
-                              onSelect={field.onChange}
-                              disabled={(date) =>
-                                date > new Date() || date < new Date("1900-01-01")
-                              }
-                              initialFocus
+                        <div className="flex flex-col sm:flex-row gap-2 sm:items-center">
+                          {/* Invoerveld voor handmatige datum invoer */}
+                          <FormControl className="flex-1">
+                            <Input
+                              type="date"
+                              className="border-gray-200 focus:border-[#963E56]"
+                              value={field.value ? format(field.value, "yyyy-MM-dd") : ""}
+                              onChange={(e) => {
+                                const date = e.target.value ? new Date(e.target.value) : null;
+                                field.onChange(date);
+                              }}
+                              placeholder="DD-MM-JJJJ"
+                              min="1900-01-01"
+                              max={format(new Date(), "yyyy-MM-dd")}
                             />
-                          </PopoverContent>
-                        </Popover>
-                        <FormDescription>
-                          Selecteer de geboortedatum van het lid.
+                          </FormControl>
+                          
+                          {/* OF tekst */}
+                          <div className="text-xs text-center text-muted-foreground hidden sm:block">OF</div>
+                          
+                          {/* Kalender popup */}
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <Button
+                                type="button"
+                                variant={"outline"}
+                                className="border-gray-200 sm:w-auto w-full"
+                              >
+                                <CalendarIcon className="mr-2 h-4 w-4" />
+                                <span className="text-xs sm:text-sm">Kies in kalender</span>
+                              </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0" align="start">
+                              <Calendar
+                                mode="single"
+                                selected={field.value || undefined}
+                                onSelect={field.onChange}
+                                disabled={(date) =>
+                                  date > new Date() || date < new Date("1900-01-01")
+                                }
+                                initialFocus
+                                captionLayout="dropdown-buttons"
+                                fromYear={1900}
+                                toYear={new Date().getFullYear()}
+                              />
+                            </PopoverContent>
+                          </Popover>
+                        </div>
+                        <FormDescription className="text-xs sm:text-sm">
+                          Typ de datum of selecteer deze via de kalender.
                         </FormDescription>
                         <FormMessage />
                       </FormItem>
