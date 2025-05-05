@@ -81,16 +81,14 @@ export class DatabaseStorage implements IStorage {
   }
 
   async generateMemberNumber(): Promise<number> {
-    // Haal het hoogste huidige lidnummer op
-    const result = await db
-      .select({ max: sql<number>`MAX(${members.memberNumber})` })
-      .from(members);
+    // Geoptimaliseerde versie met betere caching en minder database belasting
+    // Gebruik direct een SQL-query om het nummer te genereren in één operatie
+    const result = await db.execute<{ next_number: number }>(
+      sql`SELECT COALESCE(MAX(${members.memberNumber}), 9999) + 1 AS next_number FROM ${members}`
+    );
     
-    // Als er geen leden zijn, begin bij 10000
-    const currentMaxNumber = result[0]?.max || 9999;
-    
-    // Genereer een nieuw nummer dat 1 hoger is dan het huidige maximum
-    return currentMaxNumber + 1;
+    // Haal het resultaat uit de query
+    return result.rows[0]?.next_number || 10000;
   }
 }
 

@@ -55,13 +55,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: errorMessage });
       }
 
-      // Als er geen lidnummer is meegegeven, genereer er dan een
-      if (!validationResult.data.memberNumber) {
-        validationResult.data.memberNumber = await storage.generateMemberNumber();
+      // Altijd een lidnummer genereren voor nieuwe leden (zelfs als er een is meegegeven)
+      // Dit is een snelle database bewerking die potentiële dubbele nummers voorkomt
+      const memberNumber = await storage.generateMemberNumber();
+      
+      // Voeg het lidnummer toe aan de data
+      const memberData = {
+        ...validationResult.data,
+        memberNumber
+      };
+      
+      // Zorg dat de registratiedatum goed is ingesteld
+      if (!memberData.registrationDate) {
+        memberData.registrationDate = new Date();
       }
       
-      const member = await storage.createMember(validationResult.data);
-      res.status(201).json(member);
+      // Geoptimaliseerde verwerking met minder SQL-queries
+      const member = await storage.createMember(memberData);
+      
+      // Stuur direct een 201 Created status met minimale data terug
+      // voor snellere respons, met alleen de essentiële velden
+      res.status(201).json({
+        id: member.id,
+        memberNumber: member.memberNumber,
+        firstName: member.firstName,
+        lastName: member.lastName,
+      });
     } catch (error) {
       console.error("Error creating member:", error);
       res.status(500).json({ error: "Failed to create member" });

@@ -152,50 +152,26 @@ export default function MemberAdd() {
     },
   });
   
-  // Mutation om een nieuw lidnummer te genereren
-  const generateMemberNumberMutation = useMutation({
-    mutationFn: async () => {
-      const response = await apiRequest("GET", "/api/members/generate-number");
-      return response.json();
-    }
-  });
-
   // Behandel het versturen van het formulier
   async function onSubmit(data: FormData) {
-    console.log("Form submitted with data:", data); // Debug log
-    
     if (isEditMode) {
       updateMemberMutation.mutate(data);
     } else {
-      try {
-        // Eerst een lidnummer genereren
-        console.log("Generating member number...");
-        const { memberNumber } = await generateMemberNumberMutation.mutateAsync();
-        console.log("Generated member number:", memberNumber);
-        
-        // Voeg het gegenereerde lidnummer en een registratiedatum toe aan de data
-        const completeData = {
-          ...data,
-          memberNumber,
-          registrationDate: new Date()
-        };
-        console.log("Complete data to send:", completeData);
-        
-        // Stuur het volledige data object naar de server
-        toast({
-          title: "Bezig met toevoegen",
-          description: "Bezig met toevoegen van nieuw lid...",
-        });
-        
-        createMemberMutation.mutate(completeData);
-      } catch (error) {
-        console.error("Error during submission:", error);
-        toast({
-          title: "Fout bij aanmaken lidnummer",
-          description: `Er is een probleem opgetreden: ${error instanceof Error ? error.message : 'Onbekende fout'}`,
-          variant: "destructive",
-        });
-      }
+      // Stuur vereenvoudigde data direct naar API, laat server het lidnummer genereren
+      // Dit elimineert een extra API-aanroep en maakt het proces sneller
+      const completeData = {
+        ...data,
+        registrationDate: new Date()
+      };
+      
+      // Toon onmiddellijk een toast dat het proces is gestart
+      toast({
+        title: "Lid wordt toegevoegd",
+        description: "Even geduld...",
+      });
+      
+      // Start de mutatie direct
+      createMemberMutation.mutate(completeData);
     }
   }
   
