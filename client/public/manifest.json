@@ -1,7 +1,7 @@
 {
-  "name": "MEFEN Vrijwilligers",
+  "name": "MEFEN Ledenbeheer",
   "short_name": "MEFEN",
-  "description": "Vrijwilligers management systeem voor MEFEN moskee",
+  "description": "Leden administratie systeem voor MEFEN moskee",
   "version": "2.1.4",
   "start_url": "/",
   "display": "standalone",
@@ -9,13 +9,13 @@
   "theme_color": "#963E56",
   "icons": [
     {
-      "src": "/static/mosque_15418029.png",
+      "src": "/static/membership_7548050.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/static/mosque_15418029.png",
+      "src": "/static/membership_7548050.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
@@ -26,14 +26,14 @@
   "scope": "/",
   "shortcuts": [
     {
-      "name": "Vrijwilligers",
-      "url": "/volunteers",
-      "description": "Beheer vrijwilligers"
+      "name": "Leden",
+      "url": "/members",
+      "description": "Beheer leden"
     },
     {
-      "name": "Planning",
-      "url": "/planning",
-      "description": "Bekijk planning"
+      "name": "Dashboard",
+      "url": "/dashboard",
+      "description": "Bekijk statistieken"
     }
   ]
 }
