@@ -317,15 +317,7 @@ export default function Dashboard() {
                   {/* Volwassenen (25-64) */}
                   <div className="flex items-center gap-4 p-4 rounded-lg bg-gray-50">
                     <div className="bg-orange-100 p-3 rounded-full">
-                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5 text-orange-600">
-                        <path d="M17 11l2 2c1.17 1.17 1.17 3.07 0 4.24l-2.83 2.83c-.56.56-1.33.83-2.08.82L8 21"/>
-                        <path d="M16 16l-9-9"/>
-                        <path d="M8.58 8.58 6.34 6.34a1.5 1.5 0 0 1 0-2.12L8.5 2"/>
-                        <path d="M10.09 13.41l-1.8 1.8c-.94.94-.94 2.48.08 3.5 1.03 1.04 2.55 1.04 3.5.1l1.78-1.79"/>
-                        <path d="M5.68 19.73a2.28 2.28 0 0 0 1.6 1.5c.66.13 1.37-.02 1.88-.52l.93-.93"/>
-                        <path d="M15 5c.83-.44 1.7-.67 2.5-.67 1.5 0 2.5.5 3.5 1.67"/>
-                        <circle cx="12" cy="8" r="5"/>
-                      </svg>
+                      <Briefcase className="h-5 w-5 text-orange-600" />
                     </div>
                     <div>
                       <div className="text-sm text-gray-500">Volwassenen (25-64 jaar)</div>
@@ -341,16 +333,7 @@ export default function Dashboard() {
                   {/* Ouderen (65+) */}
                   <div className="flex items-center gap-4 p-4 rounded-lg bg-gray-50">
                     <div className="bg-purple-100 p-3 rounded-full">
-                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5 text-purple-600">
-                        <circle cx="12" cy="5" r="3"></circle>
-                        <path d="m11 8 2 3 2-3"></path>
-                        <path d="M18 12.5V10a2 2 0 0 0-2-2h-3.5"></path>
-                        <path d="M18 12.5h-5a2 2 0 0 1-2-2v-2a2 2 0 0 0-1.5-2 2.5 2.5 0 0 0-2.5 2.5"></path>
-                        <path d="M7 14a4 4 0 0 1 4-4"></path>
-                        <path d="M7 14a4 4 0 0 0 4 4h6"></path>
-                        <path d="M17 18h1.5a2.5 2.5 0 0 0 0-5H17"></path>
-                        <path d="M7 14h-.5a2.5 2.5 0 0 0 0 5H7"></path>
-                      </svg>
+                      <Leaf className="h-5 w-5 text-purple-600" />
                     </div>
                     <div>
                       <div className="text-sm text-gray-500">Ouderen (65+ jaar)</div>
