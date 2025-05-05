@@ -49,6 +49,8 @@ export default function MembersList() {
   const [searchQuery, setSearchQuery] = useState("");
   const [viewMember, setViewMember] = useState<Member | null>(null);
   const [activeFilter, setActiveFilter] = useState<"all" | "paid" | "unpaid" | "recent">("all");
+  const [sortField, setSortField] = useState<string>("name");
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
   const { toast } = useToast();
   const [, navigate] = useLocation();
   
@@ -85,6 +87,56 @@ export default function MembersList() {
     
     return matchesSearch && matchesFilter;
   });
+
+  // Bereken leeftijd functie
+  const calculateAge = (birthDate: string | null): number | null => {
+    if (!birthDate) return null;
+    const today = new Date();
+    const bDate = new Date(birthDate);
+    let age = today.getFullYear() - bDate.getFullYear();
+    const monthDiff = today.getMonth() - bDate.getMonth();
+    
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < bDate.getDate())) {
+      age--;
+    }
+    
+    return age;
+  };
+  
+  // Sorteer de gefilterde leden
+  const sortedMembers = [...filteredMembers].sort((a, b) => {
+    // Controleer de sorteerrichting
+    const modifier = sortDirection === "asc" ? 1 : -1;
+    
+    // Sorteer op basis van het geselecteerde veld
+    switch (sortField) {
+      case "name":
+        return `${a.firstName} ${a.lastName}`.localeCompare(`${b.firstName} ${b.lastName}`) * modifier;
+      case "memberNumber":
+        return (a.memberNumber - b.memberNumber) * modifier;
+      case "age":
+        const ageA = calculateAge(a.birthDate) || 0;
+        const ageB = calculateAge(b.birthDate) || 0;
+        return (ageA - ageB) * modifier;
+      case "registrationDate":
+        return (new Date(a.registrationDate).getTime() - new Date(b.registrationDate).getTime()) * modifier;
+      case "paymentStatus":
+        // Voor paymentStatus, sorteren we paid eerst als asc, unpaid eerst als desc
+        return ((a.paymentStatus === b.paymentStatus) ? 0 : a.paymentStatus ? -1 : 1) * modifier;
+      default:
+        return 0;
+    }
+  });
+  
+  // Toggle sorteerrichting of verander sorteerveld
+  const toggleSort = (field: string) => {
+    if (field === sortField) {
+      setSortDirection(sortDirection === "asc" ? "desc" : "asc");
+    } else {
+      setSortField(field);
+      setSortDirection("asc");
+    }
+  };
   
   // Hier stond voorheen de exportToExcel functie die is verwijderd
   
@@ -232,7 +284,7 @@ export default function MembersList() {
             <Users className="h-4 w-4 sm:h-5 sm:w-5 mr-2 text-[#963E56]" /> Ledenbestand
           </CardTitle>
           <CardDescription className="text-xs sm:text-sm">
-            {filteredMembers.length} leden gevonden
+            {sortedMembers.length} leden gevonden
             {searchQuery ? ` voor zoekterm "${searchQuery}"` : ""}
             {activeFilter !== "all" && (
               <span className="block mt-1">
@@ -266,18 +318,156 @@ export default function MembersList() {
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
             </div>
+            
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="md:w-auto w-full mt-2 md:mt-0 bg-white border-gray-200 text-xs sm:text-sm"
+                >
+                  {sortDirection === "asc" ? <SortAsc className="h-3.5 w-3.5 mr-2" /> : <SortDesc className="h-3.5 w-3.5 mr-2" />}
+                  Sorteren op: {sortField === "name" ? "Naam" : 
+                    sortField === "memberNumber" ? "Lidnummer" : 
+                    sortField === "age" ? "Leeftijd" : 
+                    sortField === "registrationDate" ? "Registratiedatum" : 
+                    sortField === "paymentStatus" ? "Betaalstatus" : "Naam"}
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48">
+                <DropdownMenuRadioGroup value={sortField} onValueChange={(value) => {
+                  if (value === sortField) {
+                    setSortDirection(sortDirection === "asc" ? "desc" : "asc");
+                  } else {
+                    setSortField(value);
+                    setSortDirection("asc");
+                  }
+                }}>
+                  <DropdownMenuRadioItem value="name" className="text-xs sm:text-sm cursor-pointer">
+                    Op naam {sortField === "name" && (
+                      <span className="ml-auto">
+                        {sortDirection === "asc" ? 
+                          <SortAsc className="h-3.5 w-3.5 text-gray-500" /> : 
+                          <SortDesc className="h-3.5 w-3.5 text-gray-500" />
+                        }
+                      </span>
+                    )}
+                  </DropdownMenuRadioItem>
+                  <DropdownMenuRadioItem value="memberNumber" className="text-xs sm:text-sm cursor-pointer">
+                    Op lidnummer {sortField === "memberNumber" && (
+                      <span className="ml-auto">
+                        {sortDirection === "asc" ? 
+                          <SortAsc className="h-3.5 w-3.5 text-gray-500" /> : 
+                          <SortDesc className="h-3.5 w-3.5 text-gray-500" />
+                        }
+                      </span>
+                    )}
+                  </DropdownMenuRadioItem>
+                  <DropdownMenuRadioItem value="age" className="text-xs sm:text-sm cursor-pointer">
+                    Op leeftijd {sortField === "age" && (
+                      <span className="ml-auto">
+                        {sortDirection === "asc" ? 
+                          <SortAsc className="h-3.5 w-3.5 text-gray-500" /> : 
+                          <SortDesc className="h-3.5 w-3.5 text-gray-500" />
+                        }
+                      </span>
+                    )}
+                  </DropdownMenuRadioItem>
+                  <DropdownMenuRadioItem value="registrationDate" className="text-xs sm:text-sm cursor-pointer">
+                    Op registratiedatum {sortField === "registrationDate" && (
+                      <span className="ml-auto">
+                        {sortDirection === "asc" ? 
+                          <SortAsc className="h-3.5 w-3.5 text-gray-500" /> : 
+                          <SortDesc className="h-3.5 w-3.5 text-gray-500" />
+                        }
+                      </span>
+                    )}
+                  </DropdownMenuRadioItem>
+                  <DropdownMenuRadioItem value="paymentStatus" className="text-xs sm:text-sm cursor-pointer">
+                    Op betaalstatus {sortField === "paymentStatus" && (
+                      <span className="ml-auto">
+                        {sortDirection === "asc" ? 
+                          <SortAsc className="h-3.5 w-3.5 text-gray-500" /> : 
+                          <SortDesc className="h-3.5 w-3.5 text-gray-500" />
+                        }
+                      </span>
+                    )}
+                  </DropdownMenuRadioItem>
+                </DropdownMenuRadioGroup>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
           
           <div className="rounded-lg overflow-hidden border border-gray-100 shadow-sm">
             <Table>
               <TableHeader className="bg-gray-50">
                 <TableRow>
-                  <TableHead className="font-medium sm:font-semibold text-xs sm:text-sm text-gray-700">Lidnr.</TableHead>
-                  <TableHead className="font-medium sm:font-semibold text-xs sm:text-sm text-gray-700">Naam</TableHead>
-                  <TableHead className="hidden md:table-cell font-medium sm:font-semibold text-xs sm:text-sm text-gray-700">Geboortedatum</TableHead>
+                  <TableHead className="font-medium sm:font-semibold text-xs sm:text-sm text-gray-700">
+                    <button 
+                      onClick={() => toggleSort("memberNumber")} 
+                      className="flex items-center hover:text-[#963E56] transition-colors"
+                    >
+                      Lidnr.
+                      {sortField === "memberNumber" && (
+                        <span className="ml-1">
+                          {sortDirection === "asc" ? 
+                            <SortAsc className="h-3 w-3" /> : 
+                            <SortDesc className="h-3 w-3" />
+                          }
+                        </span>
+                      )}
+                    </button>
+                  </TableHead>
+                  <TableHead className="font-medium sm:font-semibold text-xs sm:text-sm text-gray-700">
+                    <button 
+                      onClick={() => toggleSort("name")} 
+                      className="flex items-center hover:text-[#963E56] transition-colors"
+                    >
+                      Naam
+                      {sortField === "name" && (
+                        <span className="ml-1">
+                          {sortDirection === "asc" ? 
+                            <SortAsc className="h-3 w-3" /> : 
+                            <SortDesc className="h-3 w-3" />
+                          }
+                        </span>
+                      )}
+                    </button>
+                  </TableHead>
+                  <TableHead className="hidden md:table-cell font-medium sm:font-semibold text-xs sm:text-sm text-gray-700">
+                    <button 
+                      onClick={() => toggleSort("age")} 
+                      className="flex items-center hover:text-[#963E56] transition-colors"
+                    >
+                      Geboortedatum
+                      {sortField === "age" && (
+                        <span className="ml-1">
+                          {sortDirection === "asc" ? 
+                            <SortAsc className="h-3 w-3" /> : 
+                            <SortDesc className="h-3 w-3" />
+                          }
+                        </span>
+                      )}
+                    </button>
+                  </TableHead>
                   <TableHead className="hidden md:table-cell font-medium sm:font-semibold text-xs sm:text-sm text-gray-700">E-mail</TableHead>
                   <TableHead className="hidden md:table-cell font-medium sm:font-semibold text-xs sm:text-sm text-gray-700">Telefoon</TableHead>
-                  <TableHead className="font-medium sm:font-semibold text-xs sm:text-sm text-gray-700">Status</TableHead>
+                  <TableHead className="font-medium sm:font-semibold text-xs sm:text-sm text-gray-700">
+                    <button 
+                      onClick={() => toggleSort("paymentStatus")} 
+                      className="flex items-center hover:text-[#963E56] transition-colors"
+                    >
+                      Status
+                      {sortField === "paymentStatus" && (
+                        <span className="ml-1">
+                          {sortDirection === "asc" ? 
+                            <SortAsc className="h-3 w-3" /> : 
+                            <SortDesc className="h-3 w-3" />
+                          }
+                        </span>
+                      )}
+                    </button>
+                  </TableHead>
                   <TableHead className="text-right font-medium sm:font-semibold text-xs sm:text-sm text-gray-700">Acties</TableHead>
                 </TableRow>
               </TableHeader>
@@ -294,7 +484,7 @@ export default function MembersList() {
                       <TableCell className="text-right"><Skeleton className="h-5 w-8 ml-auto" /></TableCell>
                     </TableRow>
                   ))
-                ) : filteredMembers.length === 0 ? (
+                ) : sortedMembers.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={7} className="h-32 text-center">
                       <div className="flex flex-col items-center justify-center text-gray-500">
@@ -309,7 +499,7 @@ export default function MembersList() {
                     </TableCell>
                   </TableRow>
                 ) : (
-                  filteredMembers.map((member) => (
+                  sortedMembers.map((member) => (
                     <TableRow key={member.id} className="hover:bg-gray-50/50 transition-colors">
                       <TableCell className="font-medium text-[#963E56] text-xs sm:text-sm py-2 sm:py-4">
                         {member.memberNumber.toString().padStart(4, '0')}
