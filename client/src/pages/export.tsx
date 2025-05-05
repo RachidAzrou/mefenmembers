@@ -602,25 +602,9 @@ export default function ExportPage() {
                       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1.5 sm:mr-2 text-blue-700">
                         <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
                       </svg>
-                      Exporteer instellingen
+                      Filters
                     </h3>
                     <div className="space-y-3">
-                      <div>
-                        <Label htmlFor="payment-filter" className="text-xs sm:text-sm text-blue-800">Filter op betaling</Label>
-                        <Select 
-                          value={paymentFilter} 
-                          onValueChange={setPaymentFilter}
-                        >
-                          <SelectTrigger id="payment-filter" className="bg-white text-xs sm:text-sm border-blue-100 mt-1 h-8 sm:h-10">
-                            <SelectValue placeholder="Filter op betaling" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="all">Alle leden</SelectItem>
-                            <SelectItem value="paid">Alleen betaald</SelectItem>
-                            <SelectItem value="unpaid">Alleen niet betaald</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
                       
                       <div className="pt-2">
                         <Button 
@@ -744,25 +728,9 @@ export default function ExportPage() {
                       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1.5 sm:mr-2 text-green-700">
                         <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
                       </svg>
-                      Exporteer instellingen
+                      Filters
                     </h3>
                     <div className="space-y-3">
-                      <div>
-                        <Label htmlFor="payment-filter-csv" className="text-xs sm:text-sm text-green-800">Filter op betaling</Label>
-                        <Select 
-                          value={paymentFilter} 
-                          onValueChange={setPaymentFilter}
-                        >
-                          <SelectTrigger id="payment-filter-csv" className="bg-white text-xs sm:text-sm border-green-100 mt-1 h-8 sm:h-10">
-                            <SelectValue placeholder="Filter op betaling" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="all">Alle leden</SelectItem>
-                            <SelectItem value="paid">Alleen betaald</SelectItem>
-                            <SelectItem value="unpaid">Alleen niet betaald</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
                       
                       <div className="pt-2">
                         <Button 
@@ -887,25 +855,9 @@ export default function ExportPage() {
                       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1.5 sm:mr-2 text-purple-700">
                         <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
                       </svg>
-                      Exporteer instellingen
+                      Filters
                     </h3>
                     <div className="space-y-3">
-                      <div>
-                        <Label htmlFor="payment-filter-pdf" className="text-xs sm:text-sm text-purple-800">Filter op betaling</Label>
-                        <Select 
-                          value={paymentFilter} 
-                          onValueChange={setPaymentFilter}
-                        >
-                          <SelectTrigger id="payment-filter-pdf" className="bg-white text-xs sm:text-sm border-purple-100 mt-1 h-8 sm:h-10">
-                            <SelectValue placeholder="Filter op betaling" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="all">Alle leden</SelectItem>
-                            <SelectItem value="paid">Alleen betaald</SelectItem>
-                            <SelectItem value="unpaid">Alleen niet betaald</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
                       
                       <div className="pt-2">
                         <Button 
