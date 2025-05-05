@@ -1,0 +1,60 @@
+# Configuratiebestanden
+package.json
+package-lock.json
+tsconfig.json
+tailwind.config.ts
+postcss.config.js
+vite.config.ts
+drizzle.config.ts
+theme.json
+vercel.json
+.replit
+
+# Client bestanden
+client/index.html
+client/public/manifest.json
+client/public/sw.js
+client/public/membership_7548050.png
+client/public/firebase-messaging-sw.js
+
+# Source bestanden
+client/src/App.tsx
+client/src/main.tsx
+client/src/index.css
+
+# Pagina's (ALLEEN leden-gerelateerde pagina's)
+client/src/pages/dashboard.tsx
+client/src/pages/export.tsx
+client/src/pages/members.tsx
+client/src/pages/members-list.tsx
+client/src/pages/login.tsx
+client/src/pages/register.tsx
+client/src/pages/profile.tsx
+client/src/pages/not-found.tsx
+client/src/pages/settings.tsx
+
+# Components
+client/src/components/ui/*
+client/src/components/layout/*
+client/src/components/icons/*
+client/src/components/pdf/*
+
+# Hooks
+client/src/hooks/*
+
+# Lib
+client/src/lib/*
+
+# Templates
+client/src/templates/*
+
+# Server bestanden
+server/vite.ts
+server/index.ts
+server/routes.ts
+server/db.ts
+server/storage.ts
+server/websocket.ts
+
+# Shared schema
+shared/schema.ts
