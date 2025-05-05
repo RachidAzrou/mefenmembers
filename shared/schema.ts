@@ -34,7 +34,9 @@ export const insertUserSchema = userSchema.omit({ id: true });
 export const insertMemberSchema = memberSchema.omit({ id: true }).extend({
   // Maak lidnummer optioneel bij toevoegen. De server genereert het automatisch als het niet is meegegeven.
   memberNumber: z.number().int().positive().optional(),
-  birthDate: z.date().optional().nullable(),
+  // Accepteer zowel Date objecten als strings voor datums in JSON data
+  birthDate: z.union([z.string().transform(str => new Date(str)), z.date()]).optional().nullable(),
+  registrationDate: z.union([z.string().transform(str => new Date(str)), z.date()]).optional(),
   accountNumber: z.string().optional().nullable(),
   email: z.string().optional().nullable(),
   notes: z.string().optional().nullable(),
