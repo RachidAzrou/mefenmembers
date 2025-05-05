@@ -352,7 +352,7 @@ export default function Members() {
 
 // Form validator schema
 const memberFormSchema = insertMemberSchema.extend({
-  phoneNumber: z.string().optional(),
+  phoneNumber: z.string().min(1, "Telefoonnummer is verplicht"),
   email: z.string().email("Voer een geldig e-mailadres in").optional().or(z.literal('')),
   notes: z.string().optional(),
 }).omit({ id: true, registrationDate: true });
@@ -466,7 +466,7 @@ function MemberFormDialog({
                   <FormItem>
                     <FormLabel>Telefoonnummer</FormLabel>
                     <FormControl>
-                      <Input placeholder="Telefoonnummer (optioneel)" {...field} />
+                      <Input placeholder="Telefoonnummer" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
