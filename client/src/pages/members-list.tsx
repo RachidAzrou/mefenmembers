@@ -45,6 +45,7 @@ import { nl } from "date-fns/locale";
 export default function MembersList() {
   const [searchQuery, setSearchQuery] = useState("");
   const [viewMember, setViewMember] = useState<Member | null>(null);
+  const [activeFilter, setActiveFilter] = useState<"all" | "paid" | "unpaid" | "recent">("all");
   const { toast } = useToast();
   
   // Haal alle leden op
@@ -56,15 +57,29 @@ export default function MembersList() {
     }
   });
   
-  // Filter leden op basis van zoekopdracht
+  // Filter leden op basis van zoekopdracht en actieve filter
   const filteredMembers = members.filter(member => {
+    // Eerst op zoekopdracht filteren
     const matchesSearch = searchQuery === "" || 
       `${member.firstName} ${member.lastName}`.toLowerCase().includes(searchQuery.toLowerCase()) ||
       member.memberNumber?.toString().includes(searchQuery) ||
       (member.email && member.email.toLowerCase().includes(searchQuery.toLowerCase())) ||
       member.phoneNumber.includes(searchQuery);
     
-    return matchesSearch;
+    // Vervolgens op actieve filter
+    let matchesFilter = true;
+    if (activeFilter === "paid") {
+      matchesFilter = member.paymentStatus === true;
+    } else if (activeFilter === "unpaid") {
+      matchesFilter = member.paymentStatus === false;
+    } else if (activeFilter === "recent") {
+      // Beschouw "recent" als lid geworden in de afgelopen 30 dagen
+      const thirtyDaysAgo = new Date();
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+      matchesFilter = new Date(member.registrationDate) >= thirtyDaysAgo;
+    }
+    
+    return matchesSearch && matchesFilter;
   });
   
   // Hier stond voorheen de exportToExcel functie die is verwijderd
@@ -97,62 +112,118 @@ export default function MembersList() {
       {/* Ruimte voor header en statistieken */}
       <div className="my-4"></div>
       
-      {/* Statistieken strook - responsieve verbeteringen */}
+      {/* Statistieken strook als actieve filters - klikbare kaarten */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
-        <Card className="overflow-hidden border-none shadow-md bg-blue-50">
-          <CardContent className="p-3 sm:p-4 flex flex-col items-center justify-center">
-            <div className="rounded-full p-1.5 sm:p-2 bg-blue-100 mb-1 sm:mb-2">
-              <Users className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600"/>
-            </div>
-            <div className="text-base sm:text-xl font-bold text-blue-600">
-              {isLoading ? <Skeleton className="h-5 sm:h-6 w-10 sm:w-12" /> : members.length}
-            </div>
-            <p className="text-[10px] sm:text-xs text-blue-800/60 text-center">Totaal leden</p>
-          </CardContent>
-        </Card>
-        
-        <Card className="overflow-hidden border-none shadow-md bg-green-50">
-          <CardContent className="p-3 sm:p-4 flex flex-col items-center justify-center">
-            <div className="rounded-full p-1.5 sm:p-2 bg-green-100 mb-1 sm:mb-2">
-              <Check className="h-4 w-4 sm:h-5 sm:w-5 text-green-600"/>
-            </div>
-            <div className="text-base sm:text-xl font-bold text-green-600">
-              {isLoading ? <Skeleton className="h-5 sm:h-6 w-10 sm:w-12" /> : members.filter(m => m.paymentStatus).length}
-            </div>
-            <p className="text-[10px] sm:text-xs text-green-800/60 text-center">Betaald</p>
-          </CardContent>
-        </Card>
-        
-        <Card className="overflow-hidden border-none shadow-md bg-red-50">
-          <CardContent className="p-3 sm:p-4 flex flex-col items-center justify-center">
-            <div className="rounded-full p-1.5 sm:p-2 bg-red-100 mb-1 sm:mb-2">
-              <X className="h-4 w-4 sm:h-5 sm:w-5 text-red-600"/>
-            </div>
-            <div className="text-base sm:text-xl font-bold text-red-600">
-              {isLoading ? <Skeleton className="h-5 sm:h-6 w-10 sm:w-12" /> : members.length - members.filter(m => m.paymentStatus).length}
-            </div>
-            <p className="text-[10px] sm:text-xs text-red-800/60 text-center">Niet betaald</p>
-          </CardContent>
-        </Card>
-        
-        <Card className="overflow-hidden border-none shadow-md bg-purple-50">
-          <CardContent className="p-3 sm:p-4 flex flex-col items-center justify-center">
-            <div className="rounded-full p-1.5 sm:p-2 bg-purple-100 mb-1 sm:mb-2">
-              <CalendarDays className="h-4 w-4 sm:h-5 sm:w-5 text-purple-600"/>
-            </div>
-            <div className="text-base sm:text-xl font-bold text-purple-600">
-              {isLoading ? (
-                <Skeleton className="h-5 sm:h-6 w-10 sm:w-12" />
-              ) : (
-                members.length > 0
-                  ? new Date(Math.max(...members.map(m => new Date(m.registrationDate).getTime())))
-                    .toLocaleDateString('nl-NL', { day: 'numeric', month: 'numeric' })
-                  : "-"
+        <button 
+          onClick={() => setActiveFilter("all")}
+          className="text-left focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-lg"
+        >
+          <Card className={`overflow-hidden border-none shadow-md transition-all duration-200 ${
+            activeFilter === "all" 
+              ? "bg-blue-100 ring-2 ring-blue-500" 
+              : "bg-blue-50 hover:bg-blue-100/70"
+          }`}>
+            <CardContent className="p-3 sm:p-4 flex flex-col items-center justify-center">
+              <div className="rounded-full p-1.5 sm:p-2 bg-blue-100 mb-1 sm:mb-2">
+                <Users className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600"/>
+              </div>
+              <div className="text-base sm:text-xl font-bold text-blue-600">
+                {isLoading ? <Skeleton className="h-5 sm:h-6 w-10 sm:w-12" /> : members.length}
+              </div>
+              <p className="text-[10px] sm:text-xs text-blue-800/70 text-center">Totaal leden</p>
+              {activeFilter === "all" && (
+                <div className="mt-1 bg-blue-200 text-blue-800 px-2 py-0.5 rounded-full text-[8px] sm:text-[10px]">
+                  Actief filter
+                </div>
               )}
-            </div>
-            <p className="text-[10px] sm:text-xs text-purple-800/60 text-center">Laatste registratie</p>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        </button>
+        
+        <button 
+          onClick={() => setActiveFilter("paid")}
+          className="text-left focus:outline-none focus:ring-2 focus:ring-green-500 rounded-lg"
+        >
+          <Card className={`overflow-hidden border-none shadow-md transition-all duration-200 ${
+            activeFilter === "paid" 
+              ? "bg-green-100 ring-2 ring-green-500" 
+              : "bg-green-50 hover:bg-green-100/70"
+          }`}>
+            <CardContent className="p-3 sm:p-4 flex flex-col items-center justify-center">
+              <div className="rounded-full p-1.5 sm:p-2 bg-green-100 mb-1 sm:mb-2">
+                <Check className="h-4 w-4 sm:h-5 sm:w-5 text-green-600"/>
+              </div>
+              <div className="text-base sm:text-xl font-bold text-green-600">
+                {isLoading ? <Skeleton className="h-5 sm:h-6 w-10 sm:w-12" /> : members.filter(m => m.paymentStatus).length}
+              </div>
+              <p className="text-[10px] sm:text-xs text-green-800/70 text-center">Betaald</p>
+              {activeFilter === "paid" && (
+                <div className="mt-1 bg-green-200 text-green-800 px-2 py-0.5 rounded-full text-[8px] sm:text-[10px]">
+                  Actief filter
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </button>
+        
+        <button 
+          onClick={() => setActiveFilter("unpaid")}
+          className="text-left focus:outline-none focus:ring-2 focus:ring-red-500 rounded-lg"
+        >
+          <Card className={`overflow-hidden border-none shadow-md transition-all duration-200 ${
+            activeFilter === "unpaid" 
+              ? "bg-red-100 ring-2 ring-red-500" 
+              : "bg-red-50 hover:bg-red-100/70"
+          }`}>
+            <CardContent className="p-3 sm:p-4 flex flex-col items-center justify-center">
+              <div className="rounded-full p-1.5 sm:p-2 bg-red-100 mb-1 sm:mb-2">
+                <X className="h-4 w-4 sm:h-5 sm:w-5 text-red-600"/>
+              </div>
+              <div className="text-base sm:text-xl font-bold text-red-600">
+                {isLoading ? <Skeleton className="h-5 sm:h-6 w-10 sm:w-12" /> : members.length - members.filter(m => m.paymentStatus).length}
+              </div>
+              <p className="text-[10px] sm:text-xs text-red-800/70 text-center">Niet betaald</p>
+              {activeFilter === "unpaid" && (
+                <div className="mt-1 bg-red-200 text-red-800 px-2 py-0.5 rounded-full text-[8px] sm:text-[10px]">
+                  Actief filter
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </button>
+        
+        <button 
+          onClick={() => setActiveFilter("recent")}
+          className="text-left focus:outline-none focus:ring-2 focus:ring-purple-500 rounded-lg"
+        >
+          <Card className={`overflow-hidden border-none shadow-md transition-all duration-200 ${
+            activeFilter === "recent" 
+              ? "bg-purple-100 ring-2 ring-purple-500" 
+              : "bg-purple-50 hover:bg-purple-100/70"
+          }`}>
+            <CardContent className="p-3 sm:p-4 flex flex-col items-center justify-center">
+              <div className="rounded-full p-1.5 sm:p-2 bg-purple-100 mb-1 sm:mb-2">
+                <CalendarDays className="h-4 w-4 sm:h-5 sm:w-5 text-purple-600"/>
+              </div>
+              <div className="text-base sm:text-xl font-bold text-purple-600">
+                {isLoading ? (
+                  <Skeleton className="h-5 sm:h-6 w-10 sm:w-12" />
+                ) : (
+                  members.length > 0
+                    ? new Date(Math.max(...members.map(m => new Date(m.registrationDate).getTime())))
+                      .toLocaleDateString('nl-NL', { day: 'numeric', month: 'numeric', year: 'numeric' })
+                    : "-"
+                )}
+              </div>
+              <p className="text-[10px] sm:text-xs text-purple-800/70 text-center">Laatste registratie</p>
+              {activeFilter === "recent" && (
+                <div className="mt-1 bg-purple-200 text-purple-800 px-2 py-0.5 rounded-full text-[8px] sm:text-[10px]">
+                  Actief filter
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </button>
       </div>
       
       <Card className="border-none shadow-md overflow-hidden">
@@ -164,6 +235,21 @@ export default function MembersList() {
           <CardDescription className="text-xs sm:text-sm">
             {filteredMembers.length} leden gevonden
             {searchQuery ? ` voor zoekterm "${searchQuery}"` : ""}
+            {activeFilter !== "all" && (
+              <span className="block mt-1">
+                <Badge variant="outline" className="bg-gray-50 text-[10px]">
+                  {activeFilter === "paid" && "Filter: Alleen betaalde leden"}
+                  {activeFilter === "unpaid" && "Filter: Alleen niet-betaalde leden"}
+                  {activeFilter === "recent" && "Filter: Alleen recent toegevoegde leden"} 
+                  <button 
+                    onClick={() => setActiveFilter("all")} 
+                    className="ml-1 bg-gray-200 hover:bg-gray-300 rounded-full h-3 w-3 inline-flex items-center justify-center"
+                  >
+                    <X className="h-2 w-2 text-gray-500" />
+                  </button>
+                </Badge>
+              </span>
+            )}
           </CardDescription>
         </CardHeader>
         <CardContent className="px-3 sm:px-6 py-4">
