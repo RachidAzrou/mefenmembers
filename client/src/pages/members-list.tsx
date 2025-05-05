@@ -192,15 +192,8 @@ export default function MembersList() {
           </Card>
         </button>
         
-        <button 
-          onClick={() => setActiveFilter("recent")}
-          className="text-left focus:outline-none focus:ring-2 focus:ring-purple-500 rounded-lg"
-        >
-          <Card className={`overflow-hidden border-none shadow-md transition-all duration-200 ${
-            activeFilter === "recent" 
-              ? "bg-purple-100 ring-2 ring-purple-500" 
-              : "bg-purple-50 hover:bg-purple-100/70"
-          }`}>
+        <div className="rounded-lg">
+          <Card className="overflow-hidden border-none shadow-md bg-purple-50">
             <CardContent className="p-3 sm:p-4 flex flex-col items-center justify-center">
               <div className="rounded-full p-1.5 sm:p-2 bg-purple-100 mb-1 sm:mb-2">
                 <CalendarDays className="h-4 w-4 sm:h-5 sm:w-5 text-purple-600"/>
@@ -216,14 +209,9 @@ export default function MembersList() {
                 )}
               </div>
               <p className="text-[10px] sm:text-xs text-purple-800/70 text-center">Laatste registratie</p>
-              {activeFilter === "recent" && (
-                <div className="mt-1 bg-purple-200 text-purple-800 px-2 py-0.5 rounded-full text-[8px] sm:text-[10px]">
-                  Actief filter
-                </div>
-              )}
             </CardContent>
           </Card>
-        </button>
+        </div>
       </div>
       
       <Card className="border-none shadow-md overflow-hidden">
@@ -240,7 +228,8 @@ export default function MembersList() {
                 <Badge variant="outline" className="bg-gray-50 text-[10px]">
                   {activeFilter === "paid" && "Filter: Alleen betaalde leden"}
                   {activeFilter === "unpaid" && "Filter: Alleen niet-betaalde leden"}
-                  {activeFilter === "recent" && "Filter: Alleen recent toegevoegde leden"} 
+                  {/* Alle filters behouden in de filter badge */}
+          {activeFilter === "recent" && "Filter: Alleen recent toegevoegde leden"} 
                   <button 
                     onClick={() => setActiveFilter("all")} 
                     className="ml-1 bg-gray-200 hover:bg-gray-300 rounded-full h-3 w-3 inline-flex items-center justify-center"
@@ -312,7 +301,7 @@ export default function MembersList() {
                   filteredMembers.map((member) => (
                     <TableRow key={member.id} className="hover:bg-gray-50/50 transition-colors">
                       <TableCell className="font-medium text-[#963E56] text-xs sm:text-sm py-2 sm:py-4">
-                        {member.memberNumber}
+                        {member.memberNumber.toString().padStart(4, '0')}
                       </TableCell>
                       <TableCell className="font-medium text-xs sm:text-sm py-2 sm:py-4">
                         {member.firstName} {member.lastName}
@@ -376,7 +365,7 @@ export default function MembersList() {
                   {viewMember.firstName} {viewMember.lastName}
                 </DialogTitle>
                 <DialogDescription className="text-white/80 text-xs sm:text-sm">
-                  Lidnummer: {viewMember.memberNumber} • Lid sinds {formatDate(viewMember.registrationDate)}
+                  Lidnummer: {viewMember.memberNumber.toString().padStart(4, '0')} • Lid sinds {formatDate(viewMember.registrationDate)}
                 </DialogDescription>
               </DialogHeader>
             </div>
