@@ -204,8 +204,15 @@ export default function MembersList() {
                   <Skeleton className="h-5 sm:h-6 w-10 sm:w-12" />
                 ) : (
                   members.length > 0
-                    ? new Date(Math.max(...members.map(m => new Date(m.registrationDate).getTime())))
-                      .toLocaleDateString('nl-NL', { day: 'numeric', month: 'numeric', year: 'numeric' })
+                    ? (() => {
+                        const date = new Date(Math.max(...members.map(m => new Date(m.registrationDate).getTime())));
+                        // Gebruik korte notatie DD/MM/JJ
+                        const day = date.getDate();
+                        const month = date.getMonth() + 1;
+                        // Gebruik alleen de laatste twee cijfers van het jaar
+                        const year = date.getFullYear().toString().slice(-2);
+                        return `${day}/${month}/${year}`;
+                      })()
                     : "-"
                 )}
               </div>

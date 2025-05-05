@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { 
   Users, Check, X, Download, UserPlus, CalendarDays, 
   CreditCard, TrendingUp, Percent, UserCheck,
-  Baby, GraduationCap, UserRound, Heart
+  Baby, GraduationCap, UserRound, Heart, BarChart3
 } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { useQuery } from "@tanstack/react-query";
@@ -183,11 +183,10 @@ export default function Dashboard() {
             
             <div className="grid grid-cols-3 gap-4 pt-4 text-center">
               {/* Totaal leden widget - komt als eerste */}
-              <button
-                onClick={() => handleStatusFilterChange('all')}
+              <div
                 className={cn(
                   "bg-blue-50 py-3 px-4 rounded-lg transition-all duration-150",
-                  statusFilter === 'all' ? "ring-2 ring-blue-300" : "hover:bg-blue-100"
+                  statusFilter === 'all' ? "ring-2 ring-blue-300" : ""
                 )}
               >
                 <div className="text-blue-600 font-semibold flex justify-center items-center">
@@ -200,7 +199,7 @@ export default function Dashboard() {
                     100% van alle leden
                   </div>
                 )}
-              </button>
+              </div>
               
               {/* Betaald widget - komt als tweede */}
               <button
@@ -251,8 +250,8 @@ export default function Dashboard() {
         <div className="bg-gradient-to-r from-purple-500/20 to-purple-600/20 h-2" />
         <CardHeader>
           <CardTitle className="text-lg flex items-center">
-            <Users className="h-5 w-5 mr-2 text-purple-600" />
-            Ledenoverzicht
+            <BarChart3 className="h-5 w-5 mr-2 text-purple-600" />
+            Statistieken
           </CardTitle>
           <CardDescription>
             Details en statistieken van uw ledenbestand
