@@ -1,13 +1,72 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { Member } from "@shared/schema";
 import { Button } from "@/components/ui/button";
-import { Download, FileSpreadsheet, FileText, List, Check } from "lucide-react";
+import { Download, FileSpreadsheet, FileText, List, Check, FileDown } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import * as XLSX from 'xlsx';
 import { useToast } from "@/hooks/use-toast";
+import { Document, Page, Text, View, StyleSheet, PDFDownloadLink } from '@react-pdf/renderer';
+
+// PDF Stylesheet voor het genereren van het PDF document
+const styles = StyleSheet.create({
+  page: {
+    flexDirection: 'column',
+    backgroundColor: '#FFFFFF',
+    padding: 30,
+  },
+  header: {
+    fontSize: 18,
+    marginBottom: 20,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    color: '#963E56',
+  },
+  subtitle: {
+    fontSize: 12,
+    marginBottom: 15,
+    textAlign: 'center',
+  },
+  table: {
+    display: 'flex',
+    width: 'auto',
+    borderStyle: 'solid',
+    borderWidth: 1,
+    borderColor: '#DDDDDD',
+    marginTop: 10,
+  },
+  tableHeader: {
+    backgroundColor: '#F5F5F5',
+    flexDirection: 'row',
+    borderBottomWidth: 1,
+    borderBottomColor: '#DDDDDD',
+  },
+  tableHeaderCell: {
+    padding: 5,
+    fontSize: 10,
+    fontWeight: 'bold',
+  },
+  tableRow: {
+    flexDirection: 'row',
+    borderBottomWidth: 1,
+    borderBottomColor: '#DDDDDD',
+  },
+  tableCell: {
+    padding: 5,
+    fontSize: 9,
+  },
+  footer: {
+    position: 'absolute',
+    bottom: 30,
+    left: 0,
+    right: 0,
+    textAlign: 'center',
+    fontSize: 8,
+    color: '#666666',
+  },
+});
 import { 
   Tabs, 
   TabsContent, 
@@ -181,6 +240,106 @@ export default function ExportPage() {
       description: `De ledenlijst is geëxporteerd naar ${filename}`,
     });
   };
+  
+  // PDF Document component voor PDF export
+  const MembersPDF = useMemo(() => {
+    // Selecteer de enabled velden
+    const enabledFields = exportFields.filter(field => field.enabled);
+    
+    // Berekenen van de kolom breedte op basis van het aantal geselecteerde velden
+    const columnWidths: Record<string, string> = {};
+    enabledFields.forEach(field => {
+      switch (field.id) {
+        case "memberNumber":
+          columnWidths[field.id] = "10%";
+          break;
+        case "firstName":
+        case "lastName":
+          columnWidths[field.id] = "15%";
+          break;
+        case "birthDate":
+        case "registrationDate":
+          columnWidths[field.id] = "12%";
+          break;
+        case "paymentStatus":
+          columnWidths[field.id] = "10%";
+          break;
+        case "email":
+          columnWidths[field.id] = "20%";
+          break;
+        case "phoneNumber":
+          columnWidths[field.id] = "15%";
+          break;
+        case "accountNumber":
+          columnWidths[field.id] = "18%";
+          break;
+        case "notes":
+          columnWidths[field.id] = "20%";
+          break;
+        default:
+          columnWidths[field.id] = "10%";
+      }
+    });
+    
+    return (
+      <Document>
+        <Page size="A4" style={styles.page}>
+          <Text style={styles.header}>Ledenlijst MEFEN Moskee</Text>
+          <Text style={styles.subtitle}>
+            Geëxporteerd op {new Date().toLocaleDateString()}
+            {paymentFilter !== "all" && ` - Filter: ${paymentFilter === "paid" ? "Alleen betaald" : "Alleen niet betaald"}`}
+          </Text>
+          
+          <View style={styles.table}>
+            {/* Tabel header */}
+            <View style={styles.tableHeader}>
+              {enabledFields.map(field => (
+                <Text key={field.id} style={[styles.tableHeaderCell, { width: columnWidths[field.id] }]}>
+                  {field.label}
+                </Text>
+              ))}
+            </View>
+            
+            {/* Tabel rijen */}
+            {filteredMembers.map((member, index) => (
+              <View key={member.id} style={[styles.tableRow, index % 2 === 0 ? { backgroundColor: '#FAFAFA' } : {}]}>
+                {enabledFields.map(field => {
+                  let value: string = "";
+                  
+                  switch (field.id) {
+                    case "memberNumber":
+                      value = member.memberNumber.toString().padStart(4, '0');
+                      break;
+                    case "birthDate":
+                      value = member.birthDate ? new Date(member.birthDate).toLocaleDateString() : "-";
+                      break;
+                    case "registrationDate":
+                      value = new Date(member.registrationDate).toLocaleDateString();
+                      break;
+                    case "paymentStatus":
+                      value = member.paymentStatus ? "Betaald" : "Niet betaald";
+                      break;
+                    default:
+                      value = (member[field.id as keyof Member] as string) || "-";
+                  }
+                  
+                  return (
+                    <Text key={field.id} style={[styles.tableCell, { width: columnWidths[field.id] }]}>
+                      {value}
+                    </Text>
+                  );
+                })}
+              </View>
+            ))}
+          </View>
+          
+          <Text style={styles.footer}>
+            © MEFEN Moskee - Dit document is gegenereerd op {new Date().toLocaleDateString()} {new Date().toLocaleTimeString()}
+          </Text>
+        </Page>
+      </Document>
+    );
+  }, [filteredMembers, exportFields, paymentFilter]);
   
   return (
     <div className="space-y-6">
