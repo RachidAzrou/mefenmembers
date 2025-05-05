@@ -5,7 +5,8 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Link, useLocation } from "wouter";
 import {
   LogOut, Menu, ChevronLeft, ChevronRight,
-  Settings, User, UsersRound
+  Settings, User, UsersRound, Home,
+  PlusCircle, FileSpreadsheet
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { auth } from "@/lib/firebase";
@@ -54,8 +55,10 @@ export function Sidebar() {
   };
 
   const menuItems = [
-    { icon: UsersRound, label: "Leden", href: "/" },
+    { icon: Home, label: "Dashboard", href: "/dashboard" },
     { icon: UsersRound, label: "Ledenlijst", href: "/members" },
+    { icon: PlusCircle, label: "Lid toevoegen", href: "/member/add" },
+    { icon: FileSpreadsheet, label: "Exporteren", href: "/export" },
   ];
 
   const handleNavigation = (href: string) => {

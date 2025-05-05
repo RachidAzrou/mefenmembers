@@ -45,14 +45,32 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createMember(member: InsertMember): Promise<Member> {
-    const [created] = await db.insert(members).values(member).returning();
+    // Behandel datums en null-waarden
+    const preparedMember = {
+      ...member,
+      birthDate: member.birthDate ? new Date(member.birthDate) : null,
+      accountNumber: member.accountNumber || null
+    };
+    
+    const [created] = await db.insert(members).values(preparedMember).returning();
     return created;
   }
 
   async updateMember(id: number, member: Partial<InsertMember>): Promise<Member> {
+    // Behandel datums en null-waarden
+    const preparedMember = { ...member };
+    
+    if (member.birthDate !== undefined) {
+      preparedMember.birthDate = member.birthDate ? new Date(member.birthDate) : null;
+    }
+    
+    if (member.accountNumber !== undefined) {
+      preparedMember.accountNumber = member.accountNumber || null;
+    }
+    
     const [updated] = await db
       .update(members)
-      .set(member)
+      .set(preparedMember)
       .where(eq(members.id, id))
       .returning();
     return updated;
