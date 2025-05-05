@@ -28,11 +28,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/members", async (_req: Request, res: Response) => {
     try {
+      // Controleer of Firestore beschikbaar is (vooral belangrijk in Vercel-omgeving)
+      if (!storage.firestore) {
+        console.error("[API] CRITICAL: Firestore service is niet beschikbaar!");
+        
+        if (process.env.VERCEL) {
+          // Als we in productie zijn en geen toegang hebben tot Firestore,
+          // stuur een duidelijk geformatteerde foutmelding
+          return res.status(503).json({ 
+            error: "Database service is tijdelijk niet beschikbaar.",
+            vercelDeployment: true,
+            message: "De database is momenteel niet toegankelijk. Dit is waarschijnlijk een configuratieprobleem met Vercel.",
+            suggestion: "Controleer of de Firebase-geheimen correct zijn geconfigureerd in de Vercel dashboard."
+          });
+        } else {
+          return res.status(500).json({ error: "Database service is niet beschikbaar" });
+        }
+      }
+      
       const members = await storage.listMembers();
       res.json(members);
     } catch (error) {
-      console.error("Error fetching members:", error);
-      res.status(500).json({ error: "Failed to fetch members" });
+      console.error("[API] Error fetching members:", error);
+      
+      if (error instanceof Error) {
+        console.error("[API] Error name:", error.name);
+        console.error("[API] Error message:", error.message);
+      }
+      
+      res.status(500).json({ 
+        error: "Failed to fetch members",
+        message: error instanceof Error ? error.message : "Unknown error",
+        stack: process.env.NODE_ENV === 'development' ? (error instanceof Error ? error.stack : null) : undefined
+      });
     }
   });
 

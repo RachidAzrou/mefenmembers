@@ -17,7 +17,7 @@ const MemoryStore = memorystore(session);
 
 export interface IStorage {
   // Reference to Firestore 
-  firestore: FirebaseFirestore;
+  firestore: FirebaseFirestore | null;
 
   // Member operations
   getMember(id: string): Promise<Member | undefined>;
@@ -40,14 +40,25 @@ export interface IStorage {
 export class FirestoreStorage implements IStorage {
   sessionStore: session.Store;
   firestore = firestore; // Exporteer firestore voor controles in de routes
-  private membersCollection = firestore.collection('members');
-  private deletedMemberNumbersCollection = firestore.collection('deletedMemberNumbers');
-  private countersCollection = firestore.collection('counters');
+  private membersCollection;
+  private deletedMemberNumbersCollection;
+  private countersCollection;
+  
+  // Null-checks voor Firestore maken deze veilig voor serverless omgevingen
 
   constructor() {
     this.sessionStore = new MemoryStore({
       checkPeriod: 86400000 // = 24h, hoe vaak verouderde sessies worden opgekuist
     });
+    
+    // Initialiseer de collecties alleen als Firestore beschikbaar is
+    if (this.firestore) {
+      this.membersCollection = this.firestore.collection('members');
+      this.deletedMemberNumbersCollection = this.firestore.collection('deletedMemberNumbers');
+      this.countersCollection = this.firestore.collection('counters');
+    } else {
+      console.error('[Storage] Firestore is niet beschikbaar, collecties kunnen niet worden geïnitialiseerd!');
+    }
   }
 
   async getMember(id: string): Promise<Member | undefined> {
