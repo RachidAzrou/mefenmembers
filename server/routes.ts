@@ -50,16 +50,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/members", async (req: Request, res: Response) => {
     try {
+      console.log("POST /api/members - Start request");
+      console.log("Request body:", JSON.stringify(req.body));
+      
       const validationResult = insertMemberSchema.safeParse(req.body);
       
       if (!validationResult.success) {
         const errorMessage = fromZodError(validationResult.error).message;
+        console.log("Validation failed:", errorMessage);
         return res.status(400).json({ error: errorMessage });
       }
+      
+      console.log("Validation successful");
 
       // Altijd een lidnummer genereren voor nieuwe leden (zelfs als er een is meegegeven)
       // Dit is een snelle database bewerking die potentiële dubbele nummers voorkomt
+      console.log("Generating member number...");
       const rawNumber = await storage.generateMemberNumber();
+      console.log("Generated member number:", rawNumber);
       
       // We moeten het ruwe nummer gebruiken omdat we in de database integers opslaan
       // Het nummer wordt bij weergave in de UI als string met voorloop-nullen weergegeven
@@ -76,8 +84,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         memberData.registrationDate = new Date();
       }
       
+      console.log("Creating member with data:", JSON.stringify(memberData));
+      
       // Geoptimaliseerde verwerking met minder SQL-queries
       const member = await storage.createMember(memberData);
+      console.log("Member created with ID:", member.id);
       
       // Stuur direct een 201 Created status met minimale data terug
       // voor snellere respons, met alleen de essentiële velden
@@ -87,8 +98,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         firstName: member.firstName,
         lastName: member.lastName,
       });
+      
+      console.log("POST /api/members - Request completed successfully");
     } catch (error) {
       console.error("Error creating member:", error);
+      
+      // Gedetailleerde foutinformatie voor debugging
+      if (error instanceof Error) {
+        console.error("Error name:", error.name);
+        console.error("Error message:", error.message);
+        console.error("Error stack:", error.stack);
+      }
+      
       res.status(500).json({ error: "Failed to create member" });
     }
   });

@@ -77,24 +77,44 @@ export class FirestoreStorage implements IStorage {
   }
 
   async createMember(member: InsertMember): Promise<Member> {
-    // Genereer een nieuw document ID
-    const memberRef = this.membersCollection.doc();
-    
-    // Als er geen memberNumber is meegegeven, genereer er één
-    if (!member.memberNumber) {
-      member.memberNumber = await this.generateMemberNumber();
+    try {
+      console.log("createMember - Start with data:", JSON.stringify(member));
+      
+      // Genereer een nieuw document ID
+      const memberRef = this.membersCollection.doc();
+      console.log("Generated new document ID:", memberRef.id);
+      
+      // Als er geen memberNumber is meegegeven, genereer er één
+      if (!member.memberNumber) {
+        console.log("No member number provided, generating one");
+        member.memberNumber = await this.generateMemberNumber();
+        console.log("Generated member number:", member.memberNumber);
+      } else {
+        console.log("Using provided member number:", member.memberNumber);
+      }
+      
+      // Voeg het nieuwe lid toe
+      const newMember = {
+        ...member,
+        id: memberRef.id,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      };
+      
+      console.log("Saving new member to Firestore:", JSON.stringify(newMember));
+      await memberRef.set(newMember);
+      console.log("Member successfully saved to Firestore");
+      
+      return newMember as Member;
+    } catch (error) {
+      console.error("Error in createMember:", error);
+      if (error instanceof Error) {
+        console.error("Error name:", error.name);
+        console.error("Error message:", error.message);
+        console.error("Error stack:", error.stack);
+      }
+      throw error; // Propagate the error
     }
-    
-    // Voeg het nieuwe lid toe
-    const newMember = {
-      ...member,
-      id: memberRef.id,
-      createdAt: new Date(),
-      updatedAt: new Date()
-    };
-    
-    await memberRef.set(newMember);
-    return newMember as Member;
   }
 
   async updateMember(id: string, member: Partial<InsertMember>): Promise<Member> {
@@ -154,29 +174,51 @@ export class FirestoreStorage implements IStorage {
   }
 
   async generateMemberNumber(): Promise<number> {
-    // Controleer of er verwijderde nummers beschikbaar zijn
-    const nextAvailable = await this.getNextAvailableMemberNumber();
-    if (nextAvailable > 0) {
-      return nextAvailable;
-    }
-    
-    // Anders, genereer een nieuw nummer
-    const counterRef = this.countersCollection.doc('members');
-    
-    return firestore.runTransaction(async (transaction) => {
-      const counterDoc = await transaction.get(counterRef);
+    try {
+      console.log("generateMemberNumber - Start");
       
-      let newCount = 1; // Start bij 1 als er nog geen counter is
+      // Controleer of er verwijderde nummers beschikbaar zijn
+      console.log("Checking for available deleted numbers");
+      const nextAvailable = await this.getNextAvailableMemberNumber();
+      console.log("Next available deleted number:", nextAvailable);
       
-      if (counterDoc.exists) {
-        newCount = (counterDoc.data()?.count || 0) + 1;
-        transaction.update(counterRef, { count: newCount });
-      } else {
-        transaction.set(counterRef, { count: newCount });
+      if (nextAvailable > 0) {
+        console.log("Reusing deleted number:", nextAvailable);
+        return nextAvailable;
       }
       
-      return newCount;
-    });
+      // Anders, genereer een nieuw nummer
+      console.log("Generating new member number from counter");
+      const counterRef = this.countersCollection.doc('members');
+      
+      return firestore.runTransaction(async (transaction) => {
+        console.log("Starting transaction");
+        const counterDoc = await transaction.get(counterRef);
+        
+        let newCount = 1; // Start bij 1 als er nog geen counter is
+        
+        if (counterDoc.exists) {
+          const currentCount = counterDoc.data()?.count || 0;
+          console.log("Current counter value:", currentCount);
+          newCount = currentCount + 1;
+          console.log("New counter value:", newCount);
+          transaction.update(counterRef, { count: newCount });
+        } else {
+          console.log("Counter does not exist, creating with initial value: 1");
+          transaction.set(counterRef, { count: newCount });
+        }
+        
+        console.log("Transaction completed successfully with value:", newCount);
+        return newCount;
+      });
+    } catch (error) {
+      console.error("Error in generateMemberNumber:", error);
+      if (error instanceof Error) {
+        console.error("Error message:", error.message);
+        console.error("Error stack:", error.stack);
+      }
+      throw error; // Propagate the error
+    }
   }
 
   async addDeletedMemberNumber(memberNumber: number): Promise<DeletedMemberNumber> {
