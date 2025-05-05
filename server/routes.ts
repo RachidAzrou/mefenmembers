@@ -1,6 +1,6 @@
 import type { Express, Request, Response } from "express";
 import { createServer, type Server } from "http";
-import { storage } from "./storage";
+import { storage } from "./firestore-storage"; // Gebruik de nieuwe Firestore implementatie
 import { insertMemberSchema } from "@shared/schema";
 import { fromZodError } from "zod-validation-error";
 
@@ -33,11 +33,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/members/:id", async (req: Request, res: Response) => {
     try {
-      const id = parseInt(req.params.id);
-      if (isNaN(id)) {
-        return res.status(400).json({ error: "Invalid ID format" });
-      }
-
+      const id = req.params.id;
+      // Voor Firestore is ID een string, dus we hoeven het niet meer te parseren
+      
       const member = await storage.getMember(id);
       if (!member) {
         return res.status(404).json({ error: "Member not found" });
@@ -97,10 +95,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.put("/api/members/:id", async (req: Request, res: Response) => {
     try {
-      const id = parseInt(req.params.id);
-      if (isNaN(id)) {
-        return res.status(400).json({ error: "Invalid ID format" });
-      }
+      const id = req.params.id;
+      // Voor Firestore is ID een string, dus we hoeven het niet meer te parseren
 
       // Valideer alleen de velden die worden bijgewerkt
       const validationResult = insertMemberSchema.partial().safeParse(req.body);
@@ -125,10 +121,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.delete("/api/members/:id", async (req: Request, res: Response) => {
     try {
-      const id = parseInt(req.params.id);
-      if (isNaN(id)) {
-        return res.status(400).json({ error: "Invalid ID format" });
-      }
+      const id = req.params.id;
+      // Voor Firestore is ID een string, dus we hoeven het niet meer te parseren
 
       const member = await storage.getMember(id);
       if (!member) {

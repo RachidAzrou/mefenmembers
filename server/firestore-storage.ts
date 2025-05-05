@@ -6,17 +6,18 @@ import {
 } from "@shared/schema";
 import { firestore } from "./firebase-admin";
 import session from "express-session";
-import * as FirestoreStore from "firestore-store";
+import memorystore from "memorystore";
 
-const FirestoreStoreSession = FirestoreStore(session);
+// We gebruiken memorystore voor sessies in plaats van Firestore
+const MemoryStore = memorystore(session);
 
 export interface IStorage {
   // Member operations
-  getMember(id: number): Promise<Member | undefined>;
+  getMember(id: string): Promise<Member | undefined>;
   listMembers(): Promise<Member[]>;
   createMember(member: InsertMember): Promise<Member>;
-  updateMember(id: number, member: Partial<InsertMember>): Promise<Member>;
-  deleteMember(id: number): Promise<void>;
+  updateMember(id: string, member: Partial<InsertMember>): Promise<Member>;
+  deleteMember(id: string): Promise<void>;
   generateMemberNumber(): Promise<number>;
   
   // Verwijderde lidnummers beheer
@@ -36,26 +37,43 @@ export class FirestoreStorage implements IStorage {
   private countersCollection = firestore.collection('counters');
 
   constructor() {
-    this.sessionStore = new FirestoreStoreSession({
-      database: firestore,
-      collection: 'sessions',
+    this.sessionStore = new MemoryStore({
+      checkPeriod: 86400000 // = 24h, hoe vaak verouderde sessies worden opgekuist
     });
   }
 
-  async getMember(id: number): Promise<Member | undefined> {
-    const snapshot = await this.membersCollection.where('id', '==', id).get();
+  async getMember(id: string): Promise<Member | undefined> {
+    // In Firestore kunnen we direct op document ID zoeken
+    const docRef = this.membersCollection.doc(id);
+    const doc = await docRef.get();
     
-    if (snapshot.empty) {
+    if (!doc.exists) {
       return undefined;
     }
     
-    const doc = snapshot.docs[0];
     return { id: doc.id, ...doc.data() } as Member;
   }
 
   async listMembers(): Promise<Member[]> {
     const snapshot = await this.membersCollection.orderBy('memberNumber', 'asc').get();
-    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }) as Member);
+    return snapshot.docs.map(doc => {
+      const data = doc.data();
+      // Zorg ervoor dat Firestore timestampgebonden velden omgezet worden naar Date objecten
+      const registrationDate = data.registrationDate instanceof Date 
+        ? data.registrationDate 
+        : data.registrationDate?.toDate?.() || new Date();
+      
+      const birthDate = data.birthDate instanceof Date
+        ? data.birthDate
+        : data.birthDate?.toDate?.();
+        
+      return { 
+        id: doc.id, 
+        ...data,
+        registrationDate,
+        birthDate 
+      } as Member;
+    });
   }
 
   async createMember(member: InsertMember): Promise<Member> {
@@ -79,14 +97,14 @@ export class FirestoreStorage implements IStorage {
     return newMember as Member;
   }
 
-  async updateMember(id: number, member: Partial<InsertMember>): Promise<Member> {
-    const snapshot = await this.membersCollection.where('id', '==', id).get();
+  async updateMember(id: string, member: Partial<InsertMember>): Promise<Member> {
+    // We kunnen direct naar de document ID verwijzen in Firestore
+    const docRef = this.membersCollection.doc(id);
+    const doc = await docRef.get();
     
-    if (snapshot.empty) {
+    if (!doc.exists) {
       throw new Error(`Member with ID ${id} not found`);
     }
-    
-    const docRef = snapshot.docs[0].ref;
     
     const updatedMember = {
       ...member,
@@ -97,26 +115,42 @@ export class FirestoreStorage implements IStorage {
     
     // Haal het bijgewerkte document op
     const updatedDoc = await docRef.get();
-    return { id: updatedDoc.id, ...updatedDoc.data() } as Member;
+    
+    // Zorg ervoor dat date waarden correct worden omgezet
+    const data = updatedDoc.data() || {};
+    const registrationDate = data.registrationDate instanceof Date 
+      ? data.registrationDate 
+      : data.registrationDate?.toDate?.() || new Date();
+    
+    const birthDate = data.birthDate instanceof Date
+      ? data.birthDate
+      : data.birthDate?.toDate?.();
+      
+    return { 
+      id: updatedDoc.id, 
+      ...data,
+      registrationDate,
+      birthDate 
+    } as Member;
   }
 
-  async deleteMember(id: number): Promise<void> {
-    const snapshot = await this.membersCollection.where('id', '==', id).get();
+  async deleteMember(id: string): Promise<void> {
+    // We kunnen direct naar de document ID verwijzen in Firestore
+    const docRef = this.membersCollection.doc(id);
+    const doc = await docRef.get();
     
-    if (snapshot.empty) {
+    if (!doc.exists) {
       throw new Error(`Member with ID ${id} not found`);
     }
     
-    const doc = snapshot.docs[0];
-    
     // Voeg het lidnummer toe aan verwijderde nummers als het bestaat
-    const memberData = doc.data();
+    const memberData = doc.data() || {};
     if (memberData.memberNumber) {
       await this.addDeletedMemberNumber(memberData.memberNumber);
     }
     
     // Verwijder het lid
-    await doc.ref.delete();
+    await docRef.delete();
   }
 
   async generateMemberNumber(): Promise<number> {

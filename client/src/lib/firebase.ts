@@ -2,6 +2,7 @@ import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 import { getDatabase } from "firebase/database";
 import { getAnalytics } from "firebase/analytics";
+import { getFirestore } from "firebase/firestore";
 
 // Nieuwe Firebase configuratie voor MEFEN-leden
 const firebaseConfig = {
@@ -19,3 +20,4 @@ export const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 export const db = getDatabase(app);
 export const analytics = getAnalytics(app);
+export const firestore = getFirestore(app);
