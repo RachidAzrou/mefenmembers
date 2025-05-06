@@ -6,7 +6,7 @@ import { Link, useLocation } from "wouter";
 import {
   LogOut, Menu, ChevronLeft, ChevronRight,
   User, UsersRound, Home,
-  PlusCircle, FileSpreadsheet
+  PlusCircle, FileSpreadsheet, Edit
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { auth } from "@/lib/firebase";
@@ -69,6 +69,7 @@ export function Sidebar() {
     { icon: Home, label: "Dashboard", href: "/dashboard" },
     { icon: PersonWithListIcon, label: "Ledenlijst", href: "/members" },
     { icon: PlusCircle, label: "Lid toevoegen", href: "/member-add" },
+    { icon: Edit, label: "Lid bewerken", href: "/member-edit" },
     { icon: FileSpreadsheet, label: "Exporteren", href: "/export" },
   ];
 

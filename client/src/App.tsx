@@ -8,6 +8,7 @@ import Register from "@/pages/register";
 import Dashboard from "@/pages/dashboard";
 import MembersList from "@/pages/members-list";
 import MemberAdd from "@/pages/member-add";
+import MemberEdit from "@/pages/member-edit";
 import Export from "@/pages/export";
 import { Sidebar } from "@/components/layout/sidebar";
 import { auth } from "./lib/firebase";
@@ -62,6 +63,7 @@ function Router() {
       <Route path="/dashboard" component={() => <PrivateRoute component={Dashboard} />} />
       <Route path="/members" component={() => <PrivateRoute component={MembersList} />} />
       <Route path="/member-add" component={() => <PrivateRoute component={MemberAdd} />} />
+      <Route path="/member-edit" component={() => <PrivateRoute component={MemberEdit} />} />
       <Route path="/export" component={() => <PrivateRoute component={Export} />} />
       <Route component={NotFound} />
     </Switch>
