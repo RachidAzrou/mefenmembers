@@ -57,7 +57,7 @@ function Vote(props: React.SVGProps<SVGSVGElement>) {
 }
 import { Badge } from "@/components/ui/badge";
 import { formatPhoneNumber } from "@/lib/utils";
-import { Link, useLocation, navigate } from "wouter";
+import { Link, useLocation } from "wouter";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -1344,32 +1344,44 @@ export default function MembersList() {
                   
 
                   
-                  <div className="border-t mt-6 pt-6 flex flex-col sm:flex-row sm:justify-end gap-3">
+                  <div className="border-t mt-6 pt-6 flex flex-col sm:flex-row sm:justify-between gap-3">
                     <Button 
                       type="button"
                       variant="outline" 
-                      onClick={handleCancelEdit}
-                      className="order-1 sm:order-1"
+                      onClick={() => window.location.href = `/member-edit?id=${viewMember.id}`}
+                      className="text-gray-700 text-xs sm:text-sm"
                     >
-                      Annuleren
+                      <Settings className="mr-2 h-3.5 w-3.5" />
+                      Meer...
                     </Button>
-                    <Button 
-                      type="submit"
-                      disabled={updateMemberMutation.isPending}
-                      className="bg-[#963E56] hover:bg-[#7e3447] order-0 sm:order-2"
-                    >
-                      {updateMemberMutation.isPending ? (
-                        <>
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          Bezig met opslaan...
-                        </>
-                      ) : (
-                        <>
-                          <Save className="mr-2 h-4 w-4" />
-                          Wijzigingen opslaan
-                        </>
-                      )}
-                    </Button>
+                    
+                    <div className="flex flex-col sm:flex-row gap-3">
+                      <Button 
+                        type="button"
+                        variant="outline" 
+                        onClick={handleCancelEdit}
+                        className="order-1 sm:order-1"
+                      >
+                        Annuleren
+                      </Button>
+                      <Button 
+                        type="submit"
+                        disabled={updateMemberMutation.isPending}
+                        className="bg-[#963E56] hover:bg-[#7e3447] order-0 sm:order-2"
+                      >
+                        {updateMemberMutation.isPending ? (
+                          <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            Bezig met opslaan...
+                          </>
+                        ) : (
+                          <>
+                            <Save className="mr-2 h-4 w-4" />
+                            Wijzigingen opslaan
+                          </>
+                        )}
+                      </Button>
+                    </div>
                   </div>
                 </form>
               </Form>
@@ -1477,33 +1489,22 @@ export default function MembersList() {
 
                 </div>
                 
-                <div className="border-t p-3 sm:p-4 flex flex-col sm:flex-row sm:justify-between gap-2 bg-gray-50">
+                <div className="border-t p-3 sm:p-4 flex flex-col sm:flex-row sm:justify-end gap-2 bg-gray-50">
                   <Button 
                     variant="outline" 
-                    onClick={() => window.location.href = `/member-edit?id=${viewMember.id}`}
-                    className="border-gray-300 text-gray-700 text-xs sm:text-sm w-full sm:w-auto"
+                    onClick={() => setViewMember(null)}
+                    className="border-gray-300 text-gray-700 text-xs sm:text-sm w-full sm:w-auto order-2 sm:order-1"
                   >
-                    <Settings className="mr-2 h-3.5 w-3.5" />
-                    Uitgebreid bewerken
+                    Sluiten
                   </Button>
-                  
-                  <div className="flex flex-col sm:flex-row gap-2">
-                    <Button 
-                      variant="outline" 
-                      onClick={() => setViewMember(null)}
-                      className="border-gray-300 text-gray-700 text-xs sm:text-sm w-full sm:w-auto order-2 sm:order-1"
-                    >
-                      Sluiten
-                    </Button>
-                    <Button 
-                      variant="default" 
-                      onClick={handleEnableEditMode}
-                      className="bg-[#963E56] hover:bg-[#7e3447] text-white text-xs sm:text-sm w-full sm:w-auto order-1 sm:order-2"
-                    >
-                      <Edit className="mr-2 h-3.5 w-3.5" />
-                      Bewerken
-                    </Button>
-                  </div>
+                  <Button 
+                    variant="default" 
+                    onClick={handleEnableEditMode}
+                    className="bg-[#963E56] hover:bg-[#7e3447] text-white text-xs sm:text-sm w-full sm:w-auto order-1 sm:order-2"
+                  >
+                    <Edit className="mr-2 h-3.5 w-3.5" />
+                    Bewerken
+                  </Button>
                 </div>
               </>
             )}
