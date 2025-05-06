@@ -237,7 +237,7 @@ export default function MemberDetail() {
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
             <div>
-              <h3 className="text-base sm:text-lg font-semibold text-gray-700 mb-3 flex items-center">
+              <h3 className="text-base sm:text-lg font-medium text-gray-700 mb-3 flex items-center">
                 <div className="mr-2 bg-[#963E56]/10 p-1.5 sm:p-2 rounded-full">
                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-[#963E56]">
                     <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
@@ -273,8 +273,12 @@ export default function MemberDetail() {
             </div>
             
             <div>
-              <h3 className="text-base sm:text-lg font-semibold text-gray-700 mb-3 flex items-center">
-                <Phone className="h-5 w-5 mr-2 text-[#963E56]" /> 
+              <h3 className="text-base sm:text-lg font-medium text-gray-700 mb-3 flex items-center">
+                <div className="mr-2 bg-blue-50 p-1.5 sm:p-2 rounded-full">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-blue-600">
+                    <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
+                  </svg>
+                </div>
                 Contactgegevens
               </h3>
               <div className="space-y-3">
@@ -304,8 +308,15 @@ export default function MemberDetail() {
           </div>
           
           <div className="mt-6">
-            <h3 className="text-base sm:text-lg font-semibold text-gray-700 mb-3 flex items-center">
-              <CreditCard className="h-5 w-5 mr-2 text-[#963E56]" /> 
+            <h3 className="text-base sm:text-lg font-medium text-gray-700 mb-3 flex items-center">
+              <div className="mr-2 bg-amber-50 p-1.5 sm:p-2 rounded-full">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-amber-600">
+                  <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+                  <circle cx="9" cy="7" r="4" />
+                  <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+                  <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                </svg>
+              </div>
               Lidmaatschap & Betaalgegevens
             </h3>
             
@@ -372,7 +383,16 @@ export default function MemberDetail() {
           
           {member.notes && (
             <div className="mt-6">
-              <h3 className="text-base sm:text-lg font-semibold text-gray-700 mb-3">
+              <h3 className="text-base sm:text-lg font-medium text-gray-700 mb-3 flex items-center">
+                <div className="mr-2 bg-gray-100 p-1.5 sm:p-2 rounded-full">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-gray-600">
+                    <path d="M14 3v4a1 1 0 0 0 1 1h4" />
+                    <path d="M17 21H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7l5 5v11a2 2 0 0 1-2 2z" />
+                    <path d="M9 9h1" />
+                    <path d="M9 13h6" />
+                    <path d="M9 17h6" />
+                  </svg>
+                </div>
                 Notities
               </h3>
               <div className="bg-gray-50 rounded-lg p-3">
