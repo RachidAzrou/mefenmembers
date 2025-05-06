@@ -1376,8 +1376,42 @@ export default function MemberAdd() {
               className="border-gray-200 w-full sm:w-auto"
               onClick={() => {
                 setSuccessDialogOpen(false);
-                // Reset het formulier voor een nieuw lid
-                form.reset();
+                // Reset het formulier volledig voor een nieuw lid, inclusief geboortedatum
+                form.reset({
+                  // Persoonsgegevens
+                  firstName: "",
+                  lastName: "",
+                  gender: "man",
+                  birthDate: undefined, // Reset de geboortedatum
+                  nationality: "",
+                  
+                  // Contactgegevens
+                  email: "",
+                  phoneNumber: "",
+                  street: "",
+                  houseNumber: "",
+                  busNumber: "",
+                  postalCode: "",
+                  city: "",
+                  
+                  // Lidmaatschap
+                  membershipType: "standaard",
+                  startDate: new Date(),
+                  endDate: undefined,
+                  autoRenew: true,
+                  paymentTerm: "jaarlijks",
+                  paymentMethod: "cash",
+                  
+                  // Financiën
+                  accountNumber: "",
+                  bicSwift: "",
+                  accountHolderName: "",
+                  
+                  // Overig
+                  privacyConsent: false,
+                  paymentStatus: false,
+                  notes: ""
+                });
                 // Invalideer de query voor het volgende lidnummer om een nieuw nummer op te halen
                 queryClient.invalidateQueries({ queryKey: ['/api/members/generate-number'] });
               }}
