@@ -1,21 +1,10 @@
-// Firebase Realtime Database configuratie
-import { initializeApp } from 'firebase/app';
-import { getDatabase, ref, child, get, set, push } from 'firebase/database';
+// Zeer eenvoudige Axios implementatie voor directe HTTP-aanroepen naar Firebase REST API
+// Deze benadering omzeilt de Firebase SDK's compleet en gebruikt directe HTTP requests
+import axios from 'axios';
 
-// Direct hardcoded Firebase configuratie voor MEFEN project - geen env variables nodig
-const firebaseConfig = {
-  apiKey: "AIzaSyCw3uxCv7SdAa4xtmRimVjXlLjr_4hyeTE",
-  authDomain: "mefen-leden.firebaseapp.com",
-  databaseURL: "https://mefen-leden-default-rtdb.europe-west1.firebasedatabase.app",
-  projectId: "mefen-leden",
-  appId: "1:1032362907538:web:568add0016024ddf17534b"
-};
-
-// Initialiseer Firebase met explicit options voor serverless omgeving
-const app = initializeApp(firebaseConfig);
-const database = getDatabase(app);
-// Maak een expliciete database reference root node
-const dbRef = ref(database);
+// Firebase project gegevens
+const FIREBASE_DB_URL = "https://mefen-leden-default-rtdb.europe-west1.firebasedatabase.app";
+const FIREBASE_API_KEY = "AIzaSyCw3uxCv7SdAa4xtmRimVjXlLjr_4hyeTE";
 
 // Helper functie voor lidnummer generatie - robuuster gemaakt voor serverless omgeving
 async function getNextMemberNumber() {
