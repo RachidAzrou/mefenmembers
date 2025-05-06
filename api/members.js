@@ -1,32 +1,15 @@
-// Implementatie die alleen gebruik maakt van directe HTTP aanroepen naar Firebase REST API
-// Dit is volledig compatibel met het gratis Firebase plan
-import axios from 'axios';
+// Implementatie die gebruik maakt van Firebase Admin SDK voor beveiligde toegang
+// Hiermee kunnen we beveiligingsregels gebruiken in de database
+import { firebaseAdminRequest } from './firebase-admin';
 
-// Firebase project gegevens voor Realtime Database REST API toegang 
-// Deze waarden worden uit environment variabelen gelezen als ze beschikbaar zijn
-const FIREBASE_DB_URL = process.env.FIREBASE_DATABASE_URL || "https://mefen-leden-default-rtdb.europe-west1.firebasedatabase.app";
-const FIREBASE_API_KEY = process.env.FIREBASE_API_KEY || "AIzaSyCw3uxCv7SdAa4xtmRimVjXlLjr_4hyeTE";
-
-// Helper functie om direct met de Firebase REST API te communiceren
+// Helper functie om met de Firebase Admin SDK te communiceren
+// Deze vervangt de oude firebaseRequest functie
 async function firebaseRequest(method, path, data = null) {
   try {
-    const url = `${FIREBASE_DB_URL}/${path}.json?auth=${FIREBASE_API_KEY}`;
-    console.log(`Firebase REST API ${method} request naar: ${url}`);
-    
-    const config = {
-      method,
-      url,
-      headers: { 'Content-Type': 'application/json' }
-    };
-    
-    if (data && (method === 'POST' || method === 'PUT' || method === 'PATCH')) {
-      config.data = JSON.stringify(data);
-    }
-    
-    const response = await axios(config);
-    return response.data;
+    console.log(`Firebase Admin SDK ${method} request naar pad: ${path}`);
+    return await firebaseAdminRequest(method, path, data);
   } catch (error) {
-    console.error(`Firebase REST API fout (${method} ${path}):`, error.message);
+    console.error(`Firebase Admin SDK fout (${method} ${path}):`, error.message);
     throw new Error(`Firebase API fout: ${error.message}`);
   }
 }
