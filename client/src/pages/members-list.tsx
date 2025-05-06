@@ -1028,27 +1028,29 @@ export default function MembersList() {
                   </TableRow>
                 ) : (
                   sortedMembers.map((member) => (
-                    <TableRow key={member.id} className="hover:bg-gray-50/50 transition-colors">
+                    <TableRow key={member?.id || 'unknown'} className="hover:bg-gray-50/50 transition-colors">
                       <TableCell className="font-medium text-[#963E56] text-xs sm:text-sm py-2 sm:py-4">
-                        {member.memberNumber.toString().padStart(4, '0')}
+                        {member?.memberNumber !== undefined 
+                          ? member.memberNumber.toString().padStart(4, '0')
+                          : "----"}
                       </TableCell>
                       <TableCell className="font-medium text-xs sm:text-sm py-2 sm:py-4">
-                        {member.firstName}
+                        {member?.firstName || ""}
                       </TableCell>
                       <TableCell className="font-medium text-xs sm:text-sm py-2 sm:py-4">
-                        {member.lastName}
+                        {member?.lastName || ""}
                       </TableCell>
                       <TableCell className="text-gray-600 text-xs sm:text-sm py-2 sm:py-4">
-                        {formatDate(member.birthDate)}
+                        {formatDate(member?.birthDate)}
                       </TableCell>
                       <TableCell className="py-2 sm:py-4">
                         <Badge 
-                          variant={member.paymentStatus ? "default" : "outline"}
-                          className={`text-[10px] sm:text-xs ${member.paymentStatus 
+                          variant={member?.paymentStatus ? "default" : "outline"}
+                          className={`text-[10px] sm:text-xs ${member?.paymentStatus 
                             ? "bg-green-100 text-green-800 hover:bg-green-200 hover:text-green-900"
                             : "bg-red-50 border-red-200 text-red-700 hover:bg-red-100"}`}
                         >
-                          {member.paymentStatus 
+                          {member?.paymentStatus 
                             ? "✓ Betaald" 
                             : "Niet betaald"}
                         </Badge>
@@ -1101,11 +1103,11 @@ export default function MembersList() {
                   <div>
                     <div className="flex items-center gap-2">
                       <DialogTitle className="text-lg sm:text-xl text-white">
-                        {viewMember.firstName} {viewMember.lastName}
+                        {viewMember?.firstName || ""} {viewMember?.lastName || ""}
                       </DialogTitle>
                       
                       {/* Badge rechts naast de naam */}
-                      {isVotingEligible(viewMember) && (
+                      {viewMember && isVotingEligible(viewMember) && (
                         <div className="bg-white/20 py-0.5 px-2.5 rounded-full border border-white/30 flex items-center gap-1">
                           <svg 
                             viewBox="0 0 24 24" 
@@ -1124,7 +1126,8 @@ export default function MembersList() {
                       )}
                     </div>
                     <DialogDescription className="text-white/80 text-xs sm:text-sm mt-1">
-                      Lidnummer: {viewMember.memberNumber.toString().padStart(4, '0')} • Lid sinds {formatDate(viewMember.startDate || viewMember.registrationDate)}
+                      Lidnummer: {viewMember?.memberNumber !== undefined ? viewMember.memberNumber.toString().padStart(4, '0') : "----"} 
+                      • Lid sinds {formatDate(viewMember?.startDate || viewMember?.registrationDate)}
                     </DialogDescription>
                   </div>
                 </div>

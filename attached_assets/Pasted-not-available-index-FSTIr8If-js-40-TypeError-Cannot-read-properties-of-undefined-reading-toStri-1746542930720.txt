@@ -1,0 +1,39 @@
+not available
+﻿
+index-FSTIr8If.js:40 TypeError: Cannot read properties of undefined (reading 'toString')
+    at index-FSTIr8If.js:3415:37762
+    at Array.map (<anonymous>)
+    at index-FSTIr8If.js:3415:36689
+    at Array.map (<anonymous>)
+    at index-FSTIr8If.js:3415:36590
+    at Object.useMemo (index-FSTIr8If.js:38:23366)
+    at gn.useMemo (index-FSTIr8If.js:9:6253)
+    at SAt (index-FSTIr8If.js:3415:34895)
+    at EN (index-FSTIr8If.js:38:17031)
+    at Eee (index-FSTIr8If.js:40:44166)
+index-FSTIr8If.js:3415 Uncaught TypeError: Cannot read properties of undefined (reading 'toString')
+    at index-FSTIr8If.js:3415:37762
+    at Array.map (<anonymous>)
+    at index-FSTIr8If.js:3415:36689
+    at Array.map (<anonymous>)
+    at index-FSTIr8If.js:3415:36590
+    at Object.useMemo (index-FSTIr8If.js:38:23366)
+    at gn.useMemo (index-FSTIr8If.js:9:6253)
+    at SAt (index-FSTIr8If.js:3415:34895)
+    at EN (index-FSTIr8If.js:38:17031)
+    at Eee (index-FSTIr8If.js:40:44166)
+export:1 Error in event handler: TypeError: Cannot read properties of null (reading 'tagName')
+    at Readability._grabArticle (chrome-extension://llimhhconnjiflfimocjggfjdlmlhblm/js/plugins/readability.js:1140:37)
+    at Readability.parse (chrome-extension://llimhhconnjiflfimocjggfjdlmlhblm/js/plugins/readability.js:2248:31)
+    at Object.original_article (chrome-extension://llimhhconnjiflfimocjggfjdlmlhblm/content-script.js:94:61)
+    at Object.article (chrome-extension://llimhhconnjiflfimocjggfjdlmlhblm/content-script.js:148:44)
+    at Object.article (chrome-extension://llimhhconnjiflfimocjggfjdlmlhblm/content-script.js:198:23)
+    at Object.init (chrome-extension://llimhhconnjiflfimocjggfjdlmlhblm/content-script.js:570:19)
+    at chrome-extension://llimhhconnjiflfimocjggfjdlmlhblm/content-script.js:514:23
+index-FSTIr8If.js:617 [2025-05-06T14:48:34.570Z]  @firebase/database: FIREBASE WARNING: Provided authentication credentials for the app named "[DEFAULT]" are invalid. This usually indicates your app was not initialized correctly. Make sure the "apiKey" and "databaseURL" properties provided to initializeApp() match the values provided for your app at https://console.firebase.google.com/. 
+index-FSTIr8If.js:2102 WebSocket connection to 'wss://s-euw1b-nss-201.europe-west1.firebasedatabase.app/.ws?v=5&s=1VPzDrvk5…Zr&p=1:780110083561:web:63785c6…&ns=mefen-leden-default-rtdb' failed: WebSocket is closed before the connection is established.
+index-FSTIr8If.js:617 [2025-05-06T14:48:40.017Z]  @firebase/database: FIREBASE WARNING: Provided authentication credentials for the app named "[DEFAULT]" are invalid. This usually indicates your app was not initialized correctly. Make sure the "apiKey" and "databaseURL" properties provided to initializeApp() match the values provided for your app at https://console.firebase.google.com/. 
+index-FSTIr8If.js:2102 WebSocket connection to 'wss://s-euw1b-nss-201.europe-west1.firebasedatabase.app/.ws?v=5&s=x4Wm4qpLf…H2&p=1:780110083561:web:63785c6…&ns=mefen-leden-default-rtdb' failed: WebSocket is closed before the connection is established.
+index-FSTIr8If.js:617 [2025-05-06T14:48:40.646Z]  @firebase/database: FIREBASE WARNING: Provided authentication credentials for the app named "[DEFAULT]" are invalid. This usually indicates your app was not initialized correctly. Make sure the "apiKey" and "databaseURL" properties provided to initializeApp() match the values provided for your app at https://console.firebase.google.com/. 
+﻿
+
