@@ -4,10 +4,10 @@ import { firebaseAdminRequest } from './firebase-admin';
 
 // Helper functie om met de Firebase Admin SDK te communiceren
 // Deze vervangt de oude firebaseRequest functie
-async function firebaseRequest(method, path, data = null) {
+async function firebaseRequest(method, path, data = null, authToken = null) {
   try {
     console.log(`Firebase Admin SDK ${method} request naar pad: ${path}`);
-    return await firebaseAdminRequest(method, path, data);
+    return await firebaseAdminRequest(method, path, data, authToken);
   } catch (error) {
     console.error(`Firebase Admin SDK fout (${method} ${path}):`, error.message);
     throw new Error(`Firebase API fout: ${error.message}`);
@@ -89,24 +89,6 @@ export default async function handler(req, res) {
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
     
-    // Log de auth token
-    const authHeader = req.headers.authorization;
-    if (authHeader && authHeader.startsWith('Bearer ')) {
-      const token = authHeader.substring(7);
-      console.log('Firebase auth token ontvangen:', token.substring(0, 20) + '...');
-      
-      try {
-        // Valideer de token (optioneel, maar handig voor debugging)
-        const { firebaseAdmin } = require('./firebase-admin');
-        const decodedToken = await firebaseAdmin.auth().verifyIdToken(token);
-        console.log('Token gevalideerd voor gebruiker:', decodedToken.uid);
-      } catch (tokenError) {
-        console.warn('Token validatie fout:', tokenError.message);
-        // Ga door, want we vallen terug op directe database-toegang
-      }
-    } else {
-      console.log('Geen auth token in verzoek');
-    }
     
     // Debug-endpoint om Firebase Admin SDK-configuratie te testen
     if (req.url.includes('/test-admin-sdk') || req.query.action === 'test-admin-sdk') {
@@ -141,6 +123,13 @@ export default async function handler(req, res) {
       return res.status(200).end();
     }
     
+    // Extract user token for all operations
+    let userToken = null;
+    const authHeader = req.headers.authorization;
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      userToken = authHeader.substring(7);
+    }
+    
     // GET verzoek: specifieke endpoints of alle leden
     if (req.method === 'GET') {
       // Controleer op verschillende manieren of het het generate-number endpoint is
@@ -168,7 +157,7 @@ export default async function handler(req, res) {
           const id = req.query.id;
           console.log(`GET /api/members/${id}: Ophalen specifiek lid gestart`);
           
-          const data = await firebaseRequest('GET', `members/${id}`);
+          const data = await firebaseRequest('GET', `members/${id}`, null, userToken);
           
           if (!data) {
             console.log(`GET /api/members/${id}: Lid niet gevonden`);
@@ -194,7 +183,7 @@ export default async function handler(req, res) {
         console.log("GET /api/members: Ophalen leden gestart via REST API");
         
         // Gebruik de REST API om leden op te halen
-        const data = await firebaseRequest('GET', 'members');
+        const data = await firebaseRequest('GET', 'members', null, userToken);
         
         // Veiligheidscheck voor geen data
         if (!data) {
@@ -277,7 +266,7 @@ export default async function handler(req, res) {
           
           // Gebruik de REST API POST methode om een nieuw lid toe te voegen
           // Firebase POST genereert automatisch een unieke ID als key
-          const result = await firebaseRequest('POST', 'members', newMember);
+          const result = await firebaseRequest('POST', 'members', newMember, userToken);
           
           if (!result || !result.name) {
             throw new Error('Geen geldige ID ontvangen van Firebase');
@@ -327,7 +316,7 @@ export default async function handler(req, res) {
         console.log(`PUT /api/members/${id}: Request body:`, JSON.stringify(req.body));
         
         // Haal eerst het bestaande lid op
-        const existingMember = await firebaseRequest('GET', `members/${id}`);
+        const existingMember = await firebaseRequest('GET', `members/${id}`, null, userToken);
         if (!existingMember) {
           return res.status(404).json({ error: 'Lid niet gevonden' });
         }
@@ -351,7 +340,7 @@ export default async function handler(req, res) {
         console.log(`PUT /api/members/${id}: Update data:`, JSON.stringify(updateData));
         
         // Update via REST API
-        await firebaseRequest('PUT', `members/${id}`, updateData);
+        await firebaseRequest('PUT', `members/${id}`, updateData, userToken);
         console.log(`PUT /api/members/${id}: Lid succesvol bijgewerkt`);
         
         return res.status(200).json({

@@ -43,7 +43,9 @@ try {
 }
 
 // Utility functie voor Firebase REST API requests met admin-token
-async function firebaseAdminRequest(method, path, data = null) {
+async function firebaseAdminRequest(method, path, data = null, token = null) {
+  console.log(`[DEBUG] firebaseAdminRequest: ${method} ${path} token=${token ? 'aanwezig' : 'niet aanwezig'}`);
+  
   try {
     // Probeer eerst de Admin SDK te gebruiken
     try {
@@ -53,40 +55,54 @@ async function firebaseAdminRequest(method, path, data = null) {
       
       let result;
       
+      console.log(`[DEBUG] Probeer Admin SDK voor ${method} ${path}`);
+      
       switch (method) {
         case 'GET':
           result = await ref.once('value');
+          console.log(`[DEBUG] Admin SDK GET ${path} succesvol`);
           return result.val();
           
         case 'POST':
           result = await ref.push(data);
+          console.log(`[DEBUG] Admin SDK POST ${path} succesvol, nieuwe key=${result.key}`);
           return { name: result.key };
           
         case 'PUT':
           await ref.set(data);
+          console.log(`[DEBUG] Admin SDK PUT ${path} succesvol`);
           return data;
           
         case 'PATCH':
           await ref.update(data);
+          console.log(`[DEBUG] Admin SDK PATCH ${path} succesvol`);
           return data;
           
         case 'DELETE':
           await ref.remove();
+          console.log(`[DEBUG] Admin SDK DELETE ${path} succesvol`);
           return null;
           
         default:
           throw new Error(`Niet-ondersteunde methode: ${method}`);
       }
     } catch (adminError) {
-      // Als Admin SDK faalt, val terug op directe REST API (werkt als de database regels openbaar zijn)
+      // Als Admin SDK faalt, val terug op directe REST API
       console.warn(`Admin SDK fout (${method} ${path}), terugvallen op directe REST API:`, adminError.message);
       
       // Fallback naar directe REST API
       const fetch = require('node-fetch');
       const FIREBASE_DB_URL = process.env.FIREBASE_DATABASE_URL || "https://mefen-leden-default-rtdb.europe-west1.firebasedatabase.app";
       
-      const url = `${FIREBASE_DB_URL}/${path}.json`;
-      console.log(`Fallback naar directe REST API: ${method} ${url}`);
+      let url = `${FIREBASE_DB_URL}/${path}.json`;
+      
+      // Als we een auth token hebben, voeg deze toe als auth parameter
+      if (token) {
+        url += `?auth=${token}`;
+        console.log(`[DEBUG] Gebruik auth token in API verzoek: ${url.substring(0, 80)}...`);
+      } else {
+        console.log(`[DEBUG] Geen auth token beschikbaar voor REST API verzoek`);
+      }
       
       const options = {
         method,
@@ -97,10 +113,16 @@ async function firebaseAdminRequest(method, path, data = null) {
         options.body = JSON.stringify(data);
       }
       
+      console.log(`[DEBUG] Verstuur REST API verzoek: ${method} ${url}`);
       const response = await fetch(url, options);
+      
       if (!response.ok) {
-        throw new Error(`Firebase REST API fout: ${response.status} ${response.statusText}`);
+        const errorText = await response.text();
+        console.error(`[DEBUG] Firebase REST API fout: ${response.status} ${response.statusText}`, errorText);
+        throw new Error(`Firebase REST API fout: ${response.status} ${response.statusText} - ${errorText}`);
       }
+      
+      console.log(`[DEBUG] REST API verzoek succesvol: ${method} ${path}`);
       return await response.json();
     }
   } catch (error) {
