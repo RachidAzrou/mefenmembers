@@ -226,6 +226,43 @@ export default function MembersList() {
     return age;
   };
   
+  // Functie om te bepalen of een lid stemgerechtigd is
+  const isVotingEligible = (member: Member): boolean => {
+    // Voorwaarde 1: Meerderjarig (18+)
+    const age = calculateAge(member.birthDate);
+    if (!age || age < 18) return false;
+    
+    // Voorwaarde 2: Minstens 5 jaar aaneensluitend lid
+    const membershipYears = calculateMembershipYears(member.registrationDate);
+    if (membershipYears < 5) return false;
+    
+    // Voorwaarde 3: Elk jaar betaald
+    // Omdat we nog geen betalingsgeschiedenis bijhouden, gebruiken we de huidige betalingsstatus als benadering
+    if (!member.paymentStatus) return false;
+    
+    // Aan alle voorwaarden voldaan
+    return true;
+  };
+  
+  // Functie om het aantal lidmaatschapsjaren te berekenen
+  const calculateMembershipYears = (registrationDate: string | Date): number => {
+    if (!registrationDate) return 0;
+    
+    const today = new Date();
+    const regDate = new Date(registrationDate);
+    let years = today.getFullYear() - regDate.getFullYear();
+    
+    // Controleer of de 'verjaardag' van het lidmaatschap al is gepasseerd dit jaar
+    if (
+      today.getMonth() < regDate.getMonth() || 
+      (today.getMonth() === regDate.getMonth() && today.getDate() < regDate.getDate())
+    ) {
+      years--;
+    }
+    
+    return Math.max(0, years);
+  };
+  
   // Sorteer de gefilterde leden
   const sortedMembers = [...filteredMembers].sort((a, b) => {
     // Controleer de sorteerrichting
@@ -890,7 +927,7 @@ export default function MembersList() {
                       )}
                     </button>
                   </TableHead>
-                  <TableHead className="hidden md:table-cell font-medium sm:font-semibold text-xs sm:text-sm text-gray-700">
+                  <TableHead className="font-medium sm:font-semibold text-xs sm:text-sm text-gray-700">
                     <button 
                       onClick={() => toggleSort("age")} 
                       className="flex items-center hover:text-[#963E56] transition-colors"
@@ -906,14 +943,12 @@ export default function MembersList() {
                       )}
                     </button>
                   </TableHead>
-                  <TableHead className="hidden md:table-cell font-medium sm:font-semibold text-xs sm:text-sm text-gray-700">E-mail</TableHead>
-                  <TableHead className="hidden md:table-cell font-medium sm:font-semibold text-xs sm:text-sm text-gray-700">Telefoon</TableHead>
                   <TableHead className="font-medium sm:font-semibold text-xs sm:text-sm text-gray-700">
                     <button 
                       onClick={() => toggleSort("paymentStatus")} 
                       className="flex items-center hover:text-[#963E56] transition-colors"
                     >
-                      Status
+                      Betaalstatus
                       {sortField === "paymentStatus" && (
                         <span className="ml-1">
                           {sortDirection === "asc" ? 
@@ -934,16 +969,14 @@ export default function MembersList() {
                       <TableCell><Skeleton className="h-5 w-12" /></TableCell>
                       <TableCell><Skeleton className="h-5 w-24" /></TableCell>
                       <TableCell><Skeleton className="h-5 w-24" /></TableCell>
-                      <TableCell className="hidden md:table-cell"><Skeleton className="h-5 w-20" /></TableCell>
-                      <TableCell className="hidden md:table-cell"><Skeleton className="h-5 w-32" /></TableCell>
-                      <TableCell className="hidden md:table-cell"><Skeleton className="h-5 w-24" /></TableCell>
+                      <TableCell><Skeleton className="h-5 w-20" /></TableCell>
                       <TableCell><Skeleton className="h-5 w-16" /></TableCell>
                       <TableCell className="text-right"><Skeleton className="h-5 w-8 ml-auto" /></TableCell>
                     </TableRow>
                   ))
                 ) : sortedMembers.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={8} className="h-32 text-center">
+                    <TableCell colSpan={6} className="h-32 text-center">
                       <div className="flex flex-col items-center justify-center text-gray-500">
                         <Users className="h-10 w-10 mb-2 text-gray-300" />
                         <p className="mb-1">Geen leden gevonden</p>
@@ -967,14 +1000,8 @@ export default function MembersList() {
                       <TableCell className="font-medium text-xs sm:text-sm py-2 sm:py-4">
                         {member.lastName}
                       </TableCell>
-                      <TableCell className="hidden md:table-cell text-gray-600 text-xs sm:text-sm py-2 sm:py-4">
+                      <TableCell className="text-gray-600 text-xs sm:text-sm py-2 sm:py-4">
                         {formatDate(member.birthDate)}
-                      </TableCell>
-                      <TableCell className="hidden md:table-cell text-gray-600 text-xs sm:text-sm py-2 sm:py-4">
-                        {member.email || "-"}
-                      </TableCell>
-                      <TableCell className="hidden md:table-cell text-gray-600 text-xs sm:text-sm py-2 sm:py-4">
-                        {member.phoneNumber ? formatPhoneNumber(member.phoneNumber) : "-"}
                       </TableCell>
                       <TableCell className="py-2 sm:py-4">
                         <Badge 
@@ -1032,12 +1059,38 @@ export default function MembersList() {
           <DialogContent className="sm:max-w-[650px] p-0 overflow-hidden">
             <div className="bg-gradient-to-r from-[#963E56]/90 to-[#963E56] p-4 sm:p-6 text-white">
               <DialogHeader className="text-white">
-                <DialogTitle className="text-lg sm:text-xl text-white">
-                  {viewMember.firstName} {viewMember.lastName}
-                </DialogTitle>
-                <DialogDescription className="text-white/80 text-xs sm:text-sm">
-                  Lidnummer: {viewMember.memberNumber.toString().padStart(4, '0')} • Lid sinds {formatDate(viewMember.registrationDate)}
-                </DialogDescription>
+                <div className="flex justify-between items-start">
+                  <div>
+                    <DialogTitle className="text-lg sm:text-xl text-white">
+                      {viewMember.firstName} {viewMember.lastName}
+                    </DialogTitle>
+                    <DialogDescription className="text-white/80 text-xs sm:text-sm mt-1">
+                      Lidnummer: {viewMember.memberNumber.toString().padStart(4, '0')} • Lid sinds {formatDate(viewMember.registrationDate)}
+                    </DialogDescription>
+                    <div className="text-white/80 text-xs sm:text-sm mt-1">
+                      Geboortedatum: {formatDate(viewMember.birthDate)} • {viewMember.gender === "man" ? "Man" : viewMember.gender === "vrouw" ? "Vrouw" : "Niet opgegeven"}
+                    </div>
+                  </div>
+                  
+                  {isVotingEligible(viewMember) && (
+                    <div className="bg-blue-800/30 py-1 px-3 rounded-lg border border-blue-300/30 flex items-center">
+                      <svg 
+                        viewBox="0 0 24 24" 
+                        fill="none" 
+                        xmlns="http://www.w3.org/2000/svg" 
+                        className="h-4 w-4 mr-1.5 text-blue-300"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      >
+                        <path d="M20 4v7a4 4 0 0 1-4 4H4" />
+                        <polyline points="14 15l-3 3 3 3" />
+                      </svg>
+                      <span className="text-xs text-blue-100 font-medium">Stemgerechtigd</span>
+                    </div>
+                  )}
+                </div>
               </DialogHeader>
             </div>
             
