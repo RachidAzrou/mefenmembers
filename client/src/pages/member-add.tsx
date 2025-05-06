@@ -1354,7 +1354,10 @@ export default function MemberAdd() {
               className="hidden sm:flex border-gray-200"
               onClick={() => {
                 setSuccessDialogOpen(false);
-                form.reset(); // Reset het formulier voor een nieuw lid
+                // Reset het formulier voor een nieuw lid
+                form.reset();
+                // Invalideer de query voor het volgende lidnummer om een nieuw nummer op te halen
+                queryClient.invalidateQueries({ queryKey: ['/api/members/generate-number'] });
               }}
             >
               <PlusCircle className="mr-2 h-4 w-4" />
