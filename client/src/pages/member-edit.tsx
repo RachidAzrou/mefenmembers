@@ -103,8 +103,8 @@ export default function MemberEdit() {
     searchMutation.mutate(data);
   };
 
-  // Functie om naar de bewerkingspagina te navigeren
-  const handleEditMember = (id: number) => {
+  // Functie om naar de bewerkingspagina te navigeren - behandel ID als string voor Firebase compatibility
+  const handleEditMember = (id: string | number) => {
     setLocation(`/member-add?id=${id}`);
   };
 

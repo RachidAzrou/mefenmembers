@@ -116,7 +116,7 @@ export default function MemberAdd() {
   // Controleer of we een lid aan het bewerken zijn aan de hand van query parameters
   const [location] = useLocation();
   const params = new URLSearchParams(window.location.search);
-  const memberId = params.get('id') ? parseInt(params.get('id')!) : undefined;
+  const memberId = params.get('id') || undefined; // Behandel als string voor Firebase compatibiliteit
   const isEditMode = Boolean(memberId);
   
   // State voor delete en success dialog
