@@ -78,6 +78,9 @@ const memberFormSchema = insertMemberSchema.extend({
   membershipType: z.enum(["standaard", "student", "senior"], {
     required_error: "Selecteer lidmaatschapstype",
   }),
+  startDate: z.date({
+    required_error: "Startdatum lidmaatschap is verplicht",
+  }),
   endDate: z.date().optional().nullable(),
   autoRenew: z.boolean().default(true),
   paymentTerm: z.enum(["maandelijks", "driemaandelijks", "jaarlijks"], {
@@ -87,7 +90,7 @@ const memberFormSchema = insertMemberSchema.extend({
     required_error: "Selecteer betalingswijze",
   }),
   
-  // Bankgegevens
+  // Financiën
   accountNumber: z.string().optional().nullable()
     .refine(val => !val || /^[A-Z]{2}[0-9]{2}[A-Z0-9]{4}[0-9]{7}([A-Z0-9]?){0,16}$/.test(val), {
       message: "Ongeldig IBAN formaat. Bijvoorbeeld: BE68539007547034"
@@ -142,12 +145,13 @@ export default function MemberAdd() {
       
       // Lidmaatschap
       membershipType: "standaard",
+      startDate: new Date(),
       endDate: undefined,
       autoRenew: true,
       paymentTerm: "jaarlijks",
       paymentMethod: "cash",
       
-      // Bankgegevens
+      // Financiën
       accountNumber: "",
       bicSwift: "",
       accountHolderName: "",
