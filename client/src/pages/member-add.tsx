@@ -102,41 +102,18 @@ export default function MemberAdd() {
     queryFn: async () => {
       if (!memberId) return undefined;
       
-      // Uitgebreide logging voor debugging doeleinden
-      console.log(`Fetching member data for ID: ${memberId}`);
-      
       try {
         // We gebruiken query parameters om compatibel te zijn met de Vercel serverless functies
         const response = await apiRequest('GET', `/api/members?id=${memberId}`);
-        console.log('API Response status:', response.status);
-        
-        // Log response headers voor debugging
-        const headers: Record<string, string> = {};
-        response.headers.forEach((value, key) => {
-          headers[key] = value;
-        });
-        console.log('Response headers:', headers);
         
         // Controleer of response OK is
         if (!response.ok) {
           throw new Error(`API responded with status ${response.status}`);
         }
         
-        // Poging om response body te lezen
-        const responseText = await response.text();
-        console.log('Raw response:', responseText);
-        
-        // Probeer te parsen als JSON
-        try {
-          const data = JSON.parse(responseText);
-          console.log('Parsed member data:', data);
-          return data;
-        } catch (parseError) {
-          console.error('JSON parse error:', parseError);
-          throw new Error(`Invalid JSON response: ${responseText}`);
-        }
+        // Verwerk response
+        return await response.json();
       } catch (error) {
-        console.error('Error fetching member:', error);
         throw error;
       }
     },
@@ -310,25 +287,7 @@ export default function MemberAdd() {
         </div>
       )}
       
-      {/* Debug info in development */}
-      {isEditMode && memberId && (
-        <div className="p-4 bg-blue-50 rounded-lg border border-blue-200 mb-4">
-          <h3 className="text-blue-800 font-medium mb-2 flex items-center">
-            <InfoIcon className="h-4 w-4 mr-2" /> 
-            Debug Informatie
-          </h3>
-          <p className="text-blue-700 text-sm mb-1">ID: {memberId}</p>
-          <p className="text-blue-700 text-sm mb-1">Laden: {isLoadingMember ? 'Ja' : 'Nee'}</p>
-          <p className="text-blue-700 text-sm mb-1">Data geladen: {memberData ? 'Ja' : 'Nee'}</p>
-          {memberData && (
-            <div className="mt-2 bg-blue-100 rounded p-2 overflow-auto">
-              <pre className="text-xs text-blue-800 whitespace-pre-wrap">
-                {JSON.stringify(memberData, null, 2)}
-              </pre>
-            </div>
-          )}
-        </div>
-      )}
+
       
       <div>
         {/* Formulier */}
@@ -346,15 +305,7 @@ export default function MemberAdd() {
               <span className="text-destructive">*</span> zijn verplicht.
             </CardDescription>
             
-            {/* Debug informatie */}
-            {Object.keys(form.formState.errors).length > 0 && (
-              <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-md">
-                <h4 className="font-medium text-red-800 mb-1">Form validation errors:</h4>
-                <pre className="text-xs overflow-auto text-red-700">
-                  {JSON.stringify(form.formState.errors, null, 2)}
-                </pre>
-              </div>
-            )}
+
           </CardHeader>
           <CardContent className="px-4 sm:px-6">
             <Form {...form}>
