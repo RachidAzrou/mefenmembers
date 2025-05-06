@@ -45,18 +45,18 @@ export default firebaseAdmin;
 export const auth = getAuth(firebaseAdmin);
 export const db = getDatabase(firebaseAdmin);
 
-// Utility functie voor Firebase REST API requests met admin-token
+// Utility functie voor Firebase REST API requests - directe REST API aanroepen zonder token
 export async function firebaseAdminRequest(method: string, path: string, data: any = null): Promise<any> {
-  if (!firebaseAdmin) {
-    throw new Error("Firebase Admin niet geïnitialiseerd");
-  }
-
-  // Genereer een token dat kan worden gebruikt voor geautoriseerde toegang
-  const authInstance = getAuth(firebaseAdmin);
-  const token = await authInstance.createCustomToken('server-admin');
+  // Gebruik directe database toegang met de openbare REST API
+  // De Firebase rules moeten deze toegang toestaan
+  const projectId = process.env.VITE_FIREBASE_PROJECT_ID || 'mefen-leden-default-rtdb';
+  const databaseUrl = process.env.FIREBASE_DATABASE_URL || 
+                      process.env.VITE_FIREBASE_DATABASE_URL || 
+                      `https://${projectId}-default-rtdb.europe-west1.firebasedatabase.app`;
   
-  // Bouw de URL inclusief token
-  const url = `${process.env.FIREBASE_DATABASE_URL || 'https://mefen-leden-default-rtdb.europe-west1.firebasedatabase.app'}/${path}.json?auth=${token}`;
+  // De '.json' extensie is nodig voor REST API toegang
+  const url = `${databaseUrl}/${path}.json`;
+  console.log(`Firebase direct REST API request naar: ${url}`);
   
   // Gebruik node-fetch voor HTTP-verzoeken
   const fetch = (await import('node-fetch')).default;
@@ -73,14 +73,24 @@ export async function firebaseAdminRequest(method: string, path: string, data: a
   }
   
   try {
+    console.log(`Opties voor verzoek:`, options);
     const response = await fetch(url, options);
+    const responseText = await response.text();
+    
     if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(`Firebase Admin API fout: ${response.status} ${response.statusText} - ${errorText}`);
+      console.error(`Firebase API error response: ${responseText}`);
+      throw new Error(`Firebase API fout: ${response.status} ${response.statusText} - ${responseText}`);
     }
-    return await response.json();
+    
+    // Als de respons leeg is, return null
+    if (!responseText.trim()) {
+      return null;
+    }
+    
+    // Anders parse de JSON
+    return JSON.parse(responseText);
   } catch (error: any) {
-    console.error(`Firebase Admin API fout (${method} ${path}):`, error);
+    console.error(`Firebase API fout (${method} ${path}):`, error);
     throw error;
   }
 }
