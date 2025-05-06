@@ -273,7 +273,12 @@ export default function MemberDetail() {
                         <CircleUser className="h-4 w-4 mr-1.5 text-pink-500" />
                         <span>Vrouw</span>
                       </>
-                    ) : "Niet opgegeven"}
+                    ) : (
+                      <>
+                        <User className="h-4 w-4 mr-1.5 text-gray-500" />
+                        <span>Niet opgegeven</span>
+                      </>
+                    )}
                   </div>
                 </div>
                 
@@ -373,7 +378,7 @@ export default function MemberDetail() {
                   {member.paymentMethod === "cash" ? "Contant" :
                    member.paymentMethod === "domiciliering" ? "Domiciliëring" :
                    member.paymentMethod === "overschrijving" ? "Overschrijving" :
-                   member.paymentMethod === "bancontact" ? "Bancontact" : "Onbekend"}
+                   member.paymentMethod === "bancontact" ? "Bancontact" : "Niet gespecificeerd"}
                 </div>
               </div>
               
@@ -382,7 +387,7 @@ export default function MemberDetail() {
                 <div className="font-medium">
                   {member.paymentTerm === "jaarlijks" ? "Jaarlijks" :
                    member.paymentTerm === "maandelijks" ? "Maandelijks" :
-                   member.paymentTerm === "driemaandelijks" ? "Driemaandelijks" : "Onbekend"}
+                   member.paymentTerm === "driemaandelijks" ? "Driemaandelijks" : "Niet gespecificeerd"}
                 </div>
               </div>
               
