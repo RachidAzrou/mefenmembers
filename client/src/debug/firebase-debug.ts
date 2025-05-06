@@ -18,6 +18,14 @@ export function logFirebaseConfig() {
       namespace: (db as any)._repoInternal?.namespace || 'unknown'
     });
     
+    // Toon de exacte environment variabelen (voor debug doeleinden)
+    console.log("Raw environment variables:", {
+      VITE_FIREBASE_API_KEY: import.meta.env.VITE_FIREBASE_API_KEY,
+      VITE_FIREBASE_PROJECT_ID: import.meta.env.VITE_FIREBASE_PROJECT_ID, 
+      VITE_FIREBASE_DATABASE_URL: import.meta.env.VITE_FIREBASE_DATABASE_URL,
+      VITE_FIREBASE_APP_ID: import.meta.env.VITE_FIREBASE_APP_ID
+    });
+    
     // Log omgevingsvariabelen (veilig, zonder echte waarden te tonen)
     console.log("Environment Variables Present:", {
       VITE_FIREBASE_API_KEY: !!import.meta.env.VITE_FIREBASE_API_KEY,

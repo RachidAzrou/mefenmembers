@@ -1,0 +1,73 @@
+Testing client access to Firebase...
+firebase-test.tsx:59 Firebase config: {db: Database, auth: AuthImpl, app: FirebaseAppImpl, currentUser: _UserImpl}app: FirebaseAppImpl {_isDeleted: false, _options: {…}, _config: {…}, _name: '[DEFAULT]', _automaticDataCollectionEnabled: false, …}auth: AuthImpl {app: FirebaseAppImpl, heartbeatServiceProvider: Provider, appCheckServiceProvider: Provider, config: {…}, currentUser: _UserImpl, …}currentUser: _UserImpl {providerId: 'firebase', proactiveRefresh: ProactiveRefresh, reloadUserInfo: {…}, reloadListener: null, uid: 'AzlIm0Ff5mcyydzc59x49qBrvjS2', …}db: Database {_repoInternal: Repo, app: FirebaseAppImpl, type: 'database', _instanceStarted: true, _rootInternal: _ReferenceImpl}[[Prototype]]: Object
+firebase-test.tsx:76 Schrijven naar Firebase pad: client-tests/AzlIm0Ff5mcyydzc59x49qBrvjS2
+VM10193 .lp:6 WebSocket connection to 'wss://s-euw1b-nss-202.europe-west1.firebasedatabase.app/.ws?v=5&s=lv5xnAkL7F1sWNH6NJclaspEIiQkOxFh&p=1:92917846687:web:55bb36fd0734f3833a48aa&ns=mefenmembers-default-rtdb' failed: WebSocket is closed before the connection is established.
+shutdown_ @ firebase_database.js?v=4710e20b:1380
+close @ firebase_database.js?v=4710e20b:1401
+closeConnections_ @ firebase_database.js?v=4710e20b:1852
+close @ firebase_database.js?v=4710e20b:1838
+closeFn @ firebase_database.js?v=4710e20b:2804
+onAuthRevoked_ @ firebase_database.js?v=4710e20b:2935
+(anonymous) @ firebase_database.js?v=4710e20b:2433
+onDataMessage_ @ firebase_database.js?v=4710e20b:2640
+onDataMessage_ @ firebase_database.js?v=4710e20b:1676
+onPrimaryMessageReceived_ @ firebase_database.js?v=4710e20b:1671
+(anonymous) @ firebase_database.js?v=4710e20b:1593
+(anonymous) @ firebase_database.js?v=4710e20b:680
+exceptionGuard @ firebase_database.js?v=4710e20b:397
+handleResponse @ firebase_database.js?v=4710e20b:679
+(anonymous) @ firebase_database.js?v=4710e20b:791
+pRTLPCB @ VM10193 .lp:6
+(anonymous) @ VM10195 .lp:1Understand this warningAI
+VM10193 .lp:6 [2025-05-06T18:31:23.462Z]  @firebase/database: FIREBASE WARNING: Provided authentication credentials for the app named "[DEFAULT]" are invalid. This usually indicates your app was not initialized correctly. Make sure the "apiKey" and "databaseURL" properties provided to initializeApp() match the values provided for your app at https://console.firebase.google.com/. 
+defaultLogHandler @ chunk-HYWM6WVX.js?v=4710e20b:1361
+warn @ chunk-HYWM6WVX.js?v=4710e20b:1425
+warn @ firebase_database.js?v=4710e20b:199
+notifyForInvalidToken @ firebase_database.js?v=4710e20b:512
+onAuthRevoked_ @ firebase_database.js?v=4710e20b:2940
+(anonymous) @ firebase_database.js?v=4710e20b:2433
+onDataMessage_ @ firebase_database.js?v=4710e20b:2640
+onDataMessage_ @ firebase_database.js?v=4710e20b:1676
+onPrimaryMessageReceived_ @ firebase_database.js?v=4710e20b:1671
+(anonymous) @ firebase_database.js?v=4710e20b:1593
+(anonymous) @ firebase_database.js?v=4710e20b:680
+exceptionGuard @ firebase_database.js?v=4710e20b:397
+handleResponse @ firebase_database.js?v=4710e20b:679
+(anonymous) @ firebase_database.js?v=4710e20b:791
+pRTLPCB @ VM10193 .lp:6
+(anonymous) @ VM10195 .lp:1Understand this warningAI
+VM10205 .lp:6 WebSocket connection to 'wss://s-euw1b-nss-202.europe-west1.firebasedatabase.app/.ws?v=5&s=beuvI2nLUtmYH3Xzzo9lquKFsXByDCyr&p=1:92917846687:web:55bb36fd0734f3833a48aa&ns=mefenmembers-default-rtdb' failed: WebSocket is closed before the connection is established.
+shutdown_ @ firebase_database.js?v=4710e20b:1380
+close @ firebase_database.js?v=4710e20b:1401
+closeConnections_ @ firebase_database.js?v=4710e20b:1852
+close @ firebase_database.js?v=4710e20b:1838
+closeFn @ firebase_database.js?v=4710e20b:2804
+onAuthRevoked_ @ firebase_database.js?v=4710e20b:2935
+(anonymous) @ firebase_database.js?v=4710e20b:2433
+onDataMessage_ @ firebase_database.js?v=4710e20b:2640
+onDataMessage_ @ firebase_database.js?v=4710e20b:1676
+onPrimaryMessageReceived_ @ firebase_database.js?v=4710e20b:1671
+(anonymous) @ firebase_database.js?v=4710e20b:1593
+(anonymous) @ firebase_database.js?v=4710e20b:680
+exceptionGuard @ firebase_database.js?v=4710e20b:397
+handleResponse @ firebase_database.js?v=4710e20b:679
+(anonymous) @ firebase_database.js?v=4710e20b:791
+pRTLPCB @ VM10205 .lp:6
+(anonymous) @ VM10206 .lp:1Understand this warningAI
+VM10205 .lp:6 [2025-05-06T18:31:27.226Z]  @firebase/database: FIREBASE WARNING: Provided authentication credentials for the app named "[DEFAULT]" are invalid. This usually indicates your app was not initialized correctly. Make sure the "apiKey" and "databaseURL" properties provided to initializeApp() match the values provided for your app at https://console.firebase.google.com/. 
+defaultLogHandler @ chunk-HYWM6WVX.js?v=4710e20b:1361
+warn @ chunk-HYWM6WVX.js?v=4710e20b:1425
+warn @ firebase_database.js?v=4710e20b:199
+notifyForInvalidToken @ firebase_database.js?v=4710e20b:512
+onAuthRevoked_ @ firebase_database.js?v=4710e20b:2940
+(anonymous) @ firebase_database.js?v=4710e20b:2433
+onDataMessage_ @ firebase_database.js?v=4710e20b:2640
+onDataMessage_ @ firebase_database.js?v=4710e20b:1676
+onPrimaryMessageReceived_ @ firebase_database.js?v=4710e20b:1671
+(anonymous) @ firebase_database.js?v=4710e20b:1593
+(anonymous) @ firebase_database.js?v=4710e20b:680
+exceptionGuard @ firebase_database.js?v=4710e20b:397
+handleResponse @ firebase_database.js?v=4710e20b:679
+(anonymous) @ firebase_database.js?v=4710e20b:791
+pRTLPCB @ VM10205 .lp:6
+(anonymous) @ VM10206 .lp:1Understand this warningAI
