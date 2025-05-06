@@ -190,41 +190,41 @@ export default function MemberDetail() {
     <div className="space-y-6">
       {/* Header section met gradient achtergrond */}
       <div className="rounded-lg bg-gradient-to-r from-[#963E56]/80 to-[#963E56] p-6 shadow-md">
-        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center">
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight text-white mb-1 flex items-center">
-              {member.firstName} {member.lastName}
-              {isVotingEligible(member) && (
-                <Badge className="ml-2 bg-white/80 text-[#963E56] hover:bg-white text-xs">
-                  Stemgerechtigd
-                </Badge>
-              )}
-            </h1>
-            <p className="text-white/80">
-              Lidnummer: {member.memberNumber.toString().padStart(4, '0')}
-            </p>
-          </div>
-          <div className="flex mt-4 sm:mt-0 space-x-2">
-            <Button 
-              variant="outline" 
-              size="sm" 
-              onClick={handleBack}
-              className="bg-white/10 border-white/20 text-white hover:bg-white/20 hover:text-white"
-            >
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Terug
-            </Button>
-            <Button 
-              variant="outline" 
-              size="sm" 
-              onClick={handleEdit}
-              className="bg-white/10 border-white/20 text-white hover:bg-white/20 hover:text-white"
-            >
-              <Edit className="mr-2 h-4 w-4" />
-              Bewerken
-            </Button>
-          </div>
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight text-white mb-1 flex items-center">
+            {member.firstName} {member.lastName}
+            {isVotingEligible(member) && (
+              <Badge className="ml-2 bg-white/80 text-[#963E56] hover:bg-white text-xs">
+                Stemgerechtigd
+              </Badge>
+            )}
+          </h1>
+          <p className="text-white/80">
+            Lidnummer: {member.memberNumber.toString().padStart(4, '0')}
+          </p>
         </div>
+      </div>
+      
+      {/* Knoppen onder de header */}
+      <div className="flex space-x-2">
+        <Button 
+          variant="outline" 
+          size="sm" 
+          onClick={handleBack}
+          className="border-[#963E56]/20 text-[#963E56] hover:bg-[#963E56]/10"
+        >
+          <ArrowLeft className="mr-2 h-4 w-4" />
+          Terug
+        </Button>
+        <Button 
+          variant="outline" 
+          size="sm" 
+          onClick={handleEdit}
+          className="border-[#963E56]/20 text-[#963E56] hover:bg-[#963E56]/10"
+        >
+          <Edit className="mr-2 h-4 w-4" />
+          Bewerken
+        </Button>
       </div>
       
       <Card className="border-none shadow-md">

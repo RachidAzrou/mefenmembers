@@ -1028,26 +1028,21 @@ export default function MembersList() {
                 ) : (
                   sortedMembers.map((member) => (
                     <TableRow key={member?.id || 'unknown'} className="hover:bg-gray-50/50 transition-colors">
-                      <TableCell className="font-medium text-[#963E56] text-xs sm:text-sm py-2 sm:py-4">
-                        {member?.memberNumber !== undefined 
-                          ? member.memberNumber.toString().padStart(4, '0')
-                          : "----"}
-                      </TableCell>
                       <TableCell className="font-medium text-xs sm:text-sm py-2 sm:py-4">
                         <Link 
                           href={`/member-detail?id=${member?.id}`} 
                           className="text-[#963E56] hover:text-[#7e3447] hover:underline cursor-pointer"
                         >
-                          {member?.firstName || ""}
+                          {member?.memberNumber !== undefined 
+                            ? member.memberNumber.toString().padStart(4, '0')
+                            : "----"}
                         </Link>
                       </TableCell>
                       <TableCell className="font-medium text-xs sm:text-sm py-2 sm:py-4">
-                        <Link 
-                          href={`/member-detail?id=${member?.id}`} 
-                          className="text-[#963E56] hover:text-[#7e3447] hover:underline cursor-pointer"
-                        >
-                          {member?.lastName || ""}
-                        </Link>
+                        {member?.firstName || ""}
+                      </TableCell>
+                      <TableCell className="font-medium text-xs sm:text-sm py-2 sm:py-4">
+                        {member?.lastName || ""}
                       </TableCell>
                       <TableCell className="text-gray-600 text-xs sm:text-sm py-2 sm:py-4">
                         {formatDate(member?.birthDate)}
@@ -1065,28 +1060,36 @@ export default function MembersList() {
                         </Badge>
                       </TableCell>
                       <TableCell className="text-right">
-                        <div className="flex justify-end space-x-2">
-                          <Button 
-                            variant="ghost" 
-                            size="icon" 
-                            className="h-8 w-8 text-blue-500 hover:text-blue-700 hover:bg-blue-50"
-                            onClick={() => setViewMember(member)}
-                            title="Details bekijken"
-                          >
-                            <Eye className="h-4 w-4" />
-                            <span className="sr-only">Details bekijken</span>
-                          </Button>
-                          <Button 
-                            variant="ghost" 
-                            size="icon" 
-                            className="h-8 w-8 text-red-500 hover:text-red-700 hover:bg-red-50"
-                            onClick={() => handleDeleteConfirm(member)}
-                            title="Lid verwijderen"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                            <span className="sr-only">Lid verwijderen</span>
-                          </Button>
-                        </div>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button 
+                              variant="ghost" 
+                              size="icon" 
+                              className="h-8 w-8"
+                            >
+                              <MoreHorizontal className="h-4 w-4" />
+                              <span className="sr-only">Acties menu</span>
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuLabel>Acties</DropdownMenuLabel>
+                            <DropdownMenuItem 
+                              onClick={() => navigate(`/member-detail?id=${member?.id}`)}
+                              className="cursor-pointer flex items-center"
+                            >
+                              <Eye className="h-4 w-4 mr-2" />
+                              Details bekijken
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem 
+                              onClick={() => handleDeleteConfirm(member)}
+                              className="cursor-pointer text-red-600 flex items-center"
+                            >
+                              <Trash2 className="h-4 w-4 mr-2" />
+                              Lid verwijderen
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                       </TableCell>
                     </TableRow>
                   ))
