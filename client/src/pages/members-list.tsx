@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
-import { Member } from "@shared/schema";
+import { Member, insertMemberSchema } from "@shared/schema";
 import { Input } from "@/components/ui/input";
 import { 
   Table, 
@@ -24,7 +24,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { 
-  Eye, MoreHorizontal, Plus, Search, SlidersHorizontal,
+  Eye, MoreHorizontal, Plus, Search, SlidersHorizontal, Save, Loader2,
   CalendarDays, Check, X, Users, User, Phone, StickyNote, Edit,
   SortAsc, SortDesc, Trash2, ArrowUpDown, Filter
 } from "lucide-react";
@@ -32,7 +32,11 @@ import { Badge } from "@/components/ui/badge";
 import { formatPhoneNumber } from "@/lib/utils";
 import { Link, useLocation } from "wouter";
 import { Skeleton } from "@/components/ui/skeleton";
-
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { 
   Dialog, 
@@ -44,18 +48,47 @@ import {
 } from "@/components/ui/dialog";
 import { format } from "date-fns";
 import { nl } from "date-fns/locale";
+import { z } from "zod";
+
+// Form schema voor bewerking in dialoog (minder velden)
+const memberEditSchema = insertMemberSchema.extend({
+  firstName: z.string().min(1, "Voornaam is verplicht"),
+  lastName: z.string().min(1, "Achternaam is verplicht"),
+  phoneNumber: z.string().min(1, "Telefoonnummer is verplicht"),
+  email: z.string().email("Voer een geldig e-mailadres in").optional().or(z.literal('')),
+  notes: z.string().optional(),
+  accountNumber: z.string().optional().nullable(),
+  paymentStatus: z.boolean().default(false),
+}).omit({ id: true, memberNumber: true, birthDate: true, registrationDate: true });
+
+type MemberEditData = z.infer<typeof memberEditSchema>;
 
 export default function MembersList() {
   const [searchQuery, setSearchQuery] = useState("");
   const [viewMember, setViewMember] = useState<Member | null>(null);
   const [memberToDelete, setMemberToDelete] = useState<Member | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [editMode, setEditMode] = useState(false);
   const queryClient = useQueryClient();
   const { toast } = useToast();
   const [activeFilter, setActiveFilter] = useState<"all" | "paid" | "unpaid" | "recent">("all");
   const [sortField, setSortField] = useState<string>("memberNumber");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
   const [, navigate] = useLocation();
+  
+  // Form setup voor bewerken in dialoog
+  const form = useForm<MemberEditData>({
+    resolver: zodResolver(memberEditSchema),
+    defaultValues: {
+      firstName: "",
+      lastName: "",
+      email: "",
+      phoneNumber: "",
+      paymentStatus: false,
+      notes: "",
+      accountNumber: ""
+    }
+  });
   
   // Haal alle leden op
   const { data: members = [], isLoading } = useQuery<Member[]>({
@@ -159,6 +192,64 @@ export default function MembersList() {
     } catch (e) {
       return "-";
     }
+  };
+  
+  // Update mutation voor het bijwerken van een lid direct in de popup
+  const updateMemberMutation = useMutation({
+    mutationFn: async (data: MemberEditData) => {
+      if (!viewMember) return null;
+      
+      const response = await apiRequest('PUT', `/api/members?id=${viewMember.id}`, data);
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Onbekende API fout');
+      }
+      
+      return response.json();
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['/api/members'] });
+      setViewMember(data);
+      setEditMode(false);
+      toast({
+        title: "Lid bijgewerkt",
+        description: "De gegevens zijn succesvol bijgewerkt.",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Fout bij bijwerken",
+        description: `Er is een fout opgetreden: ${error instanceof Error ? error.message : 'Onbekende fout'}`,
+        variant: "destructive",
+      });
+    }
+  });
+  
+  // Functies voor de bewerkingsmodus in popup dialoog
+  const handleEnableEditMode = () => {
+    if (!viewMember) return;
+    
+    // Reset het formulier met de gegevens van het huidige lid
+    form.reset({
+      firstName: viewMember.firstName,
+      lastName: viewMember.lastName,
+      email: viewMember.email || "",
+      phoneNumber: viewMember.phoneNumber,
+      paymentStatus: viewMember.paymentStatus,
+      notes: viewMember.notes || "",
+      accountNumber: viewMember.accountNumber || ""
+    });
+    
+    setEditMode(true);
+  };
+  
+  const handleCancelEdit = () => {
+    setEditMode(false);
+  };
+  
+  const handleSaveEdit = (data: MemberEditData) => {
+    updateMemberMutation.mutate(data);
   };
   
   // Functie om lid verwijderen te bevestigen
@@ -669,7 +760,12 @@ export default function MembersList() {
       
       {/* Lid details dialoog */}
       {viewMember && (
-        <Dialog open={!!viewMember} onOpenChange={() => setViewMember(null)}>
+        <Dialog open={!!viewMember} onOpenChange={(open) => {
+          if (!open) {
+            setViewMember(null);
+            setEditMode(false);
+          }
+        }}>
           <DialogContent className="sm:max-w-[650px] p-0 overflow-hidden">
             <div className="bg-gradient-to-r from-[#963E56]/90 to-[#963E56] p-4 sm:p-6 text-white">
               <DialogHeader className="text-white">
@@ -682,101 +778,284 @@ export default function MembersList() {
               </DialogHeader>
             </div>
             
-            <div className="p-4 sm:p-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
-                <div>
-                  <h3 className="text-base sm:text-lg font-semibold text-gray-700 mb-2 sm:mb-3 flex items-center">
-                    <User className="h-4 w-4 sm:h-5 sm:w-5 mr-1.5 sm:mr-2 text-[#963E56]" /> 
-                    Persoonlijke gegevens
-                  </h3>
-                  <div className="space-y-2 sm:space-y-3">
-                    <div className="bg-gray-50 rounded-lg p-2 sm:p-3">
-                      <div className="text-xs sm:text-sm text-gray-500">Volledige naam</div>
-                      <div className="font-medium text-sm sm:text-base">{viewMember.firstName} {viewMember.lastName}</div>
+            {editMode ? (
+              <Form {...form}>
+                <form onSubmit={form.handleSubmit(handleSaveEdit)} className="p-4 sm:p-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+                    <div>
+                      <h3 className="text-base sm:text-lg font-semibold text-gray-700 mb-2 sm:mb-3 flex items-center">
+                        <User className="h-4 w-4 sm:h-5 sm:w-5 mr-1.5 sm:mr-2 text-[#963E56]" /> 
+                        Persoonlijke gegevens
+                      </h3>
+                      
+                      <div className="space-y-4">
+                        <FormField
+                          control={form.control}
+                          name="firstName"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Voornaam</FormLabel>
+                              <FormControl>
+                                <Input {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        
+                        <FormField
+                          control={form.control}
+                          name="lastName"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Achternaam</FormLabel>
+                              <FormControl>
+                                <Input {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        
+                        <div className="text-xs text-gray-500 bg-gray-50 p-3 rounded-lg">
+                          <span className="font-medium">Geboortedatum:</span> {formatDate(viewMember.birthDate)}<br />
+                          <span className="text-xs italic">Ga naar de volledige bewerken pagina om de geboortedatum aan te passen.</span>
+                        </div>
+                      </div>
                     </div>
                     
-                    <div className="bg-gray-50 rounded-lg p-2 sm:p-3">
-                      <div className="text-xs sm:text-sm text-gray-500">Geboortedatum</div>
-                      <div className="font-medium text-sm sm:text-base">{formatDate(viewMember.birthDate)}</div>
-                    </div>
-                    
-                    <div className="bg-gray-50 rounded-lg p-2 sm:p-3">
-                      <div className="text-xs sm:text-sm text-gray-500">Lid sinds</div>
-                      <div className="font-medium text-sm sm:text-base">{formatDate(viewMember.registrationDate)}</div>
+                    <div>
+                      <h3 className="text-base sm:text-lg font-semibold text-gray-700 mb-2 sm:mb-3 flex items-center">
+                        <Phone className="h-4 w-4 sm:h-5 sm:w-5 mr-1.5 sm:mr-2 text-[#963E56]" /> 
+                        Contactgegevens
+                      </h3>
+                      
+                      <div className="space-y-4">
+                        <FormField
+                          control={form.control}
+                          name="email"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>E-mailadres</FormLabel>
+                              <FormControl>
+                                <Input {...field} type="email" placeholder="Optioneel" />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        
+                        <FormField
+                          control={form.control}
+                          name="phoneNumber"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Telefoonnummer</FormLabel>
+                              <FormControl>
+                                <Input {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        
+                        <FormField
+                          control={form.control}
+                          name="accountNumber"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Rekeningnummer</FormLabel>
+                              <FormControl>
+                                <Input {...field} placeholder="Optioneel" value={field.value || ""} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
                     </div>
                   </div>
-                </div>
-                
-                <div>
-                  <h3 className="text-base sm:text-lg font-semibold text-gray-700 mb-2 sm:mb-3 flex items-center mt-4 md:mt-0">
-                    <Phone className="h-4 w-4 sm:h-5 sm:w-5 mr-1.5 sm:mr-2 text-[#963E56]" /> 
-                    Contactgegevens
-                  </h3>
-                  <div className="space-y-2 sm:space-y-3">
-                    <div className="bg-gray-50 rounded-lg p-2 sm:p-3">
-                      <div className="text-xs sm:text-sm text-gray-500">E-mail</div>
-                      <div className="font-medium text-sm sm:text-base">{viewMember.email || "Niet opgegeven"}</div>
+                  
+                  <div className="mt-6">
+                    <FormField
+                      control={form.control}
+                      name="paymentStatus"
+                      render={({ field }) => (
+                        <FormItem className="bg-gray-50 p-4 rounded-lg flex items-start space-x-3 space-y-0">
+                          <FormControl>
+                            <Checkbox
+                              checked={field.value}
+                              onCheckedChange={field.onChange}
+                            />
+                          </FormControl>
+                          <div className="space-y-1 leading-none">
+                            <FormLabel>Lidmaatschap betaald</FormLabel>
+                            <p className="text-sm text-gray-500">
+                              Vink aan als het lidmaatschap voor dit jaar is betaald
+                            </p>
+                          </div>
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                  
+                  <div className="mt-6">
+                    <FormField
+                      control={form.control}
+                      name="notes"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Notities</FormLabel>
+                          <FormControl>
+                            <Textarea 
+                              {...field} 
+                              placeholder="Optionele notities over dit lid" 
+                              className="min-h-[120px] resize-y"
+                              value={field.value || ""}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                  
+                  <div className="border-t mt-6 pt-6 flex flex-col sm:flex-row sm:justify-end gap-3">
+                    <Button 
+                      type="button"
+                      variant="outline" 
+                      onClick={handleCancelEdit}
+                      className="order-1 sm:order-1"
+                    >
+                      Annuleren
+                    </Button>
+                    <Button 
+                      type="submit"
+                      disabled={updateMemberMutation.isPending}
+                      className="bg-[#963E56] hover:bg-[#7e3447] order-0 sm:order-2"
+                    >
+                      {updateMemberMutation.isPending ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Bezig met opslaan...
+                        </>
+                      ) : (
+                        <>
+                          <Save className="mr-2 h-4 w-4" />
+                          Wijzigingen opslaan
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                </form>
+              </Form>
+            ) : (
+              <>
+                <div className="p-4 sm:p-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+                    <div>
+                      <h3 className="text-base sm:text-lg font-semibold text-gray-700 mb-2 sm:mb-3 flex items-center">
+                        <User className="h-4 w-4 sm:h-5 sm:w-5 mr-1.5 sm:mr-2 text-[#963E56]" /> 
+                        Persoonlijke gegevens
+                      </h3>
+                      <div className="space-y-2 sm:space-y-3">
+                        <div className="bg-gray-50 rounded-lg p-2 sm:p-3">
+                          <div className="text-xs sm:text-sm text-gray-500">Volledige naam</div>
+                          <div className="font-medium text-sm sm:text-base">{viewMember.firstName} {viewMember.lastName}</div>
+                        </div>
+                        
+                        <div className="bg-gray-50 rounded-lg p-2 sm:p-3">
+                          <div className="text-xs sm:text-sm text-gray-500">Geboortedatum</div>
+                          <div className="font-medium text-sm sm:text-base">{formatDate(viewMember.birthDate)}</div>
+                        </div>
+                        
+                        <div className="bg-gray-50 rounded-lg p-2 sm:p-3">
+                          <div className="text-xs sm:text-sm text-gray-500">Lid sinds</div>
+                          <div className="font-medium text-sm sm:text-base">{formatDate(viewMember.registrationDate)}</div>
+                        </div>
+                      </div>
                     </div>
                     
-                    <div className="bg-gray-50 rounded-lg p-2 sm:p-3">
-                      <div className="text-xs sm:text-sm text-gray-500">Telefoon</div>
-                      <div className="font-medium text-sm sm:text-base">{formatPhoneNumber(viewMember.phoneNumber)}</div>
-                    </div>
-                    
-                    <div className="bg-gray-50 rounded-lg p-2 sm:p-3">
-                      <div className="text-xs sm:text-sm text-gray-500">Rekeningnummer</div>
-                      <div className="font-medium text-sm sm:text-base">{viewMember.accountNumber || "Niet opgegeven"}</div>
+                    <div>
+                      <h3 className="text-base sm:text-lg font-semibold text-gray-700 mb-2 sm:mb-3 flex items-center mt-4 md:mt-0">
+                        <Phone className="h-4 w-4 sm:h-5 sm:w-5 mr-1.5 sm:mr-2 text-[#963E56]" /> 
+                        Contactgegevens
+                      </h3>
+                      <div className="space-y-2 sm:space-y-3">
+                        <div className="bg-gray-50 rounded-lg p-2 sm:p-3">
+                          <div className="text-xs sm:text-sm text-gray-500">E-mail</div>
+                          <div className="font-medium text-sm sm:text-base">{viewMember.email || "Niet opgegeven"}</div>
+                        </div>
+                        
+                        <div className="bg-gray-50 rounded-lg p-2 sm:p-3">
+                          <div className="text-xs sm:text-sm text-gray-500">Telefoon</div>
+                          <div className="font-medium text-sm sm:text-base">{formatPhoneNumber(viewMember.phoneNumber)}</div>
+                        </div>
+                        
+                        <div className="bg-gray-50 rounded-lg p-2 sm:p-3">
+                          <div className="text-xs sm:text-sm text-gray-500">Rekeningnummer</div>
+                          <div className="font-medium text-sm sm:text-base">{viewMember.accountNumber || "Niet opgegeven"}</div>
+                        </div>
+                      </div>
                     </div>
                   </div>
-                </div>
-              </div>
-              
-              <div className="mt-4 sm:mt-6 flex items-center p-3 sm:p-4 rounded-lg bg-gray-50 gap-3 sm:gap-4">
-                <div className={`p-2 sm:p-3 rounded-full ${viewMember.paymentStatus ? 'bg-green-100' : 'bg-red-100'}`}>
-                  {viewMember.paymentStatus ? (
-                    <Check className="h-4 w-4 sm:h-5 sm:w-5 text-green-600" />
-                  ) : (
-                    <X className="h-4 w-4 sm:h-5 sm:w-5 text-red-600" />
+                  
+                  <div className="mt-4 sm:mt-6 flex items-center p-3 sm:p-4 rounded-lg bg-gray-50 gap-3 sm:gap-4">
+                    <div className={`p-2 sm:p-3 rounded-full ${viewMember.paymentStatus ? 'bg-green-100' : 'bg-red-100'}`}>
+                      {viewMember.paymentStatus ? (
+                        <Check className="h-4 w-4 sm:h-5 sm:w-5 text-green-600" />
+                      ) : (
+                        <X className="h-4 w-4 sm:h-5 sm:w-5 text-red-600" />
+                      )}
+                    </div>
+                    <div>
+                      <div className="text-xs sm:text-sm text-gray-500">Betaalstatus</div>
+                      <div className="text-sm sm:text-base font-medium">
+                        {viewMember.paymentStatus ? "Betaald" : "Niet betaald"}
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {viewMember.notes && (
+                    <div className="mt-4 sm:mt-6">
+                      <h3 className="text-base sm:text-lg font-semibold text-gray-700 mb-2 sm:mb-3 flex items-center">
+                        <StickyNote className="h-4 w-4 sm:h-5 sm:w-5 mr-1.5 sm:mr-2 text-[#963E56]" /> 
+                        Notities
+                      </h3>
+                      <div className="bg-gray-50 p-3 sm:p-4 rounded-lg whitespace-pre-wrap text-gray-600 text-xs sm:text-sm">
+                        {viewMember.notes}
+                      </div>
+                    </div>
                   )}
                 </div>
-                <div>
-                  <div className="text-xs sm:text-sm text-gray-500">Betaalstatus</div>
-                  <div className="text-sm sm:text-base font-medium">
-                    {viewMember.paymentStatus ? "Betaald" : "Niet betaald"}
-                  </div>
+                
+                <div className="border-t p-3 sm:p-4 flex flex-col sm:flex-row sm:justify-end gap-2 bg-gray-50">
+                  <Button 
+                    variant="outline" 
+                    onClick={() => setViewMember(null)}
+                    className="border-gray-300 text-gray-700 text-xs sm:text-sm w-full sm:w-auto order-3 sm:order-1"
+                  >
+                    Sluiten
+                  </Button>
+                  <Button 
+                    variant="outline"
+                    onClick={handleEnableEditMode}
+                    className="border-blue-200 bg-blue-50 hover:bg-blue-100 text-blue-600 text-xs sm:text-sm w-full sm:w-auto order-2 sm:order-2"
+                  >
+                    <Edit className="mr-2 h-3.5 w-3.5" />
+                    Bewerken in pop-up
+                  </Button>
+                  <Button 
+                    variant="default" 
+                    onClick={() => navigate(`/member-add?id=${viewMember.id}`)}
+                    className="bg-[#963E56] hover:bg-[#7e3447] text-white text-xs sm:text-sm w-full sm:w-auto order-1 sm:order-3"
+                  >
+                    <Edit className="mr-2 h-3.5 w-3.5" />
+                    Volledig bewerken
+                  </Button>
                 </div>
-              </div>
-              
-              {viewMember.notes && (
-                <div className="mt-4 sm:mt-6">
-                  <h3 className="text-base sm:text-lg font-semibold text-gray-700 mb-2 sm:mb-3 flex items-center">
-                    <StickyNote className="h-4 w-4 sm:h-5 sm:w-5 mr-1.5 sm:mr-2 text-[#963E56]" /> 
-                    Notities
-                  </h3>
-                  <div className="bg-gray-50 p-3 sm:p-4 rounded-lg whitespace-pre-wrap text-gray-600 text-xs sm:text-sm">
-                    {viewMember.notes}
-                  </div>
-                </div>
-              )}
-            </div>
-            
-            <div className="border-t p-3 sm:p-4 flex flex-col sm:flex-row sm:justify-end gap-2 bg-gray-50">
-              <Button 
-                variant="outline" 
-                onClick={() => setViewMember(null)}
-                className="border-gray-300 text-gray-700 text-xs sm:text-sm w-full sm:w-auto order-2 sm:order-1"
-              >
-                Sluiten
-              </Button>
-              <Button 
-                variant="default" 
-                onClick={() => navigate(`/member-add?id=${viewMember.id}`)}
-                className="bg-[#963E56] hover:bg-[#7e3447] text-white text-xs sm:text-sm w-full sm:w-auto order-1 sm:order-2"
-              >
-                <Edit className="mr-2 h-3.5 w-3.5" />
-                Bewerken
-              </Button>
-            </div>
+              </>
+            )}
           </DialogContent>
         </Dialog>
       )}
