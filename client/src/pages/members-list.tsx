@@ -27,8 +27,32 @@ import { Button } from "@/components/ui/button";
 import { 
   Eye, MoreHorizontal, Plus, Search, SlidersHorizontal, Save, Loader2,
   CalendarDays, Check, X, Users, User, Phone, StickyNote, Edit,
-  SortAsc, SortDesc, Trash2, ArrowUpDown, Filter, UserCheck, AlertTriangle, GraduationCap
+  SortAsc, SortDesc, Trash2, ArrowUpDown, Filter, UserCheck, AlertTriangle, GraduationCap, CreditCard, AlertCircle
 } from "lucide-react";
+
+// Vote icon component
+function Vote(props: React.SVGProps<SVGSVGElement>) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      {...props}
+    >
+      <path d="M3 7h10v2H3z" />
+      <path d="M5 16h14v2H5z" />
+      <path d="M17 12h4v2h-4z" />
+      <path d="M11 7v14" />
+      <path d="m9 14 2 2 2-2" />
+    </svg>
+  );
+}
 import { Badge } from "@/components/ui/badge";
 import { formatPhoneNumber } from "@/lib/utils";
 import { Link, useLocation } from "wouter";
@@ -1374,7 +1398,7 @@ export default function MembersList() {
                       </h3>
                       <div className="space-y-2 sm:space-y-3">
                         <div className="bg-gray-50 rounded-lg p-2 sm:p-3">
-                          <div className="text-xs sm:text-sm text-gray-500">Volledige naam</div>
+                          <div className="text-xs sm:text-sm text-gray-500">Naam</div>
                           <div className="font-medium text-sm sm:text-base">{viewMember.firstName} {viewMember.lastName}</div>
                         </div>
                         
@@ -1387,6 +1411,11 @@ export default function MembersList() {
                           <div className="text-xs sm:text-sm text-gray-500">Lid sinds</div>
                           <div className="font-medium text-sm sm:text-base">{formatDate(viewMember.registrationDate)}</div>
                         </div>
+
+                        <div className="bg-gray-50 rounded-lg p-2 sm:p-3">
+                          <div className="text-xs sm:text-sm text-gray-500">Geslacht</div>
+                          <div className="font-medium text-sm sm:text-base">{viewMember.gender === "man" ? "Man" : viewMember.gender === "vrouw" ? "Vrouw" : "Niet opgegeven"}</div>
+                        </div>
                       </div>
                     </div>
                     
@@ -1397,38 +1426,72 @@ export default function MembersList() {
                       </h3>
                       <div className="space-y-2 sm:space-y-3">
                         <div className="bg-gray-50 rounded-lg p-2 sm:p-3">
-                          <div className="text-xs sm:text-sm text-gray-500">E-mail</div>
-                          <div className="font-medium text-sm sm:text-base">{viewMember.email || "Niet opgegeven"}</div>
-                        </div>
-                        
-                        <div className="bg-gray-50 rounded-lg p-2 sm:p-3">
                           <div className="text-xs sm:text-sm text-gray-500">Telefoon</div>
                           <div className="font-medium text-sm sm:text-base">{formatPhoneNumber(viewMember.phoneNumber)}</div>
                         </div>
                         
                         <div className="bg-gray-50 rounded-lg p-2 sm:p-3">
-                          <div className="text-xs sm:text-sm text-gray-500">Rekeningnummer</div>
-                          <div className="font-medium text-sm sm:text-base">{viewMember.accountNumber || "Niet opgegeven"}</div>
+                          <div className="text-xs sm:text-sm text-gray-500">E-mail</div>
+                          <div className="font-medium text-sm sm:text-base">{viewMember.email || "Niet opgegeven"}</div>
                         </div>
                       </div>
                     </div>
                   </div>
                   
-                  <div className="mt-4 sm:mt-6 flex items-center p-3 sm:p-4 rounded-lg bg-gray-50 gap-3 sm:gap-4">
-                    <div className={`p-2 sm:p-3 rounded-full ${viewMember.paymentStatus ? 'bg-green-100' : 'bg-red-100'}`}>
-                      {viewMember.paymentStatus ? (
-                        <Check className="h-4 w-4 sm:h-5 sm:w-5 text-green-600" />
-                      ) : (
-                        <X className="h-4 w-4 sm:h-5 sm:w-5 text-red-600" />
+                  <div className="mt-4 sm:mt-6">
+                    <h3 className="text-base sm:text-lg font-semibold text-gray-700 mb-2 sm:mb-3 flex items-center">
+                      <CreditCard className="h-4 w-4 sm:h-5 sm:w-5 mr-1.5 sm:mr-2 text-[#963E56]" /> 
+                      Betaalgegevens
+                    </h3>
+                    
+                    <div className="space-y-2 sm:space-y-3">
+                      {viewMember.accountNumber && (
+                        <div className="bg-gray-50 rounded-lg p-2 sm:p-3">
+                          <div className="text-xs sm:text-sm text-gray-500">IBAN</div>
+                          <div className="font-medium text-sm sm:text-base">{viewMember.accountNumber}</div>
+                        </div>
                       )}
-                    </div>
-                    <div>
-                      <div className="text-xs sm:text-sm text-gray-500">Betaalstatus</div>
-                      <div className="text-sm sm:text-base font-medium">
-                        {viewMember.paymentStatus ? "Betaald" : "Niet betaald"}
+                      
+                      <div className="flex items-center p-3 sm:p-4 rounded-lg bg-gray-50 gap-3 sm:gap-4">
+                        <div className={`p-2 sm:p-3 rounded-full ${viewMember.paymentStatus ? 'bg-green-100' : 'bg-red-100'}`}>
+                          {viewMember.paymentStatus ? (
+                            <Check className="h-4 w-4 sm:h-5 sm:w-5 text-green-600" />
+                          ) : (
+                            <X className="h-4 w-4 sm:h-5 sm:w-5 text-red-600" />
+                          )}
+                        </div>
+                        <div>
+                          <div className="text-xs sm:text-sm text-gray-500">Betaalstatus</div>
+                          <div className="text-sm sm:text-base font-medium">
+                            {viewMember.paymentStatus ? "Betaald" : "Niet betaald"}
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </div>
+                  
+                  {isVotingEligible(viewMember) && (
+                    <div className="mt-4 sm:mt-6">
+                      <h3 className="text-base sm:text-lg font-semibold text-gray-700 mb-2 sm:mb-3 flex items-center">
+                        <Vote className="h-4 w-4 sm:h-5 sm:w-5 mr-1.5 sm:mr-2 text-[#963E56]" /> 
+                        Stemrecht
+                      </h3>
+                      
+                      <div className="bg-blue-50 border border-blue-100 p-3 sm:p-4 rounded-lg flex items-start gap-3">
+                        <div className="bg-blue-100 p-2 rounded-full flex-shrink-0">
+                          <Check className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600" />
+                        </div>
+                        <div>
+                          <div className="font-medium text-blue-800">Stemgerechtigd</div>
+                          <div className="text-xs sm:text-sm text-blue-700 mt-1">
+                            Dit lid voldoet aan alle voorwaarden: meerderjarig, 
+                            minstens 5 jaar lid ({calculateMembershipYears(viewMember.registrationDate)} jaar) 
+                            en heeft de jaarlijkse bijdrage betaald.
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                   
                   {viewMember.notes && (
                     <div className="mt-4 sm:mt-6">
