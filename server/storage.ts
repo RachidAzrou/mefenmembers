@@ -57,10 +57,12 @@ export class DatabaseStorage implements IStorage {
     // Zorg dat het lid een lidnummer heeft
     if (!member.memberNumber) {
       member.memberNumber = await this.generateMemberNumber();
+      console.log(`Nieuw lidnummer toegewezen: ${member.memberNumber}`);
     }
     
     // Expliciete type conversie voor database compatibiliteit met nieuwe velden
-    const preparedMember = {
+    // Bereid de velden voor met correcte null handling en type conversies
+    const preparedMemberObj: Record<string, any> = {
       // Basis velden
       firstName: member.firstName,
       lastName: member.lastName,
@@ -100,7 +102,7 @@ export class DatabaseStorage implements IStorage {
       notes: member.notes || null
     };
     
-    const [created] = await db.insert(members).values(preparedMember).returning();
+    const [created] = await db.insert(members).values(preparedMemberObj).returning();
     return created;
   }
 
@@ -204,6 +206,7 @@ export class DatabaseStorage implements IStorage {
       await db.delete(members).where(eq(members.id, id));
       
       // Voeg het lidnummer toe aan de lijst van verwijderde nummers voor hergebruik
+      console.log(`Voeg lidnummer ${member.memberNumber} toe aan de lijst van verwijderde nummers`);
       await this.addDeletedMemberNumber(member.memberNumber);
     }
   }
@@ -216,11 +219,31 @@ export class DatabaseStorage implements IStorage {
   
   // Methodes voor het beheren van verwijderde lidnummers
   async addDeletedMemberNumber(memberNumber: number): Promise<DeletedMemberNumber> {
-    const [created] = await db.insert(deletedMemberNumbers)
-      .values({ memberNumber })
-      .returning();
+    console.log(`Toevoegen van lidnummer ${memberNumber} aan de deleted_member_numbers tabel`);
     
-    return created;
+    try {
+      // Voeg alleen toe als het niet al in de deleted_member_numbers tabel zit
+      const existing = await db.select()
+        .from(deletedMemberNumbers)
+        .where(eq(deletedMemberNumbers.memberNumber, memberNumber))
+        .limit(1);
+        
+      if (existing && existing.length > 0) {
+        console.log(`Lidnummer ${memberNumber} is al in de deleted_member_numbers tabel`);
+        return existing[0];
+      }
+      
+      // Nieuw verwijderd nummer toevoegen
+      const [created] = await db.insert(deletedMemberNumbers)
+        .values({ memberNumber })
+        .returning();
+      
+      console.log(`Lidnummer ${memberNumber} toegevoegd aan deleted_member_numbers, ID: ${created.id}`);
+      return created;
+    } catch (error) {
+      console.error(`Fout bij het toevoegen van lidnummer ${memberNumber} aan deleted_member_numbers:`, error);
+      throw error;
+    }
   }
   
   async getDeletedMemberNumbers(): Promise<DeletedMemberNumber[]> {
@@ -230,26 +253,48 @@ export class DatabaseStorage implements IStorage {
   }
   
   async getNextAvailableMemberNumber(): Promise<number> {
-    // Haal het oudste verwijderde lidnummer op (het nummer dat het langst geleden is verwijderd)
-    const [deletedNumber] = await db.select()
-      .from(deletedMemberNumbers)
-      .orderBy(asc(deletedMemberNumbers.deletedAt))
-      .limit(1);
+    console.log("Zoeken naar het volgende beschikbare lidnummer");
     
-    if (!deletedNumber) {
-      // Geen verwijderde nummers beschikbaar, genereer een nieuw nummer
+    try {
+      // Haal het oudste verwijderde lidnummer op (het nummer dat het langst geleden is verwijderd)
+      const deletedNumbers = await db.select()
+        .from(deletedMemberNumbers)
+        .orderBy(asc(deletedMemberNumbers.deletedAt));
+      
+      console.log(`Aantal gevonden verwijderde lidnummers: ${deletedNumbers.length}`);
+      
+      if (deletedNumbers.length === 0) {
+        // Geen verwijderde nummers beschikbaar, genereer een nieuw nummer
+        const result = await db.execute<{ next_number: number }>(
+          sql`SELECT COALESCE(MAX(${members.memberNumber}), 0) + 1 AS next_number FROM ${members}`
+        );
+        
+        const nextNumber = result.rows[0]?.next_number || 1;
+        console.log(`Geen verwijderde nummers beschikbaar, nieuw nummer gegenereerd: ${nextNumber}`);
+        return nextNumber;
+      }
+      
+      // Gebruik het oudste verwijderde nummer
+      const oldestDeletedNumber = deletedNumbers[0];
+      console.log(`Hergebruik verwijderd lidnummer: ${oldestDeletedNumber.memberNumber} (ID: ${oldestDeletedNumber.id})`);
+      
+      // Verwijder dit nummer uit de lijst van verwijderde nummers, zodat het niet opnieuw wordt gebruikt
+      await this.removeDeletedMemberNumber(oldestDeletedNumber.memberNumber);
+      
+      // Retourneer het beschikbare nummer
+      return oldestDeletedNumber.memberNumber;
+    } catch (error) {
+      console.error("Fout bij het ophalen van het volgende beschikbare lidnummer:", error);
+      
+      // Fallback naar het genereren van een nieuw nummer
       const result = await db.execute<{ next_number: number }>(
         sql`SELECT COALESCE(MAX(${members.memberNumber}), 0) + 1 AS next_number FROM ${members}`
       );
       
-      return result.rows[0]?.next_number || 1;
+      const nextNumber = result.rows[0]?.next_number || 1;
+      console.log(`Fallback naar nieuw nummer: ${nextNumber}`);
+      return nextNumber;
     }
-    
-    // Verwijder dit nummer uit de lijst van verwijderde nummers, zodat het niet opnieuw wordt gebruikt
-    await this.removeDeletedMemberNumber(deletedNumber.memberNumber);
-    
-    // Retourneer het beschikbare nummer
-    return deletedNumber.memberNumber;
   }
   
   async removeDeletedMemberNumber(memberNumber: number): Promise<void> {
