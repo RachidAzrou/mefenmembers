@@ -50,9 +50,10 @@ export default function FirebaseTest() {
       
       // Debug info tonen
       console.log('Firebase config:', {
-        databaseURL: (db as any)._app.options.databaseURL,
-        projectId: (db as any)._app.options.projectId,
-        authDomain: (db as any)._app.options.authDomain,
+        db: db,
+        auth: auth,
+        app: auth.app,
+        currentUser: user
       });
       
       const timestamp = new Date().toISOString();
@@ -83,13 +84,18 @@ export default function FirebaseTest() {
           read: result,
           success: true,
         });
-      } catch (writeError) {
+      } catch (writeError: any) {
         console.error('Firebase schrijf/lees error:', writeError);
         
         // Als direct schrijven niet lukt, probeer de REST API te gebruiken
         try {
           console.log('Proberen via REST API...');
-          const response = await fetch(`${(db as any)._app.options.databaseURL}/${testPath}.json`, {
+          // Zorg ervoor dat we de Firebase database URL direct gebruiken van de configuratie in lib/firebase.ts
+          const databaseURL = import.meta.env.VITE_FIREBASE_DATABASE_URL || 
+                            `https://${import.meta.env.VITE_FIREBASE_PROJECT_ID || 'mefenmembers'}-default-rtdb.europe-west1.firebasedatabase.app`;
+          
+          console.log('Database URL voor REST API:', databaseURL);
+          const response = await fetch(`${databaseURL}/${testPath}.json`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(testData)
@@ -109,9 +115,9 @@ export default function FirebaseTest() {
             success: true,
             note: 'Gebruikt REST API als fallback'
           });
-        } catch (restError) {
+        } catch (restError: any) {
           console.error('REST API error:', restError);
-          throw new Error(`Firebase schrijven mislukt: ${writeError.message}. REST API fallback mislukt: ${restError.message}`);
+          throw new Error(`Firebase schrijven mislukt: ${(writeError as Error).message || 'onbekende fout'}. REST API fallback mislukt: ${restError.message || 'onbekende fout'}`);
         }
       }
     } catch (error) {
