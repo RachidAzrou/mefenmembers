@@ -1,5 +1,5 @@
 import { initializeApp } from "firebase/app";
-import { getAuth } from "firebase/auth";
+import { getAuth, onAuthStateChanged, User } from "firebase/auth";
 import { getDatabase } from "firebase/database";
 
 const firebaseConfig = {
@@ -16,3 +16,26 @@ const firebaseConfig = {
 export const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 export const db = getDatabase(app);
+
+// Functie om de huidige Firebase-gebruiker op te halen
+export async function getCurrentUser(): Promise<User | null> {
+  return new Promise((resolve) => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      unsubscribe();
+      resolve(user);
+    });
+  });
+}
+
+// Functie om het auth token op te halen voor API-verzoeken
+export async function getAuthToken(): Promise<string | null> {
+  const user = await getCurrentUser();
+  if (!user) return null;
+  
+  try {
+    return await user.getIdToken();
+  } catch (error) {
+    console.error("Fout bij ophalen auth token:", error);
+    return null;
+  }
+}

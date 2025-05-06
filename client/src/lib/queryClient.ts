@@ -12,9 +12,31 @@ export async function apiRequest(
   url: string,
   data?: unknown | undefined,
 ): Promise<Response> {
+  // Probeer Firebase auth token op te halen als deze beschikbaar is
+  let headers: Record<string, string> = {};
+  
+  try {
+    const { getAuthToken } = await import('./firebase');
+    const token = await getAuthToken();
+    
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+      console.log('Firebase auth token succesvol toegevoegd aan verzoek');
+    } else {
+      console.log('Geen Firebase auth token beschikbaar, verzoek wordt zonder token verzonden');
+    }
+  } catch (error) {
+    console.warn('Kon Firebase auth token niet ophalen:', error);
+  }
+  
+  // Voeg Content-Type header toe als er data is
+  if (data) {
+    headers['Content-Type'] = 'application/json';
+  }
+  
   const res = await fetch(url, {
     method,
-    headers: data ? { "Content-Type": "application/json" } : {},
+    headers,
     body: data ? JSON.stringify(data) : undefined,
     credentials: "include",
   });
@@ -29,7 +51,25 @@ export const getQueryFn: <T>(options: {
 }) => QueryFunction<T> =
   ({ on401: unauthorizedBehavior }) =>
   async ({ queryKey }) => {
+    // Probeer Firebase auth token op te halen als deze beschikbaar is
+    let headers: Record<string, string> = {};
+    
+    try {
+      const { getAuthToken } = await import('./firebase');
+      const token = await getAuthToken();
+      
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+        console.log('Firebase auth token succesvol toegevoegd aan query');
+      } else {
+        console.log('Geen Firebase auth token beschikbaar voor query');
+      }
+    } catch (error) {
+      console.warn('Kon Firebase auth token niet ophalen voor query:', error);
+    }
+    
     const res = await fetch(queryKey[0] as string, {
+      headers,
       credentials: "include",
     });
 

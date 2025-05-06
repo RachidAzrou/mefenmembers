@@ -87,7 +87,26 @@ export default async function handler(req, res) {
     // CORS headers
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    
+    // Log de auth token
+    const authHeader = req.headers.authorization;
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      const token = authHeader.substring(7);
+      console.log('Firebase auth token ontvangen:', token.substring(0, 20) + '...');
+      
+      try {
+        // Valideer de token (optioneel, maar handig voor debugging)
+        const { firebaseAdmin } = require('./firebase-admin');
+        const decodedToken = await firebaseAdmin.auth().verifyIdToken(token);
+        console.log('Token gevalideerd voor gebruiker:', decodedToken.uid);
+      } catch (tokenError) {
+        console.warn('Token validatie fout:', tokenError.message);
+        // Ga door, want we vallen terug op directe database-toegang
+      }
+    } else {
+      console.log('Geen auth token in verzoek');
+    }
     
     // Debug-endpoint om Firebase Admin SDK-configuratie te testen
     if (req.url.includes('/test-admin-sdk') || req.query.action === 'test-admin-sdk') {
