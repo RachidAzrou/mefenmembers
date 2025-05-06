@@ -545,6 +545,13 @@ export default function MemberAdd() {
                         field.value ? format(field.value, "dd/MM/yyyy") : ""
                       );
                       
+                      // Update de dateInput wanneer field.value verandert (bijvoorbeeld bij laden van lidgegevens)
+                      useEffect(() => {
+                        if (field.value) {
+                          setDateInput(format(field.value, "dd/MM/yyyy"));
+                        }
+                      }, [field.value]);
+                      
                       // Functie om een datum string in DD/MM/YYYY formaat te valideren en parsen
                       const validateAndParseDate = (dateStr: string) => {
                         // Controleer of het formaat DD/MM/YYYY is
@@ -836,6 +843,13 @@ export default function MemberAdd() {
                           field.value ? format(field.value, "dd/MM/yyyy") : format(new Date(), "dd/MM/yyyy")
                         );
                         
+                        // Update de dateInput wanneer field.value verandert (bijvoorbeeld bij laden van lidgegevens)
+                        useEffect(() => {
+                          if (field.value) {
+                            setDateInput(format(field.value, "dd/MM/yyyy"));
+                          }
+                        }, [field.value]);
+                        
                         // Functie om een datum string in DD/MM/YYYY formaat te valideren en parsen
                         const validateAndParseDate = (dateStr: string) => {
                           if (!dateStr) return null;
@@ -952,6 +966,13 @@ export default function MemberAdd() {
                         const [dateInput, setDateInput] = useState(
                           field.value ? format(field.value, "dd/MM/yyyy") : ""
                         );
+                        
+                        // Update de dateInput wanneer field.value verandert (bijvoorbeeld bij laden van lidgegevens)
+                        useEffect(() => {
+                          if (field.value) {
+                            setDateInput(format(field.value, "dd/MM/yyyy"));
+                          }
+                        }, [field.value]);
                         
                         // Functie om een datum string in DD/MM/YYYY formaat te valideren en parsen
                         const validateAndParseDate = (dateStr: string) => {
