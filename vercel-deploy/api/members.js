@@ -10,23 +10,59 @@ const FIREBASE_API_KEY = process.env.FIREBASE_API_KEY || "AIzaSyCw3uxCv7SdAa4xtm
 // Helper functie om direct met de Firebase REST API te communiceren
 async function firebaseRequest(method, path, data = null) {
   try {
+    // Valideer dat Firebase Database URL en API key beschikbaar zijn
+    if (!FIREBASE_DB_URL) {
+      console.error("FIREBASE_DATABASE_URL niet geconfigureerd of leeg!");
+      throw new Error("Firebase Database URL ontbreekt - controleer environment variables");
+    }
+    
+    if (!FIREBASE_API_KEY) {
+      console.error("FIREBASE_API_KEY niet geconfigureerd of leeg!");
+      throw new Error("Firebase API Key ontbreekt - controleer environment variables");
+    }
+    
     const url = `${FIREBASE_DB_URL}/${path}.json?auth=${FIREBASE_API_KEY}`;
-    console.log(`Firebase REST API ${method} request naar: ${url}`);
+    console.log(`Firebase REST API ${method} request naar: ${FIREBASE_DB_URL}/${path}.json`);
     
     const config = {
       method,
       url,
-      headers: { 'Content-Type': 'application/json' }
+      headers: { 
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      },
+      timeout: 10000 // 10 seconden timeout om hangende requests te voorkomen
     };
     
     if (data && (method === 'POST' || method === 'PUT' || method === 'PATCH')) {
       config.data = JSON.stringify(data);
     }
     
-    const response = await axios(config);
-    return response.data;
+    try {
+      const response = await axios(config);
+      console.log(`Firebase REST API ${method} succesvol, status:`, response.status);
+      return response.data;
+    } catch (axiosError) {
+      // Verbeterde foutafhandeling voor Axios errors
+      if (axiosError.response) {
+        // Server antwoordde met een status buiten het 2xx bereik
+        console.error(`Firebase REST API server fout (${method} ${path}):`, {
+          status: axiosError.response.status,
+          data: axiosError.response.data
+        });
+        throw new Error(`Firebase API fout: ${axiosError.response.status} - ${JSON.stringify(axiosError.response.data)}`);
+      } else if (axiosError.request) {
+        // Request gemaakt maar geen antwoord ontvangen
+        console.error(`Firebase REST API timeout/geen antwoord (${method} ${path}):`, axiosError.message);
+        throw new Error(`Firebase API timeout: Controleer je internet verbinding en Firebase project status`);
+      } else {
+        // Iets ging mis bij het maken van de request
+        console.error(`Firebase REST API request configuratie fout (${method} ${path}):`, axiosError.message);
+        throw new Error(`Firebase API request fout: ${axiosError.message}`);
+      }
+    }
   } catch (error) {
-    console.error(`Firebase REST API fout (${method} ${path}):`, error.message);
+    console.error(`Firebase REST API algemene fout (${method} ${path}):`, error.message, error.stack);
     throw new Error(`Firebase API fout: ${error.message}`);
   }
 }
@@ -100,6 +136,14 @@ async function getNextMemberNumber() {
 
 // Vercel serverless functie
 export default async function handler(req, res) {
+  // Log omgeving info voor debug doeleinden
+  console.log("Vercel Serverless Function Environment:", {
+    NODE_ENV: process.env.NODE_ENV,
+    VERCEL_ENV: process.env.VERCEL_ENV,
+    DATABASE_URL: process.env.DATABASE_URL ? "Aanwezig" : "Ontbreekt",
+    FIREBASE_DATABASE_URL: process.env.FIREBASE_DATABASE_URL ? "Aanwezig" : "Ontbreekt",
+    FIREBASE_API_KEY: process.env.FIREBASE_API_KEY ? "Aanwezig" : "Ontbreekt"
+  });
   try {
     // CORS headers
     res.setHeader('Access-Control-Allow-Origin', '*');
@@ -385,6 +429,30 @@ export default async function handler(req, res) {
         console.error("PUT /api/members FOUT:", error.message);
         return res.status(500).json({ 
           error: 'Fout bij bijwerken lid', 
+          details: error.message 
+        });
+      }
+    }
+    
+    // Voor het lokaal testen van Firebase variabelen
+    if (req.method === 'GET' && req.url.includes('/api/members/test-firebase')) {
+      try {
+        console.log("GET /api/members/test-firebase: Firebase connectie testen");
+        
+        return res.status(200).json({
+          status: "success",
+          message: "Firebase test endpoint beschikbaar",
+          config: {
+            firebase_db_url_set: !!process.env.FIREBASE_DATABASE_URL,
+            firebase_api_key_set: !!process.env.FIREBASE_API_KEY,
+            firebase_db_url_default: FIREBASE_DB_URL.includes("mefen-leden"),
+            firebase_api_key_valid: FIREBASE_API_KEY && FIREBASE_API_KEY.length > 20
+          }
+        });
+      } catch (error) {
+        console.error("GET /api/members/test-firebase FOUT:", error.message);
+        return res.status(500).json({ 
+          error: 'Fout bij testen Firebase connectie', 
           details: error.message 
         });
       }
