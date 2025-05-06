@@ -99,13 +99,13 @@ export function Sidebar() {
         )}
       >
         {/* Logo section */}
-        <div className="flex h-40 items-center justify-center bg-white border-b relative">
+        <div className="flex h-44 items-center justify-center bg-white border-b relative">
           {!collapsed && (
-            <div className="w-full h-full flex items-center justify-center p-4">
+            <div className="w-full h-full flex items-center justify-center p-2">
               <img
                 src="/mefen-logo-new.png"
                 alt="MEFEN Moskee El Fath En Nassr"
-                className="w-full h-full object-contain transition-opacity duration-200"
+                className="w-full h-full object-contain transition-opacity duration-200 scale-110"
               />
             </div>
           )}
