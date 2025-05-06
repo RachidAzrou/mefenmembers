@@ -463,6 +463,86 @@ export default function Dashboard() {
           </div>
         </CardContent>
       </Card>
+      
+      {/* 4. Geslacht statistieken */}
+      <Card className="border-none shadow-md overflow-hidden">
+        <div className="bg-gradient-to-r from-blue-500/20 to-blue-600/20 h-2" />
+        <CardHeader>
+          <CardTitle className="text-lg flex items-center">
+            <Users className="h-5 w-5 mr-2 text-blue-600" />
+            Geslacht
+          </CardTitle>
+          <CardDescription>
+            Verdeling van leden op basis van geslacht
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            {isLoading ? (
+              <div className="space-y-3">
+                <Skeleton className="h-5 w-full" />
+                <Skeleton className="h-5 w-full" />
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {/* Mannen */}
+                <Link href="/members?gender=man">
+                  <div className="flex items-center gap-4 p-4 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors cursor-pointer">
+                    <div className="bg-blue-100 p-3 rounded-full">
+                      <svg 
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        className="h-5 w-5 text-blue-600"
+                      >
+                        <circle cx="12" cy="5" r="3"/>
+                        <line x1="12" y1="8" x2="12" y2="21"/>
+                        <line x1="8" y1="12" x2="16" y2="12"/>
+                      </svg>
+                    </div>
+                    <div>
+                      <div className="text-sm text-gray-500">Mannen</div>
+                      <div className="font-medium">
+                        {members.filter(m => m.gender === 'man').length} leden
+                      </div>
+                    </div>
+                  </div>
+                </Link>
+                
+                {/* Vrouwen */}
+                <Link href="/members?gender=vrouw">
+                  <div className="flex items-center gap-4 p-4 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors cursor-pointer">
+                    <div className="bg-pink-100 p-3 rounded-full">
+                      <svg 
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        className="h-5 w-5 text-pink-600"
+                      >
+                        <circle cx="12" cy="5" r="3"/>
+                        <line x1="12" y1="8" x2="12" y2="21"/>
+                        <circle cx="12" cy="16" r="5"/>
+                      </svg>
+                    </div>
+                    <div>
+                      <div className="text-sm text-gray-500">Vrouwen</div>
+                      <div className="font-medium">
+                        {members.filter(m => m.gender === 'vrouw').length} leden
+                      </div>
+                    </div>
+                  </div>
+                </Link>
+              </div>
+            )}
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }
