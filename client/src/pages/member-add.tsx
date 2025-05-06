@@ -153,7 +153,8 @@ export default function MemberAdd() {
     mutationFn: async (data: FormData) => {
       if (!memberId) throw new Error('Geen lid-ID gevonden om bij te werken');
       
-      const response = await apiRequest('PUT', `/api/members/${memberId}`, data);
+      // Gebruik query parameters in plaats van padparameters voor Vercel compatibiliteit
+      const response = await apiRequest('PUT', `/api/members?id=${memberId}`, data);
       return response.json();
     },
     onSuccess: () => {
@@ -202,7 +203,8 @@ export default function MemberAdd() {
   const deleteMemberMutation = useMutation({
     mutationFn: async () => {
       if (!memberId) throw new Error('Geen lid-ID gevonden om te verwijderen');
-      await apiRequest('DELETE', `/api/members/${memberId}`);
+      // Gebruik query parameters in plaats van padparameters voor Vercel compatibiliteit
+      await apiRequest('DELETE', `/api/members?id=${memberId}`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/members'] });
