@@ -233,10 +233,14 @@ export default function ExportPage() {
   
   const calculateMembershipYears = (member: Member): number => {
     // Voeg een null-check toe voor member zelf
-    if (!member || !member.startDate) return 0;
+    if (!member) return 0;
+    
+    // Gebruik startDate als die beschikbaar is, anders registrationDate
+    const membershipDate = member.startDate || member.registrationDate;
+    if (!membershipDate) return 0;
     
     const today = new Date();
-    const startDate = new Date(member.startDate);
+    const startDate = new Date(membershipDate);
     let years = today.getFullYear() - startDate.getFullYear();
     
     // Controleer of de 'verjaardag' van het lidmaatschap al is gepasseerd dit jaar

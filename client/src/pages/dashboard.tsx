@@ -449,13 +449,14 @@ export default function Dashboard() {
                           
                           // Voorwaarde 2: Minstens 5 jaar aaneensluitend lid
                           const today = new Date();
-                          const regDate = new Date(member.registrationDate);
-                          let years = today.getFullYear() - regDate.getFullYear();
+                          // Gebruik startDate in plaats van registrationDate voor het berekenen van lidmaatschapsjaren
+                          const startDate = new Date(member.startDate || member.registrationDate);
+                          let years = today.getFullYear() - startDate.getFullYear();
                           
                           // Controleer of de 'verjaardag' van het lidmaatschap al is gepasseerd dit jaar
                           if (
-                            today.getMonth() < regDate.getMonth() || 
-                            (today.getMonth() === regDate.getMonth() && today.getDate() < regDate.getDate())
+                            today.getMonth() < startDate.getMonth() || 
+                            (today.getMonth() === startDate.getMonth() && today.getDate() < startDate.getDate())
                           ) {
                             years--;
                           }
@@ -490,13 +491,14 @@ export default function Dashboard() {
                         
                         // Voorwaarde 2: Minstens 5 jaar aaneensluitend lid
                         const today = new Date();
-                        const regDate = new Date(member.registrationDate);
-                        let years = today.getFullYear() - regDate.getFullYear();
+                        // Gebruik startDate in plaats van registrationDate voor het berekenen van lidmaatschapsjaren
+                        const startDate = new Date(member.startDate || member.registrationDate);
+                        let years = today.getFullYear() - startDate.getFullYear();
                         
                         // Controleer of het lidmaatschap lang genoeg is
                         if (
-                          today.getMonth() < regDate.getMonth() || 
-                          (today.getMonth() === regDate.getMonth() && today.getDate() < regDate.getDate())
+                          today.getMonth() < startDate.getMonth() || 
+                          (today.getMonth() === startDate.getMonth() && today.getDate() < startDate.getDate())
                         ) {
                           years--;
                         }
@@ -517,12 +519,13 @@ export default function Dashboard() {
                       if (!age || age < 18) return false;
                       
                       const today = new Date();
-                      const regDate = new Date(member.registrationDate);
-                      let years = today.getFullYear() - regDate.getFullYear();
+                      // Gebruik startDate in plaats van registrationDate voor het berekenen van lidmaatschapsjaren
+                      const startDate = new Date(member.startDate || member.registrationDate);
+                      let years = today.getFullYear() - startDate.getFullYear();
                       
                       if (
-                        today.getMonth() < regDate.getMonth() || 
-                        (today.getMonth() === regDate.getMonth() && today.getDate() < regDate.getDate())
+                        today.getMonth() < startDate.getMonth() || 
+                        (today.getMonth() === startDate.getMonth() && today.getDate() < startDate.getDate())
                       ) {
                         years--;
                       }
