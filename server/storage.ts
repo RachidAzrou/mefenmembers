@@ -96,7 +96,36 @@ export class DatabaseStorage implements IStorage {
     }
     
     if (member.birthDate !== undefined) {
-      updateObj.birthDate = member.birthDate ? new Date(member.birthDate) : null;
+      // Behandel de birthDate met extra voorzorgsmaatregelen
+      if (member.birthDate === null) {
+        // Als null is doorgegeven, gebruik null
+        updateObj.birthDate = null;
+      } else if (member.birthDate instanceof Date) {
+        // Als het al een Date is, gebruik deze direct
+        updateObj.birthDate = member.birthDate;
+      } else if (member.birthDate === "") {
+        // Als het een lege string is, gebruik null
+        updateObj.birthDate = null;
+      } else if (typeof member.birthDate === 'string') {
+        // Als het een string is, probeer deze te parsen
+        try {
+          const parsedDate = new Date(member.birthDate);
+          if (isNaN(parsedDate.getTime())) {
+            console.error("Invalid date string in storage:", member.birthDate);
+            // Als het een ongeldige datum is, gebruik null
+            updateObj.birthDate = null;
+          } else {
+            updateObj.birthDate = parsedDate;
+          }
+        } catch (error) {
+          console.error("Error parsing date in storage:", error);
+          updateObj.birthDate = null;
+        }
+      } else {
+        // In het geval dat we een onbekend type krijgen
+        console.warn("Unknown type for birthDate in storage:", typeof member.birthDate);
+        updateObj.birthDate = null;
+      }
     }
     
     if (member.accountNumber !== undefined) {

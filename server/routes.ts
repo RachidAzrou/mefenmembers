@@ -102,27 +102,52 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log("Updating member with ID:", id);
       console.log("Received update data:", req.body);
       
-      // Zorg voor correcte formattering van de geboortedatum als deze aanwezig is
+      // Maak een kopie van de request body
       let requestData = { ...req.body };
+      console.log("Original request data:", requestData);
       
-      if (requestData.birthDate) {
+      // Verwerk de geboortedatum als deze aanwezig is
+      if (requestData.birthDate !== undefined) {
         try {
-          // Probeer datum consistentie te garanderen
-          if (typeof requestData.birthDate === 'string') {
-            // Valideer en parse datum als ISO string, verwijder tijd component als die er is
+          // Als birthDate een lege string is, zet deze op null
+          if (requestData.birthDate === "") {
+            console.log("Empty birthDate received, setting to null");
+            requestData.birthDate = null;
+          } 
+          // Als het een string is, probeer deze te parsen naar een Date object
+          else if (typeof requestData.birthDate === 'string') {
+            console.log("String birthDate received:", requestData.birthDate);
             const date = new Date(requestData.birthDate);
-            if (!isNaN(date.getTime())) {
-              // Behoud de originele ISO string als dat is wat we kregen
-              console.log("Valid ISO date received:", requestData.birthDate);
-            } else {
+            
+            // Valideer of het een geldige datum is
+            if (isNaN(date.getTime())) {
               console.log("Invalid date string received:", requestData.birthDate);
-              return res.status(400).json({ error: "Invalid date format for birthDate" });
+              return res.status(400).json({ error: "Ongeldige datum format. Gebruik DD/MM/YYYY of YYYY-MM-DD." });
             }
+            
+            // Alles is in orde, we laten Zod de conversie doen
+            console.log("Valid date string received, will be processed by schema");
+          }
+          // Als het al een Date object is, gebruik het direct
+          else if (requestData.birthDate instanceof Date) {
+            console.log("Date object received:", requestData.birthDate);
+            // Niets te doen, Zod handelt dit af
+          }
+          // Als het null is, accepteer dit
+          else if (requestData.birthDate === null) {
+            console.log("Null birthDate received, accepting as is");
+          }
+          // Onbekend formaat
+          else {
+            console.log("Unknown birthDate format received:", typeof requestData.birthDate);
+            return res.status(400).json({ error: "Onbekend datum format. Gebruik een string of null." });
           }
         } catch (dateError) {
-          console.error("Error parsing birthDate:", dateError);
-          return res.status(400).json({ error: "Invalid date format for birthDate" });
+          console.error("Error processing birthDate:", dateError);
+          return res.status(400).json({ error: "Fout bij verwerken van geboortedatum. Controleer het format." });
         }
+      } else {
+        console.log("No birthDate field in request");
       }
       
       // Valideer alleen de velden die worden bijgewerkt
