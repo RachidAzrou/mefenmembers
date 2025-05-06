@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { Member, insertMemberSchema } from "@shared/schema";
+import { fetchMembersFromFirebase, subscribeMembersFromFirebase } from "@/lib/firebase-members";
 import { format } from "date-fns";
 import { Input } from "@/components/ui/input";
 import { 
@@ -91,27 +92,79 @@ export default function MembersList() {
     }
   });
   
-  // Haal alle leden op
+  // Gebruik Firebase fallback state
+  const [firebaseMembers, setFirebaseMembers] = useState<Member[]>([]);
+  const [usingFirebaseFallback, setUsingFirebaseFallback] = useState(false);
+  
+  // Haal alle leden op, eerst via API en als fallback via Firebase
   const { data: members = [], isLoading, isError, error } = useQuery<Member[]>({
     queryKey: ["/api/members"],
     queryFn: async () => {
       try {
+        // Vercel production modus check - in productie direct Firebase proberen
+        const isProduction = window.location.hostname.includes('vercel.app');
+        if (isProduction) {
+          try {
+            // Probeer eerst API in productie
+            console.log("API request naar /api/members in productie");
+            const response = await apiRequest("GET", "/api/members");
+            const data = await response.json();
+            console.log("API response ontvangen in productie:", data);
+            return data;
+          } catch (apiError) {
+            console.warn("API fout in productie, fallback naar Firebase:", apiError);
+            console.log("Leden ophalen via Firebase fallback...");
+            const firebaseData = await fetchMembersFromFirebase();
+            setUsingFirebaseFallback(true);
+            setFirebaseMembers(firebaseData);
+            return firebaseData;
+          }
+        }
+        
+        // Normale API aanroep in development
         console.log("API request naar /api/members gestart");
         const response = await apiRequest("GET", "/api/members");
         const data = await response.json();
         console.log("API response ontvangen:", data);
         return data;
       } catch (error) {
-        console.error("Fout bij ophalen leden:", error);
-        // In productie willen we geen lege lijst tonen, gooi de error
-        // zodat gebruikers weten dat er iets mis is
-        throw error;
+        console.error("Fout bij ophalen leden via API, probeer Firebase fallback:", error);
+        
+        try {
+          // API fout, probeer Firebase als fallback
+          const firebaseData = await fetchMembersFromFirebase();
+          setUsingFirebaseFallback(true);
+          setFirebaseMembers(firebaseData);
+          return firebaseData;
+        } catch (fbError) {
+          console.error("Ook Firebase fallback faalde:", fbError);
+          // Als beide falen, toon dan een foutmelding
+          throw new Error("Kon geen leden ophalen via API of Firebase. Controleer je verbinding.");
+        }
       }
     },
     // Retry bij fouten, belangrijk voor serverless functies in Vercel
-    retry: 3,
+    retry: 1, // Minder retries want we hebben nu Firebase als fallback
     retryDelay: 1000,
   });
+  
+  // Firebase realtime subscribtion als fallback wordt gebruikt
+  useEffect(() => {
+    // Als we de Firebase fallback gebruiken, luister dan naar wijzigingen
+    if (usingFirebaseFallback) {
+      console.log("Realtime updates inschakelen via Firebase...");
+      const unsubscribe = subscribeMembersFromFirebase((updatedMembers) => {
+        console.log("Realtime update ontvangen:", updatedMembers.length, "leden");
+        setFirebaseMembers(updatedMembers);
+      });
+      
+      // Cleanup functie
+      return () => {
+        console.log("Firebase realtime updates uitschakelen");
+        unsubscribe();
+      };
+    }
+  }, [usingFirebaseFallback]);
   
   // Filter leden op basis van zoekopdracht en actieve filter
   const filteredMembers = members.filter(member => {
@@ -340,8 +393,26 @@ export default function MembersList() {
         </div>
       </div>
       
+      {/* Firebase fallback notificatie */}
+      {usingFirebaseFallback && (
+        <Card className="border-amber-200 shadow-md bg-amber-50">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-amber-700 flex items-center gap-2 text-base">
+              <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M10 17v-4h4" />
+                <path d="M4.9 4H3s.1 1 .1 3c0 2.5-.5 3-2 3m17 7c.7.7 1 1.5 1 2.5s-.3 1.8-1 2.5c-.7.7-1.5 1-2.5 1s-1.8-.3-2.5-1M3 3l18 18" />
+              </svg>
+              Offline Modus
+            </CardTitle>
+            <CardDescription className="text-amber-800 text-xs">
+              Je werkt momenteel met lokaal opgeslagen ledenprofiel data. Wijzigingen worden automatisch gesynchroniseerd zodra je weer online bent.
+            </CardDescription>
+          </CardHeader>
+        </Card>
+      )}
+      
       {/* Foutmelding als de API niet werkt */}
-      {isError && (
+      {isError && !usingFirebaseFallback && (
         <Card className="border-red-200 shadow-md bg-red-50">
           <CardHeader>
             <CardTitle className="text-red-600 flex items-center gap-2">
