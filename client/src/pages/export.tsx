@@ -232,12 +232,11 @@ export default function ExportPage() {
   };
   
   const calculateMembershipYears = (member: Member): number => {
-    // Gebruik startDate als dat beschikbaar is, anders registrationDate
-    const membershipDate = member.startDate || member.registrationDate;
-    if (!membershipDate) return 0;
+    // Gebruik ALLEEN startDate; registrationDate is niet relevant voor lidmaatschap
+    if (!member.startDate) return 0;
     
     const today = new Date();
-    const startDate = new Date(membershipDate);
+    const startDate = new Date(member.startDate);
     let years = today.getFullYear() - startDate.getFullYear();
     
     // Controleer of de 'verjaardag' van het lidmaatschap al is gepasseerd dit jaar
@@ -290,7 +289,7 @@ export default function ExportPage() {
             case "votingEligible":
               // Bepaal of het lid stemgerechtigd is
               const age = calculateAge(member.birthDate);
-              const membershipYears = calculateMembershipYears(member.registrationDate);
+              const membershipYears = calculateMembershipYears(member);
               const isEligible = age !== null && age >= 18 && membershipYears >= 5 && member.paymentStatus;
               memberData[field.label] = isEligible ? "Ja" : "Nee";
               break;
@@ -360,7 +359,7 @@ export default function ExportPage() {
             case "votingEligible":
               // Bepaal of het lid stemgerechtigd is
               const age = calculateAge(member.birthDate);
-              const membershipYears = calculateMembershipYears(member.registrationDate);
+              const membershipYears = calculateMembershipYears(member);
               const isEligible = age !== null && age >= 18 && membershipYears >= 5 && member.paymentStatus;
               memberData[field.label] = isEligible ? "Ja" : "Nee";
               break;
@@ -572,7 +571,7 @@ export default function ExportPage() {
                     case "votingEligible":
                       // Bepaal of het lid stemgerechtigd is
                       const age = calculateAge(member.birthDate);
-                      const membershipYears = calculateMembershipYears(member.registrationDate);
+                      const membershipYears = calculateMembershipYears(member);
                       const isEligible = age !== null && age >= 18 && membershipYears >= 5 && member.paymentStatus;
                       value = isEligible ? "Ja" : "Nee";
                       return (
