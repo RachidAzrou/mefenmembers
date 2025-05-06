@@ -128,6 +128,9 @@ export default async function handler(req, res) {
     const authHeader = req.headers.authorization;
     if (authHeader && authHeader.startsWith('Bearer ')) {
       userToken = authHeader.substring(7);
+      console.log('Firebase auth token ontvangen in request header');
+    } else {
+      console.warn('Geen Firebase auth token in request headers. Dit kan leiden tot permissiefouten bij database operaties.');
     }
     
     // GET verzoek: specifieke endpoints of alle leden

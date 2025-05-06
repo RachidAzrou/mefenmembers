@@ -12,21 +12,45 @@ export async function apiRequest(
   url: string,
   data?: unknown | undefined,
 ): Promise<Response> {
-  // Probeer Firebase auth token op te halen als deze beschikbaar is
+  // Zorg ervoor dat Firebase auth volledig is geïnitialiseerd
   let headers: Record<string, string> = {};
   
   try {
-    const { getAuthToken } = await import('./firebase');
+    const { getAuthToken, waitForAuthInit } = await import('./firebase');
+    
+    // Wacht eerst tot de Firebase auth is geïnitialiseerd
+    await waitForAuthInit();
+    
+    // Haal dan het token op
     const token = await getAuthToken();
     
     if (token) {
       headers['Authorization'] = `Bearer ${token}`;
-      console.log('Firebase auth token succesvol toegevoegd aan verzoek');
+      console.log('Firebase auth token succesvol toegevoegd aan verzoek:', url);
     } else {
-      console.log('Geen Firebase auth token beschikbaar, verzoek wordt zonder token verzonden');
+      console.warn('Geen Firebase auth token beschikbaar voor verzoek:', url);
+      
+      // Dit is belangrijke debugging informatie - we willen weten waarom er geen token is
+      const { auth } = await import('./firebase');
+      const currentUser = auth.currentUser;
+      console.log('Huidige auth.currentUser status:', currentUser ? 'ingelogd' : 'uitgelogd');
+      
+      // Als er geen token is maar wel een gebruiker, probeer opnieuw een token te krijgen
+      if (currentUser) {
+        try {
+          console.log('Proberen token handmatig op te halen van currentUser...');
+          const freshToken = await currentUser.getIdToken(true);  // forceer vernieuwen
+          if (freshToken) {
+            headers['Authorization'] = `Bearer ${freshToken}`;
+            console.log('Token handmatig opgehaald en toegevoegd aan verzoek');
+          }
+        } catch (tokenError) {
+          console.error('Fout bij handmatig ophalen token:', tokenError);
+        }
+      }
     }
   } catch (error) {
-    console.warn('Kon Firebase auth token niet ophalen:', error);
+    console.error('Fout bij Firebase auth token ophalen:', error);
   }
   
   // Voeg Content-Type header toe als er data is
@@ -34,15 +58,20 @@ export async function apiRequest(
     headers['Content-Type'] = 'application/json';
   }
   
-  const res = await fetch(url, {
-    method,
-    headers,
-    body: data ? JSON.stringify(data) : undefined,
-    credentials: "include",
-  });
+  try {
+    const res = await fetch(url, {
+      method,
+      headers,
+      body: data ? JSON.stringify(data) : undefined,
+      credentials: "include",
+    });
 
-  await throwIfResNotOk(res);
-  return res;
+    await throwIfResNotOk(res);
+    return res;
+  } catch (fetchError) {
+    console.error(`Fout bij ${method} verzoek naar ${url}:`, fetchError);
+    throw fetchError;
+  }
 }
 
 type UnauthorizedBehavior = "returnNull" | "throw";
@@ -51,34 +80,65 @@ export const getQueryFn: <T>(options: {
 }) => QueryFunction<T> =
   ({ on401: unauthorizedBehavior }) =>
   async ({ queryKey }) => {
-    // Probeer Firebase auth token op te halen als deze beschikbaar is
+    // Zorg ervoor dat Firebase auth volledig is geïnitialiseerd
     let headers: Record<string, string> = {};
+    const url = queryKey[0] as string;
     
     try {
-      const { getAuthToken } = await import('./firebase');
+      const { getAuthToken, waitForAuthInit } = await import('./firebase');
+      
+      // Wacht eerst tot de Firebase auth is geïnitialiseerd
+      await waitForAuthInit();
+      
+      // Haal dan het token op
       const token = await getAuthToken();
       
       if (token) {
         headers['Authorization'] = `Bearer ${token}`;
-        console.log('Firebase auth token succesvol toegevoegd aan query');
+        console.log('Firebase auth token succesvol toegevoegd aan query:', url);
       } else {
-        console.log('Geen Firebase auth token beschikbaar voor query');
+        console.warn('Geen Firebase auth token beschikbaar voor query:', url);
+        
+        // Dit is belangrijke debugging informatie - we willen weten waarom er geen token is
+        const { auth } = await import('./firebase');
+        const currentUser = auth.currentUser;
+        console.log('Huidige auth.currentUser status voor query:', currentUser ? 'ingelogd' : 'uitgelogd');
+        
+        // Als er geen token is maar wel een gebruiker, probeer opnieuw een token te krijgen
+        if (currentUser) {
+          try {
+            console.log('Proberen token handmatig op te halen van currentUser voor query...');
+            const freshToken = await currentUser.getIdToken(true);  // forceer vernieuwen
+            if (freshToken) {
+              headers['Authorization'] = `Bearer ${freshToken}`;
+              console.log('Token handmatig opgehaald en toegevoegd aan query');
+            }
+          } catch (tokenError) {
+            console.error('Fout bij handmatig ophalen token voor query:', tokenError);
+          }
+        }
       }
     } catch (error) {
-      console.warn('Kon Firebase auth token niet ophalen voor query:', error);
+      console.error('Fout bij Firebase auth token ophalen voor query:', error);
     }
     
-    const res = await fetch(queryKey[0] as string, {
-      headers,
-      credentials: "include",
-    });
+    try {
+      const res = await fetch(url, {
+        headers,
+        credentials: "include",
+      });
 
-    if (unauthorizedBehavior === "returnNull" && res.status === 401) {
-      return null;
+      if (unauthorizedBehavior === "returnNull" && res.status === 401) {
+        console.warn('Query ontving een 401 Unauthorized. Actie:', unauthorizedBehavior);
+        return null;
+      }
+
+      await throwIfResNotOk(res);
+      return await res.json();
+    } catch (fetchError) {
+      console.error(`Fout bij GET query naar ${url}:`, fetchError);
+      throw fetchError;
     }
-
-    await throwIfResNotOk(res);
-    return await res.json();
   };
 
 export const queryClient = new QueryClient({
