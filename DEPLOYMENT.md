@@ -49,12 +49,7 @@ git push
    VITE_FIREBASE_API_KEY=your_api_key
    VITE_FIREBASE_PROJECT_ID=your_project_id
    VITE_FIREBASE_APP_ID=your_app_id
-   FIREBASE_CLIENT_EMAIL=your_client_email_from_service_account
-   FIREBASE_PRIVATE_KEY=your_private_key_from_service_account
-   FIREBASE_DATABASE_URL=https://your-project-id.firebasedatabase.app
    ```
-   
-   De laatste drie variabelen zijn nodig voor de Firebase Admin SDK en beveiligde database toegang. Deze kun je vinden in het service account JSON-bestand dat je kunt downloaden vanuit de Firebase Console onder Project Settings > Service accounts > "Generate new private key".
 6. Laat de Build and Output Settings ongewijzigd (Vercel detecteert automatisch Vite)
 7. Klik op "Deploy"
 
@@ -128,25 +123,10 @@ Tips voor Vercel:
 Zorg ervoor dat de volgende environment variabelen zijn geconfigureerd:
 
 ```env
-# Client-side Firebase configuratie (nodig voor authenticatie)
 VITE_FIREBASE_API_KEY=your_api_key
 VITE_FIREBASE_PROJECT_ID=your_project_id
 VITE_FIREBASE_APP_ID=your_app_id
-
-# Server-side Firebase Admin SDK (nodig voor beveiligde database toegang)
-FIREBASE_CLIENT_EMAIL=your_client_email_from_service_account
-FIREBASE_PRIVATE_KEY=your_private_key_from_service_account
-FIREBASE_DATABASE_URL=https://your-project-id.firebasedatabase.app
 ```
-
-### Service Account Instellen
-
-Voor beveiligde database toegang heb je een Firebase Service Account nodig:
-
-1. Ga naar de Firebase Console > Project Settings > Service accounts
-2. Klik op "Generate new private key" en download het JSON-bestand
-3. Plaats dit bestand in de `secrets` directory van je project als `service-account.json` (voor lokale ontwikkeling)
-4. Stel de environment variabelen in voor productie op basis van dit bestand
 
 ## Build Instructies
 

@@ -4,15 +4,15 @@ import { Button } from "@/components/ui/button";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { auth, waitForAuthInit } from "@/lib/firebase";
-import { signInWithEmailAndPassword, sendPasswordResetEmail, onAuthStateChanged } from "firebase/auth";
+import { auth } from "@/lib/firebase";
+import { signInWithEmailAndPassword, sendPasswordResetEmail } from "firebase/auth";
 import { useToast } from "@/hooks/use-toast";
 import { useLocation } from "wouter";
-import { LockKeyhole, LogIn, Mail } from "lucide-react";
+import { LockKeyhole, Mail } from "lucide-react";
 import { Link } from "wouter";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { logUserAction, UserActionTypes } from "@/lib/activity-logger";
 
 const loginSchema = z.object({
@@ -31,62 +31,18 @@ export default function Login() {
   const { toast } = useToast();
   const [_, setLocation] = useLocation();
   const [resetDialogOpen, setResetDialogOpen] = useState(false);
-  const [isLoggingIn, setIsLoggingIn] = useState(false);
-
-  // Controleer bij laden of gebruiker al is ingelogd
-  useEffect(() => {
-    const checkAuthState = async () => {
-      try {
-        // Wacht op initialisatie van Firebase auth
-        await waitForAuthInit();
-        
-        // Stel een one-time listener in om huidige authentication status te controleren
-        const unsubscribe = onAuthStateChanged(auth, (user) => {
-          if (user) {
-            console.log("Gebruiker al ingelogd, doorsturen naar dashboard");
-            setLocation("/");
-          }
-          unsubscribe(); // Verwijder de listener direct na gebruik
-        });
-      } catch (error) {
-        console.error("Fout bij controleren authenticatiestatus:", error);
-      }
-    };
-    
-    checkAuthState();
-  }, [setLocation]);
 
   const form = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
-    defaultValues: {
-      email: "",
-      password: ""
-    }
   });
 
   const resetForm = useForm<ResetFormData>({
     resolver: zodResolver(resetSchema),
-    defaultValues: {
-      email: ""
-    }
   });
 
   const onSubmit = async (data: LoginFormData) => {
-    if (isLoggingIn) return; // Voorkom dubbele inlogpogingen
-    
-    setIsLoggingIn(true);
     try {
-      console.log("Inloggen...");
-      
-      // Inloggen bij Firebase
       await signInWithEmailAndPassword(auth, data.email, data.password);
-      
-      // Wacht even om de authenticatie te laten voltooien
-      console.log("Wachten op authenticatie verwerking...");
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-      console.log("Gebruikersactie loggen...");
-      // Log de login actie
       await logUserAction(
         UserActionTypes.LOGIN,
         undefined,
@@ -96,25 +52,14 @@ export default function Login() {
           name: data.email
         }
       );
-      
-      toast({
-        title: "Ingelogd",
-        description: "Je bent succesvol ingelogd",
-        duration: 3000,
-      });
-      
-      console.log("Doorsturen naar dashboard...");
       setLocation("/");
     } catch (error) {
-      console.error("Login fout:", error);
       toast({
         variant: "destructive",
         title: "Fout",
         description: "Ongeldig e-mailadres of wachtwoord",
         duration: 3000,
       });
-    } finally {
-      setIsLoggingIn(false);
     }
   };
 
@@ -222,20 +167,9 @@ export default function Login() {
 
               <Button
                 type="submit"
-                disabled={isLoggingIn}
                 className="w-full h-12 text-base font-medium bg-[#963E56] hover:bg-[#963E56]/90 transition-colors duration-300"
               >
-                {isLoggingIn ? (
-                  <span className="flex items-center justify-center">
-                    <span className="mr-2 animate-spin rounded-full h-4 w-4 border-b-2 border-white"></span>
-                    Inloggen...
-                  </span>
-                ) : (
-                  <span className="flex items-center justify-center">
-                    <LogIn className="mr-2 h-5 w-5" />
-                    Inloggen
-                  </span>
-                )}
+                Inloggen
               </Button>
 
               {/* Registreer knop is verwijderd */}

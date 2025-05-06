@@ -3,35 +3,8 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { insertMemberSchema } from "@shared/schema";
 import { fromZodError } from "zod-validation-error";
-import * as firebaseAdmin from "./firebase-admin";
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Test endpoint voor Firebase
-  app.get("/api/test-firebase", async (_req: Request, res: Response) => {
-    try {
-      const timestamp = new Date().toISOString();
-      const testData = { test: true, timestamp };
-      
-      // Probeer direct naar Firebase te schrijven via onze eigen helper functie
-      const result = await firebaseAdmin.firebaseAdminRequest('PUT', 'test-connection', testData);
-      
-      return res.status(200).json({
-        success: true,
-        message: "Firebase test succesvol",
-        wrote: testData,
-        read: result,
-        databaseURL: process.env.FIREBASE_DATABASE_URL || process.env.VITE_FIREBASE_DATABASE_URL
-      });
-      
-    } catch (error: any) {
-      console.error("Firebase test error:", error);
-      return res.status(500).json({
-        success: false,
-        error: error.message,
-        stack: error.stack
-      });
-    }
-  });
   // Members routes
   // Generate unique member number (moet vóór /api/members/:id komen)
   app.get("/api/members/generate-number", async (_req: Request, res: Response) => {

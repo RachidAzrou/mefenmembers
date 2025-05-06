@@ -6,8 +6,7 @@ import { Link, useLocation } from "wouter";
 import {
   LogOut, Menu, ChevronLeft, ChevronRight,
   User, UsersRound, Home,
-  PlusCircle, FileSpreadsheet, Edit,
-  FlaskConical
+  PlusCircle, FileSpreadsheet, Edit
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { auth } from "@/lib/firebase";
@@ -72,7 +71,6 @@ export function Sidebar() {
     { icon: PlusCircle, label: "Lid toevoegen", href: "/member-add" },
     { icon: Edit, label: "Lid bewerken", href: "/member-edit" },
     { icon: FileSpreadsheet, label: "Exporteren", href: "/export" },
-    { icon: FlaskConical, label: "Firebase Test", href: "/firebase-test" },
   ];
 
   const handleNavigation = (href: string) => {
