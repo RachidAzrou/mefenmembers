@@ -2,14 +2,14 @@
 import { initializeApp } from 'firebase/app';
 import { getDatabase, ref, get, set, push, update, remove, query, orderByChild } from 'firebase/database';
 
-// Direct hardcoded Firebase configuratie voor MEFEN project
-// BELANGRIJK: Deze configuratie wordt direct gebruikt, geen env variables nodig
+// Firebase configuratie uit environment variabelen of fallback
+// BELANGRIJK: Bij voorkeur gebruik van env vars voor betere beveiliging en flexibiliteit
 const firebaseConfig = {
-  apiKey: "AIzaSyCw3uxCv7SdAa4xtmRimVjXlLjr_4hyeTE",
-  authDomain: "mefen-leden.firebaseapp.com",
-  databaseURL: "https://mefen-leden-default-rtdb.europe-west1.firebasedatabase.app",
-  projectId: "mefen-leden",
-  appId: "1:1032362907538:web:568add0016024ddf17534b"
+  apiKey: process.env.FIREBASE_API_KEY || "AIzaSyCw3uxCv7SdAa4xtmRimVjXlLjr_4hyeTE",
+  authDomain: process.env.FIREBASE_AUTH_DOMAIN || "mefen-leden.firebaseapp.com",
+  databaseURL: process.env.FIREBASE_DATABASE_URL || "https://mefen-leden-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: process.env.FIREBASE_PROJECT_ID || "mefen-leden",
+  appId: process.env.FIREBASE_APP_ID || "1:1032362907538:web:568add0016024ddf17534b"
 };
 
 // Log beperkte Firebase debug info

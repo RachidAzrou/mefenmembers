@@ -3,8 +3,9 @@
 import axios from 'axios';
 
 // Firebase project gegevens voor Realtime Database REST API toegang 
-const FIREBASE_DB_URL = "https://mefen-leden-default-rtdb.europe-west1.firebasedatabase.app";
-const FIREBASE_API_KEY = "AIzaSyCw3uxCv7SdAa4xtmRimVjXlLjr_4hyeTE";
+// Deze waarden worden uit environment variabelen gelezen als ze beschikbaar zijn
+const FIREBASE_DB_URL = process.env.FIREBASE_DATABASE_URL || "https://mefen-leden-default-rtdb.europe-west1.firebasedatabase.app";
+const FIREBASE_API_KEY = process.env.FIREBASE_API_KEY || "AIzaSyCw3uxCv7SdAa4xtmRimVjXlLjr_4hyeTE";
 
 // Helper functie om direct met de Firebase REST API te communiceren
 async function firebaseRequest(method, path, data = null) {
