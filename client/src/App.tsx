@@ -11,6 +11,7 @@ import MemberAdd from "@/pages/member-add";
 import MemberEdit from "@/pages/member-edit";
 import MemberDetail from "@/pages/member-detail";
 import Export from "@/pages/export";
+import FirebaseTest from "@/pages/firebase-test";
 import { Sidebar } from "@/components/layout/sidebar";
 import { auth, setupAuthListener, waitForAuthInit } from "./lib/firebase";
 import { useAuthState } from "react-firebase-hooks/auth";
@@ -67,6 +68,7 @@ function Router() {
       <Route path="/member-edit" component={() => <PrivateRoute component={MemberEdit} />} />
       <Route path="/member-detail" component={() => <PrivateRoute component={MemberDetail} />} />
       <Route path="/export" component={() => <PrivateRoute component={Export} />} />
+      <Route path="/firebase-test" component={() => <PrivateRoute component={FirebaseTest} />} />
       <Route component={NotFound} />
     </Switch>
   );

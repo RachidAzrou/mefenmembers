@@ -6,7 +6,8 @@ import { Link, useLocation } from "wouter";
 import {
   LogOut, Menu, ChevronLeft, ChevronRight,
   User, UsersRound, Home,
-  PlusCircle, FileSpreadsheet, Edit
+  PlusCircle, FileSpreadsheet, Edit,
+  FlaskConical
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { auth } from "@/lib/firebase";
