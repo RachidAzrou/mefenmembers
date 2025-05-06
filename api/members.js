@@ -1,6 +1,6 @@
 // Firebase Realtime Database configuratie
 import { initializeApp } from 'firebase/app';
-import { getDatabase, ref, get, set, push } from 'firebase/database';
+import { getDatabase, ref, child, get, set, push } from 'firebase/database';
 
 // Direct hardcoded Firebase configuratie voor MEFEN project - geen env variables nodig
 const firebaseConfig = {
@@ -11,35 +11,56 @@ const firebaseConfig = {
   appId: "1:1032362907538:web:568add0016024ddf17534b"
 };
 
-// Initialiseer Firebase
+// Initialiseer Firebase met explicit options voor serverless omgeving
 const app = initializeApp(firebaseConfig);
 const database = getDatabase(app);
+// Maak een expliciete database reference root node
+const dbRef = ref(database);
 
-// Helper functie voor lidnummer generatie - vereenvoudigd voor Vercel serverless
+// Helper functie voor lidnummer generatie - robuuster gemaakt voor serverless omgeving
 async function getNextMemberNumber() {
   try {
-    // Genereer nieuw nummer
-    const membersRef = ref(database, 'members');
-    const membersSnap = await get(membersRef);
-    
-    if (!membersSnap.exists()) {
-      return 1;
-    }
-    
-    // Zoek hoogste nummer
-    const members = membersSnap.val();
-    let maxNumber = 0;
-    
-    Object.values(members).forEach(member => {
-      if (member.memberNumber && member.memberNumber > maxNumber) {
-        maxNumber = member.memberNumber;
+    // Probeer met child reference van de root node (robuustere methode)
+    try {
+      // Gebruik child() met de root reference voor betere serverless compatibiliteit
+      const snapshot = await get(child(dbRef, 'members'));
+      
+      // Controleer of data bestaat en een val() method heeft
+      if (!snapshot.exists()) {
+        console.log('Geen leden gevonden, start met lidnummer 1');
+        return 1;
       }
-    });
-    
-    return maxNumber + 1;
+      
+      // Controleer expliciet of val() een functie is
+      if (typeof snapshot.val !== 'function') {
+        throw new Error('Snapshot val is geen functie, gebruik fallback');
+      }
+      
+      // Haal data op en vind hoogste nummer
+      const members = snapshot.val();
+      let maxNumber = 0;
+      
+      // Veiligheidscontrole of leden een object is
+      if (members && typeof members === 'object') {
+        Object.values(members).forEach(member => {
+          if (member.memberNumber && member.memberNumber > maxNumber) {
+            maxNumber = member.memberNumber;
+          }
+        });
+      }
+      
+      console.log(`Hoogste gevonden lidnummer: ${maxNumber}, geef ${maxNumber + 1} terug`);
+      return maxNumber + 1;
+    } catch (snapError) {
+      console.error('Fout bij snapshots:', snapError.message);
+      throw snapError; // Propageer naar de outer catch
+    }
   } catch (error) {
-    // Fallback bij fouten
-    return Math.floor(Date.now() / 1000) % 10000;
+    // Fallback bij fouten - beter foutbericht
+    console.error('Fallback lidnummer gebruikt vanwege fout:', error.message);
+    const fallbackNumber = Math.floor(Date.now() / 1000) % 10000;
+    console.log(`Fallback lidnummer: ${fallbackNumber}`);
+    return fallbackNumber;
   }
 }
 
@@ -59,17 +80,37 @@ export default async function handler(req, res) {
     // GET verzoek: haal alle leden op
     if (req.method === 'GET') {
       try {
-        const membersRef = ref(database, 'members');
-        const snapshot = await get(membersRef);
+        // Gebruik child reference met extra robuustheid voor serverless omgeving
+        console.log("GET /api/members: Ophalen leden gestart");
+        const snapshot = await get(child(dbRef, 'members'));
         
+        // Controleer of data bestaat
         if (!snapshot.exists()) {
+          console.log("GET /api/members: Geen leden gevonden");
           return res.status(200).json([]);
+        }
+        
+        // Controleer of val() een functie is
+        if (typeof snapshot.val !== 'function') {
+          console.error("GET /api/members: snapshot.val is geen functie");
+          return res.status(500).json({ 
+            error: 'Database fout: val is geen functie',
+            snapshot: JSON.stringify(snapshot) 
+          });
+        }
+        
+        // Haal data op en zet om naar array
+        const data = snapshot.val();
+        console.log(`GET /api/members: Data opgehaald, type: ${typeof data}`);
+        
+        // Veiligheidscheck of data een object is
+        if (!data || typeof data !== 'object') {
+          console.error(`GET /api/members: Ongeldig dataformaat: ${typeof data}`);
+          return res.status(200).json([]); // Geen data of ongeldig formaat
         }
         
         // Zet de Firebase object data om naar een array voor client gebruik
         const members = [];
-        const data = snapshot.val();
-        
         for (const key in data) {
           members.push({
             id: key,
@@ -79,55 +120,98 @@ export default async function handler(req, res) {
         
         // Sorteer op lidnummer
         members.sort((a, b) => a.memberNumber - b.memberNumber);
+        console.log(`GET /api/members: ${members.length} leden succesvol opgehaald`);
         
         return res.status(200).json(members);
       } catch (error) {
-        return res.status(500).json({ error: 'Fout bij ophalen leden', details: error.message });
+        console.error("GET /api/members FOUT:", error.message, error.stack);
+        return res.status(500).json({ 
+          error: 'Fout bij ophalen leden', 
+          details: error.message,
+          stack: error.stack
+        });
       }
     }
     
     // POST verzoek: voeg een nieuw lid toe
     if (req.method === 'POST') {
-      // Haal data uit request body
-      const { firstName, lastName, phoneNumber, email, birthDate, accountNumber, paymentStatus, notes } = req.body;
-      
-      // Controleer verplichte velden
-      if (!firstName || !lastName || !phoneNumber) {
-        return res.status(400).json({ 
-          error: 'Ontbrekende verplichte velden',
-          required: ['firstName', 'lastName', 'phoneNumber'] 
-        });
-      }
-      
-      // Genereer lidnummer
-      const memberNumber = await getNextMemberNumber();
-      
-      // Maak nieuwe lid data
-      const newMember = {
-        memberNumber,
-        firstName,
-        lastName,
-        phoneNumber,
-        email: email || '',
-        birthDate: birthDate || null,
-        accountNumber: accountNumber || '',
-        paymentStatus: paymentStatus || false,
-        registrationDate: new Date().toISOString(),
-        notes: notes || ''
-      };
-      
-      // Voeg toe aan Firebase
       try {
-        const membersRef = ref(database, 'members');
-        const newMemberRef = push(membersRef);
-        await set(newMemberRef, newMember);
+        console.log("POST /api/members: Nieuw lid toevoegen gestart");
+        // Controleer dat er een body is
+        if (!req.body || typeof req.body !== 'object') {
+          return res.status(400).json({ 
+            error: 'Ongeldige request body',
+            received: typeof req.body
+          });
+        }
         
-        return res.status(201).json({
-          id: newMemberRef.key,
-          ...newMember
+        // Log de request body voor diagnose
+        console.log("POST /api/members: Request body:", JSON.stringify(req.body));
+        
+        // Haal data uit request body
+        const { firstName, lastName, phoneNumber, email, birthDate, accountNumber, paymentStatus, notes } = req.body;
+        
+        // Controleer verplichte velden
+        if (!firstName || !lastName || !phoneNumber) {
+          console.log("POST /api/members: Ontbrekende verplichte velden");
+          return res.status(400).json({ 
+            error: 'Ontbrekende verplichte velden',
+            required: ['firstName', 'lastName', 'phoneNumber'] 
+          });
+        }
+        
+        console.log("POST /api/members: Genereren nieuw lidnummer");
+        // Genereer lidnummer
+        const memberNumber = await getNextMemberNumber();
+        console.log("POST /api/members: Nieuw lidnummer gegenereerd:", memberNumber);
+        
+        // Maak nieuwe lid data
+        const newMember = {
+          memberNumber,
+          firstName,
+          lastName,
+          phoneNumber,
+          email: email || '',
+          birthDate: birthDate || null,
+          accountNumber: accountNumber || '',
+          paymentStatus: paymentStatus || false,
+          registrationDate: new Date().toISOString(),
+          notes: notes || ''
+        };
+        
+        console.log("POST /api/members: Lid data voorbereid:", JSON.stringify(newMember));
+        
+        // Voeg toe aan Firebase met betere foutafhandeling
+        try {
+          // Gebruik rechtstreeks een pad om naar de 'members' node te schrijven
+          const membersRef = ref(database, 'members');
+          const newMemberRef = push(membersRef);
+          
+          console.log("POST /api/members: Nieuw lid reference gemaakt:", newMemberRef.key);
+          
+          // Schrijf data naar de database
+          await set(newMemberRef, newMember);
+          console.log("POST /api/members: Lid succesvol toegevoegd met ID:", newMemberRef.key);
+          
+          return res.status(201).json({
+            id: newMemberRef.key,
+            ...newMember
+          });
+        } catch (dbError) {
+          console.error("POST /api/members Database fout:", dbError.message, dbError.stack);
+          return res.status(500).json({ 
+            error: 'Database fout bij toevoegen lid', 
+            details: dbError.message,
+            stack: dbError.stack
+          });
+        }
+      } catch (error) {
+        console.error("POST /api/members Algemene fout:", error.message, error.stack);
+        return res.status(500).json({ 
+          error: 'Server fout bij toevoegen lid', 
+          details: error.message,
+          stack: error.stack
         });
-      } catch (dbError) {
-        return res.status(500).json({ error: 'Database fout', details: dbError.message });
       }
     }
     
