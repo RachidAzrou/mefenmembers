@@ -1333,31 +1333,15 @@ export default function MemberAdd() {
               
               {newMember && (
                 <div className="mt-4 p-4 border border-green-200 rounded-md bg-green-50">
-                  <div className="mb-3 flex justify-between items-center">
+                  <div className="flex justify-between items-center">
                     <div className="flex items-center">
                       <UserCircle className="h-8 w-8 text-[#963E56] mr-3" />
                       <div>
                         <h3 className="font-bold text-gray-800">{newMember.firstName} {newMember.lastName}</h3>
-                        <p className="text-sm text-gray-600">
-                          {newMember.gender === 'man' ? 'Dhr.' : 'Mevr.'}, {newMember.nationality}
-                        </p>
                       </div>
                     </div>
                     <div className="bg-[#963E56] text-white px-3 py-1 rounded-full text-sm font-medium">
                       Lidnummer: {newMember.memberNumber.toString().padStart(4, '0')}
-                    </div>
-                  </div>
-                  
-                  <div className="grid grid-cols-2 gap-3 text-sm">
-                    <div>
-                      <p className="text-gray-500">Contact:</p>
-                      <p className="font-medium">{newMember.phoneNumber}</p>
-                      {newMember.email && <p className="font-medium">{newMember.email}</p>}
-                    </div>
-                    <div>
-                      <p className="text-gray-500">Lidmaatschap:</p>
-                      <p className="font-medium capitalize">{newMember.membershipType}</p>
-                      <p className="font-medium capitalize">{newMember.paymentTerm}</p>
                     </div>
                   </div>
                 </div>
