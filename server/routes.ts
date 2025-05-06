@@ -3,52 +3,17 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { insertMemberSchema } from "@shared/schema";
 import { fromZodError } from "zod-validation-error";
+import * as firebaseAdmin from "./firebase-admin";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Test endpoint voor Firebase
   app.get("/api/test-firebase", async (_req: Request, res: Response) => {
     try {
-      const admin = require('firebase-admin');
-      
-      let firebaseApp;
-      try {
-        firebaseApp = admin.app();
-        console.log("Firebase Admin SDK al geïnitialiseerd");
-      } catch (error) {
-        try {
-          // Initialiseer Firebase Admin
-          const credential = admin.credential.cert({
-            projectId: process.env.VITE_FIREBASE_PROJECT_ID || 'mefen-leden-default-rtdb',
-            clientEmail: process.env.FIREBASE_CLIENT_EMAIL || '',
-            privateKey: process.env.FIREBASE_PRIVATE_KEY ? 
-              process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n') : '',
-          });
-          
-          firebaseApp = admin.initializeApp({
-            credential,
-            databaseURL: process.env.FIREBASE_DATABASE_URL || process.env.VITE_FIREBASE_DATABASE_URL || 'https://mefen-leden-default-rtdb.europe-west1.firebasedatabase.app'
-          });
-          console.log("Firebase Admin SDK geïnitialiseerd");
-        } catch (initError) {
-          console.error("Fout bij initialiseren Firebase Admin SDK:", initError);
-          return res.status(500).json({ 
-            error: "Firebase initialisatie mislukt",
-            details: initError.message
-          });
-        }
-      }
-      
       const timestamp = new Date().toISOString();
       const testData = { test: true, timestamp };
       
-      // Probeer direct naar Firebase te schrijven
-      const db = admin.database();
-      const ref = db.ref("test-connection");
-      await ref.set(testData);
-      
-      // Lees de data terug om te verifiëren
-      const snapshot = await ref.once('value');
-      const result = snapshot.val();
+      // Probeer direct naar Firebase te schrijven via onze eigen helper functie
+      const result = await firebaseAdmin.firebaseAdminRequest('PUT', 'test-connection', testData);
       
       return res.status(200).json({
         success: true,
@@ -58,7 +23,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         databaseURL: process.env.FIREBASE_DATABASE_URL || process.env.VITE_FIREBASE_DATABASE_URL
       });
       
-    } catch (error) {
+    } catch (error: any) {
       console.error("Firebase test error:", error);
       return res.status(500).json({
         success: false,
