@@ -226,22 +226,16 @@ export default function MembersList() {
   // Functie om te bepalen of een lid stemgerechtigd is
   const isVotingEligible = (member: Member): boolean => {
     // Voorwaarde 1: Meerderjarig (18+)
-    // Eerst checken of birthDate aanwezig is, anders kan iemand niet stemgerechtigd zijn
-    if (!member.birthDate) return false;
-    
     const age = calculateAge(member.birthDate);
-    if (age === null || age < 18) return false;
+    if (!age || age < 18) return false;
     
     // Voorwaarde 2: Minstens 5 jaar aaneensluitend lid
-    // Eerst checken of startDate of registrationDate aanwezig is
-    if (!member.startDate && !member.registrationDate) return false;
-    
     const membershipYears = calculateMembershipYears(member);
     if (membershipYears < 5) return false;
     
-    // Voorwaarde 3: Elk jaar betaald (huidige betalingsstatus)
-    // Als paymentStatus null/undefined is of false, dan niet stemgerechtigd
-    if (member.paymentStatus !== true) return false;
+    // Voorwaarde 3: Elk jaar betaald
+    // Omdat we nog geen betalingsgeschiedenis bijhouden, gebruiken we de huidige betalingsstatus als benadering
+    if (!member.paymentStatus) return false;
     
     // Aan alle voorwaarden voldaan
     return true;
@@ -276,61 +270,31 @@ export default function MembersList() {
     // Gender filter
     if (params.has("gender")) {
       const genderParam = params.get("gender");
-      // Controleer of gender een geldige waarde heeft, en vergelijk dan
-      if (genderParam === "man" || genderParam === "vrouw") {
-        // Als specifiek "man" wordt gezocht, toon alleen leden met gender="man"
-        if (genderParam === "man") {
-          if (member.gender !== "man") {
-            return false;
-          }
-        } 
-        // Als specifiek "vrouw" wordt gezocht, toon alleen leden met gender="vrouw"
-        else if (genderParam === "vrouw") {
-          if (member.gender !== "vrouw") {
-            return false;
-          }
-        }
+      if ((genderParam === "man" || genderParam === "vrouw") && member.gender !== genderParam) {
+        return false;
       }
     }
     
     // Lidmaatschapstype filter
     if (params.has("type")) {
       const typeParam = params.get("type");
-      if (typeParam) {
-        // Speciale behandeling voor standaard lidmaatschap - ontbrekende waarden worden beschouwd als standaard
-        if (typeParam === "standaard") {
-          // Laat leden zien die expliciet standaard zijn OF geen lidmaatschapstype hebben
-          if (!(member.membershipType === "standaard" || member.membershipType === null || member.membershipType === undefined)) {
-            return false;
-          }
-        } else {
-          // Voor student en senior moet het type expliciet overeenkomen
-          if (member.membershipType !== typeParam) {
-            return false;
-          }
-        }
+      if (typeParam && member.membershipType !== typeParam) {
+        return false;
       }
     }
     
     // Stemgerechtigden filter
     if (params.has("voting") && params.get("voting") === "true") {
-      // Alleen leden die aan ALLE voorwaarden voldoen voor stemrecht tonen
-      
       // Voorwaarde 1: Meerderjarig (18+)
-      // Eerst checken of birthDate aanwezig is, anders kan iemand niet stemgerechtigd zijn
-      if (!member.birthDate) return false;
       const age = calculateAge(member.birthDate);
       if (age === null || age < 18) return false;
       
       // Voorwaarde 2: Minstens 5 jaar aaneensluitend lid
-      // Dus startDate of registrationDate moet aanwezig zijn
-      if (!member.startDate && !member.registrationDate) return false;
       const membershipYears = calculateMembershipYears(member);
       if (membershipYears < 5) return false;
       
       // Voorwaarde 3: Elk jaar betaald (huidige betalingsstatus)
-      // Als paymentStatus null of undefined is of false, dan niet stemgerechtigd
-      if (member.paymentStatus !== true) return false;
+      if (!member.paymentStatus) return false;
     }
     
     return matchesSearch && matchesFilter;
@@ -402,17 +366,11 @@ export default function MembersList() {
       try {
         console.log("Versturen data naar API:", data);
         
-        // Maak een kopie van de data die we gaan versturen, inclusief lidnummer en andere cruciale velden
+        // Maak een kopie van de data die we gaan versturen
         const updateData = {
           ...data,
           // ID toevoegen van het huidige viewMember
-          id: viewMember.id,
-          // Lidnummer behouden (BELANGRIJK!)
-          memberNumber: viewMember.memberNumber,
-          // Behoud deze velden als ze niet in het formulier zitten
-          gender: data.gender || viewMember.gender,
-          membershipType: data.membershipType || viewMember.membershipType,
-          registrationDate: viewMember.registrationDate
+          id: viewMember.id
         };
         
         // Verstuur het request

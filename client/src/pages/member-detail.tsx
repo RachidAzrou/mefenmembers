@@ -44,13 +44,7 @@ export default function MemberDetail() {
   });
   
   // Find the current member from the list - gebruik strict equality (===) voor strings
-  console.log("Loaded members:", members);
-  console.log("Looking for member ID:", memberId, "type:", typeof memberId);
-  
-  const member = members.find(m => {
-    console.log("Comparing:", m.id, typeof m.id, "with", memberId, typeof memberId);
-    return String(m.id) === String(memberId);
-  });
+  const member = members.find(m => String(m.id) === String(memberId));
   
   // Calculate age function
   const calculateAge = (birthDate: string | null): number | null => {
@@ -279,12 +273,7 @@ export default function MemberDetail() {
                         <CircleUser className="h-4 w-4 mr-1.5 text-pink-500" />
                         <span>Vrouw</span>
                       </>
-                    ) : (
-                      <>
-                        <User className="h-4 w-4 mr-1.5 text-gray-500" />
-                        <span>Niet opgegeven</span>
-                      </>
-                    )}
+                    ) : "Niet opgegeven"}
                   </div>
                 </div>
                 
@@ -347,10 +336,9 @@ export default function MemberDetail() {
               <div className="bg-gray-50 rounded-lg p-3">
                 <div className="text-sm text-gray-500">Lidmaatschapstype</div>
                 <div className="font-medium">
-                  {member.membershipType === "standaard" || member.membershipType === null || member.membershipType === undefined ? 
-                    "Standaard" :
-                    member.membershipType === "student" ? "Student" :
-                    member.membershipType === "senior" ? "Senior" : "Standaard"}
+                  {member.membershipType === "standaard" ? "Standaard" :
+                   member.membershipType === "student" ? "Student" :
+                   member.membershipType === "senior" ? "Senior" : "Onbekend"}
                 </div>
               </div>
               
@@ -384,7 +372,7 @@ export default function MemberDetail() {
                   {member.paymentMethod === "cash" ? "Contant" :
                    member.paymentMethod === "domiciliering" ? "Domiciliëring" :
                    member.paymentMethod === "overschrijving" ? "Overschrijving" :
-                   member.paymentMethod === "bancontact" ? "Bancontact" : "Niet gespecificeerd"}
+                   member.paymentMethod === "bancontact" ? "Bancontact" : "Onbekend"}
                 </div>
               </div>
               
@@ -393,7 +381,7 @@ export default function MemberDetail() {
                 <div className="font-medium">
                   {member.paymentTerm === "jaarlijks" ? "Jaarlijks" :
                    member.paymentTerm === "maandelijks" ? "Maandelijks" :
-                   member.paymentTerm === "driemaandelijks" ? "Driemaandelijks" : "Niet gespecificeerd"}
+                   member.paymentTerm === "driemaandelijks" ? "Driemaandelijks" : "Onbekend"}
                 </div>
               </div>
               
