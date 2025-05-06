@@ -211,7 +211,15 @@ export default function MembersList() {
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['/api/members'] });
-      setViewMember(data);
+      
+      // Controleer of we geldige data hebben ontvangen
+      if (data && data.id) {
+        setViewMember(data);
+      } else {
+        // Als er geen geldige data is, haal dan alle leden opnieuw op
+        queryClient.fetchQuery({ queryKey: ['/api/members'] });
+      }
+      
       setEditMode(false);
       toast({
         title: "Lid bijgewerkt",

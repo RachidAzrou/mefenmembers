@@ -77,15 +77,44 @@ export async function syncMemberToFirebase(member: Member, action: ActivityType)
     if (action === 'delete') {
       // Verwijder het lid uit Firebase als het is verwijderd
       await set(memberRef, null);
+      
+      // Log in "deletions" tabel
+      const deletionsRef = ref(database, 'deletions');
+      const newDeletionRef = push(deletionsRef);
+      await set(newDeletionRef, {
+        memberId: member.id,
+        memberNumber: member.memberNumber,
+        memberName: `${member.firstName} ${member.lastName}`,
+        timestamp: serverTimestamp(),
+        deletedData: member
+      });
+    } else if (action === 'update') {
+      // Update lid in de "members" collectie
+      await set(memberRef, {
+        ...member,
+        lastUpdated: serverTimestamp()
+      });
+      
+      // Log in "changes" tabel
+      const changesRef = ref(database, 'changes');
+      const newChangeRef = push(changesRef);
+      await set(newChangeRef, {
+        memberId: member.id,
+        memberNumber: member.memberNumber,
+        memberName: `${member.firstName} ${member.lastName}`,
+        timestamp: serverTimestamp(),
+        updatedFields: Object.keys(member),
+        newData: member
+      });
     } else {
-      // Update of maak het lid aan in Firebase
+      // Create - voeg toe aan "members" collectie
       await set(memberRef, {
         ...member,
         lastUpdated: serverTimestamp()
       });
     }
     
-    // Log de activiteit
+    // Log de activiteit in general activities tabel
     await logActivity({
       action,
       memberId: member.id,
