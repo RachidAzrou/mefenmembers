@@ -271,10 +271,18 @@ export default function Dashboard() {
                       <div className="text-sm text-gray-500">Standaard lidmaatschap</div>
                       <div className="flex justify-between items-center">
                         <div className="font-medium">
-                          {members.filter(m => m.membershipType === 'standaard').length} leden
+                          {members.filter(m => 
+                            m.membershipType?.toLowerCase() === 'standaard' || 
+                            m.membershipType?.toLowerCase() === 'standard' ||
+                            m.membershipType === 'Standaard'
+                          ).length} leden
                         </div>
                         <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200">
-                          {Math.round((members.filter(m => m.membershipType === 'standaard').length / members.length) * 100)}%
+                          {members.length ? Math.round((members.filter(m => 
+                            m.membershipType?.toLowerCase() === 'standaard' || 
+                            m.membershipType?.toLowerCase() === 'standard' ||
+                            m.membershipType === 'Standaard'
+                          ).length / members.length) * 100) : 0}%
                         </Badge>
                       </div>
                     </div>

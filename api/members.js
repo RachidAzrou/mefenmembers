@@ -212,11 +212,8 @@ export default async function handler(req, res) {
         // Log de request body voor diagnose
         console.log("POST /api/members: Request body:", JSON.stringify(req.body));
         
-        // Haal data uit request body
-        const { firstName, lastName, phoneNumber, email, birthDate, accountNumber, paymentStatus, notes } = req.body;
-        
         // Controleer verplichte velden
-        if (!firstName || !lastName || !phoneNumber) {
+        if (!req.body.firstName || !req.body.lastName || !req.body.phoneNumber) {
           console.log("POST /api/members: Ontbrekende verplichte velden");
           return res.status(400).json({ 
             error: 'Ontbrekende verplichte velden',
@@ -229,19 +226,18 @@ export default async function handler(req, res) {
         const memberNumber = await getNextMemberNumber();
         console.log("POST /api/members: Nieuw lidnummer gegenereerd:", memberNumber);
         
-        // Maak nieuwe lid data
+        // Maak nieuwe lid data - neem alle velden over van de request body
         const newMember = {
           memberNumber,
-          firstName,
-          lastName,
-          phoneNumber,
-          email: email || '',
-          birthDate: birthDate || null,
-          accountNumber: accountNumber || '',
-          paymentStatus: paymentStatus || false,
-          registrationDate: new Date().toISOString(),
-          notes: notes || ''
+          ...req.body,
+          registrationDate: new Date().toISOString()
         };
+        
+        // Zorg ervoor dat deze velden altijd een waarde hebben, zelfs als null
+        if (newMember.email === undefined) newMember.email = '';
+        if (newMember.gender === undefined) newMember.gender = '';
+        if (newMember.membershipType === undefined) newMember.membershipType = 'standaard';
+        if (newMember.paymentStatus === undefined) newMember.paymentStatus = false;
         
         console.log("POST /api/members: Lid data voorbereid:", JSON.stringify(newMember));
         
@@ -297,21 +293,32 @@ export default async function handler(req, res) {
           return res.status(400).json({ error: 'Ongeldige request body' });
         }
         
-        // Haal data uit request body
-        const { firstName, lastName, phoneNumber, email, birthDate, 
-                accountNumber, paymentStatus, notes } = req.body;
+        // Log de request body voor diagnose
+        console.log(`PUT /api/members/${id}: Request body:`, JSON.stringify(req.body));
         
-        // Bouw update object
+        // Haal eerst het bestaande lid op
+        const existingMember = await firebaseRequest('GET', `members/${id}`);
+        if (!existingMember) {
+          return res.status(404).json({ error: 'Lid niet gevonden' });
+        }
+        
+        // Bewaar het lidnummer van het bestaande lid
+        const { memberNumber } = existingMember;
+        
+        // Bouw update object - behoud alle velden uit de request
         const updateData = {
-          firstName,
-          lastName,
-          phoneNumber,
-          email: email || '',
-          birthDate: birthDate || null,
-          accountNumber: accountNumber || '',
-          paymentStatus: paymentStatus || false,
-          notes: notes || ''
+          ...existingMember,  // Behoud bestaande data als fallback
+          ...req.body,        // Update met nieuwe data
+          memberNumber        // Behoud altijd het originele lidnummer
         };
+        
+        // Zorg ervoor dat deze velden altijd een waarde hebben
+        if (updateData.email === undefined) updateData.email = '';
+        if (updateData.gender === undefined) updateData.gender = existingMember.gender || '';
+        if (updateData.membershipType === undefined) updateData.membershipType = existingMember.membershipType || 'standaard';
+        if (updateData.paymentStatus === undefined) updateData.paymentStatus = false;
+        
+        console.log(`PUT /api/members/${id}: Update data:`, JSON.stringify(updateData));
         
         // Update via REST API
         await firebaseRequest('PUT', `members/${id}`, updateData);
