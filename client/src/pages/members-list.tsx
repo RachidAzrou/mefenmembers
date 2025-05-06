@@ -75,7 +75,65 @@ export default function MembersList() {
   const [activeFilter, setActiveFilter] = useState<"all" | "paid" | "unpaid" | "recent">("all");
   const [sortField, setSortField] = useState<string>("memberNumber");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
-  const [, navigate] = useLocation();
+  const [location, navigate] = useLocation();
+  
+  // Verwerk URL query parameters bij eerste laden
+  useEffect(() => {
+    // Parse huidige URL parameters
+    const url = new URL(window.location.href);
+    const params = url.searchParams;
+    
+    // Filter op basis van URL parameters
+    // Voorbeelden: ?gender=man, ?type=student, ?voting=true
+    if (params.has("gender")) {
+      // Gender filter wordt apart bijgehouden in de component state
+      const gender = params.get("gender");
+      if (gender === "man" || gender === "vrouw") {
+        // Gebruik een impliciete parameter
+        // Wordt verwerkt in de filteredMembers functie
+      }
+    } else if (params.has("type")) {
+      // Lidmaatschapstype filter
+      const type = params.get("type");
+      if (type === "standaard" || type === "student" || type === "senior") {
+        // Gebruik een impliciete parameter
+        // Wordt verwerkt in de filteredMembers functie
+      }
+    } else if (params.has("voting")) {
+      // Filter voor stemgerechtigde leden
+      const voting = params.get("voting");
+      if (voting === "true") {
+        // Gebruik een impliciete parameter
+        // Wordt verwerkt in de filteredMembers functie
+      }
+    } else if (params.has("paid")) {
+      // Betalingsstatus filter
+      const paid = params.get("paid");
+      if (paid === "true") {
+        setActiveFilter("paid");
+      } else if (paid === "false") {
+        setActiveFilter("unpaid");
+      }
+    }
+    
+  }, []);
+  
+  // URL wijzigen op basis van geselecteerde filter
+  useEffect(() => {
+    // Update URL alleen als we expliciet van filter veranderen
+    // Niet bij initieel laden
+    if (activeFilter !== "all") {
+      const newUrl = new URL(window.location.href);
+      if (activeFilter === "paid") {
+        newUrl.searchParams.set("paid", "true");
+      } else if (activeFilter === "unpaid") {
+        newUrl.searchParams.set("paid", "false");
+      } else if (activeFilter === "recent") {
+        newUrl.searchParams.set("recent", "true");
+      }
+      window.history.replaceState({}, '', newUrl.toString());
+    }
+  }, [activeFilter]);
   
   // Form setup voor bewerken in dialoog
   const form = useForm<MemberEditData>({
@@ -100,7 +158,7 @@ export default function MembersList() {
     }
   });
   
-  // Filter leden op basis van zoekopdracht en actieve filter
+  // Filter leden op basis van zoekopdracht, actieve filter en URL parameters
   const filteredMembers = members.filter(member => {
     // Eerst op zoekopdracht filteren
     const matchesSearch = searchQuery === "" || 
@@ -120,6 +178,34 @@ export default function MembersList() {
       const thirtyDaysAgo = new Date();
       thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
       matchesFilter = new Date(member.registrationDate) >= thirtyDaysAgo;
+    }
+    
+    // URL Parameters verwerken indien aanwezig
+    const url = new URL(window.location.href);
+    const params = url.searchParams;
+    
+    // Gender filter
+    if (params.has("gender")) {
+      const genderParam = params.get("gender");
+      if ((genderParam === "man" || genderParam === "vrouw") && member.gender !== genderParam) {
+        return false;
+      }
+    }
+    
+    // Lidmaatschapstype filter
+    if (params.has("type")) {
+      const typeParam = params.get("type");
+      if (typeParam && member.membershipType !== typeParam) {
+        return false;
+      }
+    }
+    
+    // Stemgerechtigden filter
+    if (params.has("voting") && params.get("voting") === "true") {
+      const age = calculateAge(member.birthDate);
+      if (age === null || age < 18) {
+        return false;
+      }
     }
     
     return matchesSearch && matchesFilter;
@@ -375,8 +461,127 @@ export default function MembersList() {
         </div>
       </div>
       
-      {/* Ruimte voor header en statistieken */}
-      <div className="my-4"></div>
+      {/* Actieve URL filter indicator */}
+      {(() => {
+        const url = new URL(window.location.href);
+        const params = url.searchParams;
+        
+        // Check of er URL filters actief zijn
+        if (params.has("gender") || params.has("type") || params.has("voting")) {
+          let filterText = "";
+          let filterIcon = null;
+          let bgColor = "";
+          let textColor = "";
+          
+          if (params.has("gender")) {
+            const gender = params.get("gender");
+            if (gender === "man") {
+              filterText = "Filter: Mannen";
+              filterIcon = (
+                <svg 
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="h-4 w-4 mr-1"
+                >
+                  <circle cx="12" cy="5" r="3"/>
+                  <line x1="12" y1="8" x2="12" y2="21"/>
+                  <line x1="8" y1="12" x2="16" y2="12"/>
+                </svg>
+              );
+              bgColor = "bg-blue-100";
+              textColor = "text-blue-700";
+            } else if (gender === "vrouw") {
+              filterText = "Filter: Vrouwen";
+              filterIcon = (
+                <svg 
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="h-4 w-4 mr-1"
+                >
+                  <circle cx="12" cy="5" r="3"/>
+                  <line x1="12" y1="8" x2="12" y2="21"/>
+                  <circle cx="12" cy="16" r="5"/>
+                </svg>
+              );
+              bgColor = "bg-pink-100";
+              textColor = "text-pink-700";
+            }
+          } else if (params.has("type")) {
+            const type = params.get("type");
+            if (type === "standaard") {
+              filterText = "Filter: Standaard lidmaatschap";
+              filterIcon = <UserCheck className="h-4 w-4 mr-1" />;
+              bgColor = "bg-amber-100";
+              textColor = "text-amber-700";
+            } else if (type === "student") {
+              filterText = "Filter: Student lidmaatschap";
+              filterIcon = <GraduationCap className="h-4 w-4 mr-1" />;
+              bgColor = "bg-green-100";
+              textColor = "text-green-700";
+            } else if (type === "senior") {
+              filterText = "Filter: Senior lidmaatschap";
+              filterIcon = (
+                <svg 
+                  viewBox="0 0 24 24" 
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="h-4 w-4 mr-1"
+                >
+                  <path d="M19 9V6a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2v3" />
+                  <path d="M3 11v5a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-5a2 2 0 0 0-4 0v2H7v-2a2 2 0 0 0-4 0Z" />
+                  <path d="M5 18v2" />
+                  <path d="M19 18v2" />
+                </svg>
+              );
+              bgColor = "bg-purple-100";
+              textColor = "text-purple-700";
+            }
+          } else if (params.has("voting") && params.get("voting") === "true") {
+            filterText = "Filter: Stemgerechtigde leden (18+)";
+            filterIcon = <UserCheck className="h-4 w-4 mr-1" />;
+            bgColor = "bg-[#963E56]/20";
+            textColor = "text-[#963E56]";
+          }
+          
+          if (filterText) {
+            return (
+              <div className="my-4 flex items-center">
+                <div className={`flex items-center px-3 py-1.5 rounded-lg ${bgColor} ${textColor}`}>
+                  {filterIcon}
+                  <span className="text-sm font-medium">{filterText}</span>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="ml-2 h-7 text-gray-500 hover:text-gray-700"
+                  onClick={() => {
+                    // Verwijder alle filters en navigeer terug naar basis URL
+                    window.history.replaceState({}, '', '/members');
+                    // Herlaad de pagina om de filters te resetten
+                    window.location.reload();
+                  }}
+                >
+                  <X className="h-3.5 w-3.5 mr-1" />
+                  <span className="text-xs">Wis filter</span>
+                </Button>
+              </div>
+            );
+          }
+        }
+        
+        return <div className="my-4"></div>;
+      })()}
       
       {/* Statistieken strook als actieve filters - klikbare kaarten */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">

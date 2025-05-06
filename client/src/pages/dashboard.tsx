@@ -233,20 +233,100 @@ export default function Dashboard() {
         </CardContent>
       </Card>
 
-      {/* Overzichtsstatistieken - Nu met leeftijdscategorieën */}
+      {/* Geslacht statistieken */}
       <Card className="border-none shadow-md overflow-hidden">
-        <div className="bg-gradient-to-r from-purple-500/20 to-purple-600/20 h-2" />
+        <div className="bg-gradient-to-r from-blue-500/20 to-blue-600/20 h-2" />
         <CardHeader>
           <CardTitle className="text-lg flex items-center">
-            <BarChart3 className="h-5 w-5 mr-2 text-purple-600" />
-            Statistieken
+            <Users className="h-5 w-5 mr-2 text-blue-600" />
+            Geslacht
           </CardTitle>
           <CardDescription>
-            Details en statistieken van uw ledenbestand
+            Verdeling van leden op basis van geslacht
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="space-y-6">
+          <div className="space-y-4">
+            {isLoading ? (
+              <div className="space-y-3">
+                <Skeleton className="h-5 w-full" />
+                <Skeleton className="h-5 w-full" />
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {/* Mannen */}
+                <Link href="/members?gender=man">
+                  <div className="flex items-center gap-4 p-4 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors cursor-pointer">
+                    <div className="bg-blue-100 p-3 rounded-full">
+                      <svg 
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        className="h-5 w-5 text-blue-600"
+                      >
+                        <circle cx="12" cy="5" r="3"/>
+                        <line x1="12" y1="8" x2="12" y2="21"/>
+                        <line x1="8" y1="12" x2="16" y2="12"/>
+                      </svg>
+                    </div>
+                    <div>
+                      <div className="text-sm text-gray-500">Mannen</div>
+                      <div className="font-medium">
+                        {members.filter(m => m.gender === 'man').length} leden
+                      </div>
+                    </div>
+                  </div>
+                </Link>
+                
+                {/* Vrouwen */}
+                <Link href="/members?gender=vrouw">
+                  <div className="flex items-center gap-4 p-4 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors cursor-pointer">
+                    <div className="bg-pink-100 p-3 rounded-full">
+                      <svg 
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        className="h-5 w-5 text-pink-600"
+                      >
+                        <circle cx="12" cy="5" r="3"/>
+                        <line x1="12" y1="8" x2="12" y2="21"/>
+                        <circle cx="12" cy="16" r="5"/>
+                      </svg>
+                    </div>
+                    <div>
+                      <div className="text-sm text-gray-500">Vrouwen</div>
+                      <div className="font-medium">
+                        {members.filter(m => m.gender === 'vrouw').length} leden
+                      </div>
+                    </div>
+                  </div>
+                </Link>
+              </div>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+      
+      {/* Lidmaatschapstype statistieken */}
+      <Card className="border-none shadow-md overflow-hidden">
+        <div className="bg-gradient-to-r from-amber-500/20 to-amber-600/20 h-2" />
+        <CardHeader>
+          <CardTitle className="text-lg flex items-center">
+            <BarChart3 className="h-5 w-5 mr-2 text-amber-600" />
+            Lidmaatschapstype
+          </CardTitle>
+          <CardDescription>
+            Verdeling op basis van lidmaatschapstype
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
             {isLoading ? (
               <div className="space-y-3">
                 <Skeleton className="h-5 w-full" />
@@ -254,75 +334,52 @@ export default function Dashboard() {
                 <Skeleton className="h-5 w-full" />
               </div>
             ) : (
-              <>
-                {/* Meest recente registratie */}
-                <div className="flex items-center gap-4 p-4 rounded-lg bg-gray-50">
-                  <div className="bg-purple-100 p-3 rounded-full">
-                    <CalendarDays className="h-5 w-5 text-purple-600" />
-                  </div>
-                  <div>
-                    <div className="text-sm text-gray-500">Meest recente registratie</div>
-                    <div className="font-medium">
-                      {mostRecentRegistration
-                        ? (() => {
-                            const day = mostRecentRegistration.getDate();
-                            const month = mostRecentRegistration.getMonth() + 1;
-                            // Gebruik alleen de laatste twee cijfers van het jaar
-                            const year = mostRecentRegistration.getFullYear().toString().slice(-2);
-                            return `${day}/${month}/${year}`;
-                          })()
-                        : "-"}
+              <div className="grid grid-cols-1 gap-3">
+                {/* Standaard lidmaatschap */}
+                <Link href="/members?type=standaard">
+                  <div className="flex items-center gap-4 p-4 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors cursor-pointer">
+                    <div className="bg-amber-100 p-3 rounded-full">
+                      <UserCheck className="h-5 w-5 text-amber-600" />
                     </div>
-                  </div>
-                </div>
-                
-                {/* Leeftijdscategorieën */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {/* Tieners (13-17) */}
-                  <div className="flex items-center gap-4 p-4 rounded-lg bg-gray-50">
-                    <div className="bg-blue-100 p-3 rounded-full">
-                      <Backpack className="h-5 w-5 text-blue-600" />
-                    </div>
-                    <div>
-                      <div className="text-sm text-gray-500">Tieners (13-17 jaar)</div>
-                      <div className="font-medium">
-                        {teenagers} {teenagers === 1 ? "lid" : "leden"}
+                    <div className="flex-1">
+                      <div className="text-sm text-gray-500">Standaard lidmaatschap</div>
+                      <div className="flex justify-between items-center">
+                        <div className="font-medium">
+                          {members.filter(m => m.membershipType === 'standaard').length} leden
+                        </div>
+                        <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200">
+                          {Math.round((members.filter(m => m.membershipType === 'standaard').length / members.length) * 100)}%
+                        </Badge>
                       </div>
                     </div>
                   </div>
-                  
-                  {/* Jongvolwassenen (<25) */}
-                  <div className="flex items-center gap-4 p-4 rounded-lg bg-gray-50">
+                </Link>
+                
+                {/* Student lidmaatschap */}
+                <Link href="/members?type=student">
+                  <div className="flex items-center gap-4 p-4 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors cursor-pointer">
                     <div className="bg-green-100 p-3 rounded-full">
                       <GraduationCap className="h-5 w-5 text-green-600" />
                     </div>
-                    <div>
-                      <div className="text-sm text-gray-500">Jongvolwassenen (18-24 jaar)</div>
-                      <div className="font-medium">
-                        {youngAdults} {youngAdults === 1 ? "lid" : "leden"}
+                    <div className="flex-1">
+                      <div className="text-sm text-gray-500">Student lidmaatschap</div>
+                      <div className="flex justify-between items-center">
+                        <div className="font-medium">
+                          {members.filter(m => m.membershipType === 'student').length} leden
+                        </div>
+                        <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+                          {Math.round((members.filter(m => m.membershipType === 'student').length / members.length) * 100)}%
+                        </Badge>
                       </div>
                     </div>
                   </div>
-                  
-                  {/* Volwassenen (25-64) */}
-                  <div className="flex items-center gap-4 p-4 rounded-lg bg-gray-50">
-                    <div className="bg-orange-100 p-3 rounded-full">
-                      <UserRound className="h-5 w-5 text-orange-600" />
-                    </div>
-                    <div>
-                      <div className="text-sm text-gray-500">Volwassenen (25-64 jaar)</div>
-                      <div className="font-medium">
-                        {adults} {adults === 1 ? "lid" : "leden"}
-                      </div>
-                    </div>
-                  </div>
-                  
-                  {/* Ouderen (65+) */}
-                  <div className="flex items-center gap-4 p-4 rounded-lg bg-gray-50">
+                </Link>
+                
+                {/* Senior lidmaatschap */}
+                <Link href="/members?type=senior">
+                  <div className="flex items-center gap-4 p-4 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors cursor-pointer">
                     <div className="bg-purple-100 p-3 rounded-full">
                       <svg 
-                        width="20" 
-                        height="20" 
                         viewBox="0 0 24 24" 
                         fill="none"
                         stroke="currentColor"
@@ -331,20 +388,91 @@ export default function Dashboard() {
                         strokeLinejoin="round"
                         className="h-5 w-5 text-purple-600"
                       >
-                        {/* Armchair icon */}
                         <path d="M19 9V6a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2v3" />
                         <path d="M3 11v5a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-5a2 2 0 0 0-4 0v2H7v-2a2 2 0 0 0-4 0Z" />
                         <path d="M5 18v2" />
                         <path d="M19 18v2" />
                       </svg>
                     </div>
-                    <div>
-                      <div className="text-sm text-gray-500">Ouderen (65+ jaar)</div>
-                      <div className="font-medium">
-                        {elderly} {elderly === 1 ? "lid" : "leden"}
+                    <div className="flex-1">
+                      <div className="text-sm text-gray-500">Senior lidmaatschap</div>
+                      <div className="flex justify-between items-center">
+                        <div className="font-medium">
+                          {members.filter(m => m.membershipType === 'senior').length} leden
+                        </div>
+                        <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-200">
+                          {Math.round((members.filter(m => m.membershipType === 'senior').length / members.length) * 100)}%
+                        </Badge>
                       </div>
                     </div>
                   </div>
+                </Link>
+              </div>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+      
+      {/* Stemgerechtigden statistieken */}
+      <Card className="border-none shadow-md overflow-hidden">
+        <div className="bg-gradient-to-r from-[#963E56]/20 to-[#963E56] h-2" />
+        <CardHeader>
+          <CardTitle className="text-lg flex items-center">
+            <UserCheck className="h-5 w-5 mr-2 text-[#963E56]" />
+            Stemgerechtigden
+          </CardTitle>
+          <CardDescription>
+            Leden die het stemrecht hebben (18+)
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            {isLoading ? (
+              <div className="space-y-3">
+                <Skeleton className="h-5 w-full" />
+              </div>
+            ) : (
+              <>
+                {/* Stemgerechtigden statistieken */}
+                <div className="flex items-center justify-between p-4 rounded-lg bg-gray-50">
+                  <div className="flex items-center gap-4">
+                    <div className="bg-[#963E56]/20 p-3 rounded-full">
+                      <UserCheck className="h-5 w-5 text-[#963E56]" />
+                    </div>
+                    <div>
+                      <div className="text-sm text-gray-500">Stemgerechtigde leden (18+)</div>
+                      <div className="font-medium">
+                        {members.filter(m => {
+                          const age = calculateAge(m.birthDate);
+                          return age !== null && age >= 18;
+                        }).length} leden
+                      </div>
+                    </div>
+                  </div>
+                  <Link href="/members?voting=true">
+                    <Button size="sm" variant="outline" className="border-[#963E56] text-[#963E56] hover:bg-[#963E56]/10">
+                      Toon lijst
+                    </Button>
+                  </Link>
+                </div>
+                
+                {/* Voortgangsindicator voor stemgerechtigden */}
+                <div className="space-y-2">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm font-medium">
+                      {Math.round((members.filter(m => {
+                        const age = calculateAge(m.birthDate);
+                        return age !== null && age >= 18;
+                      }).length / members.length) * 100)}% van totaal
+                    </span>
+                  </div>
+                  <Progress 
+                    value={Math.round((members.filter(m => {
+                      const age = calculateAge(m.birthDate);
+                      return age !== null && age >= 18;
+                    }).length / members.length) * 100)} 
+                    className="h-2" 
+                  />
                 </div>
               </>
             )}
