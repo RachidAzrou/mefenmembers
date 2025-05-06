@@ -1103,7 +1103,7 @@ export default function MembersList() {
                       {viewMember.firstName} {viewMember.lastName}
                     </DialogTitle>
                     <DialogDescription className="text-white/80 text-xs sm:text-sm mt-1">
-                      Lidnummer: {viewMember.memberNumber.toString().padStart(4, '0')} • Lid sinds {formatDate(viewMember.registrationDate)}
+                      Lidnummer: {viewMember.memberNumber.toString().padStart(4, '0')} • Lid sinds {formatDate(viewMember.startDate || viewMember.registrationDate)}
                     </DialogDescription>
                   </div>
                   
@@ -1270,6 +1270,109 @@ export default function MembersList() {
                             );
                           }}
                         />
+                        
+                        <FormField
+                          control={form.control}
+                          name="startDate"
+                          render={({ field }) => {
+                            // Gebruik een gewoon invoerveld voor startdatum in DD/MM/YYYY formaat
+                            const [dateInput, setDateInput] = useState(
+                              field.value ? format(new Date(field.value), "dd/MM/yyyy") : ""
+                            );
+                            
+                            // Functie om een datum string in DD/MM/YYYY formaat te valideren en parsen
+                            const validateAndParseDate = (dateStr: string) => {
+                              // Controleer of het formaat DD/MM/YYYY is
+                              const regex = /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/;
+                              const match = dateStr.match(regex);
+                              
+                              if (!match) return null;
+                              
+                              const day = parseInt(match[1], 10);
+                              const month = parseInt(match[2], 10) - 1; // JavaScript maanden zijn 0-gebaseerd
+                              const year = parseInt(match[3], 10);
+                              
+                              // Controleer of dag, maand en jaar geldig zijn
+                              if (
+                                day < 1 || day > 31 || 
+                                month < 0 || month > 11 || 
+                                year < 1900 || year > new Date().getFullYear()
+                              ) {
+                                return null;
+                              }
+                              
+                              // Maak een Date object en controleer of het geldig is
+                              // Gebruik UTC om tijdzone-issues te voorkomen (dag -1 probleem)
+                              const date = new Date(Date.UTC(year, month, day, 12, 0, 0));
+                              
+                              // Controleer of datum niet in de toekomst ligt
+                              if (date > new Date()) {
+                                return null;
+                              }
+                              
+                              // Controleer of de datum bestaat (bijv. 31/02/2023 bestaat niet)
+                              const utcDay = date.getUTCDate();
+                              const utcMonth = date.getUTCMonth();
+                              const utcYear = date.getUTCFullYear();
+                              
+                              if (utcDay !== day || utcMonth !== month || utcYear !== year) {
+                                return null;
+                              }
+                              
+                              // Retourneer het volledige ISO-string formaat, zoals de server verwacht
+                              return date.toISOString();
+                            };
+                            
+                            // Verwerk input wijziging
+                            const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+                              const value = e.target.value;
+                              setDateInput(value);
+                              
+                              // Format user input automatically as they type
+                              if (value.length === 2 && !value.includes('/') && !dateInput.includes('/')) {
+                                setDateInput(value + '/');
+                              } else if (value.length === 5 && value.charAt(2) === '/' && !value.includes('/', 3)) {
+                                setDateInput(value + '/');
+                              }
+                            };
+                            
+                            // Verwerk blur event (als gebruiker het veld verlaat)
+                            const handleBlur = () => {
+                              if (dateInput) {
+                                console.log("StartDateInput waarde bij blur:", dateInput);
+                                const parsedDate = validateAndParseDate(dateInput);
+                                console.log("Parsed start date result:", parsedDate);
+                                
+                                if (parsedDate) {
+                                  console.log("Setting startDate field value to:", parsedDate);
+                                  field.onChange(parsedDate);
+                                } else {
+                                  // Als datum ongeldig is, reset naar vorige geldige waarde
+                                  console.log("Invalid start date, resetting to previous value");
+                                  setDateInput(field.value ? format(new Date(field.value), "dd/MM/yyyy") : "");
+                                }
+                              } else {
+                                console.log("Empty start date input, setting field to undefined");
+                                field.onChange(undefined);
+                              }
+                            };
+                            
+                            return (
+                              <FormItem>
+                                <FormLabel>Startdatum lidmaatschap</FormLabel>
+                                <FormControl>
+                                  <Input
+                                    placeholder="DD/MM/JJJJ"
+                                    value={dateInput}
+                                    onChange={handleInputChange}
+                                    onBlur={handleBlur}
+                                  />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            );
+                          }}
+                        />
                       </div>
                     </div>
                     
@@ -1412,6 +1515,11 @@ export default function MembersList() {
                         </div>
                         
                         <div className="bg-gray-50 rounded-lg p-2 sm:p-3">
+                          <div className="text-xs sm:text-sm text-gray-500">Startdatum lidmaatschap</div>
+                          <div className="font-medium text-sm sm:text-base">{formatDate(viewMember.startDate || viewMember.registrationDate)}</div>
+                        </div>
+                        
+                        <div className="bg-gray-50 rounded-lg p-2 sm:p-3">
                           <div className="text-xs sm:text-sm text-gray-500">Geslacht</div>
                           <div className="font-medium text-sm sm:text-base">{viewMember.gender === "man" ? "Man" : viewMember.gender === "vrouw" ? "Vrouw" : "Niet opgegeven"}</div>
                         </div>
@@ -1484,7 +1592,7 @@ export default function MembersList() {
                           <div className="font-medium text-blue-800">Stemgerechtigd</div>
                           <div className="text-xs sm:text-sm text-blue-700 mt-1">
                             Dit lid voldoet aan alle voorwaarden: meerderjarig, 
-                            minstens 5 jaar lid ({calculateMembershipYears(viewMember.registrationDate)} jaar) 
+                            minstens 5 jaar lid ({calculateMembershipYears(viewMember)} jaar) 
                             en heeft de jaarlijkse bijdrage betaald.
                           </div>
                         </div>
