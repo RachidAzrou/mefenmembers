@@ -3,7 +3,6 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { Member, insertMemberSchema } from "@shared/schema";
-import { fetchMembersFromFirebase, subscribeMembersFromFirebase } from "@/lib/firebase-members";
 import { format } from "date-fns";
 import { Input } from "@/components/ui/input";
 import { 
@@ -92,79 +91,14 @@ export default function MembersList() {
     }
   });
   
-  // Gebruik Firebase fallback state
-  const [firebaseMembers, setFirebaseMembers] = useState<Member[]>([]);
-  const [usingFirebaseFallback, setUsingFirebaseFallback] = useState(false);
-  
-  // Haal alle leden op, eerst via API en als fallback via Firebase
-  const { data: members = [], isLoading, isError, error } = useQuery<Member[]>({
+  // Haal alle leden op
+  const { data: members = [], isLoading } = useQuery<Member[]>({
     queryKey: ["/api/members"],
     queryFn: async () => {
-      try {
-        // Vercel production modus check - in productie direct Firebase proberen
-        const isProduction = window.location.hostname.includes('vercel.app');
-        if (isProduction) {
-          try {
-            // Probeer eerst API in productie
-            console.log("API request naar /api/members in productie");
-            const response = await apiRequest("GET", "/api/members");
-            const data = await response.json();
-            console.log("API response ontvangen in productie:", data);
-            return data;
-          } catch (apiError) {
-            console.warn("API fout in productie, fallback naar Firebase:", apiError);
-            console.log("Leden ophalen via Firebase fallback...");
-            const firebaseData = await fetchMembersFromFirebase();
-            setUsingFirebaseFallback(true);
-            setFirebaseMembers(firebaseData);
-            return firebaseData;
-          }
-        }
-        
-        // Normale API aanroep in development
-        console.log("API request naar /api/members gestart");
-        const response = await apiRequest("GET", "/api/members");
-        const data = await response.json();
-        console.log("API response ontvangen:", data);
-        return data;
-      } catch (error) {
-        console.error("Fout bij ophalen leden via API, probeer Firebase fallback:", error);
-        
-        try {
-          // API fout, probeer Firebase als fallback
-          const firebaseData = await fetchMembersFromFirebase();
-          setUsingFirebaseFallback(true);
-          setFirebaseMembers(firebaseData);
-          return firebaseData;
-        } catch (fbError) {
-          console.error("Ook Firebase fallback faalde:", fbError);
-          // Als beide falen, toon dan een foutmelding
-          throw new Error("Kon geen leden ophalen via API of Firebase. Controleer je verbinding.");
-        }
-      }
-    },
-    // Retry bij fouten, belangrijk voor serverless functies in Vercel
-    retry: 1, // Minder retries want we hebben nu Firebase als fallback
-    retryDelay: 1000,
-  });
-  
-  // Firebase realtime subscribtion als fallback wordt gebruikt
-  useEffect(() => {
-    // Als we de Firebase fallback gebruiken, luister dan naar wijzigingen
-    if (usingFirebaseFallback) {
-      console.log("Realtime updates inschakelen via Firebase...");
-      const unsubscribe = subscribeMembersFromFirebase((updatedMembers) => {
-        console.log("Realtime update ontvangen:", updatedMembers.length, "leden");
-        setFirebaseMembers(updatedMembers);
-      });
-      
-      // Cleanup functie
-      return () => {
-        console.log("Firebase realtime updates uitschakelen");
-        unsubscribe();
-      };
+      const response = await apiRequest("GET", "/api/members");
+      return response.json();
     }
-  }, [usingFirebaseFallback]);
+  });
   
   // Filter leden op basis van zoekopdracht en actieve filter
   const filteredMembers = members.filter(member => {
@@ -266,63 +200,18 @@ export default function MembersList() {
     mutationFn: async (data: MemberEditData) => {
       if (!viewMember) return null;
       
-      try {
-        // Normale API aanroep proberen
-        const response = await apiRequest('PUT', `/api/members?id=${viewMember.id}`, data);
-        
-        if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.error || 'Onbekende API fout');
-        }
-        
-        return response.json();
-      } catch (apiError) {
-        // Als we al in Firebase fallback mode zijn, probeer direct naar Firebase te schrijven
-        if (usingFirebaseFallback && database) {
-          console.warn("API update gefaald, probeer direct Firebase update...", apiError);
-          
-          try {
-            // Directe Firebase update als fallback voor API in offline modus
-            const updatedMember = {
-              ...viewMember,
-              ...data,
-              updatedAt: new Date().toISOString()
-            };
-            
-            // Bepaal de Firebase key - meestal de ID van het lid
-            const memberRef = ref(database, `members/${viewMember.id}`);
-            await set(memberRef, updatedMember);
-            
-            console.log("Firebase directe update succesvol");
-            return updatedMember;
-          } catch (firebaseError) {
-            console.error("Ook Firebase fallback update gefaald:", firebaseError);
-            throw new Error("Kon lid niet bijwerken via API of Firebase");
-          }
-        } else {
-          // Als we niet in Firebase fallback mode zijn, gooi de originele fout
-          throw apiError;
-        }
+      const response = await apiRequest('PUT', `/api/members?id=${viewMember.id}`, data);
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Onbekende API fout');
       }
+      
+      return response.json();
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['/api/members'] });
-      
-      // Controleer of we geldige data hebben ontvangen
-      if (data && data.id) {
-        setViewMember(data);
-        
-        // Als we in Firebase fallback mode zijn, update de lokale staat direct
-        if (usingFirebaseFallback) {
-          setFirebaseMembers(prevMembers => {
-            return prevMembers.map(m => m.id === data.id ? data : m);
-          });
-        }
-      } else {
-        // Als er geen geldige data is, haal dan alle leden opnieuw op
-        queryClient.fetchQuery({ queryKey: ['/api/members'] });
-      }
-      
+      setViewMember(data);
       setEditMode(false);
       toast({
         title: "Lid bijgewerkt",
@@ -430,54 +319,6 @@ export default function MembersList() {
         </div>
       </div>
       
-      {/* Firebase fallback notificatie */}
-      {usingFirebaseFallback && (
-        <Card className="border-amber-200 shadow-md bg-amber-50">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-amber-700 flex items-center gap-2 text-base">
-              <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M10 17v-4h4" />
-                <path d="M4.9 4H3s.1 1 .1 3c0 2.5-.5 3-2 3m17 7c.7.7 1 1.5 1 2.5s-.3 1.8-1 2.5c-.7.7-1.5 1-2.5 1s-1.8-.3-2.5-1M3 3l18 18" />
-              </svg>
-              Offline Modus
-            </CardTitle>
-            <CardDescription className="text-amber-800 text-xs">
-              Je werkt momenteel met lokaal opgeslagen ledenprofiel data. Wijzigingen worden automatisch gesynchroniseerd zodra je weer online bent.
-            </CardDescription>
-          </CardHeader>
-        </Card>
-      )}
-      
-      {/* Foutmelding als de API niet werkt */}
-      {isError && !usingFirebaseFallback && (
-        <Card className="border-red-200 shadow-md bg-red-50">
-          <CardHeader>
-            <CardTitle className="text-red-600 flex items-center gap-2">
-              <X className="h-5 w-5" /> API Fout
-            </CardTitle>
-            <CardDescription className="text-red-700">
-              Er is een probleem met het ophalen van de leden. Probeer de pagina te verversen of controleer je internetverbinding.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <p className="text-xs text-gray-600 bg-white p-2 rounded border border-gray-200 overflow-auto max-h-24">
-              {error instanceof Error ? error.message : 'Onbekende fout bij het ophalen van gegevens'}
-            </p>
-            <div className="flex justify-end mt-4">
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={() => window.location.reload()}
-                className="text-xs"
-              >
-                <span className="mr-2">Pagina verversen</span>
-                <ArrowUpDown className="h-3 w-3" />
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-      
       {/* Ruimte voor header en statistieken */}
       <div className="my-4"></div>
       
@@ -576,30 +417,13 @@ export default function MembersList() {
                 ) : (
                   members.length > 0
                     ? (() => {
-                        try {
-                          // Filter eerst op geldige datums
-                          const validDates = members
-                            .filter(m => m.registrationDate && !isNaN(new Date(m.registrationDate).getTime()))
-                            .map(m => new Date(m.registrationDate).getTime());
-                          
-                          // Als er geen geldige datums zijn
-                          if (validDates.length === 0) return "-";
-                          
-                          const date = new Date(Math.max(...validDates));
-                          
-                          // Controleer of de datum geldig is
-                          if (isNaN(date.getTime())) return "-";
-                          
-                          // Gebruik korte notatie DD/MM/JJ
-                          const day = date.getDate();
-                          const month = date.getMonth() + 1;
-                          // Gebruik alleen de laatste twee cijfers van het jaar
-                          const year = date.getFullYear().toString().slice(-2);
-                          return `${day}/${month}/${year}`;
-                        } catch (error) {
-                          console.error("Fout bij berekenen laatste registratie:", error);
-                          return "-";
-                        }
+                        const date = new Date(Math.max(...members.map(m => new Date(m.registrationDate).getTime())));
+                        // Gebruik korte notatie DD/MM/JJ
+                        const day = date.getDate();
+                        const month = date.getMonth() + 1;
+                        // Gebruik alleen de laatste twee cijfers van het jaar
+                        const year = date.getFullYear().toString().slice(-2);
+                        return `${day}/${month}/${year}`;
                       })()
                     : "-"
                 )}
