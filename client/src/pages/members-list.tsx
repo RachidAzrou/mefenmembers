@@ -1071,18 +1071,19 @@ export default function MembersList() {
                         </Badge>
                       </TableCell>
                       <TableCell className="text-right">
-                        {/* Alleen prullenbak icon (zichtbaar als showDeleteIcons true is) */}
-                        {showDeleteIcons && (
-                          <Button 
-                            variant="ghost" 
-                            size="icon" 
-                            className="h-8 w-8 text-red-600 hover:text-red-800 hover:bg-red-50 ml-auto" 
-                            onClick={() => handleDeleteConfirm(member)}
-                          >
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          className={`h-8 w-8 ml-auto ${showDeleteIcons ? "text-red-600 hover:text-red-800 hover:bg-red-50" : "text-gray-400 hover:text-gray-600 hover:bg-gray-50"}`}
+                          onClick={() => showDeleteIcons ? handleDeleteConfirm(member) : null}
+                        >
+                          {showDeleteIcons ? (
                             <Trash2 className="h-4 w-4" />
-                            <span className="sr-only">Lid verwijderen</span>
-                          </Button>
-                        )}
+                          ) : (
+                            <MoreHorizontal className="h-4 w-4" />
+                          )}
+                          <span className="sr-only">{showDeleteIcons ? "Lid verwijderen" : "Meer acties"}</span>
+                        </Button>
                       </TableCell>
                     </TableRow>
                   ))
