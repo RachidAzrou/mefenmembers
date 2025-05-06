@@ -142,7 +142,7 @@ export default function Dashboard() {
 
       {/* Hier stonden voorheen de statistiek widgets die zijn verwijderd */}
 
-      {/* Betaalstatus voortgangsbalk - vernieuwd */}
+      {/* 1. Ledenoverzicht widget */}
       <Card className="border-none shadow-md">
         <CardHeader className="flex flex-row items-center justify-between">
           <div>
@@ -233,7 +233,7 @@ export default function Dashboard() {
         </CardContent>
       </Card>
 
-      {/* Geslacht statistieken */}
+      {/* 4. Geslacht statistieken */}
       <Card className="border-none shadow-md overflow-hidden">
         <div className="bg-gradient-to-r from-blue-500/20 to-blue-600/20 h-2" />
         <CardHeader>
@@ -313,7 +313,7 @@ export default function Dashboard() {
         </CardContent>
       </Card>
       
-      {/* Lidmaatschapstype statistieken */}
+      {/* 2. Lidmaatschapstype statistieken */}
       <Card className="border-none shadow-md overflow-hidden">
         <div className="bg-gradient-to-r from-amber-500/20 to-amber-600/20 h-2" />
         <CardHeader>
