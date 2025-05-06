@@ -415,8 +415,7 @@ export default function MemberAdd() {
         <Card className="border-none shadow-md overflow-hidden">
           <div className="bg-gradient-to-r from-gray-100 to-gray-50 h-1" />
           <CardHeader className="pb-4 sm:pb-6 px-4 sm:px-6">
-            <CardTitle className="text-lg sm:text-xl flex items-center">
-              <UserPlus className="h-4 w-4 sm:h-5 sm:w-5 mr-2 text-[#963E56]" />
+            <CardTitle className="text-lg sm:text-xl">
               {isEditMode ? "Lid gegevens" : "Gegevens nieuw lid"}
             </CardTitle>
             <CardDescription className="text-xs sm:text-sm mt-1">
