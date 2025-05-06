@@ -124,6 +124,9 @@ export default function MemberAdd() {
   const [successDialogOpen, setSuccessDialogOpen] = useState(false);
   const [newMember, setNewMember] = useState<Member | null>(null);
   
+  // Referentie om geboortedatum veld te kunnen resetten
+  const [birthDateInput, setBirthDateInput] = useState<string>("");
+  
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [, navigate] = useLocation();
@@ -539,15 +542,18 @@ export default function MemberAdd() {
                     control={form.control}
                     name="birthDate"
                     render={({ field }) => {
-                      // Gebruik een gewoon invoerveld voor geboortedatum in DD/MM/YYYY formaat
-                      const [dateInput, setDateInput] = useState(
-                        field.value ? format(field.value, "dd/MM/yyyy") : ""
-                      );
+                      // Gebruik de globale state voor datumveld om het elders in de app te kunnen resetten
+                      // Initialiseer dateInput lokaal als het nog niet is ingesteld
+                      useEffect(() => {
+                        if (field.value && birthDateInput === "") {
+                          setBirthDateInput(format(field.value, "dd/MM/yyyy"));
+                        }
+                      }, []);
                       
-                      // Update de dateInput wanneer field.value verandert (bijvoorbeeld bij laden van lidgegevens)
+                      // Update de birthDateInput wanneer field.value verandert (bijvoorbeeld bij laden van lidgegevens)
                       useEffect(() => {
                         if (field.value) {
-                          setDateInput(format(field.value, "dd/MM/yyyy"));
+                          setBirthDateInput(format(field.value, "dd/MM/yyyy"));
                         }
                       }, [field.value]);
                       
@@ -596,25 +602,25 @@ export default function MemberAdd() {
                       // Verwerk input wijziging
                       const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
                         const value = e.target.value;
-                        setDateInput(value);
+                        setBirthDateInput(value);
                         
                         // Format user input automatically as they type
-                        if (value.length === 2 && !value.includes('/') && !dateInput.includes('/')) {
-                          setDateInput(value + '/');
+                        if (value.length === 2 && !value.includes('/') && !birthDateInput.includes('/')) {
+                          setBirthDateInput(value + '/');
                         } else if (value.length === 5 && value.charAt(2) === '/' && !value.includes('/', 3)) {
-                          setDateInput(value + '/');
+                          setBirthDateInput(value + '/');
                         }
                       };
                       
                       // Verwerk blur event (als gebruiker het veld verlaat)
                       const handleBlur = () => {
-                        if (dateInput) {
-                          const parsedDate = validateAndParseDate(dateInput);
+                        if (birthDateInput) {
+                          const parsedDate = validateAndParseDate(birthDateInput);
                           if (parsedDate) {
                             field.onChange(parsedDate);
                           } else {
                             // Als datum ongeldig is, reset naar vorige geldige waarde
-                            setDateInput(field.value ? format(field.value, "dd/MM/yyyy") : "");
+                            setBirthDateInput(field.value ? format(field.value, "dd/MM/yyyy") : "");
                           }
                         } else {
                           field.onChange(undefined);
@@ -627,7 +633,7 @@ export default function MemberAdd() {
                           <FormControl>
                             <Input
                               placeholder="DD/MM/JJJJ"
-                              value={dateInput}
+                              value={birthDateInput}
                               onChange={handleInputChange}
                               onBlur={handleBlur}
                               className="border-gray-200 focus:border-[#963E56]"
@@ -1376,7 +1382,11 @@ export default function MemberAdd() {
               className="border-gray-200 w-full sm:w-auto"
               onClick={() => {
                 setSuccessDialogOpen(false);
-                // Reset het formulier volledig voor een nieuw lid, inclusief geboortedatum
+                
+                // Reset de geboortedatum input (UI-weergave)
+                setBirthDateInput("");
+                
+                // Reset het formulier volledig voor een nieuw lid
                 form.reset({
                   // Persoonsgegevens
                   firstName: "",
@@ -1412,6 +1422,7 @@ export default function MemberAdd() {
                   paymentStatus: false,
                   notes: ""
                 });
+                
                 // Invalideer de query voor het volgende lidnummer om een nieuw nummer op te halen
                 queryClient.invalidateQueries({ queryKey: ['/api/members/generate-number'] });
               }}
