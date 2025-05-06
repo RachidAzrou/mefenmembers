@@ -189,16 +189,41 @@ export default function MemberAdd() {
     if (memberData) {
       // Converteer datum strings naar Date objecten
       const birthDate = memberData.birthDate ? new Date(memberData.birthDate) : undefined;
+      const endDate = memberData.endDate ? new Date(memberData.endDate) : undefined;
       
       form.reset({
+        // Persoonsgegevens
         firstName: memberData.firstName,
         lastName: memberData.lastName,
+        gender: memberData.gender || "man",
+        birthDate: birthDate,
+        nationality: memberData.nationality || "",
+        
+        // Contactgegevens
         email: memberData.email || "",
         phoneNumber: memberData.phoneNumber,
-        paymentStatus: memberData.paymentStatus || false,
-        notes: memberData.notes || "",
-        birthDate: birthDate,
+        street: memberData.street || "",
+        houseNumber: memberData.houseNumber || "",
+        busNumber: memberData.busNumber || "",
+        postalCode: memberData.postalCode || "",
+        city: memberData.city || "",
+        
+        // Lidmaatschap
+        membershipType: memberData.membershipType || "standaard",
+        endDate: endDate,
+        autoRenew: memberData.autoRenew !== undefined ? memberData.autoRenew : true,
+        paymentTerm: memberData.paymentTerm || "jaarlijks",
+        paymentMethod: memberData.paymentMethod || "cash",
+        
+        // Bankgegevens
         accountNumber: memberData.accountNumber || "",
+        bicSwift: memberData.bicSwift || "",
+        accountHolderName: memberData.accountHolderName || "",
+        
+        // Overig
+        privacyConsent: memberData.privacyConsent || false,
+        paymentStatus: memberData.paymentStatus || false,
+        notes: memberData.notes || ""
       });
     }
   }, [memberData, form]);
@@ -414,6 +439,48 @@ export default function MemberAdd() {
                       )}
                     />
                   </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <FormField
+                      control={form.control}
+                      name="gender"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Geslacht<span className="text-destructive">*</span></FormLabel>
+                          <Select 
+                            onValueChange={field.onChange} 
+                            defaultValue={field.value}
+                            value={field.value}
+                          >
+                            <FormControl>
+                              <SelectTrigger className="border-gray-200 focus:border-[#963E56]">
+                                <SelectValue placeholder="Selecteer geslacht" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="man">Man</SelectItem>
+                              <SelectItem value="vrouw">Vrouw</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    
+                    <FormField
+                      control={form.control}
+                      name="nationality"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Nationaliteit</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Nationaliteit" className="border-gray-200 focus:border-[#963E56]" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
                   
                   <FormField
                     control={form.control}
@@ -570,7 +637,309 @@ export default function MemberAdd() {
                         </FormItem>
                       )}
                     />
+                    
+                    <div className="pt-2">
+                      <h4 className="text-sm font-medium text-gray-700 mb-2">Adres (optioneel)</h4>
+                      
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                        <FormField
+                          control={form.control}
+                          name="street"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Straat</FormLabel>
+                              <FormControl>
+                                <Input placeholder="Straatnaam" className="border-gray-200 focus:border-[#963E56]" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        
+                        <div className="grid grid-cols-2 gap-2">
+                          <FormField
+                            control={form.control}
+                            name="houseNumber"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Huisnr.</FormLabel>
+                                <FormControl>
+                                  <Input placeholder="Nr." className="border-gray-200 focus:border-[#963E56]" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          
+                          <FormField
+                            control={form.control}
+                            name="busNumber"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Bus</FormLabel>
+                                <FormControl>
+                                  <Input placeholder="Bus" className="border-gray-200 focus:border-[#963E56]" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+                      </div>
+                      
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <FormField
+                          control={form.control}
+                          name="postalCode"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Postcode</FormLabel>
+                              <FormControl>
+                                <Input placeholder="Postcode" className="border-gray-200 focus:border-[#963E56]" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        
+                        <FormField
+                          control={form.control}
+                          name="city"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Gemeente</FormLabel>
+                              <FormControl>
+                                <Input placeholder="Gemeente" className="border-gray-200 focus:border-[#963E56]" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+                    </div>
                   </div>
+                </div>
+                
+                {/* Lidmaatschap sectie */}
+                <div>
+                  <div className="flex items-center mb-3 sm:mb-4">
+                    <div className="mr-2 bg-amber-50 p-1.5 sm:p-2 rounded-full">
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-amber-600">
+                        <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+                        <circle cx="9" cy="7" r="4" />
+                        <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+                        <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                      </svg>
+                    </div>
+                    <h3 className="text-base sm:text-lg font-medium text-gray-700">Lidmaatschap</h3>
+                  </div>
+                  
+                  {isEditMode && (
+                    <div className="mb-4 p-3 bg-blue-50 rounded-md">
+                      <div className="flex items-center">
+                        <InfoIcon className="h-4 w-4 text-blue-600 mr-2" />
+                        <span className="text-sm font-medium text-blue-800">Lidnummer: {memberData?.memberNumber}</span>
+                      </div>
+                    </div>
+                  )}
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <FormField
+                      control={form.control}
+                      name="membershipType"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Lidmaatschapstype<span className="text-destructive">*</span></FormLabel>
+                          <Select 
+                            onValueChange={field.onChange} 
+                            defaultValue={field.value}
+                            value={field.value}
+                          >
+                            <FormControl>
+                              <SelectTrigger className="border-gray-200 focus:border-[#963E56]">
+                                <SelectValue placeholder="Selecteer type" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="standaard">Standaard</SelectItem>
+                              <SelectItem value="student">Student</SelectItem>
+                              <SelectItem value="senior">Senior</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    
+                    <FormField
+                      control={form.control}
+                      name="paymentTerm"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Betalingstermijn<span className="text-destructive">*</span></FormLabel>
+                          <Select 
+                            onValueChange={field.onChange} 
+                            defaultValue={field.value}
+                            value={field.value}
+                          >
+                            <FormControl>
+                              <SelectTrigger className="border-gray-200 focus:border-[#963E56]">
+                                <SelectValue placeholder="Selecteer termijn" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="maandelijks">Maandelijks</SelectItem>
+                              <SelectItem value="driemaandelijks">Driemaandelijks</SelectItem>
+                              <SelectItem value="jaarlijks">Jaarlijks</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <FormField
+                      control={form.control}
+                      name="endDate"
+                      render={({ field }) => {
+                        // Gebruik een gewoon invoerveld voor einddatum in DD/MM/YYYY formaat
+                        const [dateInput, setDateInput] = useState(
+                          field.value ? format(field.value, "dd/MM/yyyy") : ""
+                        );
+                        
+                        // Functie om een datum string in DD/MM/YYYY formaat te valideren en parsen
+                        const validateAndParseDate = (dateStr: string) => {
+                          if (!dateStr) return null;
+                          
+                          // Controleer of het formaat DD/MM/YYYY is
+                          const regex = /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/;
+                          const match = dateStr.match(regex);
+                          
+                          if (!match) return null;
+                          
+                          const day = parseInt(match[1], 10);
+                          const month = parseInt(match[2], 10) - 1; // JavaScript maanden zijn 0-gebaseerd
+                          const year = parseInt(match[3], 10);
+                          
+                          // Controleer of dag, maand en jaar geldig zijn
+                          if (
+                            day < 1 || day > 31 || 
+                            month < 0 || month > 11 || 
+                            year < new Date().getFullYear() || year > 2100
+                          ) {
+                            return null;
+                          }
+                          
+                          // Maak een Date object en controleer of het geldig is
+                          const date = new Date(Date.UTC(year, month, day, 12, 0, 0));
+                          
+                          // Controleer of de datum bestaat (bijv. 31/02/2023 bestaat niet)
+                          const utcDay = date.getUTCDate();
+                          const utcMonth = date.getUTCMonth();
+                          const utcYear = date.getUTCFullYear();
+                          
+                          if (utcDay !== day || utcMonth !== month || utcYear !== year) {
+                            return null;
+                          }
+                          
+                          return date;
+                        };
+                        
+                        // Verwerk input wijziging
+                        const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+                          const value = e.target.value;
+                          setDateInput(value);
+                          
+                          // Format user input automatically as they type
+                          if (value.length === 2 && !value.includes('/') && !dateInput.includes('/')) {
+                            setDateInput(value + '/');
+                          } else if (value.length === 5 && value.charAt(2) === '/' && !value.includes('/', 3)) {
+                            setDateInput(value + '/');
+                          }
+                        };
+                        
+                        // Verwerk blur event (als gebruiker het veld verlaat)
+                        const handleBlur = () => {
+                          if (dateInput) {
+                            const parsedDate = validateAndParseDate(dateInput);
+                            field.onChange(parsedDate);
+                          } else {
+                            field.onChange(null);
+                          }
+                        };
+                        
+                        return (
+                          <FormItem className="flex flex-col">
+                            <FormLabel>Einddatum lidmaatschap</FormLabel>
+                            <FormControl>
+                              <Input
+                                placeholder="DD/MM/JJJJ"
+                                value={dateInput}
+                                onChange={handleInputChange}
+                                onBlur={handleBlur}
+                                className="border-gray-200 focus:border-[#963E56]"
+                              />
+                            </FormControl>
+                            <FormDescription className="text-xs sm:text-sm">
+                              Alleen invullen bij tijdelijk lidmaatschap.
+                            </FormDescription>
+                            <FormMessage />
+                          </FormItem>
+                        );
+                      }}
+                    />
+                    
+                    <FormField
+                      control={form.control}
+                      name="paymentMethod"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Betalingswijze<span className="text-destructive">*</span></FormLabel>
+                          <Select 
+                            onValueChange={field.onChange} 
+                            defaultValue={field.value}
+                            value={field.value}
+                          >
+                            <FormControl>
+                              <SelectTrigger className="border-gray-200 focus:border-[#963E56]">
+                                <SelectValue placeholder="Selecteer betalingswijze" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="cash">Cash</SelectItem>
+                              <SelectItem value="domiciliering">Domiciliëring</SelectItem>
+                              <SelectItem value="overschrijving">Overschrijving</SelectItem>
+                              <SelectItem value="bancontact">Bancontact</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                  
+                  <FormField
+                    control={form.control}
+                    name="autoRenew"
+                    render={({ field }) => (
+                      <FormItem className="bg-gray-50 p-4 rounded-md flex flex-row items-start space-x-3 space-y-0">
+                        <FormControl>
+                          <Checkbox
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                          />
+                        </FormControl>
+                        <div className="space-y-1 leading-none">
+                          <FormLabel>Automatisch verlengen</FormLabel>
+                          <FormDescription>
+                            Het lidmaatschap wordt automatisch verlengd na afloop van de termijn.
+                          </FormDescription>
+                        </div>
+                      </FormItem>
+                    )}
+                  />
                 </div>
                 
                 {/* Financiële informatie met verbeterde styling */}
@@ -582,38 +951,93 @@ export default function MemberAdd() {
                         <line x1="2" y1="10" x2="22" y2="10" />
                       </svg>
                     </div>
-                    <h3 className="text-base sm:text-lg font-medium text-gray-700">Financiële gegevens</h3>
+                    <h3 className="text-base sm:text-lg font-medium text-gray-700">Bankgegevens</h3>
                   </div>
                   
                   <div className="space-y-4">
-                    <FormField
-                      control={form.control}
-                      name="accountNumber"
-                      render={({ field }) => {
-                        // Zorg ervoor dat de waarde nooit null is
-                        const value = field.value === null ? "" : field.value;
-                        return (
-                          <FormItem>
-                            <FormLabel>Rekeningnummer</FormLabel>
-                            <FormControl>
-                              <Input 
-                                placeholder="Rekeningnummer (optioneel)" 
-                                className="border-gray-200 focus:border-[#963E56]" 
-                                value={value}
-                                onChange={field.onChange}
-                                onBlur={field.onBlur}
-                                name={field.name}
-                                ref={field.ref}
-                              />
-                            </FormControl>
-                            <FormDescription>
-                              Het bankrekeningnummer van het lid (optioneel).
-                            </FormDescription>
-                            <FormMessage />
-                          </FormItem>
-                        );
-                      }}
-                    />
+                    {/* Toon bankgegevens alleen als betalingsmethode domiciliëring of overschrijving is */}
+                    {(form.watch("paymentMethod") === "domiciliering" || 
+                      form.watch("paymentMethod") === "overschrijving") && (
+                      <div className="p-4 border border-blue-100 bg-blue-50/50 rounded-md space-y-4">
+                        <FormField
+                          control={form.control}
+                          name="accountNumber"
+                          render={({ field }) => {
+                            // Zorg ervoor dat de waarde nooit null is
+                            const value = field.value === null ? "" : field.value;
+                            return (
+                              <FormItem>
+                                <FormLabel>IBAN<span className="text-destructive">*</span></FormLabel>
+                                <FormControl>
+                                  <Input 
+                                    placeholder="IBAN (bijv. BE68539007547034)" 
+                                    className="border-gray-200 focus:border-[#963E56]" 
+                                    value={value}
+                                    onChange={field.onChange}
+                                    onBlur={field.onBlur}
+                                    name={field.name}
+                                    ref={field.ref}
+                                  />
+                                </FormControl>
+                                <FormDescription>
+                                  IBAN-formaat: BE68 5390 0754 7034 (spaties worden automatisch verwijderd)
+                                </FormDescription>
+                                <FormMessage />
+                              </FormItem>
+                            );
+                          }}
+                        />
+                        
+                        <FormField
+                          control={form.control}
+                          name="accountHolderName"
+                          render={({ field }) => {
+                            // Zorg ervoor dat de waarde nooit null is
+                            const value = field.value === null ? "" : field.value;
+                            return (
+                              <FormItem>
+                                <FormLabel>Naam rekeninghouder<span className="text-destructive">*</span></FormLabel>
+                                <FormControl>
+                                  <Input 
+                                    placeholder="Naam rekeninghouder" 
+                                    className="border-gray-200 focus:border-[#963E56]" 
+                                    value={value}
+                                    onChange={field.onChange}
+                                  />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            );
+                          }}
+                        />
+                        
+                        <FormField
+                          control={form.control}
+                          name="bicSwift"
+                          render={({ field }) => {
+                            // Zorg ervoor dat de waarde nooit null is
+                            const value = field.value === null ? "" : field.value;
+                            return (
+                              <FormItem>
+                                <FormLabel>BIC/SWIFT-code</FormLabel>
+                                <FormControl>
+                                  <Input 
+                                    placeholder="BIC/SWIFT (alleen voor buitenlandse rekeningen)" 
+                                    className="border-gray-200 focus:border-[#963E56]" 
+                                    value={value}
+                                    onChange={field.onChange}
+                                  />
+                                </FormControl>
+                                <FormDescription>
+                                  Alleen verplicht voor buitenlandse rekeningen.
+                                </FormDescription>
+                                <FormMessage />
+                              </FormItem>
+                            );
+                          }}
+                        />
+                      </div>
+                    )}
                     
                     <FormField
                       control={form.control}
@@ -668,6 +1092,31 @@ export default function MemberAdd() {
                           />
                         </FormControl>
                         <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  {/* Privacyverklaring akkoord */}
+                  <FormField
+                    control={form.control}
+                    name="privacyConsent"
+                    render={({ field }) => (
+                      <FormItem className="mt-4 p-4 border border-amber-200 bg-amber-50 rounded-md flex flex-row items-start space-x-3 space-y-0">
+                        <FormControl>
+                          <Checkbox
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                            className="data-[state=checked]:bg-[#963E56] data-[state=checked]:border-[#963E56]"
+                          />
+                        </FormControl>
+                        <div className="space-y-1 leading-none">
+                          <FormLabel>Akkoord met privacyverklaring<span className="text-destructive">*</span></FormLabel>
+                          <FormDescription>
+                            Ik ga akkoord met de privacyverklaring van MEFEN Moskee en geef toestemming voor het verwerken 
+                            van mijn persoonsgegevens in overeenstemming met de AVG/GDPR wetgeving.
+                          </FormDescription>
+                          <FormMessage />
+                        </div>
                       </FormItem>
                     )}
                   />
