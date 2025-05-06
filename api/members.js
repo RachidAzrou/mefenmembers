@@ -112,13 +112,16 @@ export default async function handler(req, res) {
     
     // GET verzoek: specifieke endpoints of alle leden
     if (req.method === 'GET') {
-      // Als het een specifiek endpoint is
-      if (req.url.includes('/api/members/generate-number')) {
+      // Controleer op verschillende manieren of het het generate-number endpoint is
+      // Dit maakt ons compatibel met verschillende URL-formaten die Vercel zou kunnen gebruiken
+      if (req.url.includes('/generate-number') || req.url === '/api/members/generate-number' || req.query.action === 'generate-number') {
         try {
           console.log("GET /api/members/generate-number: Volgend lidnummer genereren");
           const nextNumber = await getNextMemberNumber();
           console.log(`GET /api/members/generate-number: Volgend lidnummer is ${nextNumber}`);
-          return res.status(200).json({ number: nextNumber });
+          // Formatteren naar hetzelfde formaat dat server/routes.ts gebruikt
+          const memberNumber = nextNumber.toString().padStart(4, '0');
+          return res.status(200).json({ memberNumber });
         } catch (error) {
           console.error("GET /api/members/generate-number FOUT:", error.message);
           return res.status(500).json({ 
