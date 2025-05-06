@@ -1003,9 +1003,7 @@ export default function MembersList() {
                       className="ml-auto flex items-center hover:text-[#963E56] transition-colors"
                     >
                       Acties
-                      <span className="ml-1">
-                        {showDeleteIcons ? <X className="h-3 w-3" /> : <MoreHorizontal className="h-3 w-3" />}
-                      </span>
+                      {/* drie puntjes verwijderd op verzoek van de gebruiker */}
                     </button>
                   </TableHead>
                 </TableRow>
