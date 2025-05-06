@@ -86,6 +86,7 @@ const memberEditSchema = insertMemberSchema.extend({
   accountNumber: z.string().optional().nullable(),
   paymentStatus: z.boolean().default(false),
   birthDate: z.string().min(1, "Geboortedatum is verplicht").or(z.literal('')),
+  startDate: z.string().min(1, "Startdatum is verplicht").or(z.date()),
 }).omit({ id: true, memberNumber: true, registrationDate: true });
 
 type MemberEditData = z.infer<typeof memberEditSchema>;
@@ -171,7 +172,9 @@ export default function MembersList() {
       phoneNumber: "",
       paymentStatus: false,
       notes: "",
-      accountNumber: ""
+      accountNumber: "",
+      birthDate: "",
+      startDate: ""
     }
   });
   
@@ -436,7 +439,8 @@ export default function MembersList() {
       paymentStatus: viewMember.paymentStatus,
       notes: viewMember.notes || "",
       accountNumber: viewMember.accountNumber || "",
-      birthDate: viewMember.birthDate || ""
+      birthDate: viewMember.birthDate || "",
+      startDate: viewMember.startDate || viewMember.registrationDate // Gebruik registrationDate als fallback
     });
     
     setEditMode(true);
