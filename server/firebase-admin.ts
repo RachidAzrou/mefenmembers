@@ -47,8 +47,13 @@ export const db = getDatabase(firebaseAdmin);
 
 // Utility functie voor Firebase REST API requests met admin-token
 export async function firebaseAdminRequest(method: string, path: string, data: any = null): Promise<any> {
+  if (!firebaseAdmin) {
+    throw new Error("Firebase Admin niet geïnitialiseerd");
+  }
+
   // Genereer een token dat kan worden gebruikt voor geautoriseerde toegang
-  const token = await firebaseAdmin.auth().createCustomToken('server-admin');
+  const authInstance = getAuth(firebaseAdmin);
+  const token = await authInstance.createCustomToken('server-admin');
   
   // Bouw de URL inclusief token
   const url = `${process.env.FIREBASE_DATABASE_URL || 'https://mefen-leden-default-rtdb.europe-west1.firebasedatabase.app'}/${path}.json?auth=${token}`;
@@ -70,10 +75,11 @@ export async function firebaseAdminRequest(method: string, path: string, data: a
   try {
     const response = await fetch(url, options);
     if (!response.ok) {
-      throw new Error(`Firebase Admin API fout: ${response.status} ${response.statusText}`);
+      const errorText = await response.text();
+      throw new Error(`Firebase Admin API fout: ${response.status} ${response.statusText} - ${errorText}`);
     }
     return await response.json();
-  } catch (error) {
+  } catch (error: any) {
     console.error(`Firebase Admin API fout (${method} ${path}):`, error);
     throw error;
   }
