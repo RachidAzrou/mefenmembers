@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { auth, db } from '@/lib/firebase';
 import { ref, set, get } from 'firebase/database';
+import { signOut } from 'firebase/auth';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { logFirebaseConfig } from '../debug/firebase-debug';
 
@@ -191,9 +192,25 @@ export default function FirebaseTest() {
           <div className="mt-2">
             <p className="text-green-600 font-medium">✓ Ingelogd als {user.email}</p>
             <p className="text-sm text-gray-600 mt-1">User ID: {user.uid}</p>
+            <div className="flex justify-between items-center mt-3">
+              <p className="text-xs text-orange-600">
+                Let op: Je bent ingelogd met een gebruiker die mogelijk niet hoort bij het geconfigureerde Firebase project.
+              </p>
+              <Button 
+                variant="destructive" 
+                size="sm" 
+                onClick={() => signOut(auth)}
+                className="ml-4"
+              >
+                Uitloggen
+              </Button>
+            </div>
           </div>
         ) : (
-          <p className="text-red-500 mt-2">✗ Niet ingelogd</p>
+          <div>
+            <p className="text-red-500 mt-2">✗ Niet ingelogd</p>
+            <p className="text-xs text-gray-600 mt-1">Log in via de login pagina en kom terug naar deze pagina</p>
+          </div>
         )}
       </div>
       
