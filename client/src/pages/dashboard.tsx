@@ -299,10 +299,16 @@ export default function Dashboard() {
                       <div className="text-sm text-gray-500">Student lidmaatschap</div>
                       <div className="flex justify-between items-center">
                         <div className="font-medium">
-                          {members.filter(m => m.membershipType === 'student').length} leden
+                          {members.filter(m => 
+                            m.membershipType?.toLowerCase() === 'student' || 
+                            m.membershipType === 'Student'
+                          ).length} leden
                         </div>
                         <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
-                          {Math.round((members.filter(m => m.membershipType === 'student').length / members.length) * 100)}%
+                          {members.length ? Math.round((members.filter(m => 
+                            m.membershipType?.toLowerCase() === 'student' || 
+                            m.membershipType === 'Student'
+                          ).length / members.length) * 100) : 0}%
                         </Badge>
                       </div>
                     </div>
@@ -319,10 +325,16 @@ export default function Dashboard() {
                       <div className="text-sm text-gray-500">Senior lidmaatschap</div>
                       <div className="flex justify-between items-center">
                         <div className="font-medium">
-                          {members.filter(m => m.membershipType === 'senior').length} leden
+                          {members.filter(m => 
+                            m.membershipType?.toLowerCase() === 'senior' || 
+                            m.membershipType === 'Senior'
+                          ).length} leden
                         </div>
                         <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-200">
-                          {Math.round((members.filter(m => m.membershipType === 'senior').length / members.length) * 100)}%
+                          {members.length ? Math.round((members.filter(m => 
+                            m.membershipType?.toLowerCase() === 'senior' || 
+                            m.membershipType === 'Senior'
+                          ).length / members.length) * 100) : 0}%
                         </Badge>
                       </div>
                     </div>
@@ -495,7 +507,10 @@ export default function Dashboard() {
                     <div>
                       <div className="text-sm text-gray-500">Mannen</div>
                       <div className="font-medium">
-                        {members.filter(m => m.gender === 'man').length} leden
+                        {members.filter(m => 
+                          m.gender?.toLowerCase() === 'man' || 
+                          m.gender === 'Man'
+                        ).length} leden
                       </div>
                     </div>
                   </div>
@@ -510,7 +525,10 @@ export default function Dashboard() {
                     <div>
                       <div className="text-sm text-gray-500">Vrouwen</div>
                       <div className="font-medium">
-                        {members.filter(m => m.gender === 'vrouw').length} leden
+                        {members.filter(m => 
+                          m.gender?.toLowerCase() === 'vrouw' || 
+                          m.gender === 'Vrouw'
+                        ).length} leden
                       </div>
                     </div>
                   </div>
