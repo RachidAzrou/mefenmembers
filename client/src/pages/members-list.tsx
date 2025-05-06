@@ -27,7 +27,7 @@ import { Button } from "@/components/ui/button";
 import { 
   Eye, MoreHorizontal, Plus, Search, SlidersHorizontal, Save, Loader2,
   CalendarDays, Check, X, Users, User, Phone, StickyNote, Edit,
-  SortAsc, SortDesc, Trash2, ArrowUpDown, Filter
+  SortAsc, SortDesc, Trash2, ArrowUpDown, Filter, UserCheck, AlertTriangle, GraduationCap
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { formatPhoneNumber } from "@/lib/utils";

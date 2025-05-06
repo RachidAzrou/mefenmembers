@@ -1063,45 +1063,13 @@ export default function MemberAdd() {
                   </div>
                 </div>
                 
-                {/* Notities met verbeterde styling */}
+                {/* Privacyverklaring akkoord */}
                 <div>
-                  <div className="flex items-center mb-3 sm:mb-4">
-                    <div className="mr-2 bg-purple-50 p-1.5 sm:p-2 rounded-full">
-                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-purple-600">
-                        <path d="M14 3v4a1 1 0 0 0 1 1h4" />
-                        <path d="M17 21H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7l5 5v11a2 2 0 0 1-2 2z" />
-                        <line x1="9" y1="9" x2="10" y2="9" />
-                        <line x1="9" y1="13" x2="15" y2="13" />
-                        <line x1="9" y1="17" x2="15" y2="17" />
-                      </svg>
-                    </div>
-                    <h3 className="text-base sm:text-lg font-medium text-gray-700">Extra informatie</h3>
-                  </div>
-                  
-                  <FormField
-                    control={form.control}
-                    name="notes"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Notities</FormLabel>
-                        <FormControl>
-                          <Textarea 
-                            placeholder="Voeg eventuele extra informatie toe over dit lid..." 
-                            className="min-h-[120px] border-gray-200 focus:border-[#963E56]" 
-                            {...field} 
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  
-                  {/* Privacyverklaring akkoord */}
                   <FormField
                     control={form.control}
                     name="privacyConsent"
                     render={({ field }) => (
-                      <FormItem className="mt-4 p-4 border border-amber-200 bg-amber-50 rounded-md flex flex-row items-start space-x-3 space-y-0">
+                      <FormItem className="p-4 border border-amber-200 bg-amber-50 rounded-md flex flex-row items-start space-x-3 space-y-0">
                         <FormControl>
                           <Checkbox
                             checked={field.value}
