@@ -48,10 +48,13 @@ import { nl } from "date-fns/locale";
 export default function MembersList() {
   const [searchQuery, setSearchQuery] = useState("");
   const [viewMember, setViewMember] = useState<Member | null>(null);
+  const [memberToDelete, setMemberToDelete] = useState<Member | null>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
   const [activeFilter, setActiveFilter] = useState<"all" | "paid" | "unpaid" | "recent">("all");
   const [sortField, setSortField] = useState<string>("memberNumber");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
-  const { toast } = useToast();
   const [, navigate] = useLocation();
   
   // Haal alle leden op
@@ -155,6 +158,39 @@ export default function MembersList() {
       return `${day}/${month}/${year}`;
     } catch (e) {
       return "-";
+    }
+  };
+  
+  // Functie om lid verwijderen te bevestigen
+  const handleDeleteConfirm = (member: Member) => {
+    setMemberToDelete(member);
+    setDeleteDialogOpen(true);
+  };
+  
+  // Functie om lid daadwerkelijk te verwijderen
+  const handleDeleteMember = async () => {
+    if (!memberToDelete) return;
+    
+    try {
+      await apiRequest('DELETE', `/api/members?id=${memberToDelete.id}`);
+      
+      // Vernieuw de ledenlijst na verwijderen
+      queryClient.invalidateQueries({ queryKey: ['/api/members'] });
+      
+      toast({
+        title: "Lid verwijderd",
+        description: `${memberToDelete.firstName} ${memberToDelete.lastName} is succesvol verwijderd.`,
+      });
+      
+      // Sluit de dialog
+      setDeleteDialogOpen(false);
+      setMemberToDelete(null);
+    } catch (error) {
+      toast({
+        title: "Fout bij verwijderen",
+        description: `Er is een fout opgetreden: ${error instanceof Error ? error.message : 'Onbekende fout'}`,
+        variant: "destructive",
+      });
     }
   };
   
@@ -581,26 +617,28 @@ export default function MembersList() {
                         </Badge>
                       </TableCell>
                       <TableCell className="text-right">
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon" className="h-8 w-8 text-gray-500 hover:text-gray-900">
-                              <MoreHorizontal className="h-4 w-4" />
-                              <span className="sr-only">Menu openen</span>
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end" className="w-[160px]">
-                            <DropdownMenuLabel>Acties</DropdownMenuLabel>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem onClick={() => setViewMember(member)} className="cursor-pointer">
-                              <Eye className="mr-2 h-4 w-4" />
-                              Details bekijken
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => navigate(`/member/edit/${member.id}`)} className="cursor-pointer">
-                              <Edit className="mr-2 h-4 w-4" />
-                              Bewerken
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
+                        <div className="flex justify-end space-x-2">
+                          <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            className="h-8 w-8 text-blue-500 hover:text-blue-700 hover:bg-blue-50"
+                            onClick={() => setViewMember(member)}
+                            title="Details bekijken"
+                          >
+                            <Eye className="h-4 w-4" />
+                            <span className="sr-only">Details bekijken</span>
+                          </Button>
+                          <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            className="h-8 w-8 text-red-500 hover:text-red-700 hover:bg-red-50"
+                            onClick={() => handleDeleteConfirm(member)}
+                            title="Lid verwijderen"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                            <span className="sr-only">Lid verwijderen</span>
+                          </Button>
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))
