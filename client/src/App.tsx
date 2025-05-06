@@ -9,6 +9,7 @@ import Dashboard from "@/pages/dashboard";
 import MembersList from "@/pages/members-list";
 import MemberAdd from "@/pages/member-add";
 import MemberEdit from "@/pages/member-edit";
+import MemberDetail from "@/pages/member-detail";
 import Export from "@/pages/export";
 import { Sidebar } from "@/components/layout/sidebar";
 import { auth } from "./lib/firebase";
