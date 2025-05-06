@@ -210,7 +210,12 @@ export default async function handler(req, res) {
         console.log("POST /api/members: Request body:", JSON.stringify(req.body));
         
         // Haal data uit request body
-        const { firstName, lastName, phoneNumber, email, birthDate, accountNumber, paymentStatus, notes } = req.body;
+        const { 
+          firstName, lastName, phoneNumber, email, birthDate, accountNumber, paymentStatus, notes,
+          gender, nationality, street, houseNumber, busNumber, postalCode, city,
+          membershipType, startDate, endDate, autoRenew, paymentTerm, paymentMethod,
+          bicSwift, accountHolderName, privacyConsent
+        } = req.body;
         
         // Controleer verplichte velden
         if (!firstName || !lastName || !phoneNumber) {
@@ -226,17 +231,42 @@ export default async function handler(req, res) {
         const memberNumber = await getNextMemberNumber();
         console.log("POST /api/members: Nieuw lidnummer gegenereerd:", memberNumber);
         
-        // Maak nieuwe lid data
+        // Maak nieuwe lid data - SLA ALLE VELDEN OP
         const newMember = {
           memberNumber,
+          // Persoonsgegevens
           firstName,
           lastName,
+          gender: gender || null,
+          birthDate: birthDate || null,
+          nationality: nationality || null,
+          
+          // Contactgegevens
           phoneNumber,
           email: email || '',
-          birthDate: birthDate || null,
+          street: street || null,
+          houseNumber: houseNumber || null,
+          busNumber: busNumber || null, 
+          postalCode: postalCode || null,
+          city: city || null,
+          
+          // Lidmaatschap
+          membershipType: membershipType || 'standaard',
+          startDate: startDate || new Date().toISOString(),
+          endDate: endDate || null,
+          autoRenew: autoRenew !== undefined ? autoRenew : true,
+          paymentTerm: paymentTerm || 'jaarlijks',
+          paymentMethod: paymentMethod || 'cash',
+          
+          // Bankgegevens
           accountNumber: accountNumber || '',
+          bicSwift: bicSwift || null,
+          accountHolderName: accountHolderName || null,
+          
+          // Overig
           paymentStatus: paymentStatus || false,
           registrationDate: new Date().toISOString(),
+          privacyConsent: privacyConsent || false,
           notes: notes || ''
         };
         
@@ -295,19 +325,52 @@ export default async function handler(req, res) {
         }
         
         // Haal data uit request body
-        const { firstName, lastName, phoneNumber, email, birthDate, 
-                accountNumber, paymentStatus, notes } = req.body;
+        const { 
+          firstName, lastName, phoneNumber, email, birthDate, accountNumber, paymentStatus, notes,
+          gender, nationality, street, houseNumber, busNumber, postalCode, city,
+          membershipType, startDate, endDate, autoRenew, paymentTerm, paymentMethod,
+          bicSwift, accountHolderName, privacyConsent
+        } = req.body;
         
-        // Bouw update object
+        // Haal eerst het bestaande lid op om de huidige data te behouden
+        const existingMember = await firebaseRequest('GET', `members/${id}`);
+        
+        // Bouw update object met ALLE velden
         const updateData = {
+          // Persoonsgegevens
           firstName,
           lastName,
+          gender: gender ?? existingMember?.gender ?? null,
+          birthDate: birthDate ?? existingMember?.birthDate ?? null,
+          nationality: nationality ?? existingMember?.nationality ?? null,
+          
+          // Contactgegevens
           phoneNumber,
-          email: email || '',
-          birthDate: birthDate || null,
-          accountNumber: accountNumber || '',
-          paymentStatus: paymentStatus || false,
-          notes: notes || ''
+          email: email || existingMember?.email || '',
+          street: street ?? existingMember?.street ?? null,
+          houseNumber: houseNumber ?? existingMember?.houseNumber ?? null,
+          busNumber: busNumber ?? existingMember?.busNumber ?? null, 
+          postalCode: postalCode ?? existingMember?.postalCode ?? null,
+          city: city ?? existingMember?.city ?? null,
+          
+          // Lidmaatschap
+          membershipType: membershipType ?? existingMember?.membershipType ?? 'standaard',
+          startDate: startDate ?? existingMember?.startDate ?? null,
+          endDate: endDate ?? existingMember?.endDate ?? null,
+          autoRenew: autoRenew !== undefined ? autoRenew : existingMember?.autoRenew !== undefined ? existingMember.autoRenew : true,
+          paymentTerm: paymentTerm ?? existingMember?.paymentTerm ?? 'jaarlijks',
+          paymentMethod: paymentMethod ?? existingMember?.paymentMethod ?? 'cash',
+          
+          // Bankgegevens
+          accountNumber: accountNumber ?? existingMember?.accountNumber ?? '',
+          bicSwift: bicSwift ?? existingMember?.bicSwift ?? null,
+          accountHolderName: accountHolderName ?? existingMember?.accountHolderName ?? null,
+          
+          // Overig
+          paymentStatus: paymentStatus !== undefined ? paymentStatus : existingMember?.paymentStatus !== undefined ? existingMember.paymentStatus : false,
+          registrationDate: existingMember?.registrationDate || new Date().toISOString(),
+          privacyConsent: privacyConsent !== undefined ? privacyConsent : existingMember?.privacyConsent !== undefined ? existingMember.privacyConsent : false,
+          notes: notes ?? existingMember?.notes ?? ''
         };
         
         // Update via REST API

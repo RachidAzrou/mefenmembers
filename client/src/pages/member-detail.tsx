@@ -27,9 +27,9 @@ export default function MemberDetail() {
   const [, navigate] = useLocation();
   const { toast } = useToast();
   
-  // Parse member ID from URL
+  // Parse member ID from URL - behandel als string omdat Firebase string IDs gebruikt
   const params = new URLSearchParams(window.location.search);
-  const memberId = params.get('id') ? parseInt(params.get('id')!) : undefined;
+  const memberId = params.get('id') || undefined;
   
   // Fetch all members
   const { data: members = [], isLoading, error } = useQuery<Member[]>({
@@ -40,8 +40,8 @@ export default function MemberDetail() {
     }
   });
   
-  // Find the current member from the list
-  const member = members.find(m => m.id === memberId);
+  // Find the current member from the list - gebruik strict equality (===) voor strings
+  const member = members.find(m => String(m.id) === String(memberId));
   
   // Calculate age function
   const calculateAge = (birthDate: string | null): number | null => {
