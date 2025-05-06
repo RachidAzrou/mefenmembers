@@ -3,6 +3,15 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useToast } from "@/hooks/use-toast";
+
+// Utility type om null naar undefined te converteren
+type NullToUndefined<T> = T extends null ? undefined : T;
+
+// Helper functie om null waarden naar lege strings te converteren
+function nullToString(value: string | null | undefined): string | undefined {
+  if (value === null) return "";
+  return value;
+}
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -221,7 +230,7 @@ export default function MemberAdd() {
         // Persoonsgegevens
         firstName: memberData.firstName,
         lastName: memberData.lastName,
-        gender: memberData.gender || "man",
+        gender: (memberData.gender as "man" | "vrouw") || "man",
         birthDate: birthDate,
         nationality: memberData.nationality || "",
         
@@ -235,12 +244,12 @@ export default function MemberAdd() {
         city: memberData.city || "",
         
         // Lidmaatschap
-        membershipType: memberData.membershipType || "standaard",
+        membershipType: (memberData.membershipType as "standaard" | "student" | "senior") || "standaard",
         startDate: startDate,
         endDate: endDate,
-        autoRenew: memberData.autoRenew !== undefined ? memberData.autoRenew : true,
-        paymentTerm: memberData.paymentTerm || "jaarlijks",
-        paymentMethod: memberData.paymentMethod || "cash",
+        autoRenew: memberData.autoRenew !== undefined ? !!memberData.autoRenew : true,
+        paymentTerm: (memberData.paymentTerm as "maandelijks" | "driemaandelijks" | "jaarlijks") || "jaarlijks",
+        paymentMethod: (memberData.paymentMethod as "cash" | "domiciliering" | "overschrijving" | "bancontact") || "cash",
         
         // Bankgegevens
         accountNumber: memberData.accountNumber || "",
