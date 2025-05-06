@@ -336,9 +336,10 @@ export default function MemberDetail() {
               <div className="bg-gray-50 rounded-lg p-3">
                 <div className="text-sm text-gray-500">Lidmaatschapstype</div>
                 <div className="font-medium">
-                  {member.membershipType === "standaard" ? "Standaard" :
-                   member.membershipType === "student" ? "Student" :
-                   member.membershipType === "senior" ? "Senior" : "Onbekend"}
+                  {member.membershipType === "standaard" || member.membershipType === null || member.membershipType === undefined ? 
+                    "Standaard" :
+                    member.membershipType === "student" ? "Student" :
+                    member.membershipType === "senior" ? "Senior" : "Standaard"}
                 </div>
               </div>
               

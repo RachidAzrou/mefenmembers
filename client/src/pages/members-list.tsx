@@ -402,11 +402,17 @@ export default function MembersList() {
       try {
         console.log("Versturen data naar API:", data);
         
-        // Maak een kopie van de data die we gaan versturen
+        // Maak een kopie van de data die we gaan versturen, inclusief lidnummer en andere cruciale velden
         const updateData = {
           ...data,
           // ID toevoegen van het huidige viewMember
-          id: viewMember.id
+          id: viewMember.id,
+          // Lidnummer behouden (BELANGRIJK!)
+          memberNumber: viewMember.memberNumber,
+          // Behoud deze velden als ze niet in het formulier zitten
+          gender: data.gender || viewMember.gender,
+          membershipType: data.membershipType || viewMember.membershipType,
+          registrationDate: viewMember.registrationDate
         };
         
         // Verstuur het request
