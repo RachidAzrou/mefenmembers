@@ -259,11 +259,16 @@ export class DatabaseStorage implements IStorage {
       
       if (deletedNumbers.length === 0) {
         // Geen verwijderde nummers beschikbaar, genereer een nieuw nummer
-        const result = await db.execute<{ next_number: number }>(
-          sql`SELECT COALESCE(MAX(${members.memberNumber}), 0) + 1 AS next_number FROM ${members}`
-        );
+        const existingMembers = await db.select({ memberNumber: members.memberNumber })
+          .from(members)
+          .orderBy(desc(members.memberNumber))
+          .limit(1);
         
-        const nextNumber = result.rows[0]?.next_number || 1;
+        // Als er al leden zijn, neem het hoogste lidnummer + 1
+        // Anders begin bij 1
+        const highestMemberNumber = existingMembers.length > 0 ? existingMembers[0].memberNumber : 0;
+        const nextNumber = highestMemberNumber + 1;
+        
         console.log(`Geen verwijderde nummers beschikbaar, nieuw nummer gegenereerd: ${nextNumber}`);
         return nextNumber;
       }
@@ -271,6 +276,22 @@ export class DatabaseStorage implements IStorage {
       // Gebruik het oudste verwijderde nummer
       const oldestDeletedNumber = deletedNumbers[0];
       console.log(`Hergebruik verwijderd lidnummer: ${oldestDeletedNumber.memberNumber} (ID: ${oldestDeletedNumber.id})`);
+      
+      // Controleer of het lidnummer niet al in gebruik is (extra veiligheidscheck)
+      const existingMember = await db.select()
+        .from(members)
+        .where(eq(members.memberNumber, oldestDeletedNumber.memberNumber))
+        .limit(1);
+      
+      if (existingMember.length > 0) {
+        console.log(`Let op: Lidnummer ${oldestDeletedNumber.memberNumber} is al in gebruik! Verwijder deze uit de deleted_member_numbers tabel.`);
+        
+        // Verwijder dit nummer uit de lijst van verwijderde nummers, omdat het al in gebruik is
+        await this.removeDeletedMemberNumber(oldestDeletedNumber.memberNumber);
+        
+        // Probeer het opnieuw (recursief) voor het volgende beschikbare nummer
+        return this.getNextAvailableMemberNumber();
+      }
       
       // Verwijder dit nummer uit de lijst van verwijderde nummers, zodat het niet opnieuw wordt gebruikt
       await this.removeDeletedMemberNumber(oldestDeletedNumber.memberNumber);
@@ -281,11 +302,14 @@ export class DatabaseStorage implements IStorage {
       console.error("Fout bij het ophalen van het volgende beschikbare lidnummer:", error);
       
       // Fallback naar het genereren van een nieuw nummer
-      const result = await db.execute<{ next_number: number }>(
-        sql`SELECT COALESCE(MAX(${members.memberNumber}), 0) + 1 AS next_number FROM ${members}`
-      );
+      const existingMembers = await db.select({ memberNumber: members.memberNumber })
+        .from(members)
+        .orderBy(desc(members.memberNumber))
+        .limit(1);
       
-      const nextNumber = result.rows[0]?.next_number || 1;
+      const highestMemberNumber = existingMembers.length > 0 ? existingMembers[0].memberNumber : 0;
+      const nextNumber = highestMemberNumber + 1;
+      
       console.log(`Fallback naar nieuw nummer: ${nextNumber}`);
       return nextNumber;
     }
