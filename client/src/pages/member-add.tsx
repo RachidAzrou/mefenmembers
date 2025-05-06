@@ -1348,10 +1348,10 @@ export default function MemberAdd() {
               )}
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter className="sm:justify-between">
+          <AlertDialogFooter className="flex-col space-y-2 sm:flex-row sm:space-y-0 sm:justify-between">
             <Button 
               variant="outline" 
-              className="hidden sm:flex border-gray-200"
+              className="border-gray-200 w-full sm:w-auto"
               onClick={() => {
                 setSuccessDialogOpen(false);
                 // Reset het formulier voor een nieuw lid
