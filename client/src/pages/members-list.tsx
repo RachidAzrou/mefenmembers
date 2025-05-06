@@ -1462,7 +1462,7 @@ export default function MembersList() {
                     <Button 
                       type="button"
                       variant="outline" 
-                      onClick={() => window.location.href = `/member-add?id=${viewMember.id}`}
+                      onClick={() => navigate(`/member-add?id=${viewMember.id}`)}
                       className="text-gray-700 text-xs sm:text-sm"
                     >
                       <Settings className="mr-2 h-3.5 w-3.5" />
