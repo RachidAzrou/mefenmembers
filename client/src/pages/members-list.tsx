@@ -997,7 +997,17 @@ export default function MembersList() {
                       )}
                     </button>
                   </TableHead>
-                  <TableHead className="text-right font-medium sm:font-semibold text-xs sm:text-sm text-gray-700">Acties</TableHead>
+                  <TableHead className="text-right font-medium sm:font-semibold text-xs sm:text-sm text-gray-700">
+                    <button 
+                      onClick={() => setShowDeleteIcons(!showDeleteIcons)} 
+                      className="ml-auto flex items-center hover:text-[#963E56] transition-colors"
+                    >
+                      Acties
+                      <span className="ml-1">
+                        {showDeleteIcons ? <X className="h-3 w-3" /> : <MoreHorizontal className="h-3 w-3" />}
+                      </span>
+                    </button>
+                  </TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -1060,30 +1070,19 @@ export default function MembersList() {
                             : "Niet betaald"}
                         </Badge>
                       </TableCell>
-                      <TableCell className="text-right flex items-center justify-end space-x-1">
-                        {/* Prullenbak icon (alleen zichtbaar als showDeleteIcons true is) */}
+                      <TableCell className="text-right">
+                        {/* Alleen prullenbak icon (zichtbaar als showDeleteIcons true is) */}
                         {showDeleteIcons && (
                           <Button 
                             variant="ghost" 
                             size="icon" 
-                            className="h-8 w-8 text-red-600 hover:text-red-800 hover:bg-red-50" 
+                            className="h-8 w-8 text-red-600 hover:text-red-800 hover:bg-red-50 ml-auto" 
                             onClick={() => handleDeleteConfirm(member)}
                           >
                             <Trash2 className="h-4 w-4" />
                             <span className="sr-only">Lid verwijderen</span>
                           </Button>
                         )}
-                      
-                        {/* Acties dropdown */}
-                        <Button 
-                          variant="ghost" 
-                          size="sm"
-                          className="p-2 text-xs flex items-center"
-                          onClick={() => setShowDeleteIcons(!showDeleteIcons)}
-                        >
-                          <span className="mr-1">Acties</span>
-                          <MoreHorizontal className="h-3 w-3" />
-                        </Button>
                       </TableCell>
                     </TableRow>
                   ))
