@@ -200,17 +200,19 @@ export default function MembersList() {
   };
   
   // Functie om het aantal lidmaatschapsjaren te berekenen
-  const calculateMembershipYears = (registrationDate: string | Date): number => {
-    if (!registrationDate) return 0;
+  const calculateMembershipYears = (member: Member): number => {
+    // Gebruik startDate als die beschikbaar is, anders registrationDate
+    const membershipDate = member.startDate || member.registrationDate;
+    if (!membershipDate) return 0;
     
     const today = new Date();
-    const regDate = new Date(registrationDate);
-    let years = today.getFullYear() - regDate.getFullYear();
+    const startDate = new Date(membershipDate);
+    let years = today.getFullYear() - startDate.getFullYear();
     
     // Controleer of de 'verjaardag' van het lidmaatschap al is gepasseerd dit jaar
     if (
-      today.getMonth() < regDate.getMonth() || 
-      (today.getMonth() === regDate.getMonth() && today.getDate() < regDate.getDate())
+      today.getMonth() < startDate.getMonth() || 
+      (today.getMonth() === startDate.getMonth() && today.getDate() < startDate.getDate())
     ) {
       years--;
     }
@@ -225,7 +227,7 @@ export default function MembersList() {
     if (!age || age < 18) return false;
     
     // Voorwaarde 2: Minstens 5 jaar aaneensluitend lid
-    const membershipYears = calculateMembershipYears(member.registrationDate);
+    const membershipYears = calculateMembershipYears(member);
     if (membershipYears < 5) return false;
     
     // Voorwaarde 3: Elk jaar betaald
@@ -285,7 +287,7 @@ export default function MembersList() {
       if (age === null || age < 18) return false;
       
       // Voorwaarde 2: Minstens 5 jaar aaneensluitend lid
-      const membershipYears = calculateMembershipYears(member.registrationDate);
+      const membershipYears = calculateMembershipYears(member);
       if (membershipYears < 5) return false;
       
       // Voorwaarde 3: Elk jaar betaald (huidige betalingsstatus)
