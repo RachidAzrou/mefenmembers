@@ -72,6 +72,7 @@ export function Sidebar() {
     { icon: PlusCircle, label: "Lid toevoegen", href: "/member-add" },
     { icon: Edit, label: "Lid bewerken", href: "/member-edit" },
     { icon: FileSpreadsheet, label: "Exporteren", href: "/export" },
+    { icon: FlaskConical, label: "Firebase Test", href: "/firebase-test" },
   ];
 
   const handleNavigation = (href: string) => {
