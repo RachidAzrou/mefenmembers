@@ -28,7 +28,7 @@ import {
   Eye, MoreHorizontal, Plus, Search, SlidersHorizontal, Save, Loader2,
   CalendarDays, Users, User, Phone, StickyNote, Edit,
   SortAsc, SortDesc, Trash2, ArrowUpDown, Filter, UserCheck, AlertTriangle, GraduationCap, CreditCard, AlertCircle,
-  Settings, Banknote
+  Settings, Banknote, X
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { formatPhoneNumber } from "@/lib/utils";
@@ -700,7 +700,7 @@ export default function MembersList() {
           }`}>
             <CardContent className="p-3 sm:p-4 flex flex-col items-center justify-center">
               <div className="rounded-full p-1.5 sm:p-2 bg-green-100 mb-1 sm:mb-2">
-                <Check className="h-4 w-4 sm:h-5 sm:w-5 text-green-600"/>
+                <Banknote className="h-4 w-4 sm:h-5 sm:w-5 text-green-600"/>
               </div>
               <div className="text-base sm:text-xl font-bold text-green-600">
                 {isLoading ? <Skeleton className="h-5 sm:h-6 w-10 sm:w-12" /> : members.filter(m => m.paymentStatus).length}
@@ -727,7 +727,12 @@ export default function MembersList() {
           }`}>
             <CardContent className="p-3 sm:p-4 flex flex-col items-center justify-center">
               <div className="rounded-full p-1.5 sm:p-2 bg-red-100 mb-1 sm:mb-2">
-                <X className="h-4 w-4 sm:h-5 sm:w-5 text-red-600"/>
+                <div className="relative">
+                  <Banknote className="h-4 w-4 sm:h-5 sm:w-5 text-red-600" />
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="w-5 sm:w-6 h-0.5 bg-red-600 rotate-45 transform origin-center"></div>
+                  </div>
+                </div>
               </div>
               <div className="text-base sm:text-xl font-bold text-red-600">
                 {isLoading ? <Skeleton className="h-5 sm:h-6 w-10 sm:w-12" /> : members.length - members.filter(m => m.paymentStatus).length}
