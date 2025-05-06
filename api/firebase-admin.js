@@ -8,15 +8,36 @@ let firebaseAdmin;
 try {
   firebaseAdmin = admin.app();
 } catch (error) {
-  // Initialiseer een nieuwe Firebase Admin-instantie
+  // In productie: probeer verschillende manieren om de credentials te laden
+  let credential;
+  
+  try {
+    // Optie 1: Laad vanuit service account bestand (voor lokale ontwikkeling en Vercel)
+    try {
+      // Probeer het service account bestand te laden als het bestaat
+      const serviceAccount = require('../secrets/service-account.json');
+      credential = admin.credential.cert(serviceAccount);
+      console.log("Firebase Admin geïnitialiseerd met service account bestand");
+    } catch (e) {
+      // Bestand bestaat niet, gebruik environment variabelen
+      console.log("Service account bestand niet gevonden, gebruik environment variabelen");
+      credential = admin.credential.cert({
+        projectId: process.env.VITE_FIREBASE_PROJECT_ID || 'mefen-leden-default-rtdb',
+        clientEmail: process.env.FIREBASE_CLIENT_EMAIL || '',
+        privateKey: process.env.FIREBASE_PRIVATE_KEY ? 
+          process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n') : '',
+      });
+    }
+  } catch (credError) {
+    console.error("Fout bij het laden van Firebase credentials:", credError);
+    // Fallback: maak een applicatie zonder credentials
+    // Dit werkt alleen als de Firebase-regels publieke toegang toestaan
+    credential = admin.credential.applicationDefault();
+  }
+  
+  // Initialiseer Firebase Admin
   firebaseAdmin = admin.initializeApp({
-    credential: admin.credential.cert({
-      projectId: process.env.VITE_FIREBASE_PROJECT_ID || 'mefen-leden-default-rtdb',
-      clientEmail: process.env.FIREBASE_CLIENT_EMAIL || '',
-      // Verschillende platforms slaan de private key op verschillende manieren op
-      privateKey: process.env.FIREBASE_PRIVATE_KEY ? 
-        process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n') : '',
-    }),
+    credential,
     databaseURL: process.env.FIREBASE_DATABASE_URL || 'https://mefen-leden-default-rtdb.europe-west1.firebasedatabase.app'
   });
 }
