@@ -238,7 +238,12 @@ export default function MemberDetail() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
             <div>
               <h3 className="text-base sm:text-lg font-semibold text-gray-700 mb-3 flex items-center">
-                <User className="h-5 w-5 mr-2 text-[#963E56]" /> 
+                <div className="mr-2 bg-[#963E56]/10 p-1.5 sm:p-2 rounded-full">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-[#963E56]">
+                    <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
+                    <circle cx="12" cy="7" r="4" />
+                  </svg>
+                </div>
                 Persoonlijke gegevens
               </h3>
               <div className="space-y-3">
