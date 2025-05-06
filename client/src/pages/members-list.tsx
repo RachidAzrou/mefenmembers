@@ -225,10 +225,6 @@ export default function MembersList() {
   
   // Functie om te bepalen of een lid stemgerechtigd is
   const isVotingEligible = (member: Member): boolean => {
-    // TIJDELIJK: Alleen kijken naar betalingsstatus om badge te testen
-    return member.paymentStatus === true;
-    
-    /* Originele code:
     // Voorwaarde 1: Meerderjarig (18+)
     const age = calculateAge(member.birthDate);
     if (!age || age < 18) return false;
@@ -243,7 +239,6 @@ export default function MembersList() {
     
     // Aan alle voorwaarden voldaan
     return true;
-    */
   };
 
   // Filter leden op basis van zoekopdracht, actieve filter en URL parameters
