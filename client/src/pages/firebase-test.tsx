@@ -5,6 +5,7 @@ import { Separator } from '@/components/ui/separator';
 import { auth, db } from '@/lib/firebase';
 import { ref, set, get } from 'firebase/database';
 import { useAuthState } from 'react-firebase-hooks/auth';
+import { logFirebaseConfig } from '../debug/firebase-debug';
 
 export default function FirebaseTest() {
   const [user, loading] = useAuthState(auth);
@@ -14,6 +15,12 @@ export default function FirebaseTest() {
   const [clientError, setClientError] = useState<string | null>(null);
   const [adminResult, setAdminResult] = useState<any>(null);
   const [adminError, setAdminError] = useState<string | null>(null);
+  
+  // Bij het laden van de pagina, log de Firebase configuratie
+  useEffect(() => {
+    console.log("FirebaseTest component geladen, logging configuratie");
+    logFirebaseConfig();
+  }, []);
 
   async function testServerAccess() {
     try {
