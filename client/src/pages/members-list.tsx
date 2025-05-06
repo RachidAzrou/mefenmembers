@@ -27,8 +27,10 @@ import { Button } from "@/components/ui/button";
 import { 
   Eye, MoreHorizontal, Plus, Search, SlidersHorizontal, Save, Loader2,
   CalendarDays, Check, X, Users, User, Phone, StickyNote, Edit,
-  SortAsc, SortDesc, Trash2, ArrowUpDown, Filter, UserCheck, AlertTriangle, GraduationCap, CreditCard, AlertCircle
+  SortAsc, SortDesc, Trash2, ArrowUpDown, Filter, UserCheck, AlertTriangle, GraduationCap, CreditCard, AlertCircle,
+  Settings
 } from "lucide-react";
+
 
 // Vote icon component
 function Vote(props: React.SVGProps<SVGSVGElement>) {
@@ -55,7 +57,7 @@ function Vote(props: React.SVGProps<SVGSVGElement>) {
 }
 import { Badge } from "@/components/ui/badge";
 import { formatPhoneNumber } from "@/lib/utils";
-import { Link, useLocation } from "wouter";
+import { Link, useLocation, navigate } from "wouter";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -1340,26 +1342,7 @@ export default function MembersList() {
                     />
                   </div>
                   
-                  <div className="mt-6">
-                    <FormField
-                      control={form.control}
-                      name="notes"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Notities</FormLabel>
-                          <FormControl>
-                            <Textarea 
-                              {...field} 
-                              placeholder="Optionele notities over dit lid" 
-                              className="min-h-[120px] resize-y"
-                              value={field.value || ""}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
+
                   
                   <div className="border-t mt-6 pt-6 flex flex-col sm:flex-row sm:justify-end gap-3">
                     <Button 
@@ -1491,35 +1474,36 @@ export default function MembersList() {
                     </div>
                   )}
                   
-                  {viewMember.notes && (
-                    <div className="mt-4 sm:mt-6">
-                      <h3 className="text-base sm:text-lg font-semibold text-gray-700 mb-2 sm:mb-3 flex items-center">
-                        <StickyNote className="h-4 w-4 sm:h-5 sm:w-5 mr-1.5 sm:mr-2 text-[#963E56]" /> 
-                        Notities
-                      </h3>
-                      <div className="bg-gray-50 p-3 sm:p-4 rounded-lg whitespace-pre-wrap text-gray-600 text-xs sm:text-sm">
-                        {viewMember.notes}
-                      </div>
-                    </div>
-                  )}
+
                 </div>
                 
-                <div className="border-t p-3 sm:p-4 flex flex-col sm:flex-row sm:justify-end gap-2 bg-gray-50">
+                <div className="border-t p-3 sm:p-4 flex flex-col sm:flex-row sm:justify-between gap-2 bg-gray-50">
                   <Button 
                     variant="outline" 
-                    onClick={() => setViewMember(null)}
-                    className="border-gray-300 text-gray-700 text-xs sm:text-sm w-full sm:w-auto order-2 sm:order-1"
+                    onClick={() => window.location.href = `/member-edit?id=${viewMember.id}`}
+                    className="border-gray-300 text-gray-700 text-xs sm:text-sm w-full sm:w-auto"
                   >
-                    Sluiten
+                    <Settings className="mr-2 h-3.5 w-3.5" />
+                    Uitgebreid bewerken
                   </Button>
-                  <Button 
-                    variant="default" 
-                    onClick={handleEnableEditMode}
-                    className="bg-[#963E56] hover:bg-[#7e3447] text-white text-xs sm:text-sm w-full sm:w-auto order-1 sm:order-2"
-                  >
-                    <Edit className="mr-2 h-3.5 w-3.5" />
-                    Bewerken
-                  </Button>
+                  
+                  <div className="flex flex-col sm:flex-row gap-2">
+                    <Button 
+                      variant="outline" 
+                      onClick={() => setViewMember(null)}
+                      className="border-gray-300 text-gray-700 text-xs sm:text-sm w-full sm:w-auto order-2 sm:order-1"
+                    >
+                      Sluiten
+                    </Button>
+                    <Button 
+                      variant="default" 
+                      onClick={handleEnableEditMode}
+                      className="bg-[#963E56] hover:bg-[#7e3447] text-white text-xs sm:text-sm w-full sm:w-auto order-1 sm:order-2"
+                    >
+                      <Edit className="mr-2 h-3.5 w-3.5" />
+                      Bewerken
+                    </Button>
+                  </div>
                 </div>
               </>
             )}
