@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { Member, insertMemberSchema } from "@shared/schema";
+import { Link } from "wouter";
 import { format } from "date-fns";
 import { Input } from "@/components/ui/input";
 import { 
@@ -57,7 +58,7 @@ function Vote(props: React.SVGProps<SVGSVGElement>) {
 }
 import { Badge } from "@/components/ui/badge";
 import { formatPhoneNumber } from "@/lib/utils";
-import { Link, useLocation } from "wouter";
+import { useLocation } from "wouter";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -1035,10 +1036,20 @@ export default function MembersList() {
                           : "----"}
                       </TableCell>
                       <TableCell className="font-medium text-xs sm:text-sm py-2 sm:py-4">
-                        {member?.firstName || ""}
+                        <Link 
+                          href={`/member-detail?id=${member?.id}`} 
+                          className="text-[#963E56] hover:text-[#7e3447] hover:underline cursor-pointer"
+                        >
+                          {member?.firstName || ""}
+                        </Link>
                       </TableCell>
                       <TableCell className="font-medium text-xs sm:text-sm py-2 sm:py-4">
-                        {member?.lastName || ""}
+                        <Link 
+                          href={`/member-detail?id=${member?.id}`} 
+                          className="text-[#963E56] hover:text-[#7e3447] hover:underline cursor-pointer"
+                        >
+                          {member?.lastName || ""}
+                        </Link>
                       </TableCell>
                       <TableCell className="text-gray-600 text-xs sm:text-sm py-2 sm:py-4">
                         {formatDate(member?.birthDate)}

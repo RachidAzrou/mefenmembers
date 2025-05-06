@@ -13,9 +13,10 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 
-function formatDate(date: string | null | undefined): string {
+function formatDate(date: string | Date | null | undefined): string {
   if (!date) return "Onbekend";
-  return new Date(date).toLocaleDateString('nl-NL', {
+  const dateObj = date instanceof Date ? date : new Date(date);
+  return dateObj.toLocaleDateString('nl-NL', {
     day: 'numeric',
     month: 'numeric',
     year: 'numeric'

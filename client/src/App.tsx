@@ -65,6 +65,7 @@ function Router() {
       <Route path="/members" component={() => <PrivateRoute component={MembersList} />} />
       <Route path="/member-add" component={() => <PrivateRoute component={MemberAdd} />} />
       <Route path="/member-edit" component={() => <PrivateRoute component={MemberEdit} />} />
+      <Route path="/member-detail" component={() => <PrivateRoute component={MemberDetail} />} />
       <Route path="/export" component={() => <PrivateRoute component={Export} />} />
       <Route component={NotFound} />
     </Switch>
