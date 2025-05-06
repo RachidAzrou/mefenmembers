@@ -266,14 +266,44 @@ export default function MembersList() {
     mutationFn: async (data: MemberEditData) => {
       if (!viewMember) return null;
       
-      const response = await apiRequest('PUT', `/api/members?id=${viewMember.id}`, data);
-      
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Onbekende API fout');
+      try {
+        // Normale API aanroep proberen
+        const response = await apiRequest('PUT', `/api/members?id=${viewMember.id}`, data);
+        
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || 'Onbekende API fout');
+        }
+        
+        return response.json();
+      } catch (apiError) {
+        // Als we al in Firebase fallback mode zijn, probeer direct naar Firebase te schrijven
+        if (usingFirebaseFallback && database) {
+          console.warn("API update gefaald, probeer direct Firebase update...", apiError);
+          
+          try {
+            // Directe Firebase update als fallback voor API in offline modus
+            const updatedMember = {
+              ...viewMember,
+              ...data,
+              updatedAt: new Date().toISOString()
+            };
+            
+            // Bepaal de Firebase key - meestal de ID van het lid
+            const memberRef = ref(database, `members/${viewMember.id}`);
+            await set(memberRef, updatedMember);
+            
+            console.log("Firebase directe update succesvol");
+            return updatedMember;
+          } catch (firebaseError) {
+            console.error("Ook Firebase fallback update gefaald:", firebaseError);
+            throw new Error("Kon lid niet bijwerken via API of Firebase");
+          }
+        } else {
+          // Als we niet in Firebase fallback mode zijn, gooi de originele fout
+          throw apiError;
+        }
       }
-      
-      return response.json();
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['/api/members'] });
@@ -281,6 +311,13 @@ export default function MembersList() {
       // Controleer of we geldige data hebben ontvangen
       if (data && data.id) {
         setViewMember(data);
+        
+        // Als we in Firebase fallback mode zijn, update de lokale staat direct
+        if (usingFirebaseFallback) {
+          setFirebaseMembers(prevMembers => {
+            return prevMembers.map(m => m.id === data.id ? data : m);
+          });
+        }
       } else {
         // Als er geen geldige data is, haal dan alle leden opnieuw op
         queryClient.fetchQuery({ queryKey: ['/api/members'] });

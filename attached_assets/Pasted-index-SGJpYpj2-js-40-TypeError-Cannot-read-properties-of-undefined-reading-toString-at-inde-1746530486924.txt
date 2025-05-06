@@ -1,0 +1,35 @@
+index-SGJpYpj2.js:40 TypeError: Cannot read properties of undefined (reading 'toString')
+    at index-SGJpYpj2.js:3114:146655
+    at Array.map (<anonymous>)
+    at ROe (index-SGJpYpj2.js:3114:146472)
+    at $9 (index-SGJpYpj2.js:38:17028)
+    at $Z (index-SGJpYpj2.js:40:44104)
+    at zZ (index-SGJpYpj2.js:40:39822)
+    at eve (index-SGJpYpj2.js:40:39748)
+    at Q3 (index-SGJpYpj2.js:40:39598)
+    at Zk (index-SGJpYpj2.js:40:35960)
+    at ML (index-SGJpYpj2.js:40:36765)
+
+index-SGJpYpj2.js:3114 Uncaught TypeError: Cannot read properties of undefined (reading 'toString')
+    at index-SGJpYpj2.js:3114:146655
+    at Array.map (<anonymous>)
+    at ROe (index-SGJpYpj2.js:3114:146472)
+    at $9 (index-SGJpYpj2.js:38:17028)
+    at $Z (index-SGJpYpj2.js:40:44104)
+    at zZ (index-SGJpYpj2.js:40:39822)
+    at eve (index-SGJpYpj2.js:40:39748)
+    at Q3 (index-SGJpYpj2.js:40:39598)
+    at Zk (index-SGJpYpj2.js:40:35960)
+    at ML (index-SGJpYpj2.js:40:36765)
+/members:1 Error in event handler: TypeError: Cannot read properties of null (reading 'tagName')
+    at Readability._grabArticle (chrome-extension://llimhhconnjiflfimocjggfjdlmlhblm/js/plugins/readability.js:1140:37)
+    at Readability.parse (chrome-extension://llimhhconnjiflfimocjggfjdlmlhblm/js/plugins/readability.js:2248:31)
+    at Object.original_article (chrome-extension://llimhhconnjiflfimocjggfjdlmlhblm/content-script.js:94:61)
+    at Object.article (chrome-extension://llimhhconnjiflfimocjggfjdlmlhblm/content-script.js:148:44)
+    at Object.article (chrome-extension://llimhhconnjiflfimocjggfjdlmlhblm/content-script.js:198:23)
+    at Object.init (chrome-extension://llimhhconnjiflfimocjggfjdlmlhblm/content-script.js:570:19)
+    at chrome-extension://llimhhconnjiflfimocjggfjdlmlhblm/content-script.js:514:23
+index-SGJpYpj2.js:2053 WebSocket connection to 'wss://s-euw1b-nss-201.europe-west1.firebasedatabase.app/.ws?v=5&s=nNKj3dN0y…sK&p=1:780110083561:web:63785c6…&ns=mefen-leden-default-rtdb' failed: WebSocket is closed before the connection is established.
+index-SGJpYpj2.js:568 [2025-05-06T11:21:02.648Z]  @firebase/database: FIREBASE WARNING: Provided authentication credentials for the app named "[DEFAULT]" are invalid. This usually indicates your app was not initialized correctly. Make sure the "apiKey" and "databaseURL" properties provided to initializeApp() match the values provided for your app at https://console.firebase.google.com/. 
+﻿
+
