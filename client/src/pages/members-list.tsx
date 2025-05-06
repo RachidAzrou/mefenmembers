@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { Member, insertMemberSchema } from "@shared/schema";
+import { format } from "date-fns";
 import { Input } from "@/components/ui/input";
 import { 
   Table, 
@@ -46,9 +47,8 @@ import {
   DialogTitle, 
   DialogFooter
 } from "@/components/ui/dialog";
-import { format } from "date-fns";
-import { nl } from "date-fns/locale";
 import { z } from "zod";
+import { nl } from "date-fns/locale";
 
 // Form schema voor bewerking in dialoog (inclusief geboortedatum)
 const memberEditSchema = insertMemberSchema.extend({
@@ -822,19 +822,97 @@ export default function MembersList() {
                         <FormField
                           control={form.control}
                           name="birthDate"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Geboortedatum</FormLabel>
-                              <FormControl>
-                                <Input 
-                                  type="date" 
-                                  {...field} 
-                                  value={field.value ? new Date(field.value).toISOString().split('T')[0] : ''}
-                                />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
+                          render={({ field }) => {
+                            // Gebruik een gewoon invoerveld voor geboortedatum in DD/MM/YYYY formaat
+                            const [dateInput, setDateInput] = useState(
+                              field.value ? format(new Date(field.value), "dd/MM/yyyy") : ""
+                            );
+                            
+                            // Functie om een datum string in DD/MM/YYYY formaat te valideren en parsen
+                            const validateAndParseDate = (dateStr: string) => {
+                              // Controleer of het formaat DD/MM/YYYY is
+                              const regex = /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/;
+                              const match = dateStr.match(regex);
+                              
+                              if (!match) return null;
+                              
+                              const day = parseInt(match[1], 10);
+                              const month = parseInt(match[2], 10) - 1; // JavaScript maanden zijn 0-gebaseerd
+                              const year = parseInt(match[3], 10);
+                              
+                              // Controleer of dag, maand en jaar geldig zijn
+                              if (
+                                day < 1 || day > 31 || 
+                                month < 0 || month > 11 || 
+                                year < 1900 || year > new Date().getFullYear()
+                              ) {
+                                return null;
+                              }
+                              
+                              // Maak een Date object en controleer of het geldig is
+                              // Gebruik UTC om tijdzone-issues te voorkomen (dag -1 probleem)
+                              const date = new Date(Date.UTC(year, month, day, 12, 0, 0));
+                              
+                              // Controleer of datum niet in de toekomst ligt
+                              if (date > new Date()) {
+                                return null;
+                              }
+                              
+                              // Controleer of de datum bestaat (bijv. 31/02/2023 bestaat niet)
+                              const utcDay = date.getUTCDate();
+                              const utcMonth = date.getUTCMonth();
+                              const utcYear = date.getUTCFullYear();
+                              
+                              if (utcDay !== day || utcMonth !== month || utcYear !== year) {
+                                return null;
+                              }
+                              
+                              return date.toISOString().split('T')[0]; // Retourneer als YYYY-MM-DD string
+                            };
+                            
+                            // Verwerk input wijziging
+                            const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+                              const value = e.target.value;
+                              setDateInput(value);
+                              
+                              // Format user input automatically as they type
+                              if (value.length === 2 && !value.includes('/') && !dateInput.includes('/')) {
+                                setDateInput(value + '/');
+                              } else if (value.length === 5 && value.charAt(2) === '/' && !value.includes('/', 3)) {
+                                setDateInput(value + '/');
+                              }
+                            };
+                            
+                            // Verwerk blur event (als gebruiker het veld verlaat)
+                            const handleBlur = () => {
+                              if (dateInput) {
+                                const parsedDate = validateAndParseDate(dateInput);
+                                if (parsedDate) {
+                                  field.onChange(parsedDate);
+                                } else {
+                                  // Als datum ongeldig is, reset naar vorige geldige waarde
+                                  setDateInput(field.value ? format(new Date(field.value), "dd/MM/yyyy") : "");
+                                }
+                              } else {
+                                field.onChange(undefined);
+                              }
+                            };
+                            
+                            return (
+                              <FormItem>
+                                <FormLabel>Geboortedatum</FormLabel>
+                                <FormControl>
+                                  <Input
+                                    placeholder="DD/MM/JJJJ"
+                                    value={dateInput}
+                                    onChange={handleInputChange}
+                                    onBlur={handleBlur}
+                                  />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            );
+                          }}
                         />
                       </div>
                     </div>
