@@ -92,12 +92,25 @@ export default function MembersList() {
   });
   
   // Haal alle leden op
-  const { data: members = [], isLoading } = useQuery<Member[]>({
+  const { data: members = [], isLoading, isError, error } = useQuery<Member[]>({
     queryKey: ["/api/members"],
     queryFn: async () => {
-      const response = await apiRequest("GET", "/api/members");
-      return response.json();
-    }
+      try {
+        console.log("API request naar /api/members gestart");
+        const response = await apiRequest("GET", "/api/members");
+        const data = await response.json();
+        console.log("API response ontvangen:", data);
+        return data;
+      } catch (error) {
+        console.error("Fout bij ophalen leden:", error);
+        // In productie willen we geen lege lijst tonen, gooi de error
+        // zodat gebruikers weten dat er iets mis is
+        throw error;
+      }
+    },
+    // Retry bij fouten, belangrijk voor serverless functies in Vercel
+    retry: 3,
+    retryDelay: 1000,
   });
   
   // Filter leden op basis van zoekopdracht en actieve filter
@@ -327,6 +340,36 @@ export default function MembersList() {
         </div>
       </div>
       
+      {/* Foutmelding als de API niet werkt */}
+      {isError && (
+        <Card className="border-red-200 shadow-md bg-red-50">
+          <CardHeader>
+            <CardTitle className="text-red-600 flex items-center gap-2">
+              <X className="h-5 w-5" /> API Fout
+            </CardTitle>
+            <CardDescription className="text-red-700">
+              Er is een probleem met het ophalen van de leden. Probeer de pagina te verversen of controleer je internetverbinding.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <p className="text-xs text-gray-600 bg-white p-2 rounded border border-gray-200 overflow-auto max-h-24">
+              {error instanceof Error ? error.message : 'Onbekende fout bij het ophalen van gegevens'}
+            </p>
+            <div className="flex justify-end mt-4">
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => window.location.reload()}
+                className="text-xs"
+              >
+                <span className="mr-2">Pagina verversen</span>
+                <ArrowUpDown className="h-3 w-3" />
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+      
       {/* Ruimte voor header en statistieken */}
       <div className="my-4"></div>
       
@@ -425,13 +468,30 @@ export default function MembersList() {
                 ) : (
                   members.length > 0
                     ? (() => {
-                        const date = new Date(Math.max(...members.map(m => new Date(m.registrationDate).getTime())));
-                        // Gebruik korte notatie DD/MM/JJ
-                        const day = date.getDate();
-                        const month = date.getMonth() + 1;
-                        // Gebruik alleen de laatste twee cijfers van het jaar
-                        const year = date.getFullYear().toString().slice(-2);
-                        return `${day}/${month}/${year}`;
+                        try {
+                          // Filter eerst op geldige datums
+                          const validDates = members
+                            .filter(m => m.registrationDate && !isNaN(new Date(m.registrationDate).getTime()))
+                            .map(m => new Date(m.registrationDate).getTime());
+                          
+                          // Als er geen geldige datums zijn
+                          if (validDates.length === 0) return "-";
+                          
+                          const date = new Date(Math.max(...validDates));
+                          
+                          // Controleer of de datum geldig is
+                          if (isNaN(date.getTime())) return "-";
+                          
+                          // Gebruik korte notatie DD/MM/JJ
+                          const day = date.getDate();
+                          const month = date.getMonth() + 1;
+                          // Gebruik alleen de laatste twee cijfers van het jaar
+                          const year = date.getFullYear().toString().slice(-2);
+                          return `${day}/${month}/${year}`;
+                        } catch (error) {
+                          console.error("Fout bij berekenen laatste registratie:", error);
+                          return "-";
+                        }
                       })()
                     : "-"
                 )}
