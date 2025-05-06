@@ -539,7 +539,15 @@ export default function MemberAdd() {
                         <FormItem>
                           <FormLabel>Nationaliteit</FormLabel>
                           <FormControl>
-                            <Input placeholder="Nationaliteit" className="border-gray-200 focus:border-[#963E56]" {...field} />
+                            <Input 
+                              placeholder="Nationaliteit" 
+                              className="border-gray-200 focus:border-[#963E56]" 
+                              value={field.value || ""} 
+                              onChange={field.onChange}
+                              onBlur={field.onBlur}
+                              name={field.name}
+                              ref={field.ref}
+                            />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -724,7 +732,15 @@ export default function MemberAdd() {
                             <FormItem>
                               <FormLabel>Straat</FormLabel>
                               <FormControl>
-                                <Input placeholder="Straatnaam" className="border-gray-200 focus:border-[#963E56]" {...field} />
+                                <Input 
+                                  placeholder="Straatnaam" 
+                                  className="border-gray-200 focus:border-[#963E56]" 
+                                  value={field.value || ""} 
+                                  onChange={field.onChange}
+                                  onBlur={field.onBlur}
+                                  name={field.name}
+                                  ref={field.ref}
+                                />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
@@ -739,7 +755,15 @@ export default function MemberAdd() {
                               <FormItem>
                                 <FormLabel>Huisnr.</FormLabel>
                                 <FormControl>
-                                  <Input placeholder="Nr." className="border-gray-200 focus:border-[#963E56]" {...field} />
+                                  <Input 
+                                    placeholder="Nr." 
+                                    className="border-gray-200 focus:border-[#963E56]" 
+                                    value={field.value || ""} 
+                                    onChange={field.onChange}
+                                    onBlur={field.onBlur}
+                                    name={field.name}
+                                    ref={field.ref}
+                                  />
                                 </FormControl>
                                 <FormMessage />
                               </FormItem>
@@ -753,7 +777,15 @@ export default function MemberAdd() {
                               <FormItem>
                                 <FormLabel>Bus</FormLabel>
                                 <FormControl>
-                                  <Input placeholder="Bus" className="border-gray-200 focus:border-[#963E56]" {...field} />
+                                  <Input 
+                                    placeholder="Bus" 
+                                    className="border-gray-200 focus:border-[#963E56]" 
+                                    value={field.value || ""} 
+                                    onChange={field.onChange}
+                                    onBlur={field.onBlur}
+                                    name={field.name}
+                                    ref={field.ref}
+                                  />
                                 </FormControl>
                                 <FormMessage />
                               </FormItem>
@@ -770,7 +802,15 @@ export default function MemberAdd() {
                             <FormItem>
                               <FormLabel>Postcode</FormLabel>
                               <FormControl>
-                                <Input placeholder="Postcode" className="border-gray-200 focus:border-[#963E56]" {...field} />
+                                <Input 
+                                  placeholder="Postcode" 
+                                  className="border-gray-200 focus:border-[#963E56]" 
+                                  value={field.value || ""} 
+                                  onChange={field.onChange}
+                                  onBlur={field.onBlur}
+                                  name={field.name}
+                                  ref={field.ref}
+                                />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
@@ -784,7 +824,15 @@ export default function MemberAdd() {
                             <FormItem>
                               <FormLabel>Gemeente</FormLabel>
                               <FormControl>
-                                <Input placeholder="Gemeente" className="border-gray-200 focus:border-[#963E56]" {...field} />
+                                <Input 
+                                  placeholder="Gemeente" 
+                                  className="border-gray-200 focus:border-[#963E56]" 
+                                  value={field.value || ""} 
+                                  onChange={field.onChange}
+                                  onBlur={field.onBlur}
+                                  name={field.name}
+                                  ref={field.ref}
+                                />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
