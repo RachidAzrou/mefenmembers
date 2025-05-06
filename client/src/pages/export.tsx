@@ -232,8 +232,8 @@ export default function ExportPage() {
   };
   
   const calculateMembershipYears = (member: Member): number => {
-    // Gebruik ALLEEN startDate; registrationDate is niet relevant voor lidmaatschap
-    if (!member.startDate) return 0;
+    // Voeg een null-check toe voor member zelf
+    if (!member || !member.startDate) return 0;
     
     const today = new Date();
     const startDate = new Date(member.startDate);
@@ -252,49 +252,66 @@ export default function ExportPage() {
 
   // Exporteer naar Excel
   const exportToExcel = () => {
-    // Bouw de export data
-    const exportData = filteredMembers.map(member => {
+    // Controleer of er leden zijn
+    if (!filteredMembers || filteredMembers.length === 0) {
+      toast({
+        title: "Geen leden beschikbaar",
+        description: "Er zijn geen leden om te exporteren.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    // Bouw de export data met null checks
+    const exportData = filteredMembers.filter(member => member).map(member => {
       const memberData: Record<string, any> = {};
       
       // Voeg alleen geselecteerde velden toe
       exportFields.forEach(field => {
         if (field.enabled) {
           switch (field.id) {
+            case "memberNumber":
+              memberData[field.label] = member?.memberNumber !== undefined ? 
+                member.memberNumber.toString().padStart(4, '0') : 
+                "----";
+              break;
             case "birthDate":
-              memberData[field.label] = member.birthDate 
+              memberData[field.label] = member?.birthDate 
                 ? new Date(member.birthDate).toLocaleDateString() 
                 : "";
               break;
             case "registrationDate":
-              memberData[field.label] = new Date(member.registrationDate).toLocaleDateString();
+              memberData[field.label] = member?.registrationDate 
+                ? new Date(member.registrationDate).toLocaleDateString()
+                : "";
               break;
             case "paymentStatus":
-              memberData[field.label] = member.paymentStatus ? "Betaald" : "Niet betaald";
+              memberData[field.label] = member?.paymentStatus ? "Betaald" : "Niet betaald";
               break;
             case "gender":
-              memberData[field.label] = member.gender || "";
+              memberData[field.label] = member?.gender || "";
               break;
             case "membershipType":
-              memberData[field.label] = member.membershipType || "";
+              memberData[field.label] = member?.membershipType || "";
               break;
             case "postalCode":
-              memberData[field.label] = member.postalCode || "";
+              memberData[field.label] = member?.postalCode || "";
               break;
             case "paymentMethod":
-              memberData[field.label] = member.paymentMethod || "";
+              memberData[field.label] = member?.paymentMethod || "";
               break;
             case "paymentTerm":
-              memberData[field.label] = member.paymentTerm || "";
+              memberData[field.label] = member?.paymentTerm || "";
               break;
             case "votingEligible":
-              // Bepaal of het lid stemgerechtigd is
-              const age = calculateAge(member.birthDate);
+              // Bepaal of het lid stemgerechtigd is met extra null checks
+              const age = calculateAge(member?.birthDate || null);
               const membershipYears = calculateMembershipYears(member);
-              const isEligible = age !== null && age >= 18 && membershipYears >= 5 && member.paymentStatus;
+              const isEligible = age !== null && age >= 18 && membershipYears >= 5 && member?.paymentStatus === true;
               memberData[field.label] = isEligible ? "Ja" : "Nee";
               break;
             default:
-              memberData[field.label] = member[field.id as keyof Member] || "";
+              memberData[field.label] = member && field.id in member ? member[field.id as keyof Member] || "" : "";
           }
         }
       });
@@ -322,49 +339,66 @@ export default function ExportPage() {
   
   // Exporteer naar CSV
   const exportToCsv = () => {
-    // Bouw de export data
-    const exportData = filteredMembers.map(member => {
+    // Controleer of er leden zijn
+    if (!filteredMembers || filteredMembers.length === 0) {
+      toast({
+        title: "Geen leden beschikbaar",
+        description: "Er zijn geen leden om te exporteren.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    // Bouw de export data met null checks
+    const exportData = filteredMembers.filter(member => member).map(member => {
       const memberData: Record<string, any> = {};
       
       // Voeg alleen geselecteerde velden toe
       exportFields.forEach(field => {
         if (field.enabled) {
           switch (field.id) {
+            case "memberNumber":
+              memberData[field.label] = member?.memberNumber !== undefined ? 
+                member.memberNumber.toString().padStart(4, '0') : 
+                "----";
+              break;
             case "birthDate":
-              memberData[field.label] = member.birthDate 
+              memberData[field.label] = member?.birthDate 
                 ? new Date(member.birthDate).toLocaleDateString() 
                 : "";
               break;
             case "registrationDate":
-              memberData[field.label] = new Date(member.registrationDate).toLocaleDateString();
+              memberData[field.label] = member?.registrationDate 
+                ? new Date(member.registrationDate).toLocaleDateString()
+                : "";
               break;
             case "paymentStatus":
-              memberData[field.label] = member.paymentStatus ? "Betaald" : "Niet betaald";
+              memberData[field.label] = member?.paymentStatus ? "Betaald" : "Niet betaald";
               break;
             case "gender":
-              memberData[field.label] = member.gender || "";
+              memberData[field.label] = member?.gender || "";
               break;
             case "membershipType":
-              memberData[field.label] = member.membershipType || "";
+              memberData[field.label] = member?.membershipType || "";
               break;
             case "postalCode":
-              memberData[field.label] = member.postalCode || "";
+              memberData[field.label] = member?.postalCode || "";
               break;
             case "paymentMethod":
-              memberData[field.label] = member.paymentMethod || "";
+              memberData[field.label] = member?.paymentMethod || "";
               break;
             case "paymentTerm":
-              memberData[field.label] = member.paymentTerm || "";
+              memberData[field.label] = member?.paymentTerm || "";
               break;
             case "votingEligible":
-              // Bepaal of het lid stemgerechtigd is
-              const age = calculateAge(member.birthDate);
+              // Bepaal of het lid stemgerechtigd is met extra null checks
+              const age = calculateAge(member?.birthDate || null);
               const membershipYears = calculateMembershipYears(member);
-              const isEligible = age !== null && age >= 18 && membershipYears >= 5 && member.paymentStatus;
+              const isEligible = age !== null && age >= 18 && membershipYears >= 5 && member?.paymentStatus === true;
               memberData[field.label] = isEligible ? "Ja" : "Nee";
               break;
             default:
-              memberData[field.label] = member[field.id as keyof Member] || "";
+              memberData[field.label] = member && field.id in member ? member[field.id as keyof Member] || "" : "";
           }
         }
       });
@@ -544,35 +578,43 @@ export default function ExportPage() {
                   
                   switch (field.id) {
                     case "birthDate":
-                      // Compacte datumnotatie: DD-MM-YYYY
-                      const bdate = new Date(member.birthDate || "");
-                      value = member.birthDate ? `${bdate.getDate().toString().padStart(2, '0')}-${(bdate.getMonth() + 1).toString().padStart(2, '0')}-${bdate.getFullYear()}` : "";
+                      // Compacte datumnotatie: DD-MM-YYYY met null check
+                      if (!member?.birthDate) {
+                        value = "";
+                      } else {
+                        const bdate = new Date(member.birthDate);
+                        value = `${bdate.getDate().toString().padStart(2, '0')}-${(bdate.getMonth() + 1).toString().padStart(2, '0')}-${bdate.getFullYear()}`;
+                      }
                       break;
                     case "registrationDate":
-                      // Compacte datumnotatie: DD-MM-YYYY
-                      const rdate = new Date(member.registrationDate || "");
-                      value = `${rdate.getDate().toString().padStart(2, '0')}-${(rdate.getMonth() + 1).toString().padStart(2, '0')}-${rdate.getFullYear()}`;
+                      // Compacte datumnotatie: DD-MM-YYYY met null check
+                      if (!member?.registrationDate) {
+                        value = "";
+                      } else {
+                        const rdate = new Date(member.registrationDate);
+                        value = `${rdate.getDate().toString().padStart(2, '0')}-${(rdate.getMonth() + 1).toString().padStart(2, '0')}-${rdate.getFullYear()}`;
+                      }
                       break;
                     case "gender":
-                      value = member.gender || "";
+                      value = member?.gender || "";
                       break;
                     case "membershipType":
-                      value = member.membershipType || "";
+                      value = member?.membershipType || "";
                       break;
                     case "postalCode":
-                      value = member.postalCode || "";
+                      value = member?.postalCode || "";
                       break;
                     case "paymentMethod":
-                      value = member.paymentMethod || "";
+                      value = member?.paymentMethod || "";
                       break;
                     case "paymentTerm":
-                      value = member.paymentTerm || "";
+                      value = member?.paymentTerm || "";
                       break;
                     case "votingEligible":
-                      // Bepaal of het lid stemgerechtigd is
-                      const age = calculateAge(member.birthDate);
+                      // Bepaal of het lid stemgerechtigd is met extra null checks
+                      const age = calculateAge(member?.birthDate || null);
                       const membershipYears = calculateMembershipYears(member);
-                      const isEligible = age !== null && age >= 18 && membershipYears >= 5 && member.paymentStatus;
+                      const isEligible = age !== null && age >= 18 && membershipYears >= 5 && member?.paymentStatus === true;
                       value = isEligible ? "Ja" : "Nee";
                       return (
                         <Text 
@@ -584,11 +626,11 @@ export default function ExportPage() {
                             color: isEligible ? '#046c4e' : '#6b7280'
                           }}
                         >
-                          {value}
+                          {value.toString()}
                         </Text>
                       );
                     case "paymentStatus":
-                      value = member.paymentStatus ? "✓" : "✗";
+                      value = member?.paymentStatus ? "✓" : "✗";
                       return (
                         <Text 
                           key={field.id} 
@@ -596,18 +638,20 @@ export default function ExportPage() {
                             ...styles.tableCell,
                             width: columnWidths[field.id],
                             textAlign: 'center',
-                            ...(member.paymentStatus ? styles.paidCell : styles.unpaidCell)
+                            ...(member?.paymentStatus ? styles.paidCell : styles.unpaidCell)
                           }}
                         >
-                          {value}
+                          {value.toString()}
                         </Text>
                       );
                     case "memberNumber":
-                      // Lidnummers altijd met voorloopnullen voor consistentie
-                      value = member.memberNumber.toString().padStart(4, '0');
+                      // Lidnummers altijd met voorloopnullen voor consistentie met null check
+                      value = member?.memberNumber !== undefined ? 
+                        member.memberNumber.toString().padStart(4, '0') : 
+                        "----";
                       break;
                     default:
-                      value = member[field.id as keyof Member] || "";
+                      value = member && field.id in member ? member[field.id as keyof Member] || "" : "";
                   }
                   
                   return (
@@ -618,7 +662,7 @@ export default function ExportPage() {
                         width: columnWidths[field.id]
                       }}
                     >
-                      {value}
+                      {value?.toString() || ""}
                     </Text>
                   );
                 })}
