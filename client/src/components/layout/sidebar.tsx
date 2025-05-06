@@ -101,11 +101,11 @@ export function Sidebar() {
         {/* Logo section */}
         <div className="flex h-44 items-center justify-center bg-white border-b relative">
           {!collapsed && (
-            <div className="w-full h-full flex items-center justify-center p-2">
+            <div className="w-full h-full flex items-center justify-center p-4">
               <img
                 src="/mefen-logo-new.png"
                 alt="MEFEN Moskee El Fath En Nassr"
-                className="w-full h-full object-contain transition-opacity duration-200 scale-110"
+                className="w-full h-full object-contain transition-opacity duration-200 max-w-[90%]"
               />
             </div>
           )}
