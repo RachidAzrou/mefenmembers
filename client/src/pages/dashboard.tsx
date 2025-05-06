@@ -487,7 +487,7 @@ export default function Dashboard() {
                     <div>
                       <div className="text-sm text-gray-500">Mannen</div>
                       <div className="font-medium">
-                        {members.filter(m => m.gender === 'man' || (m.gender === null && (!m.membershipType || m.membershipType === undefined))).length} leden
+                        {members.filter(m => m.gender === 'man').length} leden
                       </div>
                     </div>
                   </div>
