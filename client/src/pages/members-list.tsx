@@ -226,10 +226,16 @@ export default function MembersList() {
     
     // Stemgerechtigden filter
     if (params.has("voting") && params.get("voting") === "true") {
+      // Voorwaarde 1: Meerderjarig (18+)
       const age = calculateAge(member.birthDate);
-      if (age === null || age < 18) {
-        return false;
-      }
+      if (age === null || age < 18) return false;
+      
+      // Voorwaarde 2: Minstens 5 jaar aaneensluitend lid
+      const membershipYears = calculateMembershipYears(member.registrationDate);
+      if (membershipYears < 5) return false;
+      
+      // Voorwaarde 3: Elk jaar betaald (huidige betalingsstatus)
+      if (!member.paymentStatus) return false;
     }
     
     return matchesSearch && matchesFilter;

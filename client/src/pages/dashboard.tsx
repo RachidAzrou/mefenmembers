@@ -422,7 +422,7 @@ export default function Dashboard() {
             Stemgerechtigden
           </CardTitle>
           <CardDescription>
-            Leden die het stemrecht hebben (18+)
+            Leden die stemgerechtigd zijn (meerderjarig + 5 jaar lid + betaald)
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -440,11 +440,34 @@ export default function Dashboard() {
                       <UserCheck className="h-5 w-5 text-[#963E56]" />
                     </div>
                     <div>
-                      <div className="text-sm text-gray-500">Stemgerechtigde leden (18+)</div>
+                      <div className="text-sm text-gray-500">Stemgerechtigde leden</div>
                       <div className="font-medium">
-                        {members.filter(m => {
-                          const age = calculateAge(m.birthDate);
-                          return age !== null && age >= 18;
+                        {members.filter(member => {
+                          // Voorwaarde 1: Meerderjarig (18+)
+                          const age = calculateAge(member.birthDate);
+                          if (!age || age < 18) return false;
+                          
+                          // Voorwaarde 2: Minstens 5 jaar aaneensluitend lid
+                          const today = new Date();
+                          const regDate = new Date(member.registrationDate);
+                          let years = today.getFullYear() - regDate.getFullYear();
+                          
+                          // Controleer of de 'verjaardag' van het lidmaatschap al is gepasseerd dit jaar
+                          if (
+                            today.getMonth() < regDate.getMonth() || 
+                            (today.getMonth() === regDate.getMonth() && today.getDate() < regDate.getDate())
+                          ) {
+                            years--;
+                          }
+                          
+                          if (years < 5) return false;
+                          
+                          // Voorwaarde 3: Elk jaar betaald
+                          // Omdat we nog geen betalingsgeschiedenis bijhouden, gebruiken we de huidige betalingsstatus
+                          if (!member.paymentStatus) return false;
+                          
+                          // Aan alle voorwaarden voldaan
+                          return true;
                         }).length} leden
                       </div>
                     </div>
@@ -460,16 +483,54 @@ export default function Dashboard() {
                 <div className="space-y-2">
                   <div className="flex justify-between items-center">
                     <span className="text-sm font-medium">
-                      {Math.round((members.filter(m => {
-                        const age = calculateAge(m.birthDate);
-                        return age !== null && age >= 18;
+                      {Math.round((members.filter(member => {
+                        // Voorwaarde 1: Meerderjarig (18+)
+                        const age = calculateAge(member.birthDate);
+                        if (!age || age < 18) return false;
+                        
+                        // Voorwaarde 2: Minstens 5 jaar aaneensluitend lid
+                        const today = new Date();
+                        const regDate = new Date(member.registrationDate);
+                        let years = today.getFullYear() - regDate.getFullYear();
+                        
+                        // Controleer of het lidmaatschap lang genoeg is
+                        if (
+                          today.getMonth() < regDate.getMonth() || 
+                          (today.getMonth() === regDate.getMonth() && today.getDate() < regDate.getDate())
+                        ) {
+                          years--;
+                        }
+                        
+                        if (years < 5) return false;
+                        
+                        // Voorwaarde 3: Betaald
+                        if (!member.paymentStatus) return false;
+                        
+                        return true;
                       }).length / members.length) * 100)}% van totaal
                     </span>
                   </div>
                   <Progress 
-                    value={Math.round((members.filter(m => {
-                      const age = calculateAge(m.birthDate);
-                      return age !== null && age >= 18;
+                    value={Math.round((members.filter(member => {
+                      // Dezelfde voorwaarden als hierboven
+                      const age = calculateAge(member.birthDate);
+                      if (!age || age < 18) return false;
+                      
+                      const today = new Date();
+                      const regDate = new Date(member.registrationDate);
+                      let years = today.getFullYear() - regDate.getFullYear();
+                      
+                      if (
+                        today.getMonth() < regDate.getMonth() || 
+                        (today.getMonth() === regDate.getMonth() && today.getDate() < regDate.getDate())
+                      ) {
+                        years--;
+                      }
+                      
+                      if (years < 5) return false;
+                      if (!member.paymentStatus) return false;
+                      
+                      return true;
                     }).length / members.length) * 100)} 
                     className="h-2" 
                   />
