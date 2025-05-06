@@ -89,6 +89,34 @@ export default async function handler(req, res) {
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
     
+    // Debug-endpoint om Firebase Admin SDK-configuratie te testen
+    if (req.url.includes('/test-admin-sdk') || req.query.action === 'test-admin-sdk') {
+      console.log("TEST: Firebase Admin SDK configuratie testen");
+      try {
+        const { firebaseAdmin } = require('./firebase-admin');
+        const projectId = firebaseAdmin.app().options.projectId;
+        const credential = firebaseAdmin.app().options.credential;
+        
+        // Probeer een test-lezen uit te voeren
+        const testRead = await firebaseRequest('GET', 'test-admin-sdk-ping');
+        
+        return res.status(200).json({
+          success: true,
+          message: "Firebase Admin SDK is correct geconfigureerd",
+          projectId,
+          hasCredential: !!credential,
+          testRead
+        });
+      } catch (error) {
+        console.error("TEST: Firebase Admin SDK configuratie fout:", error.message);
+        return res.status(500).json({
+          success: false,
+          message: "Firebase Admin SDK configuratiefout",
+          error: error.message
+        });
+      }
+    }
+    
     // Handle OPTIONS (preflight) request
     if (req.method === 'OPTIONS') {
       return res.status(200).end();
