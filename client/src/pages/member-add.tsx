@@ -198,7 +198,7 @@ export default function MemberAdd() {
     onSuccess: () => {
       // Update de cache en navigeer naar de ledenlijst
       queryClient.invalidateQueries({ queryKey: ['/api/members'] });
-      queryClient.invalidateQueries({ queryKey: [`/api/members/${memberId}`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/members/detail`, memberId] });
       toast({
         title: 'Lid bijgewerkt',
         description: "De gegevens van het lid zijn succesvol bijgewerkt.",

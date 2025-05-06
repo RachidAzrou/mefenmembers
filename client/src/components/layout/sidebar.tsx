@@ -57,7 +57,7 @@ export function Sidebar() {
   const menuItems = [
     { icon: Home, label: "Dashboard", href: "/dashboard" },
     { icon: UsersRound, label: "Ledenlijst", href: "/members" },
-    { icon: PlusCircle, label: "Lid toevoegen", href: "/member/add" },
+    { icon: PlusCircle, label: "Lid toevoegen", href: "/member-add" },
     { icon: FileSpreadsheet, label: "Exporteren", href: "/export" },
   ];
 
