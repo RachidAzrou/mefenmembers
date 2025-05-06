@@ -109,12 +109,27 @@ export default function MemberEdit() {
   };
 
   return (
-    <div className="container mx-auto py-6 space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-2xl">Lid zoeken en bewerken</CardTitle>
-          <CardDescription>
-            Zoek een lid om te bewerken op basis van lidnummer, naam of rekeningnummer.
+    <div className="space-y-6">
+      {/* Header section met gradient achtergrond - responsive */}
+      <div className="rounded-lg bg-gradient-to-r from-[#963E56]/80 to-[#963E56] p-4 sm:p-6 shadow-md">
+        <div>
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-white mb-1">
+            Lid zoeken
+          </h1>
+          <p className="text-white/80 text-sm sm:text-base">
+            Zoek een lid om te bewerken op basis van lidnummer, naam of rekeningnummer
+          </p>
+        </div>
+      </div>
+        
+      <Card className="border-none shadow-md overflow-hidden">
+        <div className="bg-gradient-to-r from-gray-100 to-gray-50 h-1" />
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base sm:text-lg flex items-center">
+            <Search className="h-4 w-4 sm:h-5 sm:w-5 mr-2 text-[#963E56]" /> Zoekfunctie
+          </CardTitle>
+          <CardDescription className="text-xs sm:text-sm">
+            Vul de zoekcriteria in om een lid te vinden
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -162,7 +177,7 @@ export default function MemberEdit() {
                                   : "Voer rekeningnummer in"
                               }
                               {...field}
-                              className="pl-10"
+                              className="pl-10 bg-gray-50 focus:bg-white transition-colors"
                             />
                             <Search className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
                           </div>
@@ -177,7 +192,7 @@ export default function MemberEdit() {
               <Button 
                 type="submit" 
                 disabled={isSearching}
-                className="w-full md:w-auto"
+                className="w-full md:w-auto bg-[#963E56] hover:bg-[#7e3447]"
               >
                 {isSearching ? (
                   <>
@@ -185,7 +200,10 @@ export default function MemberEdit() {
                     Zoeken...
                   </>
                 ) : (
-                  "Zoeken"
+                  <>
+                    <Search className="mr-2 h-4 w-4" />
+                    Zoeken
+                  </>
                 )}
               </Button>
             </form>
@@ -195,37 +213,41 @@ export default function MemberEdit() {
 
       {/* Zoekresultaten */}
       {searchResults.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Zoekresultaten</CardTitle>
-            <CardDescription>
+        <Card className="border-none shadow-md overflow-hidden">
+          <div className="bg-gradient-to-r from-gray-100 to-gray-50 h-1" />
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base sm:text-lg flex items-center">
+              <Search className="h-4 w-4 sm:h-5 sm:w-5 mr-2 text-[#963E56]" /> Zoekresultaten
+            </CardTitle>
+            <CardDescription className="text-xs sm:text-sm">
               {searchResults.length} {searchResults.length === 1 ? "lid" : "leden"} gevonden
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="overflow-auto">
+            <div className="overflow-x-auto">
               <table className="w-full border-collapse">
                 <thead>
-                  <tr className="bg-muted/50">
-                    <th className="p-2 text-left">Lidnummer</th>
-                    <th className="p-2 text-left">Naam</th>
-                    <th className="p-2 text-left">Telefoonnummer</th>
-                    <th className="p-2 text-left">E-mail</th>
-                    <th className="p-2 text-left">Acties</th>
+                  <tr className="bg-gray-50">
+                    <th className="text-left p-2 text-sm font-medium text-gray-500">Lidnummer</th>
+                    <th className="text-left p-2 text-sm font-medium text-gray-500">Naam</th>
+                    <th className="text-left p-2 text-sm font-medium text-gray-500">Telefoonnummer</th>
+                    <th className="text-left p-2 text-sm font-medium text-gray-500">E-mail</th>
+                    <th className="text-left p-2 text-sm font-medium text-gray-500">Acties</th>
                   </tr>
                 </thead>
                 <tbody>
                   {searchResults.map((member) => (
-                    <tr key={member.id} className="border-b">
-                      <td className="p-2">{member.memberNumber.toString().padStart(4, '0')}</td>
-                      <td className="p-2">{member.firstName} {member.lastName}</td>
-                      <td className="p-2">{formatPhoneNumber(member.phoneNumber)}</td>
-                      <td className="p-2">{member.email || "-"}</td>
+                    <tr key={member.id} className="border-b hover:bg-gray-50">
+                      <td className="p-2 text-sm">{member.memberNumber.toString().padStart(4, '0')}</td>
+                      <td className="p-2 text-sm font-medium">{member.firstName} {member.lastName}</td>
+                      <td className="p-2 text-sm">{formatPhoneNumber(member.phoneNumber)}</td>
+                      <td className="p-2 text-sm">{member.email || "-"}</td>
                       <td className="p-2">
                         <Button
-                          variant="secondary"
+                          variant="outline"
                           size="sm"
                           onClick={() => handleEditMember(member.id)}
+                          className="border-blue-200 bg-blue-50 hover:bg-blue-100 text-blue-600 text-xs"
                         >
                           Bewerken
                         </Button>

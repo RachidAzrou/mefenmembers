@@ -50,7 +50,7 @@ import { format } from "date-fns";
 import { nl } from "date-fns/locale";
 import { z } from "zod";
 
-// Form schema voor bewerking in dialoog (minder velden)
+// Form schema voor bewerking in dialoog (inclusief geboortedatum)
 const memberEditSchema = insertMemberSchema.extend({
   firstName: z.string().min(1, "Voornaam is verplicht"),
   lastName: z.string().min(1, "Achternaam is verplicht"),
@@ -59,7 +59,8 @@ const memberEditSchema = insertMemberSchema.extend({
   notes: z.string().optional(),
   accountNumber: z.string().optional().nullable(),
   paymentStatus: z.boolean().default(false),
-}).omit({ id: true, memberNumber: true, birthDate: true, registrationDate: true });
+  birthDate: z.string().min(1, "Geboortedatum is verplicht").or(z.literal('')),
+}).omit({ id: true, memberNumber: true, registrationDate: true });
 
 type MemberEditData = z.infer<typeof memberEditSchema>;
 
@@ -238,7 +239,8 @@ export default function MembersList() {
       phoneNumber: viewMember.phoneNumber,
       paymentStatus: viewMember.paymentStatus,
       notes: viewMember.notes || "",
-      accountNumber: viewMember.accountNumber || ""
+      accountNumber: viewMember.accountNumber || "",
+      birthDate: viewMember.birthDate || ""
     });
     
     setEditMode(true);
@@ -817,10 +819,23 @@ export default function MembersList() {
                           )}
                         />
                         
-                        <div className="text-xs text-gray-500 bg-gray-50 p-3 rounded-lg">
-                          <span className="font-medium">Geboortedatum:</span> {formatDate(viewMember.birthDate)}<br />
-                          <span className="text-xs italic">Ga naar de volledige bewerken pagina om de geboortedatum aan te passen.</span>
-                        </div>
+                        <FormField
+                          control={form.control}
+                          name="birthDate"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Geboortedatum</FormLabel>
+                              <FormControl>
+                                <Input 
+                                  type="date" 
+                                  {...field} 
+                                  value={field.value ? new Date(field.value).toISOString().split('T')[0] : ''}
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
                       </div>
                     </div>
                     
@@ -1033,25 +1048,17 @@ export default function MembersList() {
                   <Button 
                     variant="outline" 
                     onClick={() => setViewMember(null)}
-                    className="border-gray-300 text-gray-700 text-xs sm:text-sm w-full sm:w-auto order-3 sm:order-1"
+                    className="border-gray-300 text-gray-700 text-xs sm:text-sm w-full sm:w-auto order-2 sm:order-1"
                   >
                     Sluiten
                   </Button>
                   <Button 
-                    variant="outline"
-                    onClick={handleEnableEditMode}
-                    className="border-blue-200 bg-blue-50 hover:bg-blue-100 text-blue-600 text-xs sm:text-sm w-full sm:w-auto order-2 sm:order-2"
-                  >
-                    <Edit className="mr-2 h-3.5 w-3.5" />
-                    Bewerken in pop-up
-                  </Button>
-                  <Button 
                     variant="default" 
-                    onClick={() => navigate(`/member-add?id=${viewMember.id}`)}
-                    className="bg-[#963E56] hover:bg-[#7e3447] text-white text-xs sm:text-sm w-full sm:w-auto order-1 sm:order-3"
+                    onClick={handleEnableEditMode}
+                    className="bg-[#963E56] hover:bg-[#7e3447] text-white text-xs sm:text-sm w-full sm:w-auto order-1 sm:order-2"
                   >
                     <Edit className="mr-2 h-3.5 w-3.5" />
-                    Volledig bewerken
+                    Bewerken
                   </Button>
                 </div>
               </>
