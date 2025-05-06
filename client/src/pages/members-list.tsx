@@ -96,6 +96,7 @@ export default function MembersList() {
   const [memberToDelete, setMemberToDelete] = useState<Member | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [editMode, setEditMode] = useState(false);
+  const [showDeleteIcons, setShowDeleteIcons] = useState(false); // Nieuwe state voor weergave prullenbakken
   const queryClient = useQueryClient();
   const { toast } = useToast();
   const [activeFilter, setActiveFilter] = useState<"all" | "paid" | "unpaid" | "recent">("all");
@@ -1059,37 +1060,30 @@ export default function MembersList() {
                             : "Niet betaald"}
                         </Badge>
                       </TableCell>
-                      <TableCell className="text-right">
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button 
-                              variant="ghost" 
-                              size="icon" 
-                              className="h-8 w-8"
-                            >
-                              <MoreHorizontal className="h-4 w-4" />
-                              <span className="sr-only">Acties menu</span>
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuLabel>Acties</DropdownMenuLabel>
-                            <DropdownMenuItem 
-                              onClick={() => navigate(`/member-detail?id=${member?.id}`)}
-                              className="cursor-pointer flex items-center"
-                            >
-                              <Eye className="h-4 w-4 mr-2" />
-                              Details bekijken
-                            </DropdownMenuItem>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem 
-                              onClick={() => handleDeleteConfirm(member)}
-                              className="cursor-pointer text-red-600 flex items-center"
-                            >
-                              <Trash2 className="h-4 w-4 mr-2" />
-                              Lid verwijderen
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
+                      <TableCell className="text-right flex items-center justify-end space-x-1">
+                        {/* Prullenbak icon (alleen zichtbaar als showDeleteIcons true is) */}
+                        {showDeleteIcons && (
+                          <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            className="h-8 w-8 text-red-600 hover:text-red-800 hover:bg-red-50" 
+                            onClick={() => handleDeleteConfirm(member)}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                            <span className="sr-only">Lid verwijderen</span>
+                          </Button>
+                        )}
+                      
+                        {/* Acties dropdown */}
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          className="p-2 text-xs flex items-center"
+                          onClick={() => setShowDeleteIcons(!showDeleteIcons)}
+                        >
+                          <span className="mr-1">Acties</span>
+                          <MoreHorizontal className="h-3 w-3" />
+                        </Button>
                       </TableCell>
                     </TableRow>
                   ))
