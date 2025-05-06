@@ -437,7 +437,7 @@ export default function MemberAdd() {
                     ) : nextMemberNumber ? (
                       <span>
                         <span className="font-medium">Volgend lidnummer: </span>
-                        <span className="text-blue-800 font-bold">{String(nextMemberNumber.nextNumber).padStart(4, '0')}</span>
+                        <span className="text-blue-800 font-bold">{String(nextMemberNumber.memberNumber).padStart(4, '0')}</span>
                       </span>
                     ) : (
                       <span>Lidnummer wordt automatisch toegewezen</span>
@@ -795,17 +795,7 @@ export default function MemberAdd() {
                     </div>
                   )}
                   
-                  {/* Toon het volgende beschikbare lidnummer tijdens registratie */}
-                  {!isEditMode && (
-                    <div className="mb-4 p-3 bg-blue-50 rounded-md">
-                      <div className="flex items-center">
-                        <InfoIcon className="h-4 w-4 text-blue-600 mr-2" />
-                        <span className="text-sm font-medium text-blue-800">
-                          Volgend beschikbaar lidnummer: <span className="text-lg font-bold">0005</span>
-                        </span>
-                      </div>
-                    </div>
-                  )}
+                  {/* We hebben het lidnummer al bovenaan het formulier in de CardHeader sectie gezet */}
                 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                     <FormField
