@@ -1577,28 +1577,7 @@ export default function MembersList() {
                     </div>
                   </div>
                   
-                  {isVotingEligible(viewMember) && (
-                    <div className="mt-4 sm:mt-6">
-                      <h3 className="text-base sm:text-lg font-semibold text-gray-700 mb-2 sm:mb-3 flex items-center">
-                        <Vote className="h-4 w-4 sm:h-5 sm:w-5 mr-1.5 sm:mr-2 text-[#963E56]" /> 
-                        Stemrecht
-                      </h3>
-                      
-                      <div className="bg-blue-50 border border-blue-100 p-3 sm:p-4 rounded-lg flex items-start gap-3">
-                        <div className="bg-blue-100 p-2 rounded-full flex-shrink-0">
-                          <Check className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600" />
-                        </div>
-                        <div>
-                          <div className="font-medium text-blue-800">Stemgerechtigd</div>
-                          <div className="text-xs sm:text-sm text-blue-700 mt-1">
-                            Dit lid voldoet aan alle voorwaarden: meerderjarig, 
-                            minstens 5 jaar lid ({calculateMembershipYears(viewMember)} jaar) 
-                            en heeft de jaarlijkse bijdrage betaald.
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  )}
+                  {/* Stemrecht sectie verwijderd - badge wordt nu in de header getoond */}
                   
 
                 </div>
