@@ -44,7 +44,13 @@ export default function MemberDetail() {
   });
   
   // Find the current member from the list - gebruik strict equality (===) voor strings
-  const member = members.find(m => String(m.id) === String(memberId));
+  console.log("Loaded members:", members);
+  console.log("Looking for member ID:", memberId, "type:", typeof memberId);
+  
+  const member = members.find(m => {
+    console.log("Comparing:", m.id, typeof m.id, "with", memberId, typeof memberId);
+    return String(m.id) === String(memberId);
+  });
   
   // Calculate age function
   const calculateAge = (birthDate: string | null): number | null => {
