@@ -182,6 +182,58 @@ export default function MembersList() {
     }
   });
   
+  // Bereken leeftijd functie
+  const calculateAge = (birthDate: string | null): number | null => {
+    if (!birthDate) return null;
+    const today = new Date();
+    const bDate = new Date(birthDate);
+    let age = today.getFullYear() - bDate.getFullYear();
+    const monthDiff = today.getMonth() - bDate.getMonth();
+    
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < bDate.getDate())) {
+      age--;
+    }
+    
+    return age;
+  };
+  
+  // Functie om het aantal lidmaatschapsjaren te berekenen
+  const calculateMembershipYears = (registrationDate: string | Date): number => {
+    if (!registrationDate) return 0;
+    
+    const today = new Date();
+    const regDate = new Date(registrationDate);
+    let years = today.getFullYear() - regDate.getFullYear();
+    
+    // Controleer of de 'verjaardag' van het lidmaatschap al is gepasseerd dit jaar
+    if (
+      today.getMonth() < regDate.getMonth() || 
+      (today.getMonth() === regDate.getMonth() && today.getDate() < regDate.getDate())
+    ) {
+      years--;
+    }
+    
+    return Math.max(0, years);
+  };
+  
+  // Functie om te bepalen of een lid stemgerechtigd is
+  const isVotingEligible = (member: Member): boolean => {
+    // Voorwaarde 1: Meerderjarig (18+)
+    const age = calculateAge(member.birthDate);
+    if (!age || age < 18) return false;
+    
+    // Voorwaarde 2: Minstens 5 jaar aaneensluitend lid
+    const membershipYears = calculateMembershipYears(member.registrationDate);
+    if (membershipYears < 5) return false;
+    
+    // Voorwaarde 3: Elk jaar betaald
+    // Omdat we nog geen betalingsgeschiedenis bijhouden, gebruiken we de huidige betalingsstatus als benadering
+    if (!member.paymentStatus) return false;
+    
+    // Aan alle voorwaarden voldaan
+    return true;
+  };
+
   // Filter leden op basis van zoekopdracht, actieve filter en URL parameters
   const filteredMembers = members.filter(member => {
     // Eerst op zoekopdracht filteren
@@ -240,58 +292,6 @@ export default function MembersList() {
     
     return matchesSearch && matchesFilter;
   });
-
-  // Bereken leeftijd functie
-  const calculateAge = (birthDate: string | null): number | null => {
-    if (!birthDate) return null;
-    const today = new Date();
-    const bDate = new Date(birthDate);
-    let age = today.getFullYear() - bDate.getFullYear();
-    const monthDiff = today.getMonth() - bDate.getMonth();
-    
-    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < bDate.getDate())) {
-      age--;
-    }
-    
-    return age;
-  };
-  
-  // Functie om te bepalen of een lid stemgerechtigd is
-  const isVotingEligible = (member: Member): boolean => {
-    // Voorwaarde 1: Meerderjarig (18+)
-    const age = calculateAge(member.birthDate);
-    if (!age || age < 18) return false;
-    
-    // Voorwaarde 2: Minstens 5 jaar aaneensluitend lid
-    const membershipYears = calculateMembershipYears(member.registrationDate);
-    if (membershipYears < 5) return false;
-    
-    // Voorwaarde 3: Elk jaar betaald
-    // Omdat we nog geen betalingsgeschiedenis bijhouden, gebruiken we de huidige betalingsstatus als benadering
-    if (!member.paymentStatus) return false;
-    
-    // Aan alle voorwaarden voldaan
-    return true;
-  };
-  
-  // Functie om het aantal lidmaatschapsjaren te berekenen
-  const calculateMembershipYears = (registrationDate: string | Date): number => {
-    if (!registrationDate) return 0;
-    
-    const today = new Date();
-    const regDate = new Date(registrationDate);
-    let years = today.getFullYear() - regDate.getFullYear();
-    
-    // Controleer of de 'verjaardag' van het lidmaatschap al is gepasseerd dit jaar
-    if (
-      today.getMonth() < regDate.getMonth() || 
-      (today.getMonth() === regDate.getMonth() && today.getDate() < regDate.getDate())
-    ) {
-      years--;
-    }
-    
-    return Math.max(0, years);
-  };
   
   // Sorteer de gefilterde leden
   const sortedMembers = [...filteredMembers].sort((a, b) => {

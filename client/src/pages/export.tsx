@@ -162,10 +162,14 @@ const FIELDS = [
   { id: "birthDate", label: "Geb.datum", enabled: true },
   { id: "email", label: "E-mail", enabled: true },
   { id: "phoneNumber", label: "Telefoon", enabled: true },
-  { id: "accountNumber", label: "Rekening", enabled: true },
+  { id: "gender", label: "Geslacht", enabled: true },
+  { id: "membershipType", label: "Lidmaatschapstype", enabled: true },
+  { id: "postalCode", label: "Postcode", enabled: true },
+  { id: "accountNumber", label: "IBAN", enabled: true },
   { id: "paymentStatus", label: "Betaald", enabled: true },
-  { id: "registrationDate", label: "Reg.datum", enabled: true },
-  { id: "notes", label: "Notities", enabled: true },
+  { id: "paymentMethod", label: "Betalingswijze", enabled: true },
+  { id: "paymentTerm", label: "Betalingstermijn", enabled: true },
+  { id: "votingEligible", label: "Stemgerechtigd", enabled: true }
 ];
 
 export default function ExportPage() {
@@ -212,6 +216,39 @@ export default function ExportPage() {
     );
   };
   
+  // Helper functies voor leeftijd en lidmaatschapsduur berekening
+  const calculateAge = (birthDate: string | null): number | null => {
+    if (!birthDate) return null;
+    const today = new Date();
+    const bDate = new Date(birthDate);
+    let age = today.getFullYear() - bDate.getFullYear();
+    const monthDiff = today.getMonth() - bDate.getMonth();
+    
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < bDate.getDate())) {
+      age--;
+    }
+    
+    return age;
+  };
+  
+  const calculateMembershipYears = (registrationDate: string | Date): number => {
+    if (!registrationDate) return 0;
+    
+    const today = new Date();
+    const regDate = new Date(registrationDate);
+    let years = today.getFullYear() - regDate.getFullYear();
+    
+    // Controleer of de 'verjaardag' van het lidmaatschap al is gepasseerd dit jaar
+    if (
+      today.getMonth() < regDate.getMonth() || 
+      (today.getMonth() === regDate.getMonth() && today.getDate() < regDate.getDate())
+    ) {
+      years--;
+    }
+    
+    return Math.max(0, years);
+  };
+
   // Exporteer naar Excel
   const exportToExcel = () => {
     // Bouw de export data
@@ -232,6 +269,28 @@ export default function ExportPage() {
               break;
             case "paymentStatus":
               memberData[field.label] = member.paymentStatus ? "Betaald" : "Niet betaald";
+              break;
+            case "gender":
+              memberData[field.label] = member.gender || "";
+              break;
+            case "membershipType":
+              memberData[field.label] = member.membershipType || "";
+              break;
+            case "postalCode":
+              memberData[field.label] = member.postalCode || "";
+              break;
+            case "paymentMethod":
+              memberData[field.label] = member.paymentMethod || "";
+              break;
+            case "paymentTerm":
+              memberData[field.label] = member.paymentTerm || "";
+              break;
+            case "votingEligible":
+              // Bepaal of het lid stemgerechtigd is
+              const age = calculateAge(member.birthDate);
+              const membershipYears = calculateMembershipYears(member.registrationDate);
+              const isEligible = age !== null && age >= 18 && membershipYears >= 5 && member.paymentStatus;
+              memberData[field.label] = isEligible ? "Ja" : "Nee";
               break;
             default:
               memberData[field.label] = member[field.id as keyof Member] || "";
