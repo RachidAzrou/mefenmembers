@@ -200,14 +200,27 @@ export default function MembersList() {
     mutationFn: async (data: MemberEditData) => {
       if (!viewMember) return null;
       
-      const response = await apiRequest('PUT', `/api/members?id=${viewMember.id}`, data);
-      
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Onbekende API fout');
+      try {
+        console.log("Versturen data naar API:", data);
+        const response = await apiRequest('PUT', `/api/members?id=${viewMember.id}`, data);
+        
+        if (!response.ok) {
+          const errorData = await response.text();
+          console.error("API Error response:", errorData);
+          
+          try {
+            const parsedError = JSON.parse(errorData);
+            throw new Error(parsedError.error || 'Onbekende API fout');
+          } catch (e) {
+            throw new Error(`API fout (${response.status}): ${errorData || 'Geen details beschikbaar'}`);
+          }
+        }
+        
+        return response.json();
+      } catch (error) {
+        console.error("Error in updateMemberMutation:", error);
+        throw error;
       }
-      
-      return response.json();
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['/api/members'] });
@@ -219,6 +232,7 @@ export default function MembersList() {
       });
     },
     onError: (error) => {
+      console.error("Mutation error:", error);
       toast({
         title: "Fout bij bijwerken",
         description: `Er is een fout opgetreden: ${error instanceof Error ? error.message : 'Onbekende fout'}`,
@@ -251,7 +265,34 @@ export default function MembersList() {
   };
   
   const handleSaveEdit = (data: MemberEditData) => {
-    updateMemberMutation.mutate(data);
+    console.log("Saving member data:", data);
+    
+    // Zorg ervoor dat de vorm van geboortedatum consistent is
+    // Als deze als ISO string of als datum object binnenkomt, normaliseren we het hier
+    try {
+      if (data.birthDate) {
+        console.log("Original birthDate format:", data.birthDate);
+        const formattedData = {
+          ...data,
+          // Zorg dat het altijd een ISO string is
+          birthDate: typeof data.birthDate === 'object' 
+            ? (data.birthDate as Date).toISOString()
+            : data.birthDate
+        };
+        console.log("Formatted data to submit:", formattedData);
+        updateMemberMutation.mutate(formattedData);
+      } else {
+        console.log("No birthDate provided, submitting as is");
+        updateMemberMutation.mutate(data);
+      }
+    } catch (error) {
+      console.error("Error in handleSaveEdit:", error);
+      toast({
+        title: "Fout bij verwerken formulier",
+        description: "Er is een fout opgetreden bij het verwerken van de geboortedatum. Probeer het opnieuw.",
+        variant: "destructive"
+      });
+    }
   };
   
   // Functie om lid verwijderen te bevestigen
@@ -867,7 +908,8 @@ export default function MembersList() {
                                 return null;
                               }
                               
-                              return date.toISOString().split('T')[0]; // Retourneer als YYYY-MM-DD string
+                              // Retourneer het volledige ISO-string formaat, zoals de server verwacht
+                              return date.toISOString();
                             };
                             
                             // Verwerk input wijziging
@@ -886,14 +928,20 @@ export default function MembersList() {
                             // Verwerk blur event (als gebruiker het veld verlaat)
                             const handleBlur = () => {
                               if (dateInput) {
+                                console.log("DateInput waarde bij blur:", dateInput);
                                 const parsedDate = validateAndParseDate(dateInput);
+                                console.log("Parsed date result:", parsedDate);
+                                
                                 if (parsedDate) {
+                                  console.log("Setting field value to:", parsedDate);
                                   field.onChange(parsedDate);
                                 } else {
                                   // Als datum ongeldig is, reset naar vorige geldige waarde
+                                  console.log("Invalid date, resetting to previous value");
                                   setDateInput(field.value ? format(new Date(field.value), "dd/MM/yyyy") : "");
                                 }
                               } else {
+                                console.log("Empty date input, setting field to undefined");
                                 field.onChange(undefined);
                               }
                             };
