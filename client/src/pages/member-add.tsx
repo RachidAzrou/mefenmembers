@@ -14,7 +14,10 @@ import {
   Trash2,
   UserPlus,
   ScrollText,
-  Info as InfoIcon
+  Info as InfoIcon,
+  CheckCircle,
+  UserCircle,
+  PlusCircle
 } from "lucide-react";
 import { 
   Form, 
@@ -165,6 +168,19 @@ export default function MemberAdd() {
     }
   });
   
+  // Ophalen van het volgende beschikbare lidnummer
+  const { data: nextMemberNumber, isLoading: isLoadingNextNumber } = useQuery({
+    queryKey: ['/api/members/generate-number'],
+    queryFn: async () => {
+      const response = await apiRequest('GET', '/api/members/generate-number');
+      if (!response.ok) {
+        throw new Error(`API responded with status ${response.status}`);
+      }
+      return await response.json();
+    },
+    enabled: !isEditMode // Alleen uitvoeren als we in toevoegmodus zijn
+  });
+
   // Ophalen van lidgegevens bij bewerken
   const { data: memberData, isLoading: isLoadingMember, error: memberError } = useQuery<Member>({
     queryKey: [`/api/members/detail`, memberId],
@@ -408,7 +424,28 @@ export default function MemberAdd() {
               <span className="text-destructive">*</span> zijn verplicht.
             </CardDescription>
             
-
+            {!isEditMode && (
+              <div className="mt-4 flex items-center">
+                <div className="bg-blue-50 border border-blue-100 rounded-md p-2 sm:p-3 flex items-center text-sm">
+                  <InfoIcon className="h-4 w-4 text-blue-600 mr-2 shrink-0" />
+                  <span>
+                    {isLoadingNextNumber ? (
+                      <span className="flex items-center">
+                        <Loader2 className="h-3 w-3 animate-spin text-muted-foreground mr-2" />
+                        Lidnummer wordt opgehaald...
+                      </span>
+                    ) : nextMemberNumber ? (
+                      <span>
+                        <span className="font-medium">Volgend lidnummer: </span>
+                        <span className="text-blue-800 font-bold">{String(nextMemberNumber.nextNumber).padStart(4, '0')}</span>
+                      </span>
+                    ) : (
+                      <span>Lidnummer wordt automatisch toegewezen</span>
+                    )}
+                  </span>
+                </div>
+              </div>
+            )}
           </CardHeader>
           <CardContent className="px-4 sm:px-6">
             <Form {...form}>
