@@ -1108,21 +1108,20 @@ export default function MembersList() {
                   </div>
                   
                   {isVotingEligible(viewMember) && (
-                    <div className="bg-blue-800/30 py-1 px-3 rounded-lg border border-blue-300/30 flex items-center">
+                    <div className="bg-[#963E56]/20 py-1.5 px-3 rounded-full border border-[#963E56]/30 flex items-center gap-1.5">
                       <svg 
                         viewBox="0 0 24 24" 
                         fill="none" 
-                        xmlns="http://www.w3.org/2000/svg" 
-                        className="h-4 w-4 mr-1.5 text-blue-300"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
+                        stroke="currentColor" 
+                        strokeWidth="2.5" 
+                        strokeLinecap="round" 
+                        strokeLinejoin="round" 
+                        className="h-4 w-4 text-[#963E56]"
                       >
-                        <path d="M20 4v7a4 4 0 0 1-4 4H4" />
-                        <polyline points="14 15l-3 3 3 3" />
+                        <path d="m9 12 2 2 4-4" />
+                        <path d="M12 3c-1.2 0-2.4.6-3 1.7A3.6 3.6 0 0 0 4.6 9c-1 .6-1.7 1.8-1.7 3s.7 2.4 1.7 3c-.3 1.2 0 2.5 1 3.4.8.8 2.1 1.2 3.3 1 .6 1 1.8 1.6 3 1.6s2.4-.6 3-1.7c1.2.3 2.5 0 3.4-1 .8-.8 1.2-2 1-3.3 1-.6 1.7-1.8 1.7-3s-.7-2.4-1.7-3c.3-1.2 0-2.5-1-3.4a3.7 3.7 0 0 0-3.3-1c-.6-1-1.8-1.6-3-1.6Z" />
                       </svg>
-                      <span className="text-xs text-blue-100 font-medium">Stemgerechtigd</span>
+                      <span className="text-xs text-[#963E56] font-medium">Stemgerechtigd</span>
                     </div>
                   )}
                 </div>
