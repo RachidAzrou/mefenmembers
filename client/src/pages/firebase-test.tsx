@@ -47,24 +47,73 @@ export default function FirebaseTest() {
       }
       
       console.log('Testing client access to Firebase...');
-      const timestamp = new Date().toISOString();
-      const testData = { test: true, timestamp, uid: user.uid };
       
-      // Schrijf naar de database
-      const testRef = ref(db, 'client-test');
-      await set(testRef, testData);
-      console.log('Data written to Firebase');
-      
-      // Lees terug van de database
-      const snapshot = await get(testRef);
-      const result = snapshot.val();
-      console.log('Data read from Firebase:', result);
-      
-      setClientResult({
-        wrote: testData,
-        read: result,
-        success: true,
+      // Debug info tonen
+      console.log('Firebase config:', {
+        databaseURL: (db as any)._app.options.databaseURL,
+        projectId: (db as any)._app.options.projectId,
+        authDomain: (db as any)._app.options.authDomain,
       });
+      
+      const timestamp = new Date().toISOString();
+      const testData = { 
+        test: true, 
+        timestamp, 
+        uid: user.uid,
+        email: user.email 
+      };
+      
+      // Test pad dat werkt met open Firebase regels
+      const testPath = `client-tests/${user.uid}`;
+      console.log(`Schrijven naar Firebase pad: ${testPath}`);
+      
+      try {
+        // Schrijf naar de database
+        const testRef = ref(db, testPath);
+        await set(testRef, testData);
+        console.log('Data succesvol geschreven naar Firebase');
+        
+        // Lees terug van de database
+        const snapshot = await get(testRef);
+        const result = snapshot.val();
+        console.log('Data succesvol gelezen van Firebase:', result);
+        
+        setClientResult({
+          wrote: testData,
+          read: result,
+          success: true,
+        });
+      } catch (writeError) {
+        console.error('Firebase schrijf/lees error:', writeError);
+        
+        // Als direct schrijven niet lukt, probeer de REST API te gebruiken
+        try {
+          console.log('Proberen via REST API...');
+          const response = await fetch(`${(db as any)._app.options.databaseURL}/${testPath}.json`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(testData)
+          });
+          
+          if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(`Firebase REST API error: ${response.status} ${response.statusText} - ${errorText}`);
+          }
+          
+          const result = await response.json();
+          console.log('REST API resultaat:', result);
+          
+          setClientResult({
+            wrote: testData,
+            read: result,
+            success: true,
+            note: 'Gebruikt REST API als fallback'
+          });
+        } catch (restError) {
+          console.error('REST API error:', restError);
+          throw new Error(`Firebase schrijven mislukt: ${writeError.message}. REST API fallback mislukt: ${restError.message}`);
+        }
+      }
     } catch (error) {
       console.error('Client test error:', error);
       setClientError(error instanceof Error ? error.message : String(error));
