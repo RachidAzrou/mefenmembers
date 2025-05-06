@@ -340,6 +340,28 @@ export default function ExportPage() {
             case "paymentStatus":
               memberData[field.label] = member.paymentStatus ? "Betaald" : "Niet betaald";
               break;
+            case "gender":
+              memberData[field.label] = member.gender || "";
+              break;
+            case "membershipType":
+              memberData[field.label] = member.membershipType || "";
+              break;
+            case "postalCode":
+              memberData[field.label] = member.postalCode || "";
+              break;
+            case "paymentMethod":
+              memberData[field.label] = member.paymentMethod || "";
+              break;
+            case "paymentTerm":
+              memberData[field.label] = member.paymentTerm || "";
+              break;
+            case "votingEligible":
+              // Bepaal of het lid stemgerechtigd is
+              const age = calculateAge(member.birthDate);
+              const membershipYears = calculateMembershipYears(member.registrationDate);
+              const isEligible = age !== null && age >= 18 && membershipYears >= 5 && member.paymentStatus;
+              memberData[field.label] = isEligible ? "Ja" : "Nee";
+              break;
             default:
               memberData[field.label] = member[field.id as keyof Member] || "";
           }
@@ -402,9 +424,29 @@ export default function ExportPage() {
           // Datums hebben een vaste lengte
           columnWidths[field.id] = isCompact ? "9%" : "10%";
           break;
-        case "registrationDate":
-          // Registratiedatum maken we korter
-          columnWidths[field.id] = isCompact ? "8%" : "9%";
+        case "gender":
+          // Geslacht is kort
+          columnWidths[field.id] = isCompact ? "6%" : "7%";
+          break;
+        case "membershipType":
+          // Lidmaatschapstype kan variëren
+          columnWidths[field.id] = isCompact ? "10%" : "12%";
+          break;
+        case "postalCode":
+          // Postcode is vrij kort
+          columnWidths[field.id] = isCompact ? "7%" : "8%";
+          break;
+        case "paymentMethod":
+          // Betalingswijze is gemiddeld
+          columnWidths[field.id] = isCompact ? "9%" : "10%";
+          break;
+        case "paymentTerm":
+          // Betalingstermijn is gemiddeld
+          columnWidths[field.id] = isCompact ? "9%" : "10%";
+          break;
+        case "votingEligible":
+          // Stemgerechtigd ja/nee is kort
+          columnWidths[field.id] = isCompact ? "7%" : "8%";
           break;
         case "paymentStatus":
           // Status heeft alleen ✓ of ✗, dus zeer compact
@@ -419,10 +461,6 @@ export default function ExportPage() {
           break;
         case "accountNumber":
           columnWidths[field.id] = isCompact ? "12%" : "14%";
-          break;
-        case "notes":
-          // Notities compacter maken als er veel velden zijn
-          columnWidths[field.id] = isCompact ? "12%" : "16%";
           break;
         default:
           columnWidths[field.id] = isCompact ? "8%" : "10%";
@@ -506,14 +544,48 @@ export default function ExportPage() {
                   switch (field.id) {
                     case "birthDate":
                       // Compacte datumnotatie: DD-MM-YYYY
-                      const bdate = new Date(member.birthDate);
+                      const bdate = new Date(member.birthDate || "");
                       value = member.birthDate ? `${bdate.getDate().toString().padStart(2, '0')}-${(bdate.getMonth() + 1).toString().padStart(2, '0')}-${bdate.getFullYear()}` : "";
                       break;
                     case "registrationDate":
                       // Compacte datumnotatie: DD-MM-YYYY
-                      const rdate = new Date(member.registrationDate);
+                      const rdate = new Date(member.registrationDate || "");
                       value = `${rdate.getDate().toString().padStart(2, '0')}-${(rdate.getMonth() + 1).toString().padStart(2, '0')}-${rdate.getFullYear()}`;
                       break;
+                    case "gender":
+                      value = member.gender || "";
+                      break;
+                    case "membershipType":
+                      value = member.membershipType || "";
+                      break;
+                    case "postalCode":
+                      value = member.postalCode || "";
+                      break;
+                    case "paymentMethod":
+                      value = member.paymentMethod || "";
+                      break;
+                    case "paymentTerm":
+                      value = member.paymentTerm || "";
+                      break;
+                    case "votingEligible":
+                      // Bepaal of het lid stemgerechtigd is
+                      const age = calculateAge(member.birthDate);
+                      const membershipYears = calculateMembershipYears(member.registrationDate);
+                      const isEligible = age !== null && age >= 18 && membershipYears >= 5 && member.paymentStatus;
+                      value = isEligible ? "Ja" : "Nee";
+                      return (
+                        <Text 
+                          key={field.id} 
+                          style={{
+                            ...styles.tableCell,
+                            width: columnWidths[field.id],
+                            textAlign: 'center',
+                            color: isEligible ? '#046c4e' : '#6b7280'
+                          }}
+                        >
+                          {value}
+                        </Text>
+                      );
                     case "paymentStatus":
                       value = member.paymentStatus ? "✓" : "✗";
                       return (
@@ -573,56 +645,7 @@ export default function ExportPage() {
         </p>
       </div>
       
-      {/* Statistieken */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-        <Card className="bg-blue-50 border-blue-100 shadow-sm">
-          <CardContent className="p-3 sm:p-4 flex items-center space-x-3 sm:space-x-4">
-            <div className="rounded-full bg-blue-100 p-2 sm:p-3">
-              <FileText className="h-4 w-4 sm:h-5 sm:w-5 text-blue-700" />
-            </div>
-            <div>
-              <p className="text-xs sm:text-sm font-medium text-blue-900">Totaal leden</p>
-              <p className="text-xl sm:text-2xl font-bold text-blue-700">
-                {isLoading ? 
-                  <Skeleton className="h-6 sm:h-8 w-12 sm:w-16" /> : 
-                  members.length
-                }
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card className="bg-green-50 border-green-100 shadow-sm">
-          <CardContent className="p-3 sm:p-4 flex items-center space-x-3 sm:space-x-4">
-            <div className="rounded-full bg-green-100 p-2 sm:p-3">
-              <FileText className="h-4 w-4 sm:h-5 sm:w-5 text-green-700" />
-            </div>
-            <div>
-              <p className="text-xs sm:text-sm font-medium text-green-900">Betaald</p>
-              <p className="text-xl sm:text-2xl font-bold text-green-700">
-                {isLoading ? 
-                  <Skeleton className="h-6 sm:h-8 w-12 sm:w-16" /> : 
-                  members.filter(m => m.paymentStatus).length
-                }
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card className="bg-purple-50 border-purple-100 shadow-sm sm:col-span-2 md:col-span-1">
-          <CardContent className="p-3 sm:p-4 flex items-center space-x-3 sm:space-x-4">
-            <div className="rounded-full bg-purple-100 p-2 sm:p-3">
-              <FileSpreadsheet className="h-4 w-4 sm:h-5 sm:w-5 text-purple-700" />
-            </div>
-            <div>
-              <p className="text-xs sm:text-sm font-medium text-purple-900">Velden geselecteerd</p>
-              <p className="text-xl sm:text-2xl font-bold text-purple-700">
-                {exportFields.filter(f => f.enabled).length} / {exportFields.length}
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+
       
       {/* Tabbladen voor de verschillende exportformaten - verbeterd voor mobiel */}
       <Card className="overflow-hidden border-none shadow-md">
