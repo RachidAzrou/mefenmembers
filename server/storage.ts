@@ -250,68 +250,93 @@ export class DatabaseStorage implements IStorage {
     console.log("Zoeken naar het volgende beschikbare lidnummer");
     
     try {
-      // Haal het oudste verwijderde lidnummer op (het nummer dat het langst geleden is verwijderd)
+      // Stap 1: Controleer eerst of er verwijderde lidnummers beschikbaar zijn
       const deletedNumbers = await db.select()
         .from(deletedMemberNumbers)
         .orderBy(asc(deletedMemberNumbers.deletedAt));
       
       console.log(`Aantal gevonden verwijderde lidnummers: ${deletedNumbers.length}`);
       
-      if (deletedNumbers.length === 0) {
-        // Geen verwijderde nummers beschikbaar, genereer een nieuw nummer
-        const existingMembers = await db.select({ memberNumber: members.memberNumber })
+      // Stap 2: Als er verwijderde nummers zijn, gebruik het oudste verwijderde nummer
+      if (deletedNumbers.length > 0) {
+        const oldestDeletedNumber = deletedNumbers[0];
+        console.log(`Poging tot hergebruik verwijderd lidnummer: ${oldestDeletedNumber.memberNumber} (ID: ${oldestDeletedNumber.id})`);
+        
+        // Stap 3: Controleer of het lidnummer niet al in gebruik is (extra veiligheidscheck)
+        const existingMember = await db.select()
           .from(members)
-          .orderBy(desc(members.memberNumber))
+          .where(eq(members.memberNumber, oldestDeletedNumber.memberNumber))
           .limit(1);
         
-        // Als er al leden zijn, neem het hoogste lidnummer + 1
-        // Anders begin bij 1
-        const highestMemberNumber = existingMembers.length > 0 ? existingMembers[0].memberNumber : 0;
-        const nextNumber = highestMemberNumber + 1;
+        if (existingMember.length > 0) {
+          console.log(`Let op: Lidnummer ${oldestDeletedNumber.memberNumber} is al in gebruik! Verwijder dit uit de deleted_member_numbers tabel.`);
+          
+          // Verwijder dit nummer uit de lijst van verwijderde nummers, omdat het al in gebruik is
+          await this.removeDeletedMemberNumber(oldestDeletedNumber.memberNumber);
+          
+          // Probeer het opnieuw (recursief) voor het volgende beschikbare nummer
+          return this.getNextAvailableMemberNumber();
+        }
         
-        console.log(`Geen verwijderde nummers beschikbaar, nieuw nummer gegenereerd: ${nextNumber}`);
-        return nextNumber;
-      }
-      
-      // Gebruik het oudste verwijderde nummer
-      const oldestDeletedNumber = deletedNumbers[0];
-      console.log(`Hergebruik verwijderd lidnummer: ${oldestDeletedNumber.memberNumber} (ID: ${oldestDeletedNumber.id})`);
-      
-      // Controleer of het lidnummer niet al in gebruik is (extra veiligheidscheck)
-      const existingMember = await db.select()
-        .from(members)
-        .where(eq(members.memberNumber, oldestDeletedNumber.memberNumber))
-        .limit(1);
-      
-      if (existingMember.length > 0) {
-        console.log(`Let op: Lidnummer ${oldestDeletedNumber.memberNumber} is al in gebruik! Verwijder deze uit de deleted_member_numbers tabel.`);
-        
-        // Verwijder dit nummer uit de lijst van verwijderde nummers, omdat het al in gebruik is
+        // Stap 4: Als het nummer niet in gebruik is, verwijder het uit de tabel met verwijderde nummers
+        console.log(`Hergebruik verwijderd lidnummer: ${oldestDeletedNumber.memberNumber}`);
         await this.removeDeletedMemberNumber(oldestDeletedNumber.memberNumber);
         
-        // Probeer het opnieuw (recursief) voor het volgende beschikbare nummer
-        return this.getNextAvailableMemberNumber();
+        // Stap 5: Retourneer het beschikbare nummer
+        return oldestDeletedNumber.memberNumber;
       }
       
-      // Verwijder dit nummer uit de lijst van verwijderde nummers, zodat het niet opnieuw wordt gebruikt
-      await this.removeDeletedMemberNumber(oldestDeletedNumber.memberNumber);
+      // Stap 6: Als er geen verwijderde nummers zijn, zoek het hoogste lidnummer in de database
+      console.log("Geen verwijderde nummers gevonden, zoeken naar hoogste bestaande lidnummer");
+      const allMemberNumbers = await db.select({ memberNumber: members.memberNumber })
+        .from(members)
+        .orderBy(desc(members.memberNumber));
       
-      // Retourneer het beschikbare nummer
-      return oldestDeletedNumber.memberNumber;
+      // Verzamel alle lidnummers om een gat in de nummerreeks te vinden
+      const usedNumbers = allMemberNumbers.map(m => m.memberNumber).sort((a, b) => a - b);
+      console.log(`Bestaande lidnummers: ${usedNumbers.join(', ') || 'geen'}`);
+      
+      // Stap 7: Zoek het eerste ontbrekende nummer in de reeks, of gebruik het volgende beschikbare nummer
+      let nextNumber = 1; // Begin standaard bij 1
+      
+      if (usedNumbers.length > 0) {
+        // Zoek een gat in de reeks
+        let foundGap = false;
+        for (let i = 0; i < usedNumbers.length; i++) {
+          // Als we een gat vinden (verwachte nummer is niet het feitelijke nummer)
+          if (i + 1 !== usedNumbers[i]) {
+            nextNumber = i + 1;
+            foundGap = true;
+            console.log(`Gat gevonden in de lidnummerreeks bij ${nextNumber}`);
+            break;
+          }
+        }
+        
+        // Als er geen gat is gevonden, gebruik het volgende nummer na het hoogste
+        if (!foundGap) {
+          nextNumber = usedNumbers[usedNumbers.length - 1] + 1;
+        }
+      }
+      
+      console.log(`Nieuw lidnummer gegenereerd: ${nextNumber}`);
+      return nextNumber;
     } catch (error) {
       console.error("Fout bij het ophalen van het volgende beschikbare lidnummer:", error);
       
-      // Fallback naar het genereren van een nieuw nummer
-      const existingMembers = await db.select({ memberNumber: members.memberNumber })
-        .from(members)
-        .orderBy(desc(members.memberNumber))
-        .limit(1);
-      
-      const highestMemberNumber = existingMembers.length > 0 ? existingMembers[0].memberNumber : 0;
-      const nextNumber = highestMemberNumber + 1;
-      
-      console.log(`Fallback naar nieuw nummer: ${nextNumber}`);
-      return nextNumber;
+      // Fallback naar een eenvoudigere methode voor het genereren van een nieuw nummer
+      try {
+        const result = await db.execute<{ next_number: number }>(
+          sql`SELECT COALESCE(MAX(${members.memberNumber}), 0) + 1 AS next_number FROM ${members}`
+        );
+        
+        const nextNumber = result.rows[0]?.next_number || 1;
+        console.log(`Fallback naar nieuw nummer: ${nextNumber}`);
+        return nextNumber;
+      } catch (fallbackError) {
+        console.error("Fallback methode faalde ook:", fallbackError);
+        // Als alle methoden falen, begin dan gewoon bij 1
+        return 1;
+      }
     }
   }
   
