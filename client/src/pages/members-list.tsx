@@ -222,14 +222,76 @@ export default function MembersList() {
         throw error;
       }
     },
-    onSuccess: (data) => {
+    onSuccess: async (data) => {
+      // Refresh de query cache zonder de huidige pagina te verlaten
       queryClient.invalidateQueries({ queryKey: ['/api/members'] });
-      setViewMember(data);
-      setEditMode(false);
-      toast({
-        title: "Lid bijgewerkt",
-        description: "De gegevens zijn succesvol bijgewerkt.",
-      });
+      
+      try {
+        // Update de lokale state met de bijgewerkte data
+        // Voeg extra bescherming toe tegen undefined data
+        if (data) {
+          console.log("Update successful, received data:", data);
+          
+          // Gebruik ook een try/catch voor het bijwerken van viewMember om te voorkomen dat de staat inconsistent wordt
+          setViewMember(data);
+          
+          // Sluit edit mode alleen als setViewMember succesvol was
+          setEditMode(false);
+          
+          toast({
+            title: "Lid bijgewerkt",
+            description: "De gegevens zijn succesvol bijgewerkt.",
+          });
+          
+          // Forceer ook een re-render van de lijst door deze te vernieuwen
+          void queryClient.refetchQueries({ queryKey: ['/api/members'] });
+        } else {
+          console.warn("Update successful but no data returned");
+          
+          try {
+            // Als we geen data terug krijgen, halen we het lid direct op
+            if (viewMember?.id) {
+              const response = await apiRequest('GET', `/api/members?id=${viewMember.id}`);
+              
+              if (response.ok) {
+                const updatedMember = await response.json();
+                if (updatedMember) {
+                  console.log("Fetched updated member:", updatedMember);
+                  setViewMember(updatedMember);
+                }
+              }
+            }
+          } catch (fetchError) {
+            console.error("Error fetching updated member:", fetchError);
+          }
+          
+          // Het is veilig om de edit modus te sluiten, ongeacht of we de data opnieuw konden ophalen
+          setEditMode(false);
+          
+          // Refresh de query direct om de laatste data op te halen
+          void queryClient.refetchQueries({ queryKey: ['/api/members'] });
+          
+          toast({
+            title: "Lid bijgewerkt",
+            description: "De gegevens zijn succesvol bijgewerkt.",
+          });
+        }
+      } catch (error) {
+        console.error("Error in onSuccess handler:", error);
+        
+        // Als er iets misgaat in onze onSuccess handler, gaan we toch uit de edit mode
+        // maar we tonen een waarschuwing
+        setEditMode(false);
+        
+        toast({
+          title: "Lid bijgewerkt",
+          description: "De gegevens zijn bijgewerkt, maar er was een probleem met het vernieuwen van de pagina. Vernieuw handmatig om de wijzigingen te zien.",
+          variant: "destructive"
+        });
+        
+        // Zorg er in ieder geval voor dat de data opnieuw wordt opgehaald
+        void queryClient.refetchQueries({ queryKey: ['/api/members'] });
+      }
     },
     onError: (error) => {
       console.error("Mutation error:", error);
@@ -267,24 +329,48 @@ export default function MembersList() {
   const handleSaveEdit = (data: MemberEditData) => {
     console.log("Saving member data:", data);
     
-    // Zorg ervoor dat de vorm van geboortedatum consistent is
-    // Als deze als ISO string of als datum object binnenkomt, normaliseren we het hier
+    // Zorg ervoor dat de vorm van geboortedatum een Date object is,
+    // zoals het schema verwacht (z.coerce.date())
     try {
+      const formattedData = { ...data };
+      
       if (data.birthDate) {
         console.log("Original birthDate format:", data.birthDate);
-        const formattedData = {
-          ...data,
-          // Zorg dat het altijd een ISO string is
-          birthDate: typeof data.birthDate === 'object' 
-            ? (data.birthDate as Date).toISOString()
-            : data.birthDate
-        };
-        console.log("Formatted data to submit:", formattedData);
-        updateMemberMutation.mutate(formattedData);
-      } else {
-        console.log("No birthDate provided, submitting as is");
-        updateMemberMutation.mutate(data);
+        
+        // Probeer een Date object te maken uit de birthDate waarde
+        try {
+          if (typeof data.birthDate === 'string') {
+            // Converteer string naar Date object, maar stuur de toString() versie door
+            // omdat het schema verwacht een string te krijgen die het kan omzetten met z.coerce.date()
+            const dateObj = new Date(data.birthDate);
+            
+            if (!isNaN(dateObj.getTime())) {
+              // Het schema verwacht een string die het kan parsen naar een datum
+              formattedData.birthDate = data.birthDate; // Houd originele string
+              console.log("Using original date string:", formattedData.birthDate);
+            } else {
+              console.error("Invalid date string:", data.birthDate);
+              toast({
+                title: "Ongeldige datum",
+                description: "De opgegeven geboortedatum is ongeldig.",
+                variant: "destructive"
+              });
+              return;
+            }
+          }
+        } catch (dateError) {
+          console.error("Error converting birthDate to Date:", dateError);
+          toast({
+            title: "Fout bij verwerken geboortedatum",
+            description: "De geboortedatum heeft een ongeldig formaat. Controleer en probeer opnieuw.",
+            variant: "destructive"
+          });
+          return;
+        }
       }
+      
+      console.log("Formatted data to submit:", formattedData);
+      updateMemberMutation.mutate(formattedData);
     } catch (error) {
       console.error("Error in handleSaveEdit:", error);
       toast({

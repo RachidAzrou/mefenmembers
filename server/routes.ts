@@ -98,12 +98,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!id || isNaN(id)) {
         return res.status(400).json({ error: "Invalid or missing ID parameter" });
       }
-
+      
+      console.log("Updating member with ID:", id);
+      console.log("Received update data:", req.body);
+      
+      // Zorg voor correcte formattering van de geboortedatum als deze aanwezig is
+      let requestData = { ...req.body };
+      
+      if (requestData.birthDate) {
+        try {
+          // Probeer datum consistentie te garanderen
+          if (typeof requestData.birthDate === 'string') {
+            // Valideer en parse datum als ISO string, verwijder tijd component als die er is
+            const date = new Date(requestData.birthDate);
+            if (!isNaN(date.getTime())) {
+              // Behoud de originele ISO string als dat is wat we kregen
+              console.log("Valid ISO date received:", requestData.birthDate);
+            } else {
+              console.log("Invalid date string received:", requestData.birthDate);
+              return res.status(400).json({ error: "Invalid date format for birthDate" });
+            }
+          }
+        } catch (dateError) {
+          console.error("Error parsing birthDate:", dateError);
+          return res.status(400).json({ error: "Invalid date format for birthDate" });
+        }
+      }
+      
       // Valideer alleen de velden die worden bijgewerkt
-      const validationResult = insertMemberSchema.partial().safeParse(req.body);
+      const validationResult = insertMemberSchema.partial().safeParse(requestData);
       
       if (!validationResult.success) {
         const errorMessage = fromZodError(validationResult.error).message;
+        console.error("Validation error:", errorMessage);
         return res.status(400).json({ error: errorMessage });
       }
       
@@ -112,11 +139,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ error: "Member not found" });
       }
 
+      console.log("Validated data to update:", validationResult.data);
       const updatedMember = await storage.updateMember(id, validationResult.data);
+      console.log("Member updated successfully:", updatedMember);
+      
       res.json(updatedMember);
     } catch (error) {
       console.error("Error updating member:", error);
-      res.status(500).json({ error: "Failed to update member" });
+      res.status(500).json({ error: "Failed to update member: " + (error instanceof Error ? error.message : String(error)) });
     }
   });
 
