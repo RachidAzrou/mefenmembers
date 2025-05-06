@@ -1097,9 +1097,6 @@ export default function MembersList() {
                     <DialogDescription className="text-white/80 text-xs sm:text-sm mt-1">
                       Lidnummer: {viewMember.memberNumber.toString().padStart(4, '0')} • Lid sinds {formatDate(viewMember.registrationDate)}
                     </DialogDescription>
-                    <div className="text-white/80 text-xs sm:text-sm mt-1">
-                      Geboortedatum: {formatDate(viewMember.birthDate)} • {viewMember.gender === "man" ? "Man" : viewMember.gender === "vrouw" ? "Vrouw" : "Niet opgegeven"}
-                    </div>
                   </div>
                   
                   {isVotingEligible(viewMember) && (
@@ -1413,11 +1410,6 @@ export default function MembersList() {
                           <div className="font-medium text-sm sm:text-base">{formatDate(viewMember.birthDate)}</div>
                         </div>
                         
-                        <div className="bg-gray-50 rounded-lg p-2 sm:p-3">
-                          <div className="text-xs sm:text-sm text-gray-500">Lid sinds</div>
-                          <div className="font-medium text-sm sm:text-base">{formatDate(viewMember.registrationDate)}</div>
-                        </div>
-
                         <div className="bg-gray-50 rounded-lg p-2 sm:p-3">
                           <div className="text-xs sm:text-sm text-gray-500">Geslacht</div>
                           <div className="font-medium text-sm sm:text-base">{viewMember.gender === "man" ? "Man" : viewMember.gender === "vrouw" ? "Vrouw" : "Niet opgegeven"}</div>
