@@ -60,49 +60,43 @@ export class DatabaseStorage implements IStorage {
       console.log(`Nieuw lidnummer toegewezen: ${member.memberNumber}`);
     }
     
-    // Expliciete type conversie voor database compatibiliteit met nieuwe velden
-    // Bereid de velden voor met correcte null handling en type conversies
-    const preparedMemberObj: Record<string, any> = {
-      // Basis velden
+    // We gaan de variabele niet meer gebruiken, de code is overbodig geworden
+    // Het was oorspronkelijk bedoeld om de velden voor te bereiden voor database-invoer
+    // maar dat doen we nu direct in memberData
+    
+    // Verzamel alle velden die we willen invoegen
+    const memberData = {
+      memberNumber: member.memberNumber!,
       firstName: member.firstName,
       lastName: member.lastName,
       phoneNumber: member.phoneNumber,
-      memberNumber: member.memberNumber,
-      registrationDate: member.registrationDate || new Date(),
-      
-      // Persoonsgegevens
       gender: member.gender || null,
       birthDate: member.birthDate ? new Date(member.birthDate) : null,
       nationality: member.nationality || null,
-      
-      // Contactgegevens
       email: member.email || null,
       street: member.street || null,
       houseNumber: member.houseNumber || null,
       busNumber: member.busNumber || null,
       postalCode: member.postalCode || null,
       city: member.city || null,
-      
-      // Lidmaatschap
       membershipType: member.membershipType || "standaard",
       startDate: member.startDate ? new Date(member.startDate) : new Date(),
       endDate: member.endDate ? new Date(member.endDate) : null,
       autoRenew: member.autoRenew !== undefined ? member.autoRenew : true,
       paymentTerm: member.paymentTerm || "jaarlijks",
       paymentMethod: member.paymentMethod || "cash",
-      
-      // Bankgegevens
       accountNumber: member.accountNumber || null,
       bicSwift: member.bicSwift || null,
       accountHolderName: member.accountHolderName || null,
-      
-      // Overig
       paymentStatus: member.paymentStatus || false,
+      registrationDate: member.registrationDate || new Date(),
       privacyConsent: member.privacyConsent || false,
       notes: member.notes || null
     };
     
-    const [created] = await db.insert(members).values(preparedMemberObj).returning();
+    // Voeg het lid toe
+    // Drizzle ORM verwacht een array van objecten bij .values(), dus gebruik [memberData]
+    const [created] = await db.insert(members).values([memberData] as any).returning();
     return created;
   }
 
