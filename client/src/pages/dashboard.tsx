@@ -1,13 +1,14 @@
 import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { 
-  Users, Check, X, Download, UserPlus, CalendarDays, 
+  Users, Download, UserPlus, CalendarDays, 
   CreditCard, TrendingUp, Percent, UserCheck,
   Baby, GraduationCap, UserRound, Heart, BarChart3,
   PieChart, Briefcase, School, PersonStanding, Gamepad2,
   Accessibility, Leaf, MountainSnow, 
   Snowflake, UserCog, UserX, Smartphone,
-  Backpack, BookOpen
+  Backpack, BookOpen, Banknote, Glasses,
+  CircleUser, User
 } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { useQuery } from "@tanstack/react-query";
@@ -206,7 +207,7 @@ export default function Dashboard() {
                 )}
               >
                 <div className="text-green-600 font-semibold flex justify-center items-center">
-                  <Check className="h-4 w-4 mr-1.5" />
+                  <Banknote className="h-4 w-4 mr-1.5" />
                   {paidMembers}
                 </div>
                 <div className="text-xs text-muted-foreground mt-1">Betaald</div>
@@ -222,7 +223,12 @@ export default function Dashboard() {
                 )}
               >
                 <div className="text-red-600 font-semibold flex justify-center items-center">
-                  <X className="h-4 w-4 mr-1.5" />
+                  <div className="relative mr-1.5">
+                    <Banknote className="h-4 w-4" />
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <div className="w-5 h-0.5 bg-red-600 rotate-45 transform origin-center"></div>
+                    </div>
+                  </div>
                   {unpaidMembers}
                 </div>
                 <div className="text-xs text-muted-foreground mt-1">Niet betaald</div>
@@ -299,20 +305,7 @@ export default function Dashboard() {
                 <Link href="/members?type=senior">
                   <div className="flex items-center gap-4 p-4 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors cursor-pointer">
                     <div className="bg-purple-100 p-3 rounded-full">
-                      <svg 
-                        viewBox="0 0 24 24" 
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        className="h-5 w-5 text-purple-600"
-                      >
-                        <path d="M19 9V6a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2v3" />
-                        <path d="M3 11v5a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-5a2 2 0 0 0-4 0v2H7v-2a2 2 0 0 0-4 0Z" />
-                        <path d="M5 18v2" />
-                        <path d="M19 18v2" />
-                      </svg>
+                      <Glasses className="h-5 w-5 text-purple-600" />
                     </div>
                     <div className="flex-1">
                       <div className="text-sm text-gray-500">Senior lidmaatschap</div>
@@ -489,19 +482,7 @@ export default function Dashboard() {
                 <Link href="/members?gender=man">
                   <div className="flex items-center gap-4 p-4 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors cursor-pointer">
                     <div className="bg-blue-100 p-3 rounded-full">
-                      <svg 
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        className="h-5 w-5 text-blue-600"
-                      >
-                        <circle cx="12" cy="5" r="3"/>
-                        <line x1="12" y1="8" x2="12" y2="21"/>
-                        <line x1="8" y1="12" x2="16" y2="12"/>
-                      </svg>
+                      <User className="h-5 w-5 text-blue-600" />
                     </div>
                     <div>
                       <div className="text-sm text-gray-500">Mannen</div>
@@ -516,19 +497,7 @@ export default function Dashboard() {
                 <Link href="/members?gender=vrouw">
                   <div className="flex items-center gap-4 p-4 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors cursor-pointer">
                     <div className="bg-pink-100 p-3 rounded-full">
-                      <svg 
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        className="h-5 w-5 text-pink-600"
-                      >
-                        <circle cx="12" cy="5" r="3"/>
-                        <line x1="12" y1="8" x2="12" y2="21"/>
-                        <circle cx="12" cy="16" r="5"/>
-                      </svg>
+                      <CircleUser className="h-5 w-5 text-pink-600" />
                     </div>
                     <div>
                       <div className="text-sm text-gray-500">Vrouwen</div>
