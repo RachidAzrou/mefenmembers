@@ -17,10 +17,35 @@ export const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 export const db = getDatabase(app);
 
+// Globale variabele om te voorkomen dat we telkens opnieuw onAuthStateChanged moeten aanroepen
+let authInitialized = false;
+let cachedUser: User | null = null;
+
+// Functie om te wachten tot Firebase auth geïnitialiseerd is
+export async function waitForAuthInit(): Promise<void> {
+  if (authInitialized) return;
+  
+  return new Promise((resolve) => {
+    const unsubscribe = onAuthStateChanged(auth, () => {
+      authInitialized = true;
+      unsubscribe();
+      resolve();
+    });
+  });
+}
+
 // Functie om de huidige Firebase-gebruiker op te halen
 export async function getCurrentUser(): Promise<User | null> {
+  // Zorg ervoor dat we wachten tot auth geïnitialiseerd is
+  await waitForAuthInit();
+  
+  // Als we al een gebruiker in de cache hebben, gebruik die
+  if (cachedUser) return cachedUser;
+  
   return new Promise((resolve) => {
+    // We gebruiken onAuthStateChanged om een stabiele authenticatiestatus te krijgen
     const unsubscribe = onAuthStateChanged(auth, (user) => {
+      cachedUser = user; // Sla de gebruiker op in de cache
       unsubscribe();
       resolve(user);
     });
@@ -29,6 +54,7 @@ export async function getCurrentUser(): Promise<User | null> {
 
 // Functie om het auth token op te halen voor API-verzoeken
 export async function getAuthToken(): Promise<string | null> {
+  // Wacht eerst tot auth is geïnitialiseerd en haal dan de gebruiker op
   const user = await getCurrentUser();
   if (!user) return null;
   
@@ -38,4 +64,13 @@ export async function getAuthToken(): Promise<string | null> {
     console.error("Fout bij ophalen auth token:", error);
     return null;
   }
+}
+
+// Functie om cache te wissen als de authenticatiestatus verandert
+export function setupAuthListener() {
+  onAuthStateChanged(auth, (user) => {
+    console.log("Authenticatiestatus veranderd:", user ? "ingelogd" : "uitgelogd");
+    cachedUser = user;
+    authInitialized = true;
+  });
 }

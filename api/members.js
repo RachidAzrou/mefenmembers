@@ -15,12 +15,12 @@ async function firebaseRequest(method, path, data = null, authToken = null) {
 }
 
 // Helper functie voor lidnummer generatie - met REST API
-async function getNextMemberNumber() {
+async function getNextMemberNumber(userToken = null) {
   try {
     console.log('Volgende lidnummer ophalen via REST API');
     
-    // Haal leden op via REST API
-    const members = await firebaseRequest('GET', 'members');
+    // Haal leden op via REST API met auth token
+    const members = await firebaseRequest('GET', 'members', null, userToken);
     
     // Als er geen leden zijn of geen geldig object, begin met 1
     if (!members || typeof members !== 'object') {
@@ -39,7 +39,7 @@ async function getNextMemberNumber() {
     // Controleer ook de verwijderde lidnummers voor hergebruik
     try {
       // Haal verwijderde nummers op
-      const deletedMemberNumbers = await firebaseRequest('GET', 'deletedMemberNumbers');
+      const deletedMemberNumbers = await firebaseRequest('GET', 'deletedMemberNumbers', null, userToken);
       
       // Als er verwijderde nummers zijn, gebruik het laagste beschikbare nummer
       if (deletedMemberNumbers && typeof deletedMemberNumbers === 'object' && Object.keys(deletedMemberNumbers).length > 0) {
@@ -58,7 +58,7 @@ async function getNextMemberNumber() {
           );
           
           if (keyToDelete) {
-            await firebaseRequest('DELETE', `deletedMemberNumbers/${keyToDelete}`);
+            await firebaseRequest('DELETE', `deletedMemberNumbers/${keyToDelete}`, null, userToken);
           }
           
           console.log(`Hergebruik verwijderd lidnummer: ${lowestAvailable}`);
@@ -137,7 +137,7 @@ export default async function handler(req, res) {
       if (req.url.includes('/generate-number') || req.url === '/api/members/generate-number' || req.query.action === 'generate-number') {
         try {
           console.log("GET /api/members/generate-number: Volgend lidnummer genereren");
-          const nextNumber = await getNextMemberNumber();
+          const nextNumber = await getNextMemberNumber(userToken);
           console.log(`GET /api/members/generate-number: Volgend lidnummer is ${nextNumber}`);
           // Formatteren naar hetzelfde formaat dat server/routes.ts gebruikt
           const memberNumber = nextNumber.toString().padStart(4, '0');
@@ -242,7 +242,7 @@ export default async function handler(req, res) {
         
         console.log("POST /api/members: Genereren nieuw lidnummer");
         // Genereer lidnummer
-        const memberNumber = await getNextMemberNumber();
+        const memberNumber = await getNextMemberNumber(userToken);
         console.log("POST /api/members: Nieuw lidnummer gegenereerd:", memberNumber);
         
         // Maak nieuwe lid data - neem alle velden over van de request body
@@ -368,7 +368,7 @@ export default async function handler(req, res) {
         console.log(`DELETE /api/members/${id}: Lid verwijderen gestart`);
         
         // Haal eerst het lidnummer op om naar verwijderde nummers te verplaatsen
-        const memberData = await firebaseRequest('GET', `members/${id}`);
+        const memberData = await firebaseRequest('GET', `members/${id}`, null, userToken);
         if (!memberData || !memberData.memberNumber) {
           console.log(`DELETE /api/members/${id}: Lid niet gevonden of geen geldig nummer`);
         } else {
@@ -376,12 +376,12 @@ export default async function handler(req, res) {
           await firebaseRequest('POST', 'deletedMemberNumbers', {
             memberNumber: memberData.memberNumber,
             deletedAt: new Date().toISOString()
-          });
+          }, userToken);
           console.log(`DELETE /api/members/${id}: Lidnummer ${memberData.memberNumber} toegevoegd aan verwijderde nummers`);
         }
         
         // Verwijder het lid
-        await firebaseRequest('DELETE', `members/${id}`);
+        await firebaseRequest('DELETE', `members/${id}`, null, userToken);
         console.log(`DELETE /api/members/${id}: Lid succesvol verwijderd`);
         
         return res.status(200).json({ success: true });

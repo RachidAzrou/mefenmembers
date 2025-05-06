@@ -12,9 +12,9 @@ import MemberEdit from "@/pages/member-edit";
 import MemberDetail from "@/pages/member-detail";
 import Export from "@/pages/export";
 import { Sidebar } from "@/components/layout/sidebar";
-import { auth } from "./lib/firebase";
+import { auth, setupAuthListener, waitForAuthInit } from "./lib/firebase";
 import { useAuthState } from "react-firebase-hooks/auth";
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 
 function AuthenticatedLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -73,6 +73,36 @@ function Router() {
 }
 
 function App() {
+  // Status van authenticatie initialisatie
+  const [authReady, setAuthReady] = useState(false);
+
+  // Bij het laden van de app, initialiseer de authenticatie
+  useEffect(() => {
+    const initAuth = async () => {
+      console.log('Firebase authenticatie initialiseren...');
+      // Registreer de auth listener zodat we wijzigingen in authenticatie status bijhouden
+      setupAuthListener();
+      
+      // Wacht tot de initiële auth status is vastgesteld
+      await waitForAuthInit();
+      
+      console.log('Firebase authenticatie geïnitialiseerd.');
+      setAuthReady(true);
+    };
+    
+    initAuth().catch(console.error);
+  }, []);
+
+  // Toon een laadscherm tot Firebase auth is geïnitialiseerd
+  if (!authReady) {
+    return (
+      <div className="min-h-[100dvh] flex flex-col items-center justify-center">
+        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary"></div>
+        <p className="mt-4 text-gray-600">Bezig met verbinden...</p>
+      </div>
+    );
+  }
+
   return (
     <QueryClientProvider client={queryClient}>
       <Router />
