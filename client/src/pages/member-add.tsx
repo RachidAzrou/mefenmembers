@@ -211,6 +211,7 @@ export default function MemberAdd() {
     if (memberData) {
       // Converteer datum strings naar Date objecten
       const birthDate = memberData.birthDate ? new Date(memberData.birthDate) : undefined;
+      const startDate = memberData.registrationDate ? new Date(memberData.registrationDate) : new Date();
       const endDate = memberData.endDate ? new Date(memberData.endDate) : undefined;
       
       form.reset({
@@ -232,6 +233,7 @@ export default function MemberAdd() {
         
         // Lidmaatschap
         membershipType: memberData.membershipType || "standaard",
+        startDate: startDate,
         endDate: endDate,
         autoRenew: memberData.autoRenew !== undefined ? memberData.autoRenew : true,
         paymentTerm: memberData.paymentTerm || "jaarlijks",
