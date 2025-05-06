@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { Member, insertMemberSchema } from "@shared/schema";
-import { Link } from "wouter";
+
 import { format } from "date-fns";
 import { Input } from "@/components/ui/input";
 import { 
@@ -58,7 +58,7 @@ function Vote(props: React.SVGProps<SVGSVGElement>) {
 }
 import { Badge } from "@/components/ui/badge";
 import { formatPhoneNumber } from "@/lib/utils";
-import { useLocation } from "wouter";
+import { Link, useLocation } from "wouter";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
