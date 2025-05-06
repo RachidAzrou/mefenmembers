@@ -1519,11 +1519,6 @@ export default function MembersList() {
                         </div>
                         
                         <div className="bg-gray-50 rounded-lg p-2 sm:p-3">
-                          <div className="text-xs sm:text-sm text-gray-500">Startdatum lidmaatschap</div>
-                          <div className="font-medium text-sm sm:text-base">{formatDate(viewMember.startDate || viewMember.registrationDate)}</div>
-                        </div>
-                        
-                        <div className="bg-gray-50 rounded-lg p-2 sm:p-3">
                           <div className="text-xs sm:text-sm text-gray-500">Geslacht</div>
                           <div className="font-medium text-sm sm:text-base">{viewMember.gender === "man" ? "Man" : viewMember.gender === "vrouw" ? "Vrouw" : "Niet opgegeven"}</div>
                         </div>
