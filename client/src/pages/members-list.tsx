@@ -692,7 +692,7 @@ export default function MembersList() {
                 <div>
                   <h3 className="text-base sm:text-lg font-semibold text-gray-700 mb-2 sm:mb-3 flex items-center mt-4 md:mt-0">
                     <Phone className="h-4 w-4 sm:h-5 sm:w-5 mr-1.5 sm:mr-2 text-[#963E56]" /> 
-                    Contact & betaling
+                    Contactgegevens
                   </h3>
                   <div className="space-y-2 sm:space-y-3">
                     <div className="bg-gray-50 rounded-lg p-2 sm:p-3">
@@ -750,11 +750,51 @@ export default function MembersList() {
               >
                 Sluiten
               </Button>
-              {/* Bewerken knop verwijderd op verzoek */}
+              <Button 
+                variant="default" 
+                onClick={() => navigate(`/member-add?id=${viewMember.id}`)}
+                className="bg-[#963E56] hover:bg-[#7e3447] text-white text-xs sm:text-sm w-full sm:w-auto order-1 sm:order-2"
+              >
+                <Edit className="mr-2 h-3.5 w-3.5" />
+                Bewerken
+              </Button>
             </div>
           </DialogContent>
         </Dialog>
       )}
+      
+      {/* Verwijder bevestiging dialoog */}
+      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Lid verwijderen</DialogTitle>
+            <DialogDescription>
+              Weet je zeker dat je dit lid wilt verwijderen? Deze actie kan niet ongedaan worden gemaakt.
+            </DialogDescription>
+          </DialogHeader>
+          {memberToDelete && (
+            <div className="bg-gray-50 p-4 rounded-lg mb-4">
+              <div className="font-medium">{memberToDelete.firstName} {memberToDelete.lastName}</div>
+              <div className="text-sm text-gray-500">Lidnummer: {memberToDelete.memberNumber.toString().padStart(4, '0')}</div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setDeleteDialogOpen(false)}
+              className="mr-2"
+            >
+              Annuleren
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleDeleteMember}
+            >
+              Verwijderen
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

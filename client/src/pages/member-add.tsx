@@ -40,7 +40,7 @@ import { nl } from "date-fns/locale";
 import { cn, formatPhoneNumber } from "@/lib/utils";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
-import { useLocation, useParams } from "wouter";
+import { useLocation } from "wouter";
 import { insertMemberSchema, Member } from "@shared/schema";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
@@ -68,17 +68,18 @@ const memberFormSchema = insertMemberSchema.extend({
 type FormData = z.infer<typeof memberFormSchema>;
 
 export default function MemberAdd() {
-  // Controleer of we een lid aan het bewerken zijn
-  const params = useParams<{ id: string }>();
-  const isEditMode = Boolean(params.id);
-  const memberId = params.id ? parseInt(params.id) : undefined;
+  // Controleer of we een lid aan het bewerken zijn aan de hand van query parameters
+  const [location] = useLocation();
+  const params = new URLSearchParams(window.location.search);
+  const memberId = params.get('id') ? parseInt(params.get('id')!) : undefined;
+  const isEditMode = Boolean(memberId);
   
   // State voor delete dialog
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const [location, navigate] = useLocation();
+  const [, navigate] = useLocation();
   
   // Form setup met react-hook-form en zod validatie
   const form = useForm<FormData>({
@@ -97,7 +98,7 @@ export default function MemberAdd() {
   
   // Ophalen van lidgegevens bij bewerken
   const { data: memberData, isLoading: isLoadingMember, error: memberError } = useQuery<Member>({
-    queryKey: [`/api/members/${memberId}`],
+    queryKey: [`/api/members/detail`, memberId],
     queryFn: async () => {
       if (!memberId) return undefined;
       
