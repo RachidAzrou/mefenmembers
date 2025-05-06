@@ -172,10 +172,27 @@ export default function MembersList() {
     if (!memberToDelete) return;
     
     try {
-      await apiRequest('DELETE', `/api/members?id=${memberToDelete.id}`);
+      console.log(`Verwijderen lid met ID: ${memberToDelete.id}`);
+      const response = await apiRequest('DELETE', `/api/members?id=${memberToDelete.id}`);
       
-      // Vernieuw de ledenlijst na verwijderen
-      queryClient.invalidateQueries({ queryKey: ['/api/members'] });
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Onbekende API fout');
+      }
+      
+      // Vernieuw de ledenlijst na verwijderen - forceert een volledige refresh
+      await queryClient.invalidateQueries({ queryKey: ['/api/members'] });
+      
+      // Haal de leden opnieuw op om te bevestigen dat de verwijdering is gelukt
+      const refreshResponse = await apiRequest("GET", "/api/members");
+      const refreshedMembers = await refreshResponse.json();
+      
+      // Controleer of het lid daadwerkelijk is verwijderd
+      const isStillPresent = refreshedMembers.some((m: Member) => m.id === memberToDelete.id);
+      
+      if (isStillPresent) {
+        throw new Error('Lid kon niet worden verwijderd');
+      }
       
       toast({
         title: "Lid verwijderd",
@@ -186,6 +203,7 @@ export default function MembersList() {
       setDeleteDialogOpen(false);
       setMemberToDelete(null);
     } catch (error) {
+      console.error("Fout bij verwijderen:", error);
       toast({
         title: "Fout bij verwijderen",
         description: `Er is een fout opgetreden: ${error instanceof Error ? error.message : 'Onbekende fout'}`,
