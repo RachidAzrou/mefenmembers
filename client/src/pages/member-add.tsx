@@ -13,7 +13,8 @@ import {
   AlertTriangle,
   Trash2,
   UserPlus,
-  ScrollText
+  ScrollText,
+  Info as InfoIcon
 } from "lucide-react";
 import { 
   Form, 
@@ -95,15 +96,51 @@ export default function MemberAdd() {
   });
   
   // Ophalen van lidgegevens bij bewerken
-  const { data: memberData, isLoading: isLoadingMember } = useQuery<Member>({
+  const { data: memberData, isLoading: isLoadingMember, error: memberError } = useQuery<Member>({
     queryKey: [`/api/members/${memberId}`],
     queryFn: async () => {
       if (!memberId) return undefined;
-      // We gebruiken query parameters om compatibel te zijn met de Vercel serverless functies
-      const response = await apiRequest('GET', `/api/members?id=${memberId}`);
-      return await response.json();
+      
+      // Uitgebreide logging voor debugging doeleinden
+      console.log(`Fetching member data for ID: ${memberId}`);
+      
+      try {
+        // We gebruiken query parameters om compatibel te zijn met de Vercel serverless functies
+        const response = await apiRequest('GET', `/api/members?id=${memberId}`);
+        console.log('API Response status:', response.status);
+        
+        // Log response headers voor debugging
+        const headers: Record<string, string> = {};
+        response.headers.forEach((value, key) => {
+          headers[key] = value;
+        });
+        console.log('Response headers:', headers);
+        
+        // Controleer of response OK is
+        if (!response.ok) {
+          throw new Error(`API responded with status ${response.status}`);
+        }
+        
+        // Poging om response body te lezen
+        const responseText = await response.text();
+        console.log('Raw response:', responseText);
+        
+        // Probeer te parsen als JSON
+        try {
+          const data = JSON.parse(responseText);
+          console.log('Parsed member data:', data);
+          return data;
+        } catch (parseError) {
+          console.error('JSON parse error:', parseError);
+          throw new Error(`Invalid JSON response: ${responseText}`);
+        }
+      } catch (error) {
+        console.error('Error fetching member:', error);
+        throw error;
+      }
     },
     enabled: isEditMode && memberId !== undefined,
+    retry: 3, // Probeer de aanroep maximaal 3 keer bij falen
   });
   
   // Update formulier met bestaande gegevens bij bewerken
@@ -253,6 +290,42 @@ export default function MemberAdd() {
         <div className="flex items-center justify-center p-6 bg-gray-50 rounded-lg border border-gray-100">
           <Loader2 className="h-6 w-6 text-[#963E56] animate-spin mr-2" />
           <p>Bezig met laden van lidgegevens...</p>
+        </div>
+      )}
+      
+      {/* Toon eventuele fouten */}
+      {isEditMode && memberError && (
+        <div className="p-4 bg-red-50 rounded-lg border border-red-200 mb-4">
+          <h3 className="text-red-800 font-medium mb-2 flex items-center">
+            <AlertTriangle className="h-4 w-4 mr-2" /> 
+            Fout bij ophalen lidgegevens
+          </h3>
+          <p className="text-red-700 text-sm">{memberError.message}</p>
+          <div className="mt-2 bg-red-100 rounded p-2 overflow-auto">
+            <pre className="text-xs text-red-800 whitespace-pre-wrap">
+              {memberError.stack}
+            </pre>
+          </div>
+        </div>
+      )}
+      
+      {/* Debug info in development */}
+      {isEditMode && memberId && (
+        <div className="p-4 bg-blue-50 rounded-lg border border-blue-200 mb-4">
+          <h3 className="text-blue-800 font-medium mb-2 flex items-center">
+            <InfoIcon className="h-4 w-4 mr-2" /> 
+            Debug Informatie
+          </h3>
+          <p className="text-blue-700 text-sm mb-1">ID: {memberId}</p>
+          <p className="text-blue-700 text-sm mb-1">Laden: {isLoadingMember ? 'Ja' : 'Nee'}</p>
+          <p className="text-blue-700 text-sm mb-1">Data geladen: {memberData ? 'Ja' : 'Nee'}</p>
+          {memberData && (
+            <div className="mt-2 bg-blue-100 rounded p-2 overflow-auto">
+              <pre className="text-xs text-blue-800 whitespace-pre-wrap">
+                {JSON.stringify(memberData, null, 2)}
+              </pre>
+            </div>
+          )}
         </div>
       )}
       
