@@ -3,7 +3,10 @@ import { useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { Member } from "@shared/schema";
 import { Link, useLocation } from "wouter";
-import { User, Phone, CreditCard, ArrowLeft, Edit } from "lucide-react";
+import { 
+  User, Phone, CreditCard, ArrowLeft, Edit,
+  Check, X, CircleUser, Glasses, Banknote
+} from "lucide-react";
 import { formatPhoneNumber } from "@/lib/utils";
 import { 
   Card, CardContent, CardHeader, CardTitle, CardDescription 
@@ -259,9 +262,18 @@ export default function MemberDetail() {
                 
                 <div className="bg-gray-50 rounded-lg p-3">
                   <div className="text-sm text-gray-500">Geslacht</div>
-                  <div className="font-medium">
-                    {member.gender === "man" ? "Man" : 
-                     member.gender === "vrouw" ? "Vrouw" : "Niet opgegeven"}
+                  <div className="font-medium flex items-center">
+                    {member.gender === "man" ? (
+                      <>
+                        <User className="h-4 w-4 mr-1.5 text-blue-500" />
+                        <span>Man</span>
+                      </>
+                    ) : member.gender === "vrouw" ? (
+                      <>
+                        <CircleUser className="h-4 w-4 mr-1.5 text-pink-500" />
+                        <span>Vrouw</span>
+                      </>
+                    ) : "Niet opgegeven"}
                   </div>
                 </div>
                 
