@@ -3,6 +3,7 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { insertMemberSchema } from "@shared/schema";
 import { fromZodError } from "zod-validation-error";
+import { syncMemberToFirebase } from "./firebase-logger";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Members routes
@@ -78,6 +79,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Geoptimaliseerde verwerking met minder SQL-queries
       const member = await storage.createMember(memberData);
       
+      // Synchroniseer het nieuwe lid met Firebase en log de activiteit
+      syncMemberToFirebase(member, 'create').catch(err => 
+        console.error('Firebase sync error on create:', err)
+      );
+      
       // Stuur direct een 201 Created status met minimale data terug
       // voor snellere respons, met alleen de essentiële velden
       res.status(201).json({
@@ -113,6 +119,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const updatedMember = await storage.updateMember(id, validationResult.data);
+      
+      // Synchroniseer de bijgewerkte lidgegevens met Firebase en log de activiteit
+      syncMemberToFirebase(updatedMember, 'update').catch(err => 
+        console.error('Firebase sync error on update:', err)
+      );
+      
       res.json(updatedMember);
     } catch (error) {
       console.error("Error updating member:", error);
@@ -132,6 +144,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ error: "Member not found" });
       }
 
+      // Registreer verwijdering in Firebase voordat we het lid verwijderen
+      syncMemberToFirebase(member, 'delete').catch(err => 
+        console.error('Firebase sync error on delete:', err)
+      );
+      
       await storage.deleteMember(id);
       res.status(204).end();
     } catch (error) {
