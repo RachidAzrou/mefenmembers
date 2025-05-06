@@ -54,15 +54,54 @@ import {
 
 // Form validator schema met alle vereiste velden
 const memberFormSchema = insertMemberSchema.extend({
+  // Persoonsgegevens
   firstName: z.string().min(1, "Voornaam is verplicht"),
   lastName: z.string().min(1, "Achternaam is verplicht"),
-  phoneNumber: z.string().min(1, "Telefoonnummer is verplicht"),
-  birthDate: z.date({
-    required_error: "Geboortedatum is verplicht"
+  gender: z.enum(["man", "vrouw"], {
+    required_error: "Selecteer geslacht",
   }),
+  birthDate: z.date({
+    required_error: "Geboortedatum is verplicht",
+  }),
+  nationality: z.string().optional().nullable(),
+  
+  // Contactgegevens
   email: z.string().email("Voer een geldig e-mailadres in").optional().or(z.literal('')),
+  phoneNumber: z.string().min(1, "Telefoonnummer is verplicht"),
+  street: z.string().optional().nullable(),
+  houseNumber: z.string().optional().nullable(),
+  busNumber: z.string().optional().nullable(),
+  postalCode: z.string().optional().nullable(),
+  city: z.string().optional().nullable(),
+  
+  // Lidmaatschap
+  membershipType: z.enum(["standaard", "student", "senior"], {
+    required_error: "Selecteer lidmaatschapstype",
+  }),
+  endDate: z.date().optional().nullable(),
+  autoRenew: z.boolean().default(true),
+  paymentTerm: z.enum(["maandelijks", "driemaandelijks", "jaarlijks"], {
+    required_error: "Selecteer betalingstermijn",
+  }),
+  paymentMethod: z.enum(["cash", "domiciliering", "overschrijving", "bancontact"], {
+    required_error: "Selecteer betalingswijze",
+  }),
+  
+  // Bankgegevens
+  accountNumber: z.string().optional().nullable()
+    .refine(val => !val || /^[A-Z]{2}[0-9]{2}[A-Z0-9]{4}[0-9]{7}([A-Z0-9]?){0,16}$/.test(val), {
+      message: "Ongeldig IBAN formaat. Bijvoorbeeld: BE68539007547034"
+    }),
+  bicSwift: z.string().optional().nullable(),
+  accountHolderName: z.string().optional().nullable(),
+  
+  // Overig
+  privacyConsent: z.boolean({
+    required_error: "U moet akkoord gaan met de privacyverklaring",
+  }).refine(val => val === true, {
+    message: "U moet akkoord gaan met de privacyverklaring",
+  }),
   notes: z.string().optional(),
-  accountNumber: z.string().optional().nullable(),
 }).omit({ id: true, memberNumber: true, registrationDate: true });
 
 type FormData = z.infer<typeof memberFormSchema>;
@@ -85,14 +124,38 @@ export default function MemberAdd() {
   const form = useForm<FormData>({
     resolver: zodResolver(memberFormSchema),
     defaultValues: {
+      // Persoonsgegevens
       firstName: "",
       lastName: "",
+      gender: "man",
+      birthDate: undefined,
+      nationality: "",
+      
+      // Contactgegevens
       email: "",
       phoneNumber: "",
+      street: "",
+      houseNumber: "",
+      busNumber: "",
+      postalCode: "",
+      city: "",
+      
+      // Lidmaatschap
+      membershipType: "standaard",
+      endDate: undefined,
+      autoRenew: true,
+      paymentTerm: "jaarlijks",
+      paymentMethod: "cash",
+      
+      // Bankgegevens
+      accountNumber: "",
+      bicSwift: "",
+      accountHolderName: "",
+      
+      // Overig
+      privacyConsent: false,
       paymentStatus: false,
-      notes: "",
-      birthDate: undefined,
-      accountNumber: ""
+      notes: ""
     }
   });
   

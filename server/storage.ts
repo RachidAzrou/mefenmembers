@@ -59,17 +59,44 @@ export class DatabaseStorage implements IStorage {
       member.memberNumber = await this.generateMemberNumber();
     }
     
-    // Expliciete type conversie voor database compatibiliteit
+    // Expliciete type conversie voor database compatibiliteit met nieuwe velden
     const preparedMember = {
+      // Basis velden
       firstName: member.firstName,
       lastName: member.lastName,
       phoneNumber: member.phoneNumber,
       memberNumber: member.memberNumber,
       registrationDate: member.registrationDate || new Date(),
-      email: member.email || null,
+      
+      // Persoonsgegevens
+      gender: member.gender || null,
       birthDate: member.birthDate ? new Date(member.birthDate) : null,
+      nationality: member.nationality || null,
+      
+      // Contactgegevens
+      email: member.email || null,
+      street: member.street || null,
+      houseNumber: member.houseNumber || null,
+      busNumber: member.busNumber || null,
+      postalCode: member.postalCode || null,
+      city: member.city || null,
+      
+      // Lidmaatschap
+      membershipType: member.membershipType || "standaard",
+      startDate: member.startDate ? new Date(member.startDate) : new Date(),
+      endDate: member.endDate ? new Date(member.endDate) : null,
+      autoRenew: member.autoRenew !== undefined ? member.autoRenew : true,
+      paymentTerm: member.paymentTerm || "jaarlijks",
+      paymentMethod: member.paymentMethod || "cash",
+      
+      // Bankgegevens
       accountNumber: member.accountNumber || null,
+      bicSwift: member.bicSwift || null,
+      accountHolderName: member.accountHolderName || null,
+      
+      // Overig
       paymentStatus: member.paymentStatus || false,
+      privacyConsent: member.privacyConsent || false,
       notes: member.notes || null
     };
     
@@ -82,12 +109,39 @@ export class DatabaseStorage implements IStorage {
     const updateObj: Record<string, any> = {};
     
     // Voeg alleen de velden toe die worden bijgewerkt met de juiste types
+    // Basis velden
     if (member.firstName !== undefined) updateObj.firstName = member.firstName;
     if (member.lastName !== undefined) updateObj.lastName = member.lastName;
     if (member.phoneNumber !== undefined) updateObj.phoneNumber = member.phoneNumber;
     if (member.memberNumber !== undefined) updateObj.memberNumber = member.memberNumber;
+    
+    // Persoonsgegevens
+    if (member.gender !== undefined) updateObj.gender = member.gender || null;
+    if (member.nationality !== undefined) updateObj.nationality = member.nationality || null;
+    
+    // Contactgegevens
     if (member.email !== undefined) updateObj.email = member.email || null;
+    if (member.street !== undefined) updateObj.street = member.street || null;
+    if (member.houseNumber !== undefined) updateObj.houseNumber = member.houseNumber || null;
+    if (member.busNumber !== undefined) updateObj.busNumber = member.busNumber || null;
+    if (member.postalCode !== undefined) updateObj.postalCode = member.postalCode || null;
+    if (member.city !== undefined) updateObj.city = member.city || null;
+    
+    // Lidmaatschap
+    if (member.membershipType !== undefined) updateObj.membershipType = member.membershipType;
+    if (member.startDate !== undefined) updateObj.startDate = member.startDate instanceof Date ? member.startDate : new Date(member.startDate);
+    if (member.endDate !== undefined) updateObj.endDate = member.endDate ? (member.endDate instanceof Date ? member.endDate : new Date(member.endDate)) : null;
+    if (member.autoRenew !== undefined) updateObj.autoRenew = member.autoRenew;
+    if (member.paymentTerm !== undefined) updateObj.paymentTerm = member.paymentTerm;
+    if (member.paymentMethod !== undefined) updateObj.paymentMethod = member.paymentMethod;
+    
+    // Bankgegevens
+    if (member.bicSwift !== undefined) updateObj.bicSwift = member.bicSwift || null;
+    if (member.accountHolderName !== undefined) updateObj.accountHolderName = member.accountHolderName || null;
+    
+    // Overig
     if (member.paymentStatus !== undefined) updateObj.paymentStatus = member.paymentStatus;
+    if (member.privacyConsent !== undefined) updateObj.privacyConsent = member.privacyConsent;
     if (member.notes !== undefined) updateObj.notes = member.notes || null;
     
     // Behandel datums en complexe types met speciale logica
