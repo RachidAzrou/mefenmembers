@@ -317,64 +317,74 @@ export default function MemberDetail() {
                   <path d="M16 3.13a4 4 0 0 1 0 7.75" />
                 </svg>
               </div>
-              Lidmaatschap & Betaalgegevens
+              Lidmaatschap
             </h3>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
-              <div className="space-y-3">
-                <div className="bg-gray-50 rounded-lg p-3">
-                  <div className="text-sm text-gray-500">Lidmaatschapstype</div>
-                  <div className="font-medium">
-                    {member.membershipType === "standaard" ? "Standaard" :
-                     member.membershipType === "student" ? "Student" :
-                     member.membershipType === "senior" ? "Senior" : "Onbekend"}
-                  </div>
-                </div>
-                
-                <div className="bg-gray-50 rounded-lg p-3">
-                  <div className="text-sm text-gray-500">Startdatum lidmaatschap</div>
-                  <div className="font-medium">{formatDate(member.startDate)}</div>
-                </div>
-                
-                <div className="bg-gray-50 rounded-lg p-3">
-                  <div className="text-sm text-gray-500">Lidmaatschapsduur</div>
-                  <div className="font-medium">{calculateMembershipYears(member)} jaar</div>
+            <div className="space-y-3">
+              <div className="bg-gray-50 rounded-lg p-3">
+                <div className="text-sm text-gray-500">Lidmaatschapstype</div>
+                <div className="font-medium">
+                  {member.membershipType === "standaard" ? "Standaard" :
+                   member.membershipType === "student" ? "Student" :
+                   member.membershipType === "senior" ? "Senior" : "Onbekend"}
                 </div>
               </div>
               
-              <div className="space-y-3">
-                <div className="bg-gray-50 rounded-lg p-3">
-                  <div className="text-sm text-gray-500">Betalingsmethode</div>
-                  <div className="font-medium">
-                    {member.paymentMethod === "cash" ? "Contant" :
-                     member.paymentMethod === "domiciliering" ? "Domiciliëring" :
-                     member.paymentMethod === "overschrijving" ? "Overschrijving" :
-                     member.paymentMethod === "bancontact" ? "Bancontact" : "Onbekend"}
-                  </div>
+              <div className="bg-gray-50 rounded-lg p-3">
+                <div className="text-sm text-gray-500">Startdatum lidmaatschap</div>
+                <div className="font-medium">{formatDate(member.startDate)}</div>
+              </div>
+              
+              <div className="bg-gray-50 rounded-lg p-3">
+                <div className="text-sm text-gray-500">Lidmaatschapsduur</div>
+                <div className="font-medium">{calculateMembershipYears(member)} jaar</div>
+              </div>
+            </div>
+          </div>
+          
+          <div className="mt-6">
+            <h3 className="text-base sm:text-lg font-medium text-gray-700 mb-3 flex items-center">
+              <div className="mr-2 bg-green-50 p-1.5 sm:p-2 rounded-full">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-green-600">
+                  <rect x="2" y="5" width="20" height="14" rx="2" />
+                  <line x1="2" y1="10" x2="22" y2="10" />
+                </svg>
+              </div>
+              Financiën
+            </h3>
+            
+            <div className="space-y-3">
+              <div className="bg-gray-50 rounded-lg p-3">
+                <div className="text-sm text-gray-500">Betalingsmethode</div>
+                <div className="font-medium">
+                  {member.paymentMethod === "cash" ? "Contant" :
+                   member.paymentMethod === "domiciliering" ? "Domiciliëring" :
+                   member.paymentMethod === "overschrijving" ? "Overschrijving" :
+                   member.paymentMethod === "bancontact" ? "Bancontact" : "Onbekend"}
                 </div>
-                
-                <div className="bg-gray-50 rounded-lg p-3">
-                  <div className="text-sm text-gray-500">Betalingstermijn</div>
-                  <div className="font-medium">
-                    {member.paymentTerm === "jaarlijks" ? "Jaarlijks" :
-                     member.paymentTerm === "maandelijks" ? "Maandelijks" :
-                     member.paymentTerm === "driemaandelijks" ? "Driemaandelijks" : "Onbekend"}
-                  </div>
+              </div>
+              
+              <div className="bg-gray-50 rounded-lg p-3">
+                <div className="text-sm text-gray-500">Betalingstermijn</div>
+                <div className="font-medium">
+                  {member.paymentTerm === "jaarlijks" ? "Jaarlijks" :
+                   member.paymentTerm === "maandelijks" ? "Maandelijks" :
+                   member.paymentTerm === "driemaandelijks" ? "Driemaandelijks" : "Onbekend"}
                 </div>
-                
-                <div className="flex p-3 rounded-lg bg-gray-50 gap-3">
-                  <div className={`p-2 rounded-full ${member.paymentStatus ? 'bg-green-100' : 'bg-red-100'}`}>
-                    {member.paymentStatus ? (
-                      <div className="h-4 w-4 text-green-600">✓</div>
-                    ) : (
-                      <div className="h-4 w-4 text-red-600">✗</div>
-                    )}
-                  </div>
-                  <div>
-                    <div className="text-sm text-gray-500">Betaalstatus</div>
-                    <div className="font-medium">
-                      {member.paymentStatus ? "Betaald" : "Niet betaald"}
-                    </div>
+              </div>
+              
+              <div className="flex p-3 rounded-lg bg-gray-50 gap-3">
+                <div className={`p-2 rounded-full ${member.paymentStatus ? 'bg-green-100' : 'bg-red-100'}`}>
+                  {member.paymentStatus ? (
+                    <div className="h-4 w-4 text-green-600">✓</div>
+                  ) : (
+                    <div className="h-4 w-4 text-red-600">✗</div>
+                  )}
+                </div>
+                <div>
+                  <div className="text-sm text-gray-500">Betaalstatus</div>
+                  <div className="font-medium">
+                    {member.paymentStatus ? "Betaald" : "Niet betaald"}
                   </div>
                 </div>
               </div>
