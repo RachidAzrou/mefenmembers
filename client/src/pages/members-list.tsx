@@ -3,7 +3,6 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { Member, insertMemberSchema } from "@shared/schema";
-
 import { format } from "date-fns";
 import { Input } from "@/components/ui/input";
 import { 
@@ -31,7 +30,26 @@ import {
   SortAsc, SortDesc, Trash2, ArrowUpDown, Filter, UserCheck, AlertTriangle, GraduationCap, CreditCard, AlertCircle,
   Settings
 } from "lucide-react";
-
+import { Badge } from "@/components/ui/badge";
+import { formatPhoneNumber } from "@/lib/utils";
+import { Link, useLocation } from "wouter";
+import { Skeleton } from "@/components/ui/skeleton";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Textarea } from "@/components/ui/textarea";
+import { useToast } from "@/hooks/use-toast";
+import { 
+  Dialog, 
+  DialogContent, 
+  DialogDescription, 
+  DialogHeader, 
+  DialogTitle, 
+  DialogFooter
+} from "@/components/ui/dialog";
+import { z } from "zod";
+import { nl } from "date-fns/locale";
 
 // Vote icon component
 function Vote(props: React.SVGProps<SVGSVGElement>) {
@@ -56,26 +74,6 @@ function Vote(props: React.SVGProps<SVGSVGElement>) {
     </svg>
   );
 }
-import { Badge } from "@/components/ui/badge";
-import { formatPhoneNumber } from "@/lib/utils";
-import { Link, useLocation } from "wouter";
-import { Skeleton } from "@/components/ui/skeleton";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Textarea } from "@/components/ui/textarea";
-import { useToast } from "@/hooks/use-toast";
-import { 
-  Dialog, 
-  DialogContent, 
-  DialogDescription, 
-  DialogHeader, 
-  DialogTitle, 
-  DialogFooter
-} from "@/components/ui/dialog";
-import { z } from "zod";
-import { nl } from "date-fns/locale";
 
 // Form schema voor bewerking in dialoog (inclusief geboortedatum)
 const memberEditSchema = insertMemberSchema.extend({
