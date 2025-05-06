@@ -18,8 +18,30 @@ export default function FirebaseTest() {
   
   // Bij het laden van de pagina, log de Firebase configuratie
   useEffect(() => {
-    console.log("FirebaseTest component geladen, logging configuratie");
-    logFirebaseConfig();
+    console.log("FirebaseTest component geladen, beginnen met logging configuratie");
+    
+    // Direct loggen van omgevingsvariabelen
+    console.log("Directe environment vars (vite):", {
+      VITE_FIREBASE_API_KEY: import.meta.env.VITE_FIREBASE_API_KEY?.substring(0, 3) + "...",
+      VITE_FIREBASE_PROJECT_ID: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+      VITE_FIREBASE_DATABASE_URL: import.meta.env.VITE_FIREBASE_DATABASE_URL,
+      VITE_FIREBASE_APP_ID: import.meta.env.VITE_FIREBASE_APP_ID?.substring(0, 5) + "..."
+    });
+
+    // Directe toegang tot Firebase App configuratie
+    console.log("Firebase App Config:", {
+      apiKey: auth.app.options.apiKey?.substring(0, 3) + "...",
+      projectId: auth.app.options.projectId,
+      databaseURL: auth.app.options.databaseURL,
+      appId: auth.app.options.appId?.substring(0, 5) + "..."
+    });
+
+    // Probeer ook de diagnostische functie aan te roepen
+    try {
+      logFirebaseConfig();
+    } catch (err) {
+      console.error("Fout bij aanroepen van logFirebaseConfig:", err);
+    }
   }, []);
 
   async function testServerAccess() {
