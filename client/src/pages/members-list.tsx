@@ -278,9 +278,17 @@ export default function MembersList() {
       const genderParam = params.get("gender");
       // Controleer of gender een geldige waarde heeft, en vergelijk dan
       if (genderParam === "man" || genderParam === "vrouw") {
-        // Als member.gender niet is ingesteld of niet overeenkomt, filter hem uit
-        if (member.gender === null || member.gender === undefined || member.gender !== genderParam) {
-          return false;
+        // Als specifiek "man" wordt gezocht, toon alleen leden met gender="man"
+        if (genderParam === "man") {
+          if (member.gender !== "man") {
+            return false;
+          }
+        } 
+        // Als specifiek "vrouw" wordt gezocht, toon alleen leden met gender="vrouw"
+        else if (genderParam === "vrouw") {
+          if (member.gender !== "vrouw") {
+            return false;
+          }
         }
       }
     }
@@ -289,9 +297,17 @@ export default function MembersList() {
     if (params.has("type")) {
       const typeParam = params.get("type");
       if (typeParam) {
-        // Als membershipType niet is ingesteld of niet overeenkomt, filter uit
-        if (member.membershipType === null || member.membershipType === undefined || member.membershipType !== typeParam) {
-          return false;
+        // Speciale behandeling voor standaard lidmaatschap - ontbrekende waarden worden beschouwd als standaard
+        if (typeParam === "standaard") {
+          // Laat leden zien die expliciet standaard zijn OF geen lidmaatschapstype hebben
+          if (!(member.membershipType === "standaard" || member.membershipType === null || member.membershipType === undefined)) {
+            return false;
+          }
+        } else {
+          // Voor student en senior moet het type expliciet overeenkomen
+          if (member.membershipType !== typeParam) {
+            return false;
+          }
         }
       }
     }
