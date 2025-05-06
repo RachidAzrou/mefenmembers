@@ -129,6 +129,33 @@ export default async function handler(req, res) {
         }
       }
       
+      // Controleer of we een specifiek lid moeten ophalen
+      if (req.query.id) {
+        try {
+          const id = req.query.id;
+          console.log(`GET /api/members/${id}: Ophalen specifiek lid gestart`);
+          
+          const data = await firebaseRequest('GET', `members/${id}`);
+          
+          if (!data) {
+            console.log(`GET /api/members/${id}: Lid niet gevonden`);
+            return res.status(404).json({ error: 'Lid niet gevonden' });
+          }
+          
+          console.log(`GET /api/members/${id}: Lid succesvol opgehaald`);
+          return res.status(200).json({
+            id: id,
+            ...data
+          });
+        } catch (error) {
+          console.error(`GET /api/members/${req.query.id} FOUT:`, error.message);
+          return res.status(500).json({ 
+            error: 'Fout bij ophalen specifiek lid', 
+            details: error.message 
+          });
+        }
+      }
+      
       // Anders haal alle leden op
       try {
         console.log("GET /api/members: Ophalen leden gestart via REST API");

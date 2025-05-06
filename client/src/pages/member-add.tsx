@@ -99,7 +99,8 @@ export default function MemberAdd() {
     queryKey: [`/api/members/${memberId}`],
     queryFn: async () => {
       if (!memberId) return undefined;
-      const response = await apiRequest('GET', `/api/members/${memberId}`);
+      // We gebruiken query parameters om compatibel te zijn met de Vercel serverless functies
+      const response = await apiRequest('GET', `/api/members?id=${memberId}`);
       return await response.json();
     },
     enabled: isEditMode && memberId !== undefined,
