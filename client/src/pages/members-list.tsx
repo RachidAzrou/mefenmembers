@@ -226,16 +226,22 @@ export default function MembersList() {
   // Functie om te bepalen of een lid stemgerechtigd is
   const isVotingEligible = (member: Member): boolean => {
     // Voorwaarde 1: Meerderjarig (18+)
+    // Eerst checken of birthDate aanwezig is, anders kan iemand niet stemgerechtigd zijn
+    if (!member.birthDate) return false;
+    
     const age = calculateAge(member.birthDate);
-    if (!age || age < 18) return false;
+    if (age === null || age < 18) return false;
     
     // Voorwaarde 2: Minstens 5 jaar aaneensluitend lid
+    // Eerst checken of startDate of registrationDate aanwezig is
+    if (!member.startDate && !member.registrationDate) return false;
+    
     const membershipYears = calculateMembershipYears(member);
     if (membershipYears < 5) return false;
     
-    // Voorwaarde 3: Elk jaar betaald
-    // Omdat we nog geen betalingsgeschiedenis bijhouden, gebruiken we de huidige betalingsstatus als benadering
-    if (!member.paymentStatus) return false;
+    // Voorwaarde 3: Elk jaar betaald (huidige betalingsstatus)
+    // Als paymentStatus null/undefined is of false, dan niet stemgerechtigd
+    if (member.paymentStatus !== true) return false;
     
     // Aan alle voorwaarden voldaan
     return true;
@@ -270,31 +276,45 @@ export default function MembersList() {
     // Gender filter
     if (params.has("gender")) {
       const genderParam = params.get("gender");
-      if ((genderParam === "man" || genderParam === "vrouw") && member.gender !== genderParam) {
-        return false;
+      // Controleer of gender een geldige waarde heeft, en vergelijk dan
+      if (genderParam === "man" || genderParam === "vrouw") {
+        // Als member.gender niet is ingesteld of niet overeenkomt, filter hem uit
+        if (member.gender === null || member.gender === undefined || member.gender !== genderParam) {
+          return false;
+        }
       }
     }
     
     // Lidmaatschapstype filter
     if (params.has("type")) {
       const typeParam = params.get("type");
-      if (typeParam && member.membershipType !== typeParam) {
-        return false;
+      if (typeParam) {
+        // Als membershipType niet is ingesteld of niet overeenkomt, filter uit
+        if (member.membershipType === null || member.membershipType === undefined || member.membershipType !== typeParam) {
+          return false;
+        }
       }
     }
     
     // Stemgerechtigden filter
     if (params.has("voting") && params.get("voting") === "true") {
+      // Alleen leden die aan ALLE voorwaarden voldoen voor stemrecht tonen
+      
       // Voorwaarde 1: Meerderjarig (18+)
+      // Eerst checken of birthDate aanwezig is, anders kan iemand niet stemgerechtigd zijn
+      if (!member.birthDate) return false;
       const age = calculateAge(member.birthDate);
       if (age === null || age < 18) return false;
       
       // Voorwaarde 2: Minstens 5 jaar aaneensluitend lid
+      // Dus startDate of registrationDate moet aanwezig zijn
+      if (!member.startDate && !member.registrationDate) return false;
       const membershipYears = calculateMembershipYears(member);
       if (membershipYears < 5) return false;
       
       // Voorwaarde 3: Elk jaar betaald (huidige betalingsstatus)
-      if (!member.paymentStatus) return false;
+      // Als paymentStatus null of undefined is of false, dan niet stemgerechtigd
+      if (member.paymentStatus !== true) return false;
     }
     
     return matchesSearch && matchesFilter;
