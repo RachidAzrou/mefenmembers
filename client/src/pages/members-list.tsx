@@ -1104,25 +1104,14 @@ export default function MembersList() {
               <DialogHeader className="text-white">
                 <div className="flex justify-between items-start">
                   <div>
-                    <DialogTitle className="text-lg sm:text-xl text-white">
-                      {viewMember.firstName} {viewMember.lastName}
-                    </DialogTitle>
-                    <DialogDescription className="text-white/80 text-xs sm:text-sm mt-1">
-                      Lidnummer: {viewMember.memberNumber.toString().padStart(4, '0')} • Lid sinds {formatDate(viewMember.startDate || viewMember.registrationDate)}
-                    </DialogDescription>
-                  </div>
-                  
-                  {(() => {
-                    // Debug log om te zien wat de functie terug geeft
-                    console.log("Lid stemgerechtigheid check:", {
-                      naam: `${viewMember.firstName} ${viewMember.lastName}`,
-                      betaald: viewMember.paymentStatus,
-                      stemgerechtigd: isVotingEligible(viewMember)
-                    });
-                    
-                    if (isVotingEligible(viewMember)) {
-                      return (
-                        <div className="bg-[#963E56]/20 py-1.5 px-3 rounded-full border border-[#963E56]/30 flex items-center gap-1.5">
+                    <div className="flex items-center gap-2">
+                      <DialogTitle className="text-lg sm:text-xl text-white">
+                        {viewMember.firstName} {viewMember.lastName}
+                      </DialogTitle>
+                      
+                      {/* Badge rechts naast de naam */}
+                      {isVotingEligible(viewMember) && (
+                        <div className="bg-white/20 py-0.5 px-2.5 rounded-full border border-white/30 flex items-center gap-1">
                           <svg 
                             viewBox="0 0 24 24" 
                             fill="none" 
@@ -1130,17 +1119,19 @@ export default function MembersList() {
                             strokeWidth="2.5" 
                             strokeLinecap="round" 
                             strokeLinejoin="round" 
-                            className="h-4 w-4 text-[#963E56]"
+                            className="h-3 w-3 text-white"
                           >
                             <path d="m9 12 2 2 4-4" />
                             <path d="M12 3c-1.2 0-2.4.6-3 1.7A3.6 3.6 0 0 0 4.6 9c-1 .6-1.7 1.8-1.7 3s.7 2.4 1.7 3c-.3 1.2 0 2.5 1 3.4.8.8 2.1 1.2 3.3 1 .6 1 1.8 1.6 3 1.6s2.4-.6 3-1.7c1.2.3 2.5 0 3.4-1 .8-.8 1.2-2 1-3.3 1-.6 1.7-1.8 1.7-3s-.7-2.4-1.7-3c.3-1.2 0-2.5-1-3.4a3.7 3.7 0 0 0-3.3-1c-.6-1-1.8-1.6-3-1.6Z" />
                           </svg>
-                          <span className="text-xs text-[#963E56] font-medium">Stemgerechtigd</span>
+                          <span className="text-xs text-white font-medium">Stemgerechtigd</span>
                         </div>
-                      );
-                    }
-                    return null;
-                  })()}
+                      )}
+                    </div>
+                    <DialogDescription className="text-white/80 text-xs sm:text-sm mt-1">
+                      Lidnummer: {viewMember.memberNumber.toString().padStart(4, '0')} • Lid sinds {formatDate(viewMember.startDate || viewMember.registrationDate)}
+                    </DialogDescription>
+                  </div>
                 </div>
               </DialogHeader>
             </div>
