@@ -21,32 +21,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/members", async (_req: Request, res: Response) => {
+  app.get("/api/members", async (req: Request, res: Response) => {
     try {
+      // Als er een id parameter is, dan halen we een specifiek lid op
+      if (req.query.id) {
+        const id = parseInt(req.query.id as string);
+        if (isNaN(id)) {
+          return res.status(400).json({ error: "Invalid ID format" });
+        }
+        
+        const member = await storage.getMember(id);
+        if (!member) {
+          return res.status(404).json({ error: "Member not found" });
+        }
+
+        return res.json(member);
+      }
+
+      // Anders halen we alle leden op
       const members = await storage.listMembers();
       res.json(members);
     } catch (error) {
       console.error("Error fetching members:", error);
       res.status(500).json({ error: "Failed to fetch members" });
-    }
-  });
-
-  app.get("/api/members/:id", async (req: Request, res: Response) => {
-    try {
-      const id = parseInt(req.params.id);
-      if (isNaN(id)) {
-        return res.status(400).json({ error: "Invalid ID format" });
-      }
-
-      const member = await storage.getMember(id);
-      if (!member) {
-        return res.status(404).json({ error: "Member not found" });
-      }
-
-      res.json(member);
-    } catch (error) {
-      console.error("Error fetching member:", error);
-      res.status(500).json({ error: "Failed to fetch member" });
     }
   });
 
@@ -95,11 +92,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.put("/api/members/:id", async (req: Request, res: Response) => {
+  app.put("/api/members", async (req: Request, res: Response) => {
     try {
-      const id = parseInt(req.params.id);
-      if (isNaN(id)) {
-        return res.status(400).json({ error: "Invalid ID format" });
+      const id = req.query.id ? parseInt(req.query.id as string) : undefined;
+      if (!id || isNaN(id)) {
+        return res.status(400).json({ error: "Invalid or missing ID parameter" });
       }
 
       // Valideer alleen de velden die worden bijgewerkt
@@ -123,11 +120,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete("/api/members/:id", async (req: Request, res: Response) => {
+  app.delete("/api/members", async (req: Request, res: Response) => {
     try {
-      const id = parseInt(req.params.id);
-      if (isNaN(id)) {
-        return res.status(400).json({ error: "Invalid ID format" });
+      const id = req.query.id ? parseInt(req.query.id as string) : undefined;
+      if (!id || isNaN(id)) {
+        return res.status(400).json({ error: "Invalid or missing ID parameter" });
       }
 
       const member = await storage.getMember(id);

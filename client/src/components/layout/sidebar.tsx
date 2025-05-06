@@ -54,9 +54,20 @@ export function Sidebar() {
     }
   };
 
+  // Custom icon voor de ledenlijst (persoon met lijst)
+  const PersonWithListIcon = () => (
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-list">
+      <circle cx="9" cy="7" r="4" />
+      <path d="M14 10h7" />
+      <path d="M14 14h7" />
+      <path d="M14 18h7" />
+      <path d="M3 18a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4" />
+    </svg>
+  );
+
   const menuItems = [
     { icon: Home, label: "Dashboard", href: "/dashboard" },
-    { icon: UsersRound, label: "Ledenlijst", href: "/members" },
+    { icon: PersonWithListIcon, label: "Ledenlijst", href: "/members" },
     { icon: PlusCircle, label: "Lid toevoegen", href: "/member-add" },
     { icon: FileSpreadsheet, label: "Exporteren", href: "/export" },
   ];
