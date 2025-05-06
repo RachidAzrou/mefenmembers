@@ -116,8 +116,10 @@ export default function MemberAdd() {
   const memberId = params.get('id') ? parseInt(params.get('id')!) : undefined;
   const isEditMode = Boolean(memberId);
   
-  // State voor delete dialog
+  // State voor delete en success dialog
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [successDialogOpen, setSuccessDialogOpen] = useState(false);
+  const [newMember, setNewMember] = useState<Member | null>(null);
   
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -238,13 +240,22 @@ export default function MemberAdd() {
       const response = await apiRequest("POST", "/api/members", data);
       return response.json();
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["/api/members"] });
+      
+      // Stel het nieuwe lid in voor de succes popup
+      setNewMember(data);
+      
+      // Toon een succes popup met lidnummer en naam
+      setSuccessDialogOpen(true);
+      
+      // Toon ook een toast notification
       toast({
         title: "Lid toegevoegd",
-        description: "Het lid is succesvol toegevoegd.",
+        description: "Het lid is succesvol toegevoegd aan de ledenadministratie.",
       });
-      navigate("/members");
+      
+      // Navigeer niet direct naar de ledenlijst, laat gebruiker eerst de popup zien
     },
     onError: (error) => {
       toast({
@@ -747,6 +758,18 @@ export default function MemberAdd() {
                     </div>
                   )}
                   
+                  {/* Toon het volgende beschikbare lidnummer tijdens registratie */}
+                  {!isEditMode && (
+                    <div className="mb-4 p-3 bg-blue-50 rounded-md">
+                      <div className="flex items-center">
+                        <InfoIcon className="h-4 w-4 text-blue-600 mr-2" />
+                        <span className="text-sm font-medium text-blue-800">
+                          Volgend beschikbaar lidnummer: <span className="text-lg font-bold">0005</span>
+                        </span>
+                      </div>
+                    </div>
+                  )}
+                
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                     <FormField
                       control={form.control}
@@ -777,6 +800,96 @@ export default function MemberAdd() {
                     
                     <FormField
                       control={form.control}
+                      name="startDate"
+                      render={({ field }) => {
+                        // Gebruik een gewoon invoerveld voor startdatum in DD/MM/YYYY formaat
+                        const [dateInput, setDateInput] = useState(
+                          field.value ? format(field.value, "dd/MM/yyyy") : format(new Date(), "dd/MM/yyyy")
+                        );
+                        
+                        // Functie om een datum string in DD/MM/YYYY formaat te valideren en parsen
+                        const validateAndParseDate = (dateStr: string) => {
+                          if (!dateStr) return null;
+                          
+                          // Controleer of het formaat DD/MM/YYYY is
+                          const regex = /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/;
+                          const match = dateStr.match(regex);
+                          
+                          if (!match) return null;
+                          
+                          const day = parseInt(match[1], 10);
+                          const month = parseInt(match[2], 10) - 1; // JavaScript maanden zijn 0-gebaseerd
+                          const year = parseInt(match[3], 10);
+                          
+                          // Controleer of dag, maand en jaar geldig zijn
+                          if (
+                            day < 1 || day > 31 || 
+                            month < 0 || month > 11 || 
+                            year < 1900 || year > 2100
+                          ) {
+                            return null;
+                          }
+                          
+                          // Maak een Date object en controleer of het geldig is
+                          const date = new Date(Date.UTC(year, month, day, 12, 0, 0));
+                          
+                          // Controleer of de datum bestaat (bijv. 31/02/2023 bestaat niet)
+                          const utcDay = date.getUTCDate();
+                          const utcMonth = date.getUTCMonth();
+                          const utcYear = date.getUTCFullYear();
+                          
+                          if (utcDay !== day || utcMonth !== month || utcYear !== year) {
+                            return null;
+                          }
+                          
+                          return date;
+                        };
+                        
+                        // Verwerk input wijziging
+                        const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+                          const value = e.target.value;
+                          setDateInput(value);
+                          
+                          // Format user input automatically as they type
+                          if (value.length === 2 && !value.includes('/') && !dateInput.includes('/')) {
+                            setDateInput(value + '/');
+                          } else if (value.length === 5 && value.charAt(2) === '/' && !value.includes('/', 3)) {
+                            setDateInput(value + '/');
+                          }
+                        };
+                        
+                        // Verwerk blur event (als gebruiker het veld verlaat)
+                        const handleBlur = () => {
+                          if (dateInput) {
+                            const parsedDate = validateAndParseDate(dateInput);
+                            field.onChange(parsedDate);
+                          } else {
+                            field.onChange(new Date());
+                          }
+                        };
+                        
+                        return (
+                          <FormItem className="flex flex-col">
+                            <FormLabel>Startdatum lidmaatschap<span className="text-destructive">*</span></FormLabel>
+                            <FormControl>
+                              <Input
+                                placeholder="DD/MM/JJJJ"
+                                value={dateInput}
+                                onChange={handleInputChange}
+                                onBlur={handleBlur}
+                                className="border-gray-200 focus:border-[#963E56]"
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        );
+                      }}
+                    />
+                  </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <FormField
+                      control={form.control}
                       name="paymentTerm"
                       render={({ field }) => (
                         <FormItem>
@@ -801,9 +914,7 @@ export default function MemberAdd() {
                         </FormItem>
                       )}
                     />
-                  </div>
                   
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                     <FormField
                       control={form.control}
                       name="endDate"
@@ -955,7 +1066,7 @@ export default function MemberAdd() {
                         <line x1="2" y1="10" x2="22" y2="10" />
                       </svg>
                     </div>
-                    <h3 className="text-base sm:text-lg font-medium text-gray-700">Bankgegevens</h3>
+                    <h3 className="text-base sm:text-lg font-medium text-gray-700">Financiën</h3>
                   </div>
                   
                   <div className="space-y-4">
@@ -1177,6 +1288,72 @@ export default function MemberAdd() {
               ) : (
                 "Definitief verwijderen"
               )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+      
+      {/* Success Dialog na succesvol toevoegen van een lid */}
+      <AlertDialog open={successDialogOpen} onOpenChange={setSuccessDialogOpen}>
+        <AlertDialogContent className="bg-white">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center text-green-600">
+              <CheckCircle className="h-5 w-5 mr-2" />
+              Lid succesvol toegevoegd
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              Het nieuwe lid is succesvol toegevoegd aan de ledenadministratie.
+              
+              {newMember && (
+                <div className="mt-4 p-4 border border-green-200 rounded-md bg-green-50">
+                  <div className="mb-3 flex justify-between items-center">
+                    <div className="flex items-center">
+                      <UserCircle className="h-8 w-8 text-[#963E56] mr-3" />
+                      <div>
+                        <h3 className="font-bold text-gray-800">{newMember.firstName} {newMember.lastName}</h3>
+                        <p className="text-sm text-gray-600">
+                          {newMember.gender === 'man' ? 'Dhr.' : 'Mevr.'}, {newMember.nationality}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="bg-[#963E56] text-white px-3 py-1 rounded-full text-sm font-medium">
+                      Lidnummer: {newMember.memberNumber.toString().padStart(4, '0')}
+                    </div>
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-3 text-sm">
+                    <div>
+                      <p className="text-gray-500">Contact:</p>
+                      <p className="font-medium">{newMember.phoneNumber}</p>
+                      {newMember.email && <p className="font-medium">{newMember.email}</p>}
+                    </div>
+                    <div>
+                      <p className="text-gray-500">Lidmaatschap:</p>
+                      <p className="font-medium capitalize">{newMember.membershipType}</p>
+                      <p className="font-medium capitalize">{newMember.paymentTerm}</p>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="sm:justify-between">
+            <Button 
+              variant="outline" 
+              className="hidden sm:flex border-gray-200"
+              onClick={() => {
+                setSuccessDialogOpen(false);
+                form.reset(); // Reset het formulier voor een nieuw lid
+              }}
+            >
+              <PlusCircle className="mr-2 h-4 w-4" />
+              Nog een lid toevoegen
+            </Button>
+            <AlertDialogAction
+              onClick={() => navigate('/members')}
+              className="bg-[#963E56] hover:bg-[#963E56]/90 w-full sm:w-auto"
+            >
+              Ga naar ledenlijst
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
