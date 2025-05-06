@@ -26,9 +26,9 @@ import {
 import { Button } from "@/components/ui/button";
 import { 
   Eye, MoreHorizontal, Plus, Search, SlidersHorizontal, Save, Loader2,
-  CalendarDays, Check, X, Users, User, Phone, StickyNote, Edit,
+  CalendarDays, Users, User, Phone, StickyNote, Edit,
   SortAsc, SortDesc, Trash2, ArrowUpDown, Filter, UserCheck, AlertTriangle, GraduationCap, CreditCard, AlertCircle,
-  Settings
+  Settings, Banknote
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { formatPhoneNumber } from "@/lib/utils";
@@ -1063,9 +1063,24 @@ export default function MembersList() {
                             ? "bg-green-100 text-green-800 hover:bg-green-200 hover:text-green-900"
                             : "bg-red-50 border-red-200 text-red-700 hover:bg-red-100"}`}
                         >
-                          {member?.paymentStatus 
-                            ? "✓ Betaald" 
-                            : "Niet betaald"}
+                          <div className="flex items-center gap-1">
+                            {member?.paymentStatus ? (
+                              <>
+                                <Banknote className="h-3 w-3 text-green-600" />
+                                <span>Betaald</span>
+                              </>
+                            ) : (
+                              <>
+                                <div className="relative h-3 w-3">
+                                  <Banknote className="h-3 w-3 text-red-600" />
+                                  <div className="absolute inset-0 flex items-center justify-center">
+                                    <div className="w-4 h-0.5 bg-red-600 rotate-45 transform origin-center"></div>
+                                  </div>
+                                </div>
+                                <span>Niet betaald</span>
+                              </>
+                            )}
+                          </div>
                         </Badge>
                       </TableCell>
                       <TableCell className="text-right">
@@ -1566,9 +1581,14 @@ export default function MembersList() {
                       <div className="flex items-center p-3 sm:p-4 rounded-lg bg-gray-50 gap-3 sm:gap-4">
                         <div className={`p-2 sm:p-3 rounded-full ${viewMember.paymentStatus ? 'bg-green-100' : 'bg-red-100'}`}>
                           {viewMember.paymentStatus ? (
-                            <Check className="h-4 w-4 sm:h-5 sm:w-5 text-green-600" />
+                            <Banknote className="h-4 w-4 sm:h-5 sm:w-5 text-green-600" />
                           ) : (
-                            <X className="h-4 w-4 sm:h-5 sm:w-5 text-red-600" />
+                            <div className="relative">
+                              <Banknote className="h-4 w-4 sm:h-5 sm:w-5 text-red-600" />
+                              <div className="absolute inset-0 flex items-center justify-center">
+                                <div className="w-5 sm:w-6 h-0.5 bg-red-600 rotate-45 transform origin-center"></div>
+                              </div>
+                            </div>
                           )}
                         </div>
                         <div>
