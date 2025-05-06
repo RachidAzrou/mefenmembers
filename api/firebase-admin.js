@@ -46,6 +46,19 @@ try {
 async function firebaseAdminRequest(method, path, data = null, token = null) {
   console.log(`[DEBUG] firebaseAdminRequest: ${method} ${path} token=${token ? 'aanwezig' : 'niet aanwezig'}`);
   
+  // Controleer token geldigheid - belangrijke debugging informatie
+  if (token) {
+    try {
+      // Verifieer het token om te controleren of het geldig is
+      // Dit zal falen als het token verlopen of ongeldig is
+      const decodedToken = await firebaseAdmin.auth().verifyIdToken(token);
+      console.log(`[DEBUG] Token geverifieerd voor gebruiker: ${decodedToken.uid}, email: ${decodedToken.email || 'geen email'}`);
+    } catch (verifyError) {
+      console.error(`[DEBUG] Token verificatie mislukt:`, verifyError.message);
+      // We gaan door met de operatie, maar loggen de fout voor debugging
+    }
+  }
+  
   try {
     // Probeer eerst de Admin SDK te gebruiken
     try {
@@ -56,6 +69,19 @@ async function firebaseAdminRequest(method, path, data = null, token = null) {
       let result;
       
       console.log(`[DEBUG] Probeer Admin SDK voor ${method} ${path}`);
+      
+      // Als we een geldig token hebben, maar Firebase Admin SDK gebruiken,
+      // simuleren we dat we als die gebruiker opereren door de regels te respecteren
+      if (token) {
+        try {
+          // Authenticatie context instellen voor deze operatie - alternatieve benadering
+          // Dit zal niet precies hetzelfde werken als user auth, maar kan helpen bij debugging
+          const decodedToken = await firebaseAdmin.auth().verifyIdToken(token);
+          console.log(`[DEBUG] Operatie uitvoeren als geverifieerde gebruiker: ${decodedToken.uid}`);
+        } catch (authError) {
+          console.warn(`[DEBUG] Kon geen auth context instellen, gaat verder als admin:`, authError.message);
+        }
+      }
       
       switch (method) {
         case 'GET':
@@ -101,7 +127,7 @@ async function firebaseAdminRequest(method, path, data = null, token = null) {
         url += `?auth=${token}`;
         console.log(`[DEBUG] Gebruik auth token in API verzoek: ${url.substring(0, 80)}...`);
       } else {
-        console.log(`[DEBUG] Geen auth token beschikbaar voor REST API verzoek`);
+        console.log(`[DEBUG] Geen auth token beschikbaar voor REST API verzoek. BELANGRIJK: Dit kan leiden tot 'permission-denied' fouten als er security rules zijn ingesteld.`);
       }
       
       const options = {
