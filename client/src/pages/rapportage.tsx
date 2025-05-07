@@ -399,6 +399,15 @@ export default function Rapportage() {
   const membershipGrowth = members ? analyzeMembershipGrowth(members) : [];
   const monthlyRevenue = members ? calculateMonthlyRevenue(members) : [];
   
+  // Lidmaatschapstypen voor de vergelijkingstab
+  const membershipTypes = [
+    { name: "Regulier", color: "#2ECC71" },
+    { name: "Student", color: "#3498DB" },
+    { name: "Gezin", color: "#9B59B6" },
+    { name: "Verminderd tarief", color: "#F1C40F" },
+    { name: "Erelid", color: "#E67E22" }
+  ];
+  
   // Demografische statistieken
   const membersByCity = members ? groupMembersByCity(members) : [];
   const membersByPostalArea = members ? groupMembersByPostalArea(members) : [];
@@ -1152,7 +1161,7 @@ export default function Rapportage() {
               <CardContent>
                 <div className="h-80 w-full">
                   <ResponsiveContainer width="100%" height="100%">
-                    <RadarChart outerRadius={90} data={membersByAgeRange}>
+                    <RadarChart outerRadius={90} data={membersByAgeGroup}>
                       <PolarGrid />
                       <PolarAngleAxis dataKey="name" />
                       <PolarRadiusAxis angle={30} domain={[0, 'auto']} />
