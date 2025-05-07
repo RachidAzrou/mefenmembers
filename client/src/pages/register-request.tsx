@@ -631,15 +631,6 @@ export default function RegisterRequest() {
                       </div>
                     )}
                     
-                    {form.watch("paymentMethod") === "overschrijving" && (
-                      <div className="col-span-2 bg-blue-50 border border-blue-200 rounded-md p-4">
-                        <p className="text-blue-800 text-sm">
-                          <strong>Belangrijk:</strong> Uw inschrijving wordt pas officieel na ontvangst van uw eerste betaling via overschrijving.
-                          De betaalgegevens worden naar uw e-mailadres gestuurd na goedkeuring van uw aanvraag.
-                        </p>
-                      </div>
-                    )}
-                    
                     {/* Toon bankgegevens alleen als betalingsmethode domiciliëring of overschrijving is */}
                     {(form.watch("paymentMethod") === "domiciliering" || 
                       form.watch("paymentMethod") === "overschrijving") && (
