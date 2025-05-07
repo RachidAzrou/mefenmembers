@@ -64,6 +64,8 @@ const registrationSchema = z.object({
     .refine(val => !val || /^[A-Z]{2}[0-9]{2}[A-Z0-9]{4}[0-9]{7}([A-Z0-9]?){0,16}$/.test(val), {
       message: "Ongeldig IBAN formaat. Bijvoorbeeld: BE68539007547034"
     }),
+  accountHolderName: z.string().optional(),
+  bicSwift: z.string().optional(),
   
   // Privacy en voorwaarden
   privacyConsent: z.boolean().refine(val => val === true, {
@@ -636,11 +638,13 @@ export default function RegisterRequest() {
                       </div>
                     )}
                     
-                    {form.watch("paymentMethod") === "domiciliering" && (
-                      <div className="col-span-2 space-y-6">
-                        <div className="col-span-2 bg-blue-50 border border-blue-200 rounded-md p-4">
+                    {/* Toon bankgegevens alleen als betalingsmethode domiciliëring of overschrijving is */}
+                    {(form.watch("paymentMethod") === "domiciliering" || 
+                      form.watch("paymentMethod") === "overschrijving") && (
+                      <div className="col-span-2 p-4 border border-blue-100 bg-blue-50/50 rounded-md space-y-4">
+                        <div className="bg-blue-50 border border-blue-200 rounded-md p-4">
                           <p className="text-blue-800 text-sm">
-                            <strong>Belangrijk:</strong> Uw inschrijving wordt pas officieel na ontvangst van uw eerste betaling via domiciliëring.
+                            <strong>Belangrijk:</strong> Uw inschrijving wordt pas officieel na ontvangst van uw eerste betaling via {form.watch("paymentMethod") === "domiciliering" ? "domiciliëring" : "overschrijving"}.
                             De betaalgegevens worden naar uw e-mailadres gestuurd na goedkeuring van uw aanvraag.
                           </p>
                         </div>
@@ -650,37 +654,58 @@ export default function RegisterRequest() {
                           name="accountNumber"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel>IBAN Rekeningnummer <span className="text-red-500">*</span></FormLabel>
+                              <FormLabel>IBAN<span className="text-red-500">*</span></FormLabel>
                               <FormControl>
-                                <Input placeholder="BE00 0000 0000 0000" {...field} />
+                                <Input 
+                                  placeholder="IBAN (bijv. BE68539007547034)" 
+                                  {...field} 
+                                />
                               </FormControl>
                               <FormDescription>
-                                Vereist voor domiciliëring
+                                IBAN-formaat: BE68 5390 0754 7034 (spaties worden automatisch verwijderd)
+                              </FormDescription>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        
+                        <FormField
+                          control={form.control}
+                          name="accountHolderName"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Naam rekeninghouder<span className="text-red-500">*</span></FormLabel>
+                              <FormControl>
+                                <Input 
+                                  placeholder="Naam rekeninghouder" 
+                                  {...field} 
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        
+                        <FormField
+                          control={form.control}
+                          name="bicSwift"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>BIC/SWIFT-code</FormLabel>
+                              <FormControl>
+                                <Input 
+                                  placeholder="BIC/SWIFT (alleen voor buitenlandse rekeningen)" 
+                                  {...field} 
+                                />
+                              </FormControl>
+                              <FormDescription>
+                                Alleen verplicht voor buitenlandse rekeningen.
                               </FormDescription>
                               <FormMessage />
                             </FormItem>
                           )}
                         />
                       </div>
-                    )}
-                    
-                    {form.watch("paymentMethod") !== "domiciliering" && (
-                      <FormField
-                        control={form.control}
-                        name="accountNumber"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>IBAN Rekeningnummer</FormLabel>
-                            <FormControl>
-                              <Input placeholder="BE00 0000 0000 0000" {...field} />
-                            </FormControl>
-                            <FormDescription>
-                              Optioneel, voor eventuele terugbetalingen
-                            </FormDescription>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
                     )}
                     
                     <FormField
