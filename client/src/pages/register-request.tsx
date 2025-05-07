@@ -104,6 +104,8 @@ export default function RegisterRequest() {
       autoRenew: true,
       privacyConsent: false,
       notes: "",
+      accountHolderName: "",
+      bicSwift: "",
     },
   });
   
