@@ -27,7 +27,14 @@ import { Badge } from "@/components/ui/badge";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest, getQueryFn } from "@/lib/queryClient";
 import { useState } from "react";
-import { CheckIcon, Loader2, ShieldAlertIcon, XIcon } from "lucide-react";
+import { 
+  CheckIcon, 
+  Loader2, 
+  ShieldAlertIcon, 
+  XIcon, 
+  Search, 
+  ArrowLeft 
+} from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { nl } from "date-fns/locale";
@@ -67,6 +74,8 @@ export default function MemberRequests() {
   const [rejectionReason, setRejectionReason] = useState("");
   const [showRejectionDialog, setShowRejectionDialog] = useState(false);
   const [showApprovalDialog, setShowApprovalDialog] = useState(false);
+  const [showDetailView, setShowDetailView] = useState(false);
+  const [editedRequest, setEditedRequest] = useState<MemberRequest | null>(null);
   const { isAdmin } = useRole();
 
   // Ophalen van alle aanvragen
@@ -307,123 +316,373 @@ export default function MemberRequests() {
         </TabsList>
 
         <TabsContent value="pending">
-          {pendingRequests.length === 0 ? (
-            <div className="text-center py-10 rounded-md bg-gray-50">
-              <div className="flex flex-col items-center justify-center">
-                <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400 mb-3">
-                  <circle cx="12" cy="12" r="10"></circle>
-                  <polyline points="12 6 12 12 16 14"></polyline>
-                </svg>
-                <p className="text-gray-500 font-medium">Er zijn geen aanvragen in behandeling</p>
-                <p className="text-gray-400 text-sm mt-1">Nieuwe aanvragen zullen hier verschijnen</p>
+          {showDetailView && selectedRequest ? (
+            <div className="bg-white p-6 rounded-lg border shadow-sm">
+              <div className="flex justify-between items-center mb-6">
+                <Button 
+                  variant="outline" 
+                  className="flex items-center gap-2"
+                  onClick={() => {
+                    setShowDetailView(false);
+                    setSelectedRequest(null);
+                  }}
+                >
+                  <ArrowLeft size={16} />
+                  Terug naar lijst
+                </Button>
+                <div className="flex gap-2">
+                  <Button 
+                    variant="outline" 
+                    className="text-green-600 hover:text-green-800 border-green-200 hover:border-green-400"
+                    onClick={() => handleApprove(selectedRequest)}
+                  >
+                    <CheckIcon className="h-4 w-4 mr-2" />
+                    Goedkeuren
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    className="text-red-600 hover:text-red-800 border-red-200 hover:border-red-400"
+                    onClick={() => handleReject(selectedRequest)}
+                  >
+                    <XIcon className="h-4 w-4 mr-2" />
+                    Afwijzen
+                  </Button>
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg">Persoonsgegevens</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <div>
+                      <p className="text-sm text-gray-500">Naam</p>
+                      <p className="font-medium">{selectedRequest.firstName} {selectedRequest.lastName}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-500">Geslacht</p>
+                      <p>{selectedRequest.gender || "Niet opgegeven"}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-500">Geboortedatum</p>
+                      <p>{formatDate(selectedRequest.birthDate)}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-500">Nationaliteit</p>
+                      <p>{selectedRequest.nationality || "Niet opgegeven"}</p>
+                    </div>
+                  </CardContent>
+                </Card>
+                
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg">Contactgegevens</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <div>
+                      <p className="text-sm text-gray-500">E-mail</p>
+                      <p className="font-medium">{selectedRequest.email}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-500">Telefoonnummer</p>
+                      <p>{selectedRequest.phoneNumber}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-500">Adres</p>
+                      <p>
+                        {selectedRequest.street} {selectedRequest.houseNumber}
+                        {selectedRequest.busNumber && `, bus ${selectedRequest.busNumber}`}
+                        <br />
+                        {selectedRequest.postalCode} {selectedRequest.city}
+                      </p>
+                    </div>
+                  </CardContent>
+                </Card>
+                
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg">Lidmaatschap</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <div>
+                      <p className="text-sm text-gray-500">Type lidmaatschap</p>
+                      <p className="capitalize">{selectedRequest.membershipType}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-500">Aanvraagdatum</p>
+                      <p>{formatDate(selectedRequest.requestDate)}</p>
+                    </div>
+                  </CardContent>
+                </Card>
+                
+                {selectedRequest.notes && (
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-lg">Notities</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <p>{selectedRequest.notes}</p>
+                    </CardContent>
+                  </Card>
+                )}
               </div>
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Naam</TableHead>
-                    <TableHead>E-mail</TableHead>
-                    <TableHead>Telefoonnummer</TableHead>
-                    <TableHead>Type</TableHead>
-                    <TableHead>Aanvraagdatum</TableHead>
-                    <TableHead>Acties</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {pendingRequests.map((request) => (
-                    <TableRow key={request.id}>
-                      <TableCell>
-                        <div className="font-medium">{request.firstName} {request.lastName}</div>
-                      </TableCell>
-                      <TableCell>{request.email}</TableCell>
-                      <TableCell>{request.phoneNumber}</TableCell>
-                      <TableCell>{request.membershipType}</TableCell>
-                      <TableCell>{formatDate(request.requestDate)}</TableCell>
-                      <TableCell>
-                        <div className="flex items-center space-x-2">
-                          <Button 
-                            size="sm" 
-                            variant="outline" 
-                            className="h-8 px-2 text-green-600 hover:text-green-800"
-                            onClick={() => handleApprove(request)}
-                          >
-                            <CheckIcon className="h-4 w-4 mr-1" />
-                            <span className="hidden sm:inline">Goedkeuren</span>
-                          </Button>
-                          <Button 
-                            size="sm" 
-                            variant="outline" 
-                            className="h-8 px-2 text-red-600 hover:text-red-800"
-                            onClick={() => handleReject(request)}
-                          >
-                            <XIcon className="h-4 w-4 mr-1" />
-                            <span className="hidden sm:inline">Afwijzen</span>
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
+            <>
+              {pendingRequests.length === 0 ? (
+                <div className="text-center py-10 rounded-md bg-gray-50">
+                  <div className="flex flex-col items-center justify-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400 mb-3">
+                      <circle cx="12" cy="12" r="10"></circle>
+                      <polyline points="12 6 12 12 16 14"></polyline>
+                    </svg>
+                    <p className="text-gray-500 font-medium">Er zijn geen aanvragen in behandeling</p>
+                    <p className="text-gray-400 text-sm mt-1">Nieuwe aanvragen zullen hier verschijnen</p>
+                  </div>
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Naam</TableHead>
+                        <TableHead>Aanvraagdatum</TableHead>
+                        <TableHead className="text-right">Acties</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {pendingRequests.map((request) => (
+                        <TableRow key={request.id}>
+                          <TableCell>
+                            <div className="font-medium">{request.firstName} {request.lastName}</div>
+                          </TableCell>
+                          <TableCell>{formatDate(request.requestDate)}</TableCell>
+                          <TableCell>
+                            <div className="flex items-center justify-end space-x-2">
+                              <Button 
+                                size="sm" 
+                                variant="outline" 
+                                className="h-8 w-8 p-0 text-green-600 hover:text-green-800"
+                                onClick={() => handleApprove(request)}
+                                title="Goedkeuren"
+                              >
+                                <CheckIcon className="h-4 w-4" />
+                              </Button>
+                              <Button 
+                                size="sm" 
+                                variant="outline" 
+                                className="h-8 w-8 p-0 text-red-600 hover:text-red-800"
+                                onClick={() => handleReject(request)}
+                                title="Afwijzen"
+                              >
+                                <XIcon className="h-4 w-4" />
+                              </Button>
+                              <Button 
+                                size="sm" 
+                                variant="outline" 
+                                className="h-8 w-8 p-0 text-primary hover:text-primary/80"
+                                onClick={() => {
+                                  setSelectedRequest(request);
+                                  setShowDetailView(true);
+                                }}
+                                title="Details bekijken"
+                              >
+                                <Search className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              )}
+            </>
           )}
         </TabsContent>
 
         <TabsContent value="processed">
-          {processedRequests.length === 0 ? (
-            <div className="text-center py-10 rounded-md bg-gray-50">
-              <div className="flex flex-col items-center justify-center">
-                <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400 mb-3">
-                  <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-                  <polyline points="22 4 12 14.01 9 11.01"></polyline>
-                </svg>
-                <p className="text-gray-500 font-medium">Er zijn geen verwerkte aanvragen</p>
-                <p className="text-gray-400 text-sm mt-1">Verwerkte aanvragen zullen hier verschijnen</p>
+          {showDetailView && selectedRequest ? (
+            <div className="bg-white p-6 rounded-lg border shadow-sm">
+              <div className="flex justify-between items-center mb-6">
+                <Button 
+                  variant="outline" 
+                  className="flex items-center gap-2"
+                  onClick={() => {
+                    setShowDetailView(false);
+                    setSelectedRequest(null);
+                  }}
+                >
+                  <ArrowLeft size={16} />
+                  Terug naar lijst
+                </Button>
+                <div className="flex gap-2">
+                  {isAdmin && (
+                    <Button 
+                      variant="outline" 
+                      className="text-red-600 hover:text-red-800 border-red-200 hover:border-red-400"
+                      onClick={() => handleDelete(selectedRequest)}
+                    >
+                      <XIcon className="h-4 w-4 mr-2" />
+                      Verwijderen
+                    </Button>
+                  )}
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg">Persoonsgegevens</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <div>
+                      <p className="text-sm text-gray-500">Naam</p>
+                      <p className="font-medium">{selectedRequest.firstName} {selectedRequest.lastName}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-500">Geslacht</p>
+                      <p>{selectedRequest.gender || "Niet opgegeven"}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-500">Geboortedatum</p>
+                      <p>{formatDate(selectedRequest.birthDate)}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-500">Nationaliteit</p>
+                      <p>{selectedRequest.nationality || "Niet opgegeven"}</p>
+                    </div>
+                  </CardContent>
+                </Card>
+                
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg">Contactgegevens</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <div>
+                      <p className="text-sm text-gray-500">E-mail</p>
+                      <p className="font-medium">{selectedRequest.email}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-500">Telefoonnummer</p>
+                      <p>{selectedRequest.phoneNumber}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-500">Adres</p>
+                      <p>
+                        {selectedRequest.street} {selectedRequest.houseNumber}
+                        {selectedRequest.busNumber && `, bus ${selectedRequest.busNumber}`}
+                        <br />
+                        {selectedRequest.postalCode} {selectedRequest.city}
+                      </p>
+                    </div>
+                  </CardContent>
+                </Card>
+                
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg">Lidmaatschap</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <div>
+                      <p className="text-sm text-gray-500">Type lidmaatschap</p>
+                      <p className="capitalize">{selectedRequest.membershipType}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-500">Verwerkingsstatus</p>
+                      <p>{getStatusBadge(selectedRequest.status)}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-500">Aanvraagdatum</p>
+                      <p>{formatDate(selectedRequest.requestDate)}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-500">Verwerkingsdatum</p>
+                      <p>{formatDate(selectedRequest.processedDate)}</p>
+                    </div>
+                  </CardContent>
+                </Card>
+                
+                {selectedRequest.notes && (
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-lg">Notities</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <p>{selectedRequest.notes}</p>
+                    </CardContent>
+                  </Card>
+                )}
               </div>
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Naam</TableHead>
-                    <TableHead>E-mail</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Aanvraagdatum</TableHead>
-                    <TableHead>Verwerkingsdatum</TableHead>
-                    <TableHead>Acties</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {processedRequests.map((request) => (
-                    <TableRow key={request.id}>
-                      <TableCell>
-                        <div className="font-medium">{request.firstName} {request.lastName}</div>
-                      </TableCell>
-                      <TableCell>{request.email}</TableCell>
-                      <TableCell>{getStatusBadge(request.status)}</TableCell>
-                      <TableCell>{formatDate(request.requestDate)}</TableCell>
-                      <TableCell>{formatDate(request.processedDate)}</TableCell>
-                      <TableCell>
-                        {isAdmin && (
-                          <Button 
-                            size="sm" 
-                            variant="outline" 
-                            className="h-8 px-2"
-                            onClick={() => handleDelete(request)}
-                          >
-                            <XIcon className="h-4 w-4 mr-1" />
-                            <span className="hidden sm:inline">Verwijderen</span>
-                          </Button>
-                        )}
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
+            <>
+              {processedRequests.length === 0 ? (
+                <div className="text-center py-10 rounded-md bg-gray-50">
+                  <div className="flex flex-col items-center justify-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400 mb-3">
+                      <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                      <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                    </svg>
+                    <p className="text-gray-500 font-medium">Er zijn geen verwerkte aanvragen</p>
+                    <p className="text-gray-400 text-sm mt-1">Verwerkte aanvragen zullen hier verschijnen</p>
+                  </div>
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Naam</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead>Verwerkingsdatum</TableHead>
+                        <TableHead className="text-right">Acties</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {processedRequests.map((request) => (
+                        <TableRow key={request.id}>
+                          <TableCell>
+                            <div className="font-medium">{request.firstName} {request.lastName}</div>
+                          </TableCell>
+                          <TableCell>{getStatusBadge(request.status)}</TableCell>
+                          <TableCell>{formatDate(request.processedDate)}</TableCell>
+                          <TableCell>
+                            <div className="flex items-center justify-end space-x-2">
+                              {isAdmin && (
+                                <Button 
+                                  size="sm" 
+                                  variant="outline" 
+                                  className="h-8 w-8 p-0 text-red-600 hover:text-red-800"
+                                  onClick={() => handleDelete(request)}
+                                  title="Verwijderen"
+                                >
+                                  <XIcon className="h-4 w-4" />
+                                </Button>
+                              )}
+                              <Button 
+                                size="sm" 
+                                variant="outline" 
+                                className="h-8 w-8 p-0 text-primary hover:text-primary/80"
+                                onClick={() => {
+                                  setSelectedRequest(request);
+                                  setShowDetailView(true);
+                                }}
+                                title="Details bekijken"
+                              >
+                                <Search className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              )}
+            </>
           )}
         </TabsContent>
       </Tabs>

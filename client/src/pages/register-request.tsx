@@ -166,14 +166,13 @@ export default function RegisterRequest() {
     <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-4xl mx-auto">
         <div className="bg-white shadow-xl rounded-lg overflow-hidden">
-          {/* Header in dezelfde stijl als dashboard */}
-          <div className="p-6 md:p-8">
-            <h1 className="text-2xl font-bold flex items-center">
-              <User className="h-6 w-6 mr-2 text-[#963E56]" />
+          {/* Header in bordeauxrode stijl zoals dashboard */}
+          <div className="bg-[#963E56] p-6 md:p-8 text-white rounded-t-lg">
+            <h1 className="text-2xl font-bold">
               MEFEN Moskee Lidmaatschapsaanvraag
             </h1>
-            <p className="mt-2 text-gray-500">
-              Vul dit formulier in om je aan te melden als lid van de MEFEN Moskee
+            <p className="mt-2 opacity-90">
+              Overzicht van het aanmeldformulier voor nieuwe leden
             </p>
           </div>
           
