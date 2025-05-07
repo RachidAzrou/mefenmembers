@@ -1397,14 +1397,119 @@ export default function MembersList() {
                   sortedMembers.map((member) => (
                     <TableRow key={member?.id || 'unknown'} className="hover:bg-gray-50/50 transition-colors">
                       <TableCell className="font-medium text-xs sm:text-sm py-2 sm:py-4">
-                        <Link 
-                          href={`/member-detail?id=${member?.id}`} 
-                          className="text-[#963E56] hover:text-[#7e3447] hover:underline cursor-pointer"
-                        >
-                          {member?.memberNumber !== undefined 
-                            ? member.memberNumber.toString().padStart(4, '0')
-                            : "----"}
-                        </Link>
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <button 
+                              className="text-[#963E56] hover:text-[#7e3447] hover:underline cursor-pointer"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                              }}
+                            >
+                              {member?.memberNumber !== undefined 
+                                ? member.memberNumber.toString().padStart(4, '0')
+                                : "----"}
+                            </button>
+                          </PopoverTrigger>
+                          <PopoverContent align="start" className="w-80 p-0">
+                            <div className="bg-gradient-to-r from-[#963E56]/90 to-[#963E56] p-3 text-white rounded-t-md">
+                              <div className="flex justify-between items-start">
+                                <div>
+                                  <h3 className="font-semibold">
+                                    {member.firstName} {member.lastName}
+                                  </h3>
+                                  <p className="text-xs opacity-90">
+                                    Lid {member?.memberNumber !== undefined 
+                                      ? member.memberNumber.toString().padStart(4, '0')
+                                      : "----"}
+                                  </p>
+                                </div>
+                                {isVotingEligible(member) && (
+                                  <div className="bg-white/20 py-0.5 px-2 rounded-full border border-white/30 flex items-center gap-1">
+                                    <svg 
+                                      viewBox="0 0 24 24" 
+                                      fill="none" 
+                                      stroke="currentColor" 
+                                      strokeWidth="2" 
+                                      strokeLinecap="round" 
+                                      strokeLinejoin="round" 
+                                      className="h-3 w-3"
+                                    >
+                                      <path d="m9 12 2 2 4-4" />
+                                      <path d="M12 3c-1.2 0-2.4.6-3 1.7A3.6 3.6 0 0 0 4.6 9c-1 .6-1.7 1.8-1.7 3s.7 2.4 1.7 3c-.3 1.2 0 2.5 1 3.4.8.8 2.1 1.2 3.3 1 .6 1 1.8 1.6 3 1.6s2.4-.6 3-1.7c1.2.3 2.5 0 3.4-1 .8-.8 1.2-2 1-3.3 1-.6 1.7-1.8 1.7-3s-.7-2.4-1.7-3c.3-1.2 0-2.5-1-3.4a3.7 3.7 0 0 0-3.3-1c-.6-1-1.8-1.6-3-1.6Z" />
+                                    </svg>
+                                    <span className="text-xs">Stemgerechtigd</span>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                            
+                            <div className="p-3 space-y-2">
+                              <div className="grid grid-cols-2 gap-2 text-sm">
+                                <div>
+                                  <p className="text-xs text-gray-500">Geboortedatum</p>
+                                  <p>{formatDate(member.birthDate)}</p>
+                                </div>
+                                <div>
+                                  <p className="text-xs text-gray-500">Lidmaatschap</p>
+                                  <p>{member.membershipType || "Standaard"}</p>
+                                </div>
+                                <div>
+                                  <p className="text-xs text-gray-500">Betaling</p>
+                                  <div className="flex items-center gap-1">
+                                    {member.paymentStatus ? (
+                                      <>
+                                        <Banknote className="h-3 w-3 text-green-600" />
+                                        <span className="text-green-600 font-medium">Betaald</span>
+                                      </>
+                                    ) : (
+                                      <>
+                                        <div className="relative h-3 w-3">
+                                          <Banknote className="h-3 w-3 text-red-600" />
+                                        </div>
+                                        <span className="text-red-600 font-medium">Niet betaald</span>
+                                      </>
+                                    )}
+                                  </div>
+                                </div>
+                                <div>
+                                  <p className="text-xs text-gray-500">Lid sinds</p>
+                                  <p>{formatDate(member.startDate || member.registrationDate)}</p>
+                                </div>
+                              </div>
+                            </div>
+                            
+                            <div className="border-t border-gray-200 p-2 flex justify-end gap-2 bg-gray-50 rounded-b-md">
+                              <Button 
+                                variant="outline" 
+                                size="sm" 
+                                className="text-xs h-8"
+                                onClick={() => {
+                                  // Popup sluiten
+                                  document.body.click();
+                                  // Direct naar details navigeren
+                                  navigate(`/member-detail?id=${member?.id}`);
+                                }}
+                              >
+                                Alle details bekijken
+                              </Button>
+                              <Button 
+                                size="sm" 
+                                className="text-xs h-8 bg-[#963E56] hover:bg-[#7d3447]"
+                                onClick={() => {
+                                  // Popup sluiten
+                                  document.body.click();
+                                  // Stel het lid in voor bewerking en open de dialoog
+                                  setViewMember(member);
+                                  setEditMode(true);
+                                }}
+                              >
+                                <Edit className="h-3 w-3 mr-1" />
+                                Bewerken
+                              </Button>
+                            </div>
+                          </PopoverContent>
+                        </Popover>
                       </TableCell>
                       <TableCell className="font-medium text-xs sm:text-sm py-2 sm:py-4">
                         {member?.firstName || ""}
