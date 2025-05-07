@@ -483,16 +483,16 @@ export default function RegisterRequest() {
                         name="street"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel className="text-sm sm:text-base">Straat</FormLabel>
+                            <FormLabel className="text-sm sm:text-base font-medium">Straat</FormLabel>
                             <FormControl>
                               <Input 
                                 placeholder="Straatnaam" 
                                 {...field} 
-                                className="text-sm h-14 text-base"
+                                className="h-12 sm:h-10 text-base sm:text-sm px-4 rounded-lg focus:border-[#963E56] focus:ring-[#963E56]/30"
                                 autoComplete="street-address"
                               />
                             </FormControl>
-                            <FormMessage />
+                            <FormMessage className="font-medium text-sm" />
                           </FormItem>
                         )}
                       />
@@ -505,16 +505,16 @@ export default function RegisterRequest() {
                         name="houseNumber"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel className="text-sm sm:text-base">Huisnr.</FormLabel>
+                            <FormLabel className="text-sm sm:text-base font-medium">Huisnr.</FormLabel>
                             <FormControl>
                               <Input 
                                 placeholder="123" 
                                 {...field} 
-                                className="text-sm"
+                                className="h-12 sm:h-10 text-base sm:text-sm px-4 rounded-lg focus:border-[#963E56] focus:ring-[#963E56]/30"
                                 inputMode="numeric"
                               />
                             </FormControl>
-                            <FormMessage />
+                            <FormMessage className="font-medium text-sm" />
                           </FormItem>
                         )}
                       />
@@ -524,15 +524,15 @@ export default function RegisterRequest() {
                         name="busNumber"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel className="text-sm sm:text-base">Bus</FormLabel>
+                            <FormLabel className="text-sm sm:text-base font-medium">Bus</FormLabel>
                             <FormControl>
                               <Input 
                                 placeholder="B1" 
                                 {...field} 
-                                className="text-sm"
+                                className="h-12 sm:h-10 text-base sm:text-sm px-4 rounded-lg focus:border-[#963E56] focus:ring-[#963E56]/30"
                               />
                             </FormControl>
-                            <FormMessage />
+                            <FormMessage className="font-medium text-sm" />
                           </FormItem>
                         )}
                       />
@@ -545,17 +545,17 @@ export default function RegisterRequest() {
                         name="postalCode"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel className="text-sm sm:text-base">Postcode</FormLabel>
+                            <FormLabel className="text-sm sm:text-base font-medium">Postcode</FormLabel>
                             <FormControl>
                               <Input 
                                 placeholder="1234" 
                                 {...field} 
-                                className="text-sm"
+                                className="h-12 sm:h-10 text-base sm:text-sm px-4 rounded-lg focus:border-[#963E56] focus:ring-[#963E56]/30"
                                 inputMode="numeric"
                                 autoComplete="postal-code"
                               />
                             </FormControl>
-                            <FormMessage />
+                            <FormMessage className="font-medium text-sm" />
                           </FormItem>
                         )}
                       />
@@ -565,16 +565,16 @@ export default function RegisterRequest() {
                         name="city"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel className="text-sm sm:text-base">Plaats</FormLabel>
+                            <FormLabel className="text-sm sm:text-base font-medium">Plaats</FormLabel>
                             <FormControl>
                               <Input 
                                 placeholder="Gemeente" 
                                 {...field}
-                                className="text-sm"
+                                className="h-12 sm:h-10 text-base sm:text-sm px-4 rounded-lg focus:border-[#963E56] focus:ring-[#963E56]/30"
                                 autoComplete="address-level2"
                               />
                             </FormControl>
-                            <FormMessage />
+                            <FormMessage className="font-medium text-sm" />
                           </FormItem>
                         )}
                       />
@@ -751,18 +751,18 @@ export default function RegisterRequest() {
                           name="bicSwift"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel>BIC/SWIFT-code</FormLabel>
+                              <FormLabel className="text-sm sm:text-base font-medium">BIC/SWIFT-code</FormLabel>
                               <FormControl>
                                 <Input 
                                   placeholder="BIC/SWIFT" 
                                   {...field}
-                                  className="text-sm" 
+                                  className="h-12 sm:h-10 text-base sm:text-sm px-4 rounded-lg focus:border-[#963E56] focus:ring-[#963E56]/30" 
                                 />
                               </FormControl>
-                              <FormDescription className="text-xs sm:text-sm">
+                              <FormDescription className="text-xs sm:text-sm mt-1.5">
                                 Alleen nodig voor buitenlandse rekeningen
                               </FormDescription>
-                              <FormMessage />
+                              <FormMessage className="font-medium text-sm" />
                             </FormItem>
                           )}
                         />
