@@ -1010,7 +1010,18 @@ export default function MembersList() {
                 {/* Filter op stemgerechtigdheid */}
                 <div className="space-y-2">
                   <div className="text-xs font-medium text-gray-700 flex items-center gap-1.5">
-                    <Vote className="h-3.5 w-3.5 text-[#963E56]" />
+                    <svg 
+                      viewBox="0 0 24 24" 
+                      fill="none" 
+                      stroke="currentColor" 
+                      strokeWidth="2" 
+                      strokeLinecap="round" 
+                      strokeLinejoin="round" 
+                      className="h-3.5 w-3.5 text-[#963E56]"
+                     >
+                      <path d="m9 12 2 2 4-4" />
+                      <path d="M12 3c-1.2 0-2.4.6-3 1.7A3.6 3.6 0 0 0 4.6 9c-1 .6-1.7 1.8-1.7 3s.7 2.4 1.7 3c-.3 1.2 0 2.5 1 3.4.8.8 2.1 1.2 3.3 1 .6 1 1.8 1.6 3 1.6s2.4-.6 3-1.7c1.2.3 2.5 0 3.4-1 .8-.8 1.2-2 1-3.3 1-.6 1.7-1.8 1.7-3s-.7-2.4-1.7-3c.3-1.2 0-2.5-1-3.4a3.7 3.7 0 0 0-3.3-1c-.6-1-1.8-1.6-3-1.6Z" />
+                    </svg>
                     Stemgerechtigdheid
                   </div>
                   <div className="flex flex-wrap gap-1.5">
@@ -1165,14 +1176,6 @@ export default function MembersList() {
                       onClick={() => setGenderFilter(toggleFilter(genderFilter, 'vrouw'))}
                     >
                       Vrouw
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className={`text-xs h-7 px-2 ${genderFilter.includes('anders') ? 'bg-[#963E56]/10 text-[#963E56] border-[#963E56]/30' : ''}`}
-                      onClick={() => setGenderFilter(toggleFilter(genderFilter, 'anders'))}
-                    >
-                      Anders
                     </Button>
                   </div>
                 </div>
