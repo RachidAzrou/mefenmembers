@@ -20,8 +20,9 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { CalendarIcon, CheckIcon, Loader2 } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import { cn, formatPhoneNumber } from "@/lib/utils";
 import { Textarea } from "@/components/ui/textarea";
@@ -258,42 +259,105 @@ export default function RegisterRequest() {
                       <FormField
                         control={form.control}
                         name="birthDate"
-                        render={({ field }) => (
-                          <FormItem className="flex flex-col">
-                            <FormLabel>Geboortedatum <span className="text-red-500">*</span></FormLabel>
-                            <Popover>
-                              <PopoverTrigger asChild>
-                                <FormControl>
-                                  <Button
-                                    variant={"outline"}
-                                    className={cn(
-                                      "w-full pl-3 text-left font-normal",
-                                      !field.value && "text-muted-foreground"
-                                    )}
-                                  >
-                                    {field.value ? (
-                                      format(field.value, "dd/MM/yyyy", { locale: nl })
-                                    ) : (
-                                      <span>Kies een datum</span>
-                                    )}
-                                    <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                                  </Button>
-                                </FormControl>
-                              </PopoverTrigger>
-                              <PopoverContent className="w-auto p-0" align="start">
-                                <Calendar
-                                  mode="single"
-                                  selected={field.value || undefined}
-                                  onSelect={field.onChange}
-                                  disabled={(date) => date > new Date()}
-                                  initialFocus
-                                  locale={nl}
+                        render={({ field }) => {
+                          const [birthDateInput, setBirthDateInput] = useState(
+                            field.value ? format(field.value, "dd/MM/yyyy") : ""
+                          );
+                          
+                          // Update de birthDateInput wanneer field.value verandert
+                          useEffect(() => {
+                            if (field.value) {
+                              setBirthDateInput(format(field.value, "dd/MM/yyyy"));
+                            }
+                          }, [field.value]);
+                          
+                          // Functie om een datum string in DD/MM/YYYY formaat te valideren en parsen
+                          const validateAndParseDate = (dateStr: string) => {
+                            // Controleer of het formaat DD/MM/YYYY is
+                            const regex = /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/;
+                            const match = dateStr.match(regex);
+                            
+                            if (!match) return null;
+                            
+                            const day = parseInt(match[1], 10);
+                            const month = parseInt(match[2], 10) - 1; // JavaScript maanden zijn 0-gebaseerd
+                            const year = parseInt(match[3], 10);
+                            
+                            // Controleer of dag, maand en jaar geldig zijn
+                            if (
+                              day < 1 || day > 31 || 
+                              month < 0 || month > 11 || 
+                              year < 1900 || year > new Date().getFullYear()
+                            ) {
+                              return null;
+                            }
+                            
+                            // Maak een Date object en controleer of het geldig is
+                            const date = new Date(Date.UTC(year, month, day, 12, 0, 0));
+                            
+                            // Controleer of datum niet in de toekomst ligt
+                            if (date > new Date()) {
+                              return null;
+                            }
+                            
+                            // Controleer of de datum bestaat (bijv. 31/02/2023 bestaat niet)
+                            const utcDay = date.getUTCDate();
+                            const utcMonth = date.getUTCMonth();
+                            const utcYear = date.getUTCFullYear();
+                            
+                            if (utcDay !== day || utcMonth !== month || utcYear !== year) {
+                              return null;
+                            }
+                            
+                            return date;
+                          };
+                          
+                          // Verwerk input wijziging
+                          const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+                            const value = e.target.value;
+                            setBirthDateInput(value);
+                            
+                            // Format user input automatically as they type
+                            if (value.length === 2 && !value.includes('/') && !birthDateInput.includes('/')) {
+                              setBirthDateInput(value + '/');
+                            } else if (value.length === 5 && value.charAt(2) === '/' && !value.includes('/', 3)) {
+                              setBirthDateInput(value + '/');
+                            }
+                          };
+                          
+                          // Verwerk blur event (als gebruiker het veld verlaat)
+                          const handleBlur = () => {
+                            if (birthDateInput) {
+                              const parsedDate = validateAndParseDate(birthDateInput);
+                              if (parsedDate) {
+                                field.onChange(parsedDate);
+                              } else {
+                                // Als datum ongeldig is, reset naar vorige geldige waarde
+                                setBirthDateInput(field.value ? format(field.value, "dd/MM/yyyy") : "");
+                              }
+                            } else {
+                              field.onChange(undefined);
+                            }
+                          };
+                          
+                          return (
+                            <FormItem className="flex flex-col">
+                              <FormLabel>Geboortedatum <span className="text-red-500">*</span></FormLabel>
+                              <FormControl>
+                                <Input
+                                  placeholder="DD/MM/JJJJ"
+                                  value={birthDateInput}
+                                  onChange={handleInputChange}
+                                  onBlur={handleBlur}
                                 />
-                              </PopoverContent>
-                            </Popover>
-                            <FormMessage />
-                          </FormItem>
-                        )}
+                              </FormControl>
+                              <FormDescription className="text-xs sm:text-sm">
+                                Vul de geboortedatum in (formaat: DD/MM/JJJJ).
+                              </FormDescription>
+                              <FormMessage />
+                            </FormItem>
+                          );
+                        }}
                       />
                     </div>
                     
