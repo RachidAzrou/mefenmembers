@@ -1078,15 +1078,67 @@ export default function MemberRequests() {
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-xl">
-              <ShieldAlertIcon className="h-5 w-5 text-red-500" />
+              <svg 
+                xmlns="http://www.w3.org/2000/svg" 
+                viewBox="0 0 24 24" 
+                fill="none" 
+                stroke="currentColor" 
+                strokeWidth="2" 
+                strokeLinecap="round" 
+                strokeLinejoin="round" 
+                className="h-5 w-5 text-red-500"
+              >
+                <path d="M12 22a10 10 0 1 1 0-20 10 10 0 0 1 0 20zm0 0a9.99 9.99 0 0 1-8.94-5.5M12 8v4m0 4h.01"></path>
+              </svg>
               Aanvraag afwijzen
             </DialogTitle>
             <DialogDescription>
               Weet je zeker dat je deze aanvraag wilt afwijzen? Dit kan niet ongedaan worden gemaakt.
             </DialogDescription>
           </DialogHeader>
-          <div className="mt-4 space-y-4">
-            <div className="space-y-1">
+          <div className="mt-2 space-y-4">
+            <div className="bg-gradient-to-r from-rose-50 to-white p-4 rounded-md space-y-3 border border-rose-100 mb-4">
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <p className="text-sm font-medium text-rose-700">Naam</p>
+                  <p className="font-medium">{selectedRequest?.firstName} {selectedRequest?.lastName}</p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-rose-700">Toe te kennen lidnummer</p>
+                  <p className="font-mono font-medium">{nextMemberNumber || "Wordt toegekend"}</p>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <p className="text-sm font-medium text-rose-700">Betaalwijze</p>
+                  <p>
+                    {selectedRequest?.paymentMethod === "cash" && "Cash"}
+                    {selectedRequest?.paymentMethod === "bancontact" && "Bancontact"}
+                    {selectedRequest?.paymentMethod === "overschrijving" && "Overschrijving"}
+                    {selectedRequest?.paymentMethod === "domiciliering" && "Domiciliëring"}
+                    {!selectedRequest?.paymentMethod && "Overschrijving (standaard)"}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-rose-700">Betalingstermijn</p>
+                  <p>
+                    {selectedRequest?.paymentTerm === "maandelijks" && "Maandelijks"}
+                    {selectedRequest?.paymentTerm === "driemaandelijks" && "Driemaandelijks"}
+                    {selectedRequest?.paymentTerm === "jaarlijks" && "Jaarlijks"}
+                    {!selectedRequest?.paymentTerm && "Jaarlijks (standaard)"}
+                  </p>
+                </div>
+              </div>
+              <div>
+                <p className="text-sm font-medium text-rose-700">Type lidmaatschap</p>
+                <p>
+                  {selectedRequest?.membershipType === "standaard" && "Standaard"}
+                  {selectedRequest?.membershipType === "student" && "Student"}
+                  {selectedRequest?.membershipType === "senior" && "Senior"}
+                </p>
+              </div>
+            </div>
+            <div className="space-y-2">
               <Label htmlFor="rejection-reason" className="text-sm font-medium">
                 Reden voor afwijzing
               </Label>
@@ -1095,9 +1147,9 @@ export default function MemberRequests() {
                 value={rejectionReason}
                 onChange={(e) => setRejectionReason(e.target.value)}
                 placeholder="Beschrijf waarom deze aanvraag wordt afgewezen..."
-                className="min-h-[100px]"
+                className="min-h-[100px] border-rose-200 focus:ring-rose-300"
               />
-              <p className="text-sm text-gray-500">
+              <p className="text-xs text-gray-500">
                 Deze informatie is alleen voor intern gebruik.
               </p>
             </div>
@@ -1106,6 +1158,7 @@ export default function MemberRequests() {
             <Button
               variant="outline"
               onClick={() => setShowRejectionDialog(false)}
+              className="border-gray-300"
             >
               Annuleren
             </Button>
@@ -1113,6 +1166,7 @@ export default function MemberRequests() {
               variant="destructive"
               onClick={confirmRejection}
               disabled={rejectMutation.isPending}
+              className="bg-rose-600 hover:bg-rose-700"
             >
               {rejectMutation.isPending ? (
                 <>
@@ -1143,29 +1197,40 @@ export default function MemberRequests() {
             </DialogDescription>
           </DialogHeader>
           <div className="mt-2 space-y-4">
-            <div className="bg-gray-50 p-4 rounded-md space-y-2">
-              <div className="grid grid-cols-2 gap-2">
+            <div className="bg-gradient-to-r from-emerald-50 to-white p-4 rounded-md space-y-3 border border-emerald-100">
+              <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <p className="text-sm font-medium text-gray-500">Naam</p>
-                  <p>{selectedRequest?.firstName} {selectedRequest?.lastName}</p>
+                  <p className="text-sm font-medium text-emerald-700">Naam</p>
+                  <p className="font-medium">{selectedRequest?.firstName} {selectedRequest?.lastName}</p>
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-gray-500">Toe te kennen lidnummer</p>
-                  <p className="font-mono">{nextMemberNumber || "Wordt toegekend"}</p>
+                  <p className="text-sm font-medium text-emerald-700">Toe te kennen lidnummer</p>
+                  <p className="font-mono font-medium">{nextMemberNumber || "Wordt toegekend"}</p>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <p className="text-sm font-medium text-emerald-700">Betaalwijze</p>
+                  <p>
+                    {selectedRequest?.paymentMethod === "cash" && "Cash"}
+                    {selectedRequest?.paymentMethod === "bancontact" && "Bancontact"}
+                    {selectedRequest?.paymentMethod === "overschrijving" && "Overschrijving"}
+                    {selectedRequest?.paymentMethod === "domiciliering" && "Domiciliëring"}
+                    {!selectedRequest?.paymentMethod && "Overschrijving (standaard)"}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-emerald-700">Betalingstermijn</p>
+                  <p>
+                    {selectedRequest?.paymentTerm === "maandelijks" && "Maandelijks"}
+                    {selectedRequest?.paymentTerm === "driemaandelijks" && "Driemaandelijks"}
+                    {selectedRequest?.paymentTerm === "jaarlijks" && "Jaarlijks"}
+                    {!selectedRequest?.paymentTerm && "Jaarlijks (standaard)"}
+                  </p>
                 </div>
               </div>
               <div>
-                <p className="text-sm font-medium text-gray-500">Betaalwijze</p>
-                <p>
-                  {selectedRequest?.paymentMethod === "cash" && "Cash"}
-                  {selectedRequest?.paymentMethod === "bancontact" && "Bancontact"}
-                  {selectedRequest?.paymentMethod === "overschrijving" && "Overschrijving"}
-                  {selectedRequest?.paymentMethod === "domiciliering" && "Domiciliëring"}
-                  {!selectedRequest?.paymentMethod && "Overschrijving (standaard)"}
-                </p>
-              </div>
-              <div>
-                <p className="text-sm font-medium text-gray-500">Type lidmaatschap</p>
+                <p className="text-sm font-medium text-emerald-700">Type lidmaatschap</p>
                 <p>
                   {selectedRequest?.membershipType === "standaard" && "Standaard"}
                   {selectedRequest?.membershipType === "student" && "Student"}
@@ -1178,6 +1243,7 @@ export default function MemberRequests() {
             <Button
               variant="outline"
               onClick={() => setShowApprovalDialog(false)}
+              className="border-gray-300"
             >
               Annuleren
             </Button>
