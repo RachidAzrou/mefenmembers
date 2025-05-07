@@ -35,38 +35,36 @@ function calculateAge(birthDate: Date | string | null | undefined): number {
 }
 
 // Uniform kleurenpalet voor alle grafieken in de overzicht-tab
+// We gebruiken groen, geel en bordeaux zoals gevraagd
 const overviewChartColors = {
-  primary: "#963E56", // Bordeauxrood - primaire kleur
-  secondary: "#4A7BB3", // Blauw
-  tertiary: "#5AAA95", // Groen
-  quaternary: "#E9A03F", // Oranje/Amber
+  // Bordeaux
+  bordeaux: "#963E56", // Bordeauxrood - primaire kleur
+  bordeauxLight1: "#B85370",
+  bordeauxLight2: "#D86985",
   
-  // Gradaties van de primaire kleur
-  primaryLight1: "#B85370",
-  primaryLight2: "#D86985",
-  primaryLight3: "#E47F95",
-  primaryLight4: "#EB96A7",
-  primaryLight5: "#F1ACBA",
-  primaryLight6: "#F7C3CC",
+  // Groenen
+  groen1: "#2E7D32", // donkergroen
+  groen2: "#4CAF50", // groen
+  groen3: "#8BC34A", // lichtgroen
+  groen4: "#AED581", // nog lichter groen
   
-  // Gradaties van de secundaire kleur
-  secondaryLight1: "#6A93C2",
-  secondaryLight2: "#89ABD1",
-  secondaryLight3: "#A8C3E0",
-  secondaryLight4: "#C7DBEF",
-  secondaryLight5: "#E6F3FF",
+  // Gelen
+  geel1: "#F9A825", // donkergeel
+  geel2: "#FBC02D", // geel
+  geel3: "#FFEB3B", // lichtgeel
+  geel4: "#FFF59D", // nog lichter geel
 };
 
 // Groepeer leden per leeftijdscategorie
 function groupMembersByAgeRange(members: Member[]): { name: string; count: number; color: string }[] {
   const ageGroups = [
-    { name: "0-12", min: 0, max: 12, color: overviewChartColors.primaryLight1 },
-    { name: "13-17", min: 13, max: 17, color: overviewChartColors.primaryLight2 },
-    { name: "18-24", min: 18, max: 24, color: overviewChartColors.primaryLight3 },
-    { name: "25-34", min: 25, max: 34, color: overviewChartColors.primaryLight4 },
-    { name: "35-49", min: 35, max: 49, color: overviewChartColors.primaryLight5 },
-    { name: "50-64", min: 50, max: 64, color: overviewChartColors.quaternary },
-    { name: "65+", min: 65, max: 120, color: overviewChartColors.tertiary }
+    { name: "0-12", min: 0, max: 12, color: overviewChartColors.bordeaux },
+    { name: "13-17", min: 13, max: 17, color: overviewChartColors.bordeauxLight1 },
+    { name: "18-24", min: 18, max: 24, color: overviewChartColors.bordeauxLight2 },
+    { name: "25-34", min: 25, max: 34, color: overviewChartColors.groen1 },
+    { name: "35-49", min: 35, max: 49, color: overviewChartColors.groen2 },
+    { name: "50-64", min: 50, max: 64, color: overviewChartColors.groen3 },
+    { name: "65+", min: 65, max: 120, color: overviewChartColors.groen4 }
   ];
 
   // Initialiseer resultaten met 0 voor alle categorieën
@@ -111,11 +109,11 @@ function calculateMemberRevenue(member: Member, contributionAmounts: Record<stri
 // Groepeer leden per lidmaatschapstype
 function groupMembersByMembershipType(members: Member[]): { name: string; count: number; color: string }[] {
   const membershipTypes = [
-    { name: "Regulier", color: overviewChartColors.primary },
-    { name: "Student", color: overviewChartColors.secondaryLight1 },
-    { name: "Gezin", color: overviewChartColors.quaternary },
-    { name: "Verminderd tarief", color: overviewChartColors.tertiary },
-    { name: "Erelid", color: overviewChartColors.primaryLight5 }
+    { name: "Regulier", color: overviewChartColors.bordeaux },
+    { name: "Student", color: overviewChartColors.bordeauxLight2 },
+    { name: "Gezin", color: overviewChartColors.groen2 },
+    { name: "Verminderd tarief", color: overviewChartColors.groen3 },
+    { name: "Erelid", color: overviewChartColors.geel2 }
   ];
 
   // Initialiseer resultaten
@@ -143,9 +141,9 @@ function groupMembersByMembershipType(members: Member[]): { name: string; count:
 function groupMembersByPaymentMethod(members: Member[]): { name: string; count: number; color: string }[] {
   // We gebruiken alleen de 3 correcte betalingsmethodes volgens de gebruiker
   const paymentMethods = [
-    { name: "Cash", color: overviewChartColors.primary },
-    { name: "Overschrijving", color: overviewChartColors.secondary },
-    { name: "Domiciliering", color: overviewChartColors.tertiary }
+    { name: "Cash", color: overviewChartColors.bordeaux },
+    { name: "Overschrijving", color: overviewChartColors.groen2 },
+    { name: "Domiciliering", color: overviewChartColors.geel1 }
   ];
 
   // Initialiseer resultaten
@@ -187,10 +185,10 @@ function groupMembersByPaymentMethod(members: Member[]): { name: string; count: 
 // Groepeer leden per betalingstermijn
 function groupMembersByPaymentTerm(members: Member[]): { name: string; count: number; color: string }[] {
   const paymentTerms = [
-    { name: "Maandelijks", color: overviewChartColors.primary },
-    { name: "Per kwartaal", color: overviewChartColors.secondaryLight1 },
-    { name: "Halfjaarlijks", color: overviewChartColors.secondaryLight3 },
-    { name: "Jaarlijks", color: overviewChartColors.quaternary }
+    { name: "Maandelijks", color: overviewChartColors.bordeaux },
+    { name: "Per kwartaal", color: overviewChartColors.bordeauxLight2 },
+    { name: "Halfjaarlijks", color: overviewChartColors.groen2 },
+    { name: "Jaarlijks", color: overviewChartColors.geel2 }
   ];
 
   // Initialiseer resultaten
