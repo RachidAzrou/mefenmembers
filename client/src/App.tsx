@@ -12,6 +12,7 @@ import MemberEdit from "@/pages/member-edit";
 import MemberDetail from "@/pages/member-detail";
 import Export from "@/pages/export";
 import MemberRequests from "@/pages/member-requests";
+import MemberRequestDetail from "@/pages/member-request-detail";
 import RegisterRequest from "@/pages/register-request";
 import { Sidebar } from "@/components/layout/sidebar";
 import { auth } from "./lib/firebase";

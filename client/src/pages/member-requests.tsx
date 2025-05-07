@@ -946,11 +946,8 @@ export default function MemberRequests() {
                               variant="ghost" 
                               size="icon"
                               onClick={() => {
-                                setSelectedRequest(request);
-                                setShowDetailView(true);
-                                // Reset edit state
-                                setIsEditing(false);
-                                setEditedRequest(null);
+                                // Open in een nieuw tabblad
+                                window.open(`/member-request-detail/${request.id}`, '_blank');
                               }}
                               className="text-primary hover:text-primary/80"
                             >
@@ -1053,11 +1050,8 @@ export default function MemberRequests() {
                           variant="ghost" 
                           size="icon"
                           onClick={() => {
-                            setSelectedRequest(request);
-                            setShowDetailView(true);
-                            // Reset edit state
-                            setIsEditing(false);
-                            setEditedRequest(null);
+                            // Open in een nieuw tabblad
+                            window.open(`/member-request-detail/${request.id}`, '_blank');
                           }}
                           className="text-primary hover:text-primary/80"
                         >
