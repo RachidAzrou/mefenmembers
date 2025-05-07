@@ -977,60 +977,7 @@ export default function Rapportage() {
             </Card>
           </div>
 
-          <Card className="border-none shadow-md overflow-hidden">
-            <div className="bg-gradient-to-r from-[#963E56]/20 to-[#963E56] h-2" />
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="flex items-center">
-                <Wallet className="h-5 w-5 mr-2 text-[#963E56]" />
-                Geschatte maandelijkse inkomsten
-              </CardTitle>
-              <Button 
-                variant="ghost" 
-                size="icon"
-                onClick={() => exportChartAsJPG(revenueChartRef, 'maandelijkse-inkomsten-grafiek')}
-                className="h-7 w-7"
-                title="Download als JPG"
-              >
-                <ImageIcon className="h-4 w-4" />
-              </Button>
-            </CardHeader>
-            <CardContent className="pl-2">
-              <CardDescription className="mb-4">
-                Gebaseerd op huidige lidmaatschapstypen en betalingstermijnen
-              </CardDescription>
-              <div className="h-80 w-full" ref={revenueChartRef}>
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart
-                    data={monthlyRevenue}
-                    margin={{ top: 20, right: 30, left: 20, bottom: 20 }}
-                  >
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis 
-                      dataKey="maand" 
-                      label={{ 
-                        value: 'Maand', 
-                        position: 'insideBottom', 
-                        offset: -10 
-                      }}
-                    />
-                    <YAxis 
-                      label={{ 
-                        value: 'Bedrag in Euro (€)', 
-                        angle: -90, 
-                        position: 'insideLeft' 
-                      }}
-                    />
-                    <RechartsTooltip 
-                      formatter={(value, name, props) => [`€${value}`, 'Inkomsten']}
-                      labelFormatter={(label) => `Maand: ${label}`}
-                    />
-                    <Legend verticalAlign="top" height={36} />
-                    <Bar dataKey="inkomsten" name="Maandelijkse inkomsten (€)" fill="#2ECC71" />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            </CardContent>
-          </Card>
+          {/* Geschatte maandelijkse inkomsten grafiek is verwijderd */}
         </TabsContent>
 
         <TabsContent value="ledengroei" className="space-y-4">
