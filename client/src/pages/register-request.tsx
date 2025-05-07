@@ -32,13 +32,20 @@ const registrationSchema = z.object({
   // Persoonsgegevens
   firstName: z.string().min(2, "Voornaam is te kort").max(50, "Voornaam is te lang"),
   lastName: z.string().min(2, "Achternaam is te kort").max(50, "Achternaam is te lang"),
-  gender: z.enum(["man", "vrouw"]).optional(),
-  birthDate: z.date().optional().nullable(),
+  gender: z.enum(["man", "vrouw"], {
+    required_error: "Geslacht is verplicht",
+  }),
+  birthDate: z.date({
+    required_error: "Geboortedatum is verplicht",
+    invalid_type_error: "Geboortedatum moet een geldige datum zijn",
+  }),
   nationality: z.string().optional(),
   
   // Contactgegevens
   email: z.string().email("Ongeldig e-mailadres"),
-  phoneNumber: z.string().min(8, "Telefoonnummer moet minstens 8 tekens bevatten"),
+  phoneNumber: z.string()
+    .min(8, "Telefoonnummer moet minstens 8 tekens bevatten")
+    .regex(/^[0-9+\-\s()]+$/, "Telefoonnummer mag alleen cijfers, +, - of spaties bevatten"),
   street: z.string().optional(),
   houseNumber: z.string().optional(),
   busNumber: z.string().optional(),
@@ -47,9 +54,15 @@ const registrationSchema = z.object({
   
   // Lidmaatschap
   membershipType: z.enum(["standaard", "student", "senior"]).default("standaard"),
+  paymentTerm: z.enum(["maandelijks", "driemaandelijks", "jaarlijks"]).default("jaarlijks"),
+  paymentMethod: z.enum(["cash", "domiciliering", "overschrijving", "bancontact"]).default("cash"),
+  autoRenew: z.boolean().default(true),
   
   // Bankgegevens
-  accountNumber: z.string().optional(),
+  accountNumber: z.string().optional()
+    .refine(val => !val || /^[A-Z]{2}[0-9]{2}[A-Z0-9]{4}[0-9]{7}([A-Z0-9]?){0,16}$/.test(val), {
+      message: "Ongeldig IBAN formaat. Bijvoorbeeld: BE68539007547034"
+    }),
   
   // Privacy en voorwaarden
   privacyConsent: z.boolean().refine(val => val === true, {
@@ -74,6 +87,9 @@ export default function RegisterRequest() {
       email: "",
       phoneNumber: "",
       membershipType: "standaard",
+      paymentTerm: "jaarlijks",
+      paymentMethod: "cash",
+      autoRenew: true,
       privacyConsent: false,
       notes: "",
     },
@@ -190,7 +206,7 @@ export default function RegisterRequest() {
                       name="gender"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Geslacht</FormLabel>
+                          <FormLabel>Geslacht <span className="text-red-500">*</span></FormLabel>
                           <Select 
                             onValueChange={field.onChange} 
                             defaultValue={field.value}
@@ -215,7 +231,7 @@ export default function RegisterRequest() {
                       name="birthDate"
                       render={({ field }) => (
                         <FormItem className="flex flex-col">
-                          <FormLabel>Geboortedatum</FormLabel>
+                          <FormLabel>Geboortedatum <span className="text-red-500">*</span></FormLabel>
                           <Popover>
                             <PopoverTrigger asChild>
                               <FormControl>
@@ -227,7 +243,7 @@ export default function RegisterRequest() {
                                   )}
                                 >
                                   {field.value ? (
-                                    format(field.value, "P", { locale: nl })
+                                    format(field.value, "dd/MM/yyyy", { locale: nl })
                                   ) : (
                                     <span>Kies een datum</span>
                                   )}
