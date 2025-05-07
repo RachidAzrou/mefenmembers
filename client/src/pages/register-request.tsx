@@ -142,21 +142,27 @@ export default function RegisterRequest() {
              background: "url('/pattern.jpg') center/cover fixed no-repeat, linear-gradient(135deg, rgba(245, 247, 250, 0.7), rgba(195, 207, 226, 0.7))",
              backgroundBlendMode: "overlay"
            }}>
-        <div className="w-full max-w-3xl mx-auto bg-white/90 rounded-lg shadow-md p-6 md:p-8 backdrop-blur-md">
-          <div className="flex flex-col items-center text-center space-y-4">
-            <div className="bg-green-100 rounded-full p-3">
-              <CheckIcon className="h-10 w-10 text-green-600" />
+        <div className="w-full max-w-3xl mx-auto bg-white/90 rounded-lg shadow-xl overflow-hidden backdrop-blur-md">
+          {/* Header in bordeauxrode stijl, net als form */}
+          <div className="bg-[#963E56] p-6 md:p-8 text-white rounded-t-lg">
+            <h1 className="text-2xl font-bold text-center">
+              MEFEN Moskee Lidmaatschapsaanvraag
+            </h1>
+          </div>
+          
+          <div className="p-8 md:p-10 flex flex-col items-center text-center space-y-6">
+            <div className="rounded-full bg-[#963E56]/10 p-4 w-20 h-20 flex items-center justify-center">
+              <CheckIcon className="h-10 w-10 text-[#963E56]" />
             </div>
-            <h1 className="text-2xl font-bold">Aanvraag Succesvol Ingediend!</h1>
-            <p className="text-gray-600 max-w-md">
+            <h2 className="text-2xl font-bold text-gray-800">Aanvraag Succesvol Ingediend!</h2>
+            <p className="text-gray-600 max-w-md text-lg">
               Bedankt voor je aanvraag. We zullen deze zo snel mogelijk beoordelen en nemen contact 
               met je op via de door jou opgegeven contactgegevens.
             </p>
             <div className="mt-6">
               <Button 
                 onClick={() => setSuccess(false)}
-                variant="outline"
-                className="hover:bg-primary/10 transition-colors"
+                className="bg-[#963E56] hover:bg-[#7d3447] text-white font-medium px-6 py-2 rounded-md transition-colors"
               >
                 Nieuwe aanvraag indienen
               </Button>
