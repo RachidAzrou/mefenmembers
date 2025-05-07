@@ -174,33 +174,33 @@ export default function RegisterRequest() {
   }
   
   return (
-    <div className="min-h-screen py-12 px-4 sm:px-6 lg:px-8" 
+    <div className="min-h-screen py-6 px-3 sm:py-12 sm:px-6 lg:px-8" 
          style={{
            background: "url('/pattern.jpg') center/cover fixed no-repeat, linear-gradient(135deg, rgba(245, 247, 250, 0.7), rgba(195, 207, 226, 0.7))",
            backgroundBlendMode: "overlay"
          }}>
-      <div className="max-w-4xl mx-auto">
-        <div className="bg-white/90 shadow-xl rounded-lg overflow-hidden backdrop-blur-md">
+      <div className="w-full max-w-4xl mx-auto">
+        <div className="bg-white/95 shadow-xl rounded-xl overflow-hidden backdrop-blur-md">
           {/* Header in bordeauxrode stijl zoals dashboard */}
-          <div className="bg-[#963E56] p-6 md:p-8 text-white rounded-t-lg">
-            <h1 className="text-2xl font-bold">
+          <div className="bg-[#963E56] p-5 sm:p-6 md:p-8 text-white rounded-t-xl">
+            <h1 className="text-xl sm:text-2xl font-bold text-center sm:text-left">
               MEFEN Moskee Lidmaatschapsaanvraag
             </h1>
-            <p className="mt-2 opacity-90">
-              Overzicht van het aanmeldformulier voor nieuwe leden
+            <p className="mt-2 opacity-90 text-sm sm:text-base text-center sm:text-left">
+              Vul onderstaand formulier in om lid te worden
             </p>
           </div>
           
           {/* Formulier */}
-          <div className="p-6 md:p-8">
+          <div className="p-4 sm:p-6 md:p-8">
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
                 
                 {/* Sectie: Persoonsgegevens */}
-                <div className="border border-gray-200 rounded-md p-4 md:p-6 space-y-6">
-                  <div className="flex items-center gap-2 mb-4">
-                    <div className="h-8 w-8 rounded-full bg-primary text-white flex items-center justify-center font-semibold">1</div>
-                    <h2 className="text-xl font-semibold">Persoonsgegevens</h2>
+                <div className="border border-gray-200 rounded-lg p-3 sm:p-4 md:p-6 space-y-4 sm:space-y-6 shadow-sm">
+                  <div className="flex items-center gap-2 mb-2 sm:mb-4">
+                    <div className="h-7 w-7 sm:h-8 sm:w-8 rounded-full bg-[#963E56] text-white flex items-center justify-center font-semibold text-sm sm:text-base">1</div>
+                    <h2 className="text-lg sm:text-xl font-semibold">Persoonsgegevens</h2>
                   </div>
                   
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -394,10 +394,10 @@ export default function RegisterRequest() {
                 </div>
                 
                 {/* Sectie: Contactgegevens */}
-                <div className="border border-gray-200 rounded-md p-4 md:p-6 space-y-6">
-                  <div className="flex items-center gap-2 mb-4">
-                    <div className="h-8 w-8 rounded-full bg-primary text-white flex items-center justify-center font-semibold">2</div>
-                    <h2 className="text-xl font-semibold">Contactgegevens</h2>
+                <div className="border border-gray-200 rounded-lg p-3 sm:p-4 md:p-6 space-y-4 sm:space-y-6 shadow-sm">
+                  <div className="flex items-center gap-2 mb-2 sm:mb-4">
+                    <div className="h-7 w-7 sm:h-8 sm:w-8 rounded-full bg-[#963E56] text-white flex items-center justify-center font-semibold text-sm sm:text-base">2</div>
+                    <h2 className="text-lg sm:text-xl font-semibold">Contactgegevens</h2>
                   </div>
                   
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -529,10 +529,10 @@ export default function RegisterRequest() {
                 </div>
                 
                 {/* Sectie: Lidmaatschap */}
-                <div className="border border-gray-200 rounded-md p-4 md:p-6 space-y-6">
-                  <div className="flex items-center gap-2 mb-4">
-                    <div className="h-8 w-8 rounded-full bg-primary text-white flex items-center justify-center font-semibold">3</div>
-                    <h2 className="text-xl font-semibold">Lidmaatschap</h2>
+                <div className="border border-gray-200 rounded-lg p-3 sm:p-4 md:p-6 space-y-4 sm:space-y-6 shadow-sm">
+                  <div className="flex items-center gap-2 mb-2 sm:mb-4">
+                    <div className="h-7 w-7 sm:h-8 sm:w-8 rounded-full bg-[#963E56] text-white flex items-center justify-center font-semibold text-sm sm:text-base">3</div>
+                    <h2 className="text-lg sm:text-xl font-semibold">Lidmaatschap</h2>
                   </div>
                   
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -620,8 +620,8 @@ export default function RegisterRequest() {
                     
                     {/* Conditionele berichten op basis van betalingsmethode */}
                     {form.watch("paymentMethod") === "cash" && (
-                      <div className="col-span-2 bg-yellow-50 border border-yellow-200 rounded-md p-4">
-                        <p className="text-yellow-800 text-sm">
+                      <div className="col-span-2 bg-yellow-50 border border-yellow-200 rounded-lg p-3 sm:p-4 shadow-sm">
+                        <p className="text-yellow-800 text-xs sm:text-sm">
                           <strong>Let op:</strong> Bij betaling met cash dient u een medewerker van de moskee aan te spreken. 
                           Uw inschrijving wordt pas officieel na ontvangst van de betaling.
                         </p>
