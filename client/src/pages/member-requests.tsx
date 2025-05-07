@@ -379,32 +379,90 @@ export default function MemberRequests() {
               <div className="flex justify-between items-center mb-6">
                 <Button 
                   variant="outline" 
-                  className="flex items-center gap-2"
+                  className="flex items-center gap-2 border-[#963E56] text-[#963E56] hover:bg-[#963E56]/5"
                   onClick={() => {
                     setShowDetailView(false);
                     setSelectedRequest(null);
+                    setEditedRequest(null);
+                    setIsEditMode(false);
                   }}
                 >
                   <ArrowLeft size={16} />
                   Terug naar lijst
                 </Button>
                 <div className="flex gap-2">
-                  <Button 
-                    variant="outline" 
-                    className="text-green-600 hover:text-green-800 border-green-200 hover:border-green-400"
-                    onClick={() => handleApprove(selectedRequest)}
-                  >
-                    <CheckIcon className="h-4 w-4 mr-2" />
-                    Goedkeuren
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    className="text-red-600 hover:text-red-800 border-red-200 hover:border-red-400"
-                    onClick={() => handleReject(selectedRequest)}
-                  >
-                    <XIcon className="h-4 w-4 mr-2" />
-                    Afwijzen
-                  </Button>
+                  {isEditMode ? (
+                    <>
+                      <Button 
+                        variant="outline" 
+                        className="text-gray-600 hover:text-gray-800 border-gray-200 hover:border-gray-400"
+                        onClick={() => {
+                          setIsEditMode(false);
+                          setEditedRequest(null);
+                        }}
+                      >
+                        <XIcon className="h-4 w-4 mr-2" />
+                        Annuleren
+                      </Button>
+                      <Button 
+                        className="bg-[#963E56] hover:bg-[#7d3447] text-white"
+                        onClick={() => {
+                          if (editedRequest) {
+                            updateMutation.mutate(editedRequest);
+                          }
+                        }}
+                        disabled={updateMutation.isPending}
+                      >
+                        {updateMutation.isPending ? (
+                          <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            Bezig...
+                          </>
+                        ) : (
+                          <>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                              <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
+                              <polyline points="17 21 17 13 7 13 7 21" />
+                              <polyline points="7 3 7 8 15 8" />
+                            </svg>
+                            Opslaan
+                          </>
+                        )}
+                      </Button>
+                    </>
+                  ) : (
+                    <>
+                      <Button 
+                        variant="outline" 
+                        className="text-[#963E56] hover:text-[#7d3447] border-[#963E56]/20 hover:border-[#963E56]/40"
+                        onClick={() => {
+                          setIsEditMode(true);
+                          setEditedRequest(selectedRequest);
+                        }}
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                          <path d="M17 3a2.85 2.85 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z" />
+                        </svg>
+                        Bewerken
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        className="text-green-600 hover:text-green-800 border-green-200 hover:border-green-400"
+                        onClick={() => handleApprove(selectedRequest)}
+                      >
+                        <CheckIcon className="h-4 w-4 mr-2" />
+                        Goedkeuren
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        className="text-red-600 hover:text-red-800 border-red-200 hover:border-red-400"
+                        onClick={() => handleReject(selectedRequest)}
+                      >
+                        <XIcon className="h-4 w-4 mr-2" />
+                        Afwijzen
+                      </Button>
+                    </>
+                  )}
                 </div>
               </div>
               
@@ -414,22 +472,83 @@ export default function MemberRequests() {
                     <CardTitle className="text-lg">Persoonsgegevens</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-3">
-                    <div>
-                      <p className="text-sm text-gray-500">Naam</p>
-                      <p className="font-medium">{selectedRequest.firstName} {selectedRequest.lastName}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-gray-500">Geslacht</p>
-                      <p>{selectedRequest.gender || "Niet opgegeven"}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-gray-500">Geboortedatum</p>
-                      <p>{formatDate(selectedRequest.birthDate)}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-gray-500">Nationaliteit</p>
-                      <p>{selectedRequest.nationality || "Niet opgegeven"}</p>
-                    </div>
+                    {isEditMode ? (
+                      <>
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <Label htmlFor="detail-firstname">Voornaam</Label>
+                            <Input
+                              id="detail-firstname"
+                              value={editedRequest?.firstName || selectedRequest.firstName}
+                              onChange={(e) => setEditedRequest({...editedRequest || selectedRequest, firstName: e.target.value})}
+                              className="mt-1"
+                            />
+                          </div>
+                          <div>
+                            <Label htmlFor="detail-lastname">Achternaam</Label>
+                            <Input
+                              id="detail-lastname"
+                              value={editedRequest?.lastName || selectedRequest.lastName}
+                              onChange={(e) => setEditedRequest({...editedRequest || selectedRequest, lastName: e.target.value})}
+                              className="mt-1"
+                            />
+                          </div>
+                        </div>
+                        <div>
+                          <Label htmlFor="detail-gender">Geslacht</Label>
+                          <Select 
+                            value={editedRequest?.gender || selectedRequest.gender || ''}
+                            onValueChange={(value) => setEditedRequest({...editedRequest || selectedRequest, gender: value})}
+                          >
+                            <SelectTrigger id="detail-gender" className="mt-1">
+                              <SelectValue placeholder="Selecteer geslacht" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="man">Man</SelectItem>
+                              <SelectItem value="vrouw">Vrouw</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div>
+                          <Label htmlFor="detail-birthdate">Geboortedatum</Label>
+                          <Input
+                            id="detail-birthdate"
+                            type="date"
+                            value={editedRequest?.birthDate || selectedRequest.birthDate || ''}
+                            onChange={(e) => setEditedRequest({...editedRequest || selectedRequest, birthDate: e.target.value})}
+                            className="mt-1"
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="detail-nationality">Nationaliteit</Label>
+                          <Input
+                            id="detail-nationality"
+                            value={editedRequest?.nationality || selectedRequest.nationality || ''}
+                            onChange={(e) => setEditedRequest({...editedRequest || selectedRequest, nationality: e.target.value})}
+                            className="mt-1"
+                          />
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <div>
+                          <p className="text-sm text-gray-500">Naam</p>
+                          <p className="font-medium">{selectedRequest.firstName} {selectedRequest.lastName}</p>
+                        </div>
+                        <div>
+                          <p className="text-sm text-gray-500">Geslacht</p>
+                          <p>{selectedRequest.gender || "Niet opgegeven"}</p>
+                        </div>
+                        <div>
+                          <p className="text-sm text-gray-500">Geboortedatum</p>
+                          <p>{formatDate(selectedRequest.birthDate)}</p>
+                        </div>
+                        <div>
+                          <p className="text-sm text-gray-500">Nationaliteit</p>
+                          <p>{selectedRequest.nationality || "Niet opgegeven"}</p>
+                        </div>
+                      </>
+                    )}
                   </CardContent>
                 </Card>
                 
@@ -438,23 +557,98 @@ export default function MemberRequests() {
                     <CardTitle className="text-lg">Contactgegevens</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-3">
-                    <div>
-                      <p className="text-sm text-gray-500">E-mail</p>
-                      <p className="font-medium">{selectedRequest.email}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-gray-500">Telefoonnummer</p>
-                      <p>{selectedRequest.phoneNumber}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-gray-500">Adres</p>
-                      <p>
-                        {selectedRequest.street} {selectedRequest.houseNumber}
-                        {selectedRequest.busNumber && `, bus ${selectedRequest.busNumber}`}
-                        <br />
-                        {selectedRequest.postalCode} {selectedRequest.city}
-                      </p>
-                    </div>
+                    {isEditMode ? (
+                      <>
+                        <div>
+                          <Label htmlFor="detail-email">E-mailadres</Label>
+                          <Input
+                            id="detail-email"
+                            type="email"
+                            value={editedRequest?.email || selectedRequest.email}
+                            onChange={(e) => setEditedRequest({...editedRequest || selectedRequest, email: e.target.value})}
+                            className="mt-1"
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="detail-phone">Telefoonnummer</Label>
+                          <Input
+                            id="detail-phone"
+                            value={editedRequest?.phoneNumber || selectedRequest.phoneNumber}
+                            onChange={(e) => setEditedRequest({...editedRequest || selectedRequest, phoneNumber: e.target.value})}
+                            className="mt-1"
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="detail-street">Straat</Label>
+                          <Input
+                            id="detail-street"
+                            value={editedRequest?.street || selectedRequest.street || ''}
+                            onChange={(e) => setEditedRequest({...editedRequest || selectedRequest, street: e.target.value})}
+                            className="mt-1"
+                          />
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <Label htmlFor="detail-housenumber">Huisnummer</Label>
+                            <Input
+                              id="detail-housenumber"
+                              value={editedRequest?.houseNumber || selectedRequest.houseNumber || ''}
+                              onChange={(e) => setEditedRequest({...editedRequest || selectedRequest, houseNumber: e.target.value})}
+                              className="mt-1"
+                            />
+                          </div>
+                          <div>
+                            <Label htmlFor="detail-bus">Bus</Label>
+                            <Input
+                              id="detail-bus"
+                              value={editedRequest?.busNumber || selectedRequest.busNumber || ''}
+                              onChange={(e) => setEditedRequest({...editedRequest || selectedRequest, busNumber: e.target.value})}
+                              className="mt-1"
+                            />
+                          </div>
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <Label htmlFor="detail-postalcode">Postcode</Label>
+                            <Input
+                              id="detail-postalcode"
+                              value={editedRequest?.postalCode || selectedRequest.postalCode || ''}
+                              onChange={(e) => setEditedRequest({...editedRequest || selectedRequest, postalCode: e.target.value})}
+                              className="mt-1"
+                            />
+                          </div>
+                          <div>
+                            <Label htmlFor="detail-city">Gemeente</Label>
+                            <Input
+                              id="detail-city"
+                              value={editedRequest?.city || selectedRequest.city || ''}
+                              onChange={(e) => setEditedRequest({...editedRequest || selectedRequest, city: e.target.value})}
+                              className="mt-1"
+                            />
+                          </div>
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <div>
+                          <p className="text-sm text-gray-500">E-mail</p>
+                          <p className="font-medium">{selectedRequest.email}</p>
+                        </div>
+                        <div>
+                          <p className="text-sm text-gray-500">Telefoonnummer</p>
+                          <p>{selectedRequest.phoneNumber}</p>
+                        </div>
+                        <div>
+                          <p className="text-sm text-gray-500">Adres</p>
+                          <p>
+                            {selectedRequest.street} {selectedRequest.houseNumber}
+                            {selectedRequest.busNumber && `, bus ${selectedRequest.busNumber}`}
+                            <br />
+                            {selectedRequest.postalCode} {selectedRequest.city}
+                          </p>
+                        </div>
+                      </>
+                    )}
                   </CardContent>
                 </Card>
                 
@@ -463,27 +657,61 @@ export default function MemberRequests() {
                     <CardTitle className="text-lg">Lidmaatschap</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-3">
-                    <div>
-                      <p className="text-sm text-gray-500">Type lidmaatschap</p>
-                      <p className="capitalize">{selectedRequest.membershipType}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-gray-500">Aanvraagdatum</p>
-                      <p>{formatDate(selectedRequest.requestDate)}</p>
-                    </div>
+                    {isEditMode ? (
+                      <>
+                        <div>
+                          <Label htmlFor="detail-membershiptype">Type lidmaatschap</Label>
+                          <Select 
+                            value={editedRequest?.membershipType || selectedRequest.membershipType}
+                            onValueChange={(value) => setEditedRequest({...editedRequest || selectedRequest, membershipType: value as "standaard" | "student" | "senior"})}
+                          >
+                            <SelectTrigger id="detail-membershiptype" className="mt-1">
+                              <SelectValue placeholder="Selecteer type" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="standaard">Standaard</SelectItem>
+                              <SelectItem value="student">Student</SelectItem>
+                              <SelectItem value="senior">Senior</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div>
+                          <p className="text-sm text-gray-500 mb-1">Aanvraagdatum</p>
+                          <p>{formatDate(selectedRequest.requestDate)}</p>
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <div>
+                          <p className="text-sm text-gray-500">Type lidmaatschap</p>
+                          <p className="capitalize">{selectedRequest.membershipType}</p>
+                        </div>
+                        <div>
+                          <p className="text-sm text-gray-500">Aanvraagdatum</p>
+                          <p>{formatDate(selectedRequest.requestDate)}</p>
+                        </div>
+                      </>
+                    )}
                   </CardContent>
                 </Card>
                 
-                {selectedRequest.notes && (
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="text-lg">Notities</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <p>{selectedRequest.notes}</p>
-                    </CardContent>
-                  </Card>
-                )}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg">Notities</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    {isEditMode ? (
+                      <Textarea
+                        value={editedRequest?.notes || selectedRequest.notes || ''}
+                        onChange={(e) => setEditedRequest({...editedRequest || selectedRequest, notes: e.target.value})}
+                        placeholder="Voeg notities toe over deze aanvraag..."
+                        className="min-h-[120px] w-full border-[#963E56]/10 focus:ring-[#963E56]"
+                      />
+                    ) : (
+                      <p>{selectedRequest.notes || "Geen notities"}</p>
+                    )}
+                  </CardContent>
+                </Card>
               </div>
             </div>
           ) : (
@@ -566,25 +794,83 @@ export default function MemberRequests() {
               <div className="flex justify-between items-center mb-6">
                 <Button 
                   variant="outline" 
-                  className="flex items-center gap-2"
+                  className="flex items-center gap-2 border-[#963E56] text-[#963E56] hover:bg-[#963E56]/5"
                   onClick={() => {
                     setShowDetailView(false);
                     setSelectedRequest(null);
+                    setEditedRequest(null);
+                    setIsEditMode(false);
                   }}
                 >
                   <ArrowLeft size={16} />
                   Terug naar lijst
                 </Button>
                 <div className="flex gap-2">
-                  {isAdmin && (
-                    <Button 
-                      variant="outline" 
-                      className="text-red-600 hover:text-red-800 border-red-200 hover:border-red-400"
-                      onClick={() => handleDelete(selectedRequest)}
-                    >
-                      <XIcon className="h-4 w-4 mr-2" />
-                      Verwijderen
-                    </Button>
+                  {isEditMode ? (
+                    <>
+                      <Button 
+                        variant="outline" 
+                        className="text-gray-600 hover:text-gray-800 border-gray-200 hover:border-gray-400"
+                        onClick={() => {
+                          setIsEditMode(false);
+                          setEditedRequest(null);
+                        }}
+                      >
+                        <XIcon className="h-4 w-4 mr-2" />
+                        Annuleren
+                      </Button>
+                      <Button 
+                        className="bg-[#963E56] hover:bg-[#7d3447] text-white"
+                        onClick={() => {
+                          if (editedRequest) {
+                            updateMutation.mutate(editedRequest);
+                          }
+                        }}
+                        disabled={updateMutation.isPending}
+                      >
+                        {updateMutation.isPending ? (
+                          <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            Bezig...
+                          </>
+                        ) : (
+                          <>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                              <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
+                              <polyline points="17 21 17 13 7 13 7 21" />
+                              <polyline points="7 3 7 8 15 8" />
+                            </svg>
+                            Opslaan
+                          </>
+                        )}
+                      </Button>
+                    </>
+                  ) : (
+                    <>
+                      <Button 
+                        variant="outline" 
+                        className="text-[#963E56] hover:text-[#7d3447] border-[#963E56]/20 hover:border-[#963E56]/40"
+                        onClick={() => {
+                          setIsEditMode(true);
+                          setEditedRequest(selectedRequest);
+                        }}
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                          <path d="M17 3a2.85 2.85 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z" />
+                        </svg>
+                        Bewerken
+                      </Button>
+                      {isAdmin && (
+                        <Button 
+                          variant="outline" 
+                          className="text-red-600 hover:text-red-800 border-red-200 hover:border-red-400"
+                          onClick={() => handleDelete(selectedRequest)}
+                        >
+                          <XIcon className="h-4 w-4 mr-2" />
+                          Verwijderen
+                        </Button>
+                      )}
+                    </>
                   )}
                 </div>
               </div>
@@ -595,22 +881,83 @@ export default function MemberRequests() {
                     <CardTitle className="text-lg">Persoonsgegevens</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-3">
-                    <div>
-                      <p className="text-sm text-gray-500">Naam</p>
-                      <p className="font-medium">{selectedRequest.firstName} {selectedRequest.lastName}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-gray-500">Geslacht</p>
-                      <p>{selectedRequest.gender || "Niet opgegeven"}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-gray-500">Geboortedatum</p>
-                      <p>{formatDate(selectedRequest.birthDate)}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-gray-500">Nationaliteit</p>
-                      <p>{selectedRequest.nationality || "Niet opgegeven"}</p>
-                    </div>
+                    {isEditMode ? (
+                      <>
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <Label htmlFor="proc-firstname">Voornaam</Label>
+                            <Input
+                              id="proc-firstname"
+                              value={editedRequest?.firstName || selectedRequest.firstName}
+                              onChange={(e) => setEditedRequest({...editedRequest || selectedRequest, firstName: e.target.value})}
+                              className="mt-1"
+                            />
+                          </div>
+                          <div>
+                            <Label htmlFor="proc-lastname">Achternaam</Label>
+                            <Input
+                              id="proc-lastname"
+                              value={editedRequest?.lastName || selectedRequest.lastName}
+                              onChange={(e) => setEditedRequest({...editedRequest || selectedRequest, lastName: e.target.value})}
+                              className="mt-1"
+                            />
+                          </div>
+                        </div>
+                        <div>
+                          <Label htmlFor="proc-gender">Geslacht</Label>
+                          <Select 
+                            value={editedRequest?.gender || selectedRequest.gender || ''}
+                            onValueChange={(value) => setEditedRequest({...editedRequest || selectedRequest, gender: value})}
+                          >
+                            <SelectTrigger id="proc-gender" className="mt-1">
+                              <SelectValue placeholder="Selecteer geslacht" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="man">Man</SelectItem>
+                              <SelectItem value="vrouw">Vrouw</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div>
+                          <Label htmlFor="proc-birthdate">Geboortedatum</Label>
+                          <Input
+                            id="proc-birthdate"
+                            type="date"
+                            value={editedRequest?.birthDate || selectedRequest.birthDate || ''}
+                            onChange={(e) => setEditedRequest({...editedRequest || selectedRequest, birthDate: e.target.value})}
+                            className="mt-1"
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="proc-nationality">Nationaliteit</Label>
+                          <Input
+                            id="proc-nationality"
+                            value={editedRequest?.nationality || selectedRequest.nationality || ''}
+                            onChange={(e) => setEditedRequest({...editedRequest || selectedRequest, nationality: e.target.value})}
+                            className="mt-1"
+                          />
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <div>
+                          <p className="text-sm text-gray-500">Naam</p>
+                          <p className="font-medium">{selectedRequest.firstName} {selectedRequest.lastName}</p>
+                        </div>
+                        <div>
+                          <p className="text-sm text-gray-500">Geslacht</p>
+                          <p>{selectedRequest.gender || "Niet opgegeven"}</p>
+                        </div>
+                        <div>
+                          <p className="text-sm text-gray-500">Geboortedatum</p>
+                          <p>{formatDate(selectedRequest.birthDate)}</p>
+                        </div>
+                        <div>
+                          <p className="text-sm text-gray-500">Nationaliteit</p>
+                          <p>{selectedRequest.nationality || "Niet opgegeven"}</p>
+                        </div>
+                      </>
+                    )}
                   </CardContent>
                 </Card>
                 
@@ -619,23 +966,98 @@ export default function MemberRequests() {
                     <CardTitle className="text-lg">Contactgegevens</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-3">
-                    <div>
-                      <p className="text-sm text-gray-500">E-mail</p>
-                      <p className="font-medium">{selectedRequest.email}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-gray-500">Telefoonnummer</p>
-                      <p>{selectedRequest.phoneNumber}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-gray-500">Adres</p>
-                      <p>
-                        {selectedRequest.street} {selectedRequest.houseNumber}
-                        {selectedRequest.busNumber && `, bus ${selectedRequest.busNumber}`}
-                        <br />
-                        {selectedRequest.postalCode} {selectedRequest.city}
-                      </p>
-                    </div>
+                    {isEditMode ? (
+                      <>
+                        <div>
+                          <Label htmlFor="proc-email">E-mailadres</Label>
+                          <Input
+                            id="proc-email"
+                            type="email"
+                            value={editedRequest?.email || selectedRequest.email}
+                            onChange={(e) => setEditedRequest({...editedRequest || selectedRequest, email: e.target.value})}
+                            className="mt-1"
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="proc-phone">Telefoonnummer</Label>
+                          <Input
+                            id="proc-phone"
+                            value={editedRequest?.phoneNumber || selectedRequest.phoneNumber}
+                            onChange={(e) => setEditedRequest({...editedRequest || selectedRequest, phoneNumber: e.target.value})}
+                            className="mt-1"
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="proc-street">Straat</Label>
+                          <Input
+                            id="proc-street"
+                            value={editedRequest?.street || selectedRequest.street || ''}
+                            onChange={(e) => setEditedRequest({...editedRequest || selectedRequest, street: e.target.value})}
+                            className="mt-1"
+                          />
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <Label htmlFor="proc-housenumber">Huisnummer</Label>
+                            <Input
+                              id="proc-housenumber"
+                              value={editedRequest?.houseNumber || selectedRequest.houseNumber || ''}
+                              onChange={(e) => setEditedRequest({...editedRequest || selectedRequest, houseNumber: e.target.value})}
+                              className="mt-1"
+                            />
+                          </div>
+                          <div>
+                            <Label htmlFor="proc-bus">Bus</Label>
+                            <Input
+                              id="proc-bus"
+                              value={editedRequest?.busNumber || selectedRequest.busNumber || ''}
+                              onChange={(e) => setEditedRequest({...editedRequest || selectedRequest, busNumber: e.target.value})}
+                              className="mt-1"
+                            />
+                          </div>
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <Label htmlFor="proc-postalcode">Postcode</Label>
+                            <Input
+                              id="proc-postalcode"
+                              value={editedRequest?.postalCode || selectedRequest.postalCode || ''}
+                              onChange={(e) => setEditedRequest({...editedRequest || selectedRequest, postalCode: e.target.value})}
+                              className="mt-1"
+                            />
+                          </div>
+                          <div>
+                            <Label htmlFor="proc-city">Gemeente</Label>
+                            <Input
+                              id="proc-city"
+                              value={editedRequest?.city || selectedRequest.city || ''}
+                              onChange={(e) => setEditedRequest({...editedRequest || selectedRequest, city: e.target.value})}
+                              className="mt-1"
+                            />
+                          </div>
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <div>
+                          <p className="text-sm text-gray-500">E-mail</p>
+                          <p className="font-medium">{selectedRequest.email}</p>
+                        </div>
+                        <div>
+                          <p className="text-sm text-gray-500">Telefoonnummer</p>
+                          <p>{selectedRequest.phoneNumber}</p>
+                        </div>
+                        <div>
+                          <p className="text-sm text-gray-500">Adres</p>
+                          <p>
+                            {selectedRequest.street} {selectedRequest.houseNumber}
+                            {selectedRequest.busNumber && `, bus ${selectedRequest.busNumber}`}
+                            <br />
+                            {selectedRequest.postalCode} {selectedRequest.city}
+                          </p>
+                        </div>
+                      </>
+                    )}
                   </CardContent>
                 </Card>
                 
@@ -644,35 +1066,89 @@ export default function MemberRequests() {
                     <CardTitle className="text-lg">Lidmaatschap</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-3">
-                    <div>
-                      <p className="text-sm text-gray-500">Type lidmaatschap</p>
-                      <p className="capitalize">{selectedRequest.membershipType}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-gray-500">Verwerkingsstatus</p>
-                      <p>{getStatusBadge(selectedRequest.status)}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-gray-500">Aanvraagdatum</p>
-                      <p>{formatDate(selectedRequest.requestDate)}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-gray-500">Verwerkingsdatum</p>
-                      <p>{formatDate(selectedRequest.processedDate)}</p>
-                    </div>
+                    {isEditMode ? (
+                      <>
+                        <div>
+                          <Label htmlFor="proc-membershiptype">Type lidmaatschap</Label>
+                          <Select 
+                            value={editedRequest?.membershipType || selectedRequest.membershipType}
+                            onValueChange={(value) => setEditedRequest({...editedRequest || selectedRequest, membershipType: value as "standaard" | "student" | "senior"})}
+                          >
+                            <SelectTrigger id="proc-membershiptype" className="mt-1">
+                              <SelectValue placeholder="Selecteer type" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="standaard">Standaard</SelectItem>
+                              <SelectItem value="student">Student</SelectItem>
+                              <SelectItem value="senior">Senior</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div>
+                          <Label htmlFor="proc-status">Status</Label>
+                          <Select 
+                            value={editedRequest?.status || selectedRequest.status}
+                            onValueChange={(value) => setEditedRequest({...editedRequest || selectedRequest, status: value as "pending" | "approved" | "rejected"})}
+                          >
+                            <SelectTrigger id="proc-status" className="mt-1">
+                              <SelectValue placeholder="Selecteer status" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="pending">In behandeling</SelectItem>
+                              <SelectItem value="approved">Goedgekeurd</SelectItem>
+                              <SelectItem value="rejected">Afgewezen</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div>
+                          <p className="text-sm text-gray-500 mb-1">Aanvraagdatum</p>
+                          <p>{formatDate(selectedRequest.requestDate)}</p>
+                        </div>
+                        <div>
+                          <p className="text-sm text-gray-500 mb-1">Verwerkingsdatum</p>
+                          <p>{formatDate(selectedRequest.processedDate)}</p>
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <div>
+                          <p className="text-sm text-gray-500">Type lidmaatschap</p>
+                          <p className="capitalize">{selectedRequest.membershipType}</p>
+                        </div>
+                        <div>
+                          <p className="text-sm text-gray-500">Verwerkingsstatus</p>
+                          <p>{getStatusBadge(selectedRequest.status)}</p>
+                        </div>
+                        <div>
+                          <p className="text-sm text-gray-500">Aanvraagdatum</p>
+                          <p>{formatDate(selectedRequest.requestDate)}</p>
+                        </div>
+                        <div>
+                          <p className="text-sm text-gray-500">Verwerkingsdatum</p>
+                          <p>{formatDate(selectedRequest.processedDate)}</p>
+                        </div>
+                      </>
+                    )}
                   </CardContent>
                 </Card>
                 
-                {selectedRequest.notes && (
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="text-lg">Notities</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <p>{selectedRequest.notes}</p>
-                    </CardContent>
-                  </Card>
-                )}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg">Notities</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    {isEditMode ? (
+                      <Textarea
+                        value={editedRequest?.notes || selectedRequest.notes || ''}
+                        onChange={(e) => setEditedRequest({...editedRequest || selectedRequest, notes: e.target.value})}
+                        placeholder="Voeg notities toe over deze aanvraag..."
+                        className="min-h-[120px] w-full border-[#963E56]/10 focus:ring-[#963E56]"
+                      />
+                    ) : (
+                      <p>{selectedRequest.notes || "Geen notities"}</p>
+                    )}
+                  </CardContent>
+                </Card>
               </div>
             </div>
           ) : (
