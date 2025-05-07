@@ -604,7 +604,7 @@ export default function Rapportage() {
                       <CartesianGrid strokeDasharray="3 3" />
                       <XAxis dataKey="name" />
                       <YAxis />
-                      <Tooltip 
+                      <RechartsTooltip 
                         formatter={(value, name, props) => [`${value} leden`, 'Aantal']}
                         labelFormatter={(label) => `Leeftijd ${label}`}
                       />
@@ -664,7 +664,7 @@ export default function Rapportage() {
                           <Cell key={`cell-${index}`} fill={entry.color} />
                         ))}
                       </Pie>
-                      <Tooltip 
+                      <RechartsTooltip 
                         formatter={(value, name, props) => [`${value} leden`, props.payload.name]}
                       />
                     </PieChart>
@@ -702,7 +702,7 @@ export default function Rapportage() {
                           <Cell key={`cell-${index}`} fill={entry.color} />
                         ))}
                       </Pie>
-                      <Tooltip 
+                      <RechartsTooltip 
                         formatter={(value, name, props) => [
                           `${value} leden (${Math.round(value / (members?.length || 1) * 100)}%)`, 
                           name
@@ -742,7 +742,7 @@ export default function Rapportage() {
                           <Cell key={`cell-${index}`} fill={entry.color} />
                         ))}
                       </Pie>
-                      <Tooltip 
+                      <RechartsTooltip 
                         formatter={(value, name, props) => [
                           `${value} leden (${Math.round(value / (members?.length || 1) * 100)}%)`, 
                           name
@@ -778,7 +778,7 @@ export default function Rapportage() {
                       <CartesianGrid strokeDasharray="3 3" />
                       <XAxis type="number" />
                       <YAxis type="category" dataKey="name" />
-                      <Tooltip 
+                      <RechartsTooltip 
                         formatter={(value, name, props) => [`${value} leden`, 'Aantal']}
                       />
                       <Bar dataKey="count" name="Leden">
@@ -811,7 +811,7 @@ export default function Rapportage() {
                       <CartesianGrid strokeDasharray="3 3" />
                       <XAxis type="number" />
                       <YAxis type="category" dataKey="name" />
-                      <Tooltip 
+                      <RechartsTooltip 
                         formatter={(value, name, props) => [`${value} leden`, 'Aantal']}
                       />
                       <Bar dataKey="count" name="Leden">
@@ -847,7 +847,7 @@ export default function Rapportage() {
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="maand" />
                     <YAxis />
-                    <Tooltip 
+                    <RechartsTooltip 
                       formatter={(value, name, props) => [`€${value}`, 'Inkomsten']}
                     />
                     <Bar dataKey="inkomsten" name="Inkomsten" fill="#2ECC71" />
@@ -897,7 +897,7 @@ export default function Rapportage() {
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="maand" />
                     <YAxis />
-                    <Tooltip 
+                    <RechartsTooltip 
                       formatter={(value, name, props) => [`${value} leden`, 'Nieuwe leden']}
                       labelFormatter={(label) => `${membershipGrowth.find(m => m.maand === label)?.maand_jaar}`}
                     />
@@ -933,7 +933,7 @@ export default function Rapportage() {
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="maand" />
                     <YAxis />
-                    <Tooltip 
+                    <RechartsTooltip 
                       formatter={(value, name, props) => [`${value} leden`, 'Cumulatief']}
                       labelFormatter={(label) => `${membershipGrowth.find(m => m.maand === label)?.maand_jaar}`}
                     />
@@ -984,7 +984,7 @@ export default function Rapportage() {
                       <CartesianGrid strokeDasharray="3 3" />
                       <XAxis type="number" />
                       <YAxis type="category" dataKey="name" />
-                      <Tooltip 
+                      <RechartsTooltip 
                         formatter={(value, name, props) => [`${value} leden`, 'Aantal']}
                       />
                       <Bar dataKey="count" name="Leden">
@@ -1043,7 +1043,7 @@ export default function Rapportage() {
                           <Cell key={`cell-${index}`} fill={entry.color} />
                         ))}
                       </Pie>
-                      <Tooltip 
+                      <RechartsTooltip 
                         formatter={(value, name, props) => [`${value} leden`, props.payload.name]}
                       />
                     </PieChart>
@@ -1074,7 +1074,7 @@ export default function Rapportage() {
                       <CartesianGrid strokeDasharray="3 3" />
                       <XAxis type="number" />
                       <YAxis type="category" dataKey="name" />
-                      <Tooltip 
+                      <RechartsTooltip 
                         formatter={(value, name, props) => [`${value} leden`, 'Aantal']}
                       />
                       <Bar dataKey="count" name="Leden">
@@ -1115,7 +1115,7 @@ export default function Rapportage() {
                         ))}
                       </Pie>
                       <Legend />
-                      <Tooltip
+                      <RechartsTooltip
                         formatter={(value, name, props) => [
                           `${value} leden (${Math.round(value / (members?.length || 1) * 100)}%)`,
                           name
