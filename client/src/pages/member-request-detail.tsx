@@ -170,7 +170,7 @@ export default function MemberRequestDetail() {
               </Button>
               <div className="flex items-center">
                 {request.status === "pending" && (
-                  <Badge variant="outline" className="bg-amber-500/20 text-amber-700 border-amber-300">
+                  <Badge variant="outline" className="bg-white/20 text-white border-white/40">
                     In behandeling
                   </Badge>
                 )}
@@ -206,46 +206,7 @@ export default function MemberRequestDetail() {
             </div>
           )}
 
-          {/* Actiebuttons voor penderende aanvragen */}
-          {request.status === "pending" && (
-            <div className="flex justify-end gap-3 mx-6 my-4">
-              <Button
-                variant="outline"
-                className="border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700 hover:border-red-300"
-                onClick={handleReject}
-                disabled={rejectMutation.isPending}
-              >
-                {rejectMutation.isPending ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Bezig...
-                  </>
-                ) : (
-                  <>
-                    <XCircle className="mr-2 h-4 w-4" />
-                    Afwijzen
-                  </>
-                )}
-              </Button>
-              <Button
-                className="bg-green-600 hover:bg-green-700 text-white"
-                onClick={handleApprove}
-                disabled={approveMutation.isPending}
-              >
-                {approveMutation.isPending ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Bezig...
-                  </>
-                ) : (
-                  <>
-                    <CheckCircle2 className="mr-2 h-4 w-4" />
-                    Goedkeuren
-                  </>
-                )}
-              </Button>
-            </div>
-          )}
+          {/* Actiebuttons zijn verwijderd */}
           
           {/* Formulier (alleen weergeven, niet bewerken) */}
           <div className="p-4 sm:p-6">

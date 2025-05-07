@@ -27,6 +27,7 @@ import { Badge } from "@/components/ui/badge";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest, getQueryFn } from "@/lib/queryClient";
 import { useState } from "react";
+import { useLocation } from "wouter";
 import { 
   CheckIcon, 
   Loader2, 
@@ -91,6 +92,7 @@ interface MemberRequest {
 export default function MemberRequests() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [, setLocation] = useLocation();
   // Om TypeScript fouten te voorkomen, maken we een volledig type voor een bewerkte aanvraag
   type EditableMemberRequest = {
     [K in keyof MemberRequest]: MemberRequest[K];
@@ -946,8 +948,8 @@ export default function MemberRequests() {
                               variant="ghost" 
                               size="icon"
                               onClick={() => {
-                                // Open in een nieuw tabblad
-                                window.open(`/member-request-detail/${request.id}`, '_blank');
+                                // Navigeer naar detailpagina binnen de app
+                                setLocation(`/member-request-detail/${request.id}`);
                               }}
                               className="text-primary hover:text-primary/80"
                             >
@@ -1051,7 +1053,7 @@ export default function MemberRequests() {
                           size="icon"
                           onClick={() => {
                             // Open in een nieuw tabblad
-                            window.open(`/member-request-detail/${request.id}`, '_blank');
+                            setLocation(`/member-request-detail/${request.id}`);
                           }}
                           className="text-primary hover:text-primary/80"
                         >
