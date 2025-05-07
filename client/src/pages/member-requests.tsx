@@ -925,6 +925,309 @@ export default function MemberRequests() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Detail weergave */}
+      {showDetailView && selectedRequest && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 sm:p-6">
+          <div className="bg-white w-full max-w-4xl rounded-lg shadow-xl max-h-[90vh] flex flex-col overflow-hidden">
+            {/* Header */}
+            <div className="bg-gradient-to-r from-[#963E56]/90 to-[#963E56] py-4 px-6 text-white flex items-center justify-between">
+              <div>
+                <h2 className="text-xl font-semibold flex items-center gap-2">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <rect width="18" height="18" x="3" y="3" rx="2" />
+                    <path d="M7 7h10" />
+                    <path d="M7 12h10" />
+                    <path d="M7 17h10" />
+                  </svg>
+                  Lidmaatschapsaanvraag details
+                </h2>
+                <p className="text-sm text-white/80">
+                  {selectedRequest.firstName} {selectedRequest.lastName} - Aangevraagd op {formatDate(selectedRequest.requestDate)}
+                </p>
+              </div>
+              <Button 
+                variant="ghost" 
+                className="text-white hover:bg-white/20 h-8 w-8 p-0 rounded-full"
+                onClick={() => setShowDetailView(false)}
+              >
+                <X className="h-5 w-5" />
+              </Button>
+            </div>
+
+            {/* Content - scrollbaar gedeelte */}
+            <div className="flex-1 overflow-y-auto p-6">
+              <div className="mb-6">
+                <h3 className="text-lg font-semibold text-[#963E56] mb-4 flex items-center gap-2">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+                    <circle cx="9" cy="7" r="4" />
+                    <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+                    <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                  </svg>
+                  Persoonsgegevens
+                </h3>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="firstname">Voornaam</Label>
+                    <Input
+                      id="firstname"
+                      value={editedRequest?.firstName || selectedRequest.firstName}
+                      onChange={(e) => setEditedRequest({...editedRequest || selectedRequest, firstName: e.target.value})}
+                      className="mt-1"
+                    />
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="lastname">Achternaam</Label>
+                    <Input
+                      id="lastname"
+                      value={editedRequest?.lastName || selectedRequest.lastName}
+                      onChange={(e) => setEditedRequest({...editedRequest || selectedRequest, lastName: e.target.value})}
+                      className="mt-1"
+                    />
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="gender">Geslacht</Label>
+                    <Select 
+                      value={editedRequest?.gender || selectedRequest.gender || ''}
+                      onValueChange={(value) => setEditedRequest({...editedRequest || selectedRequest, gender: value})}
+                    >
+                      <SelectTrigger id="gender" className="mt-1">
+                        <SelectValue placeholder="Selecteer geslacht" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="man">Man</SelectItem>
+                        <SelectItem value="vrouw">Vrouw</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="birthdate">Geboortedatum</Label>
+                    <Input
+                      id="birthdate"
+                      type="date"
+                      value={editedRequest?.birthDate || selectedRequest.birthDate || ''}
+                      onChange={(e) => setEditedRequest({...editedRequest || selectedRequest, birthDate: e.target.value})}
+                      className="mt-1"
+                    />
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="nationality">Nationaliteit</Label>
+                    <Input
+                      id="nationality"
+                      value={editedRequest?.nationality || selectedRequest.nationality || ''}
+                      onChange={(e) => setEditedRequest({...editedRequest || selectedRequest, nationality: e.target.value})}
+                      className="mt-1"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="mb-6">
+                <h3 className="text-lg font-semibold text-[#963E56] mb-4 flex items-center gap-2">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
+                  </svg>
+                  Contactgegevens
+                </h3>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="email">E-mailadres</Label>
+                    <Input
+                      id="email"
+                      type="email"
+                      value={editedRequest?.email || selectedRequest.email}
+                      onChange={(e) => setEditedRequest({...editedRequest || selectedRequest, email: e.target.value})}
+                      className="mt-1"
+                    />
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="phone">Telefoonnummer</Label>
+                    <Input
+                      id="phone"
+                      value={editedRequest?.phoneNumber || selectedRequest.phoneNumber}
+                      onChange={(e) => setEditedRequest({...editedRequest || selectedRequest, phoneNumber: e.target.value})}
+                      className="mt-1"
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="street">Straat</Label>
+                    <Input
+                      id="street"
+                      value={editedRequest?.street || selectedRequest.street || ''}
+                      onChange={(e) => setEditedRequest({...editedRequest || selectedRequest, street: e.target.value})}
+                      className="mt-1"
+                    />
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <Label htmlFor="houseNumber">Huisnummer</Label>
+                      <Input
+                        id="houseNumber"
+                        value={editedRequest?.houseNumber || selectedRequest.houseNumber || ''}
+                        onChange={(e) => setEditedRequest({...editedRequest || selectedRequest, houseNumber: e.target.value})}
+                        className="mt-1"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="busNumber">Bus</Label>
+                      <Input
+                        id="busNumber"
+                        value={editedRequest?.busNumber || selectedRequest.busNumber || ''}
+                        onChange={(e) => setEditedRequest({...editedRequest || selectedRequest, busNumber: e.target.value})}
+                        className="mt-1"
+                      />
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="postalCode">Postcode</Label>
+                    <Input
+                      id="postalCode"
+                      value={editedRequest?.postalCode || selectedRequest.postalCode || ''}
+                      onChange={(e) => setEditedRequest({...editedRequest || selectedRequest, postalCode: e.target.value})}
+                      className="mt-1"
+                    />
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="city">Gemeente</Label>
+                    <Input
+                      id="city"
+                      value={editedRequest?.city || selectedRequest.city || ''}
+                      onChange={(e) => setEditedRequest({...editedRequest || selectedRequest, city: e.target.value})}
+                      className="mt-1"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="mb-6">
+                <h3 className="text-lg font-semibold text-[#963E56] mb-4 flex items-center gap-2">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" />
+                    <rect width="8" height="6" x="8" y="2" rx="1" />
+                    <path d="M12 11h4" />
+                    <path d="M12 16h4" />
+                    <path d="M8 11h.01" />
+                    <path d="M8 16h.01" />
+                  </svg>
+                  Lidmaatschapsgegevens
+                </h3>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="membershipType">Type lidmaatschap</Label>
+                    <Select 
+                      value={editedRequest?.membershipType || selectedRequest.membershipType}
+                      onValueChange={(value) => setEditedRequest({...editedRequest || selectedRequest, membershipType: value})}
+                    >
+                      <SelectTrigger id="membershipType" className="mt-1">
+                        <SelectValue placeholder="Selecteer type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="standaard">Standaard</SelectItem>
+                        <SelectItem value="student">Student</SelectItem>
+                        <SelectItem value="senior">Senior</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              </div>
+
+              <div className="p-4 border border-[#963E56]/20 bg-[#963E56]/5 rounded-md mb-6">
+                <h3 className="text-lg font-semibold text-[#963E56] mb-2 flex items-center gap-2">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                    <polyline points="16 17 21 12 16 7"></polyline>
+                    <line x1="21" y1="12" x2="9" y2="12"></line>
+                  </svg>
+                  Reden voor afwijzing
+                </h3>
+                <p className="text-sm text-gray-600 mb-2">
+                  Alleen invullen als je deze aanvraag wilt afwijzen. Deze informatie is alleen voor intern gebruik.
+                </p>
+                <Textarea 
+                  value={rejectionReason}
+                  onChange={(e) => setRejectionReason(e.target.value)}
+                  placeholder="Beschrijf waarom deze aanvraag wordt afgewezen..."
+                  className="min-h-[100px] border-[#963E56]/20 bg-white focus:ring-[#963E56]"
+                />
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className="bg-gray-50 px-6 py-4 border-t flex items-center justify-between">
+              <Button 
+                variant="outline"
+                className="gap-1"
+                onClick={() => setShowDetailView(false)}
+              >
+                <ArrowLeft className="h-4 w-4" />
+                Terug
+              </Button>
+              
+              <div className="flex items-center gap-2">
+                <Button 
+                  variant="outline"
+                  className="text-red-600 border-red-200 hover:bg-red-50 hover:text-red-700"
+                  onClick={() => {
+                    setShowDetailView(false);
+                    if (rejectionReason.trim()) {
+                      confirmRejection();
+                    } else {
+                      setShowRejectionDialog(true);
+                    }
+                  }}
+                  disabled={rejectMutation.isPending}
+                >
+                  {rejectMutation.isPending ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Bezig...
+                    </>
+                  ) : (
+                    <>
+                      <XIcon className="mr-2 h-4 w-4" />
+                      Afwijzen
+                    </>
+                  )}
+                </Button>
+                
+                <Button 
+                  className="bg-[#963E56] hover:bg-[#7d3447] text-white"
+                  onClick={() => {
+                    setShowDetailView(false);
+                    handleApprove(editedRequest || selectedRequest);
+                  }}
+                  disabled={approveMutation.isPending}
+                >
+                  {approveMutation.isPending ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Bezig...
+                    </>
+                  ) : (
+                    <>
+                      <CheckIcon className="mr-2 h-4 w-4" />
+                      Goedkeuren
+                    </>
+                  )}
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
