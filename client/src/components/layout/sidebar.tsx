@@ -204,12 +204,7 @@ export function Sidebar() {
                         )}>
                           {item.label}
                         </span>
-                        {/* Notificatie badge voor aanvragen (naast tekst bij expanded sidebar) */}
-                        {item.href === "/member-requests" && pendingCount > 0 && (
-                          <span className="ml-2 bg-[#963E56] text-white text-xs rounded-full h-5 min-w-5 px-1 flex items-center justify-center">
-                            {pendingCount > 99 ? '99+' : pendingCount}
-                          </span>
-                        )}
+                        {/* Notificatie badge verwijderd om dubbele notificatie te voorkomen */}
                       </div>
                     )}
                   </Button>
