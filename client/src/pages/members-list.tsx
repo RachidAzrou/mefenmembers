@@ -1328,7 +1328,8 @@ export default function MembersList() {
                   sortedMembers.map((member) => (
                     <TableRow key={member?.id || 'unknown'} className="hover:bg-gray-50/50 transition-colors">
                       <TableCell className="font-medium text-xs sm:text-sm py-2 sm:py-4">
-                        <button 
+                        <div className="flex items-center">
+                          <button 
                             className="text-[#963E56] hover:text-[#7e3447] hover:underline cursor-pointer font-medium"
                             onClick={() => navigate(`/member-detail?id=${member.id}`)}
                           >
@@ -1336,12 +1337,12 @@ export default function MembersList() {
                               ? member.memberNumber.toString().padStart(4, '0')
                               : "----"}
                           </button>
-                        <Popover>
-                          <PopoverTrigger asChild>
-                            <Button variant="ghost" size="icon" className="h-7 w-7 ml-1 text-gray-400 hover:text-gray-600">
-                              <Info className="h-3.5 w-3.5" />
-                            </Button>
-                          </PopoverTrigger>
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <Button variant="ghost" size="icon" className="h-5 w-5 p-0 ml-1 text-gray-400 hover:text-gray-600">
+                                <Info className="h-3 w-3" />
+                              </Button>
+                            </PopoverTrigger>
                           <PopoverContent align="start" className="w-80 p-0">
                             <div className="bg-gradient-to-r from-[#963E56]/90 to-[#963E56] p-3 text-white rounded-t-md">
                               <div className="flex justify-between items-start">
@@ -1422,25 +1423,12 @@ export default function MembersList() {
                                   navigate(`/member-detail?id=${member?.id}`);
                                 }}
                               >
-                                Alle details bekijken
-                              </Button>
-                              <Button 
-                                size="sm" 
-                                className="text-xs h-8 bg-[#963E56] hover:bg-[#7d3447]"
-                                onClick={() => {
-                                  // Popup sluiten
-                                  document.body.click();
-                                  // Stel het lid in voor bewerking en open de dialoog
-                                  setViewMember(member);
-                                  setEditMode(true);
-                                }}
-                              >
-                                <Edit className="h-3 w-3 mr-1" />
-                                Bewerken
+                                Meer...
                               </Button>
                             </div>
                           </PopoverContent>
                         </Popover>
+                        </div>
                       </TableCell>
                       <TableCell className="font-medium text-xs sm:text-sm py-2 sm:py-4">
                         {member?.firstName || ""}
