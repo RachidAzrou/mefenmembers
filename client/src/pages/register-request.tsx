@@ -175,11 +175,11 @@ export default function RegisterRequest() {
                   Vul dit formulier in om je aan te melden als lid van de MEFEN Moskee
                 </p>
               </div>
-              <div className="mt-4 md:mt-0">
+              <div className="mt-4 md:mt-0 bg-primary p-2 rounded-full flex items-center justify-center">
                 <img 
-                  src="/logo moskee.png" 
+                  src="/logo-white-transparent.png" 
                   alt="MEFEN Moskee Logo" 
-                  className="h-16 w-auto bg-white rounded-md p-1"
+                  className="h-24 w-auto"
                 />
               </div>
             </div>
@@ -726,31 +726,7 @@ export default function RegisterRequest() {
                   </div>
                 </div>
                 
-                {/* Sectie: Opmerkingen */}
-                <div className="border border-gray-200 rounded-md p-4 md:p-6 space-y-6">
-                  <div className="flex items-center gap-2 mb-4">
-                    <div className="h-8 w-8 rounded-full bg-primary text-white flex items-center justify-center font-semibold">4</div>
-                    <h2 className="text-xl font-semibold">Aanvullende informatie</h2>
-                  </div>
-                  
-                  <FormField
-                    control={form.control}
-                    name="notes"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Opmerkingen of aanvullende informatie</FormLabel>
-                        <FormControl>
-                          <Textarea 
-                            placeholder="Voeg eventuele opmerkingen of extra informatie toe..." 
-                            className="min-h-[100px]"
-                            {...field} 
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
+
                 
                 {/* Privacy consent */}
                 <FormField
