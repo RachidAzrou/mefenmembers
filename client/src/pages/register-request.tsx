@@ -23,7 +23,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { useState } from "react";
 import { CalendarIcon, CheckIcon, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { cn } from "@/lib/utils";
+import { cn, formatPhoneNumber } from "@/lib/utils";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 
@@ -161,12 +161,23 @@ export default function RegisterRequest() {
     <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-4xl mx-auto">
         <div className="bg-white shadow-xl rounded-lg overflow-hidden">
-          {/* Header */}
+          {/* Header met logo */}
           <div className="bg-primary px-6 py-6 text-white">
-            <h1 className="text-2xl font-bold">MEFEN Moskee Lidmaatschapsaanvraag</h1>
-            <p className="mt-1 opacity-90">
-              Vul dit formulier in om je aan te melden als lid van de MEFEN Moskee
-            </p>
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between">
+              <div>
+                <h1 className="text-2xl font-bold">MEFEN Moskee Lidmaatschapsaanvraag</h1>
+                <p className="mt-1 opacity-90">
+                  Vul dit formulier in om je aan te melden als lid van de MEFEN Moskee
+                </p>
+              </div>
+              <div className="mt-4 md:mt-0">
+                <img 
+                  src="/attached_assets/6eacafa2-cbb2-41f3-be40-6548da0680c6.png" 
+                  alt="MEFEN Moskee Logo" 
+                  className="h-16 w-auto"
+                />
+              </div>
+            </div>
           </div>
           
           {/* Formulier */}
@@ -317,15 +328,28 @@ export default function RegisterRequest() {
                     <FormField
                       control={form.control}
                       name="phoneNumber"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Telefoonnummer <span className="text-red-500">*</span></FormLabel>
-                          <FormControl>
-                            <Input placeholder="+32..." {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
+                      render={({ field }) => {
+                        // Formatteren bij weergave, maar originele waarde behouden bij invoer
+                        const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+                          // Alleen cijfers opslaan in de waarde
+                          const cleaned = e.target.value.replace(/\D/g, '');
+                          field.onChange(cleaned);
+                        };
+                        
+                        return (
+                          <FormItem>
+                            <FormLabel>Telefoonnummer <span className="text-red-500">*</span></FormLabel>
+                            <FormControl>
+                              <Input 
+                                placeholder="Bijv. 0493-40-14-11" 
+                                value={field.value ? formatPhoneNumber(field.value) : ""}
+                                onChange={handleInputChange}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        );
+                      }}
                     />
                     
                     <div className="col-span-2">
@@ -433,9 +457,6 @@ export default function RegisterRequest() {
                               <SelectItem value="senior">Senior</SelectItem>
                             </SelectContent>
                           </Select>
-                          <FormDescription>
-                            Het type lidmaatschap bepaalt de jaarlijkse bijdrage
-                          </FormDescription>
                           <FormMessage />
                         </FormItem>
                       )}
@@ -526,7 +547,14 @@ export default function RegisterRequest() {
                     )}
                     
                     {form.watch("paymentMethod") === "domiciliering" && (
-                      <div className="col-span-2">
+                      <div className="col-span-2 space-y-6">
+                        <div className="col-span-2 bg-blue-50 border border-blue-200 rounded-md p-4">
+                          <p className="text-blue-800 text-sm">
+                            <strong>Belangrijk:</strong> Uw inschrijving wordt pas officieel na ontvangst van uw eerste betaling via domiciliëring.
+                            De betaalgegevens worden naar uw e-mailadres gestuurd na goedkeuring van uw aanvraag.
+                          </p>
+                        </div>
+                        
                         <FormField
                           control={form.control}
                           name="accountNumber"
@@ -569,21 +597,27 @@ export default function RegisterRequest() {
                       control={form.control}
                       name="autoRenew"
                       render={({ field }) => (
-                        <FormItem className="flex flex-row items-start space-x-3 space-y-0 p-4 border border-gray-200 rounded-md">
-                          <FormControl>
-                            <Checkbox
-                              checked={field.value}
-                              onCheckedChange={field.onChange}
-                            />
-                          </FormControl>
-                          <div className="space-y-1 leading-none">
-                            <FormLabel>
-                              Automatisch verlengen
-                            </FormLabel>
-                            <FormDescription>
-                              Hiermee wordt uw lidmaatschap automatisch verlengd bij het verstrijken van de termijn
-                            </FormDescription>
+                        <FormItem className="col-span-2 bg-green-50 border border-green-200 rounded-md p-4">
+                          <div className="flex flex-row items-start space-x-4">
+                            <FormControl>
+                              <Checkbox
+                                checked={field.value}
+                                onCheckedChange={field.onChange}
+                                className="mt-1 border-green-500 data-[state=checked]:bg-green-500 data-[state=checked]:text-white"
+                              />
+                            </FormControl>
+                            <div>
+                              <FormLabel className="text-base font-medium text-green-800">
+                                Automatisch verlengen
+                              </FormLabel>
+                              <FormDescription className="text-green-700">
+                                Door deze optie aan te vinken, wordt uw lidmaatschap automatisch verlengd 
+                                bij het verstrijken van de betalingstermijn. U hoeft zich dan geen zorgen te maken 
+                                over verlopen van uw lidmaatschap.
+                              </FormDescription>
+                            </div>
                           </div>
+                          <FormMessage />
                         </FormItem>
                       )}
                     />
