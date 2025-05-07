@@ -4,7 +4,6 @@ import {
   BarChart, Bar, XAxis, YAxis, Tooltip as RechartsTooltip, Legend, ResponsiveContainer, 
   PieChart, Pie, Cell, LineChart, Line, CartesianGrid,
   ScatterChart, Scatter, ZAxis, AreaChart, Area, ComposedChart,
-
 } from 'recharts';
 import { 
   Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle 
@@ -13,9 +12,12 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DatePicker } from "@/components/ui/date-picker";
 import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
+import { useToast } from '@/hooks/use-toast';
 import { PDFDownloadLink, PDFViewer } from '@react-pdf/renderer';
 import { Loader2, Download, Calendar, ChevronDown, ChevronUp, Users, Wallet, CreditCard, Clock, UserCheck, BarChart3, 
-  MapPin, Map as MapIcon, Globe, LineChart as LineChartIcon, PieChart as PieChartIcon, Target, Zap, Activity, FileIcon, ImageIcon } from "lucide-react";
+  MapPin, Map as MapIcon, Globe, LineChart as LineChartIcon, PieChart as PieChartIcon, Target, Zap, Activity, 
+  FileIcon, ImageIcon, Settings } from "lucide-react";
 import MyPdfDocument from '@/components/pdf/report-pdf';
 import { cn } from '@/lib/utils';
 import { format, subMonths, differenceInYears, differenceInMonths } from 'date-fns';
@@ -395,6 +397,7 @@ function calculateMonthlyRevenue(members: Member[], contributionAmounts: Record<
 }
 
 export default function Rapportage() {
+  const { toast } = useToast();
   const [startDate, setStartDate] = useState<Date | undefined>(subMonths(new Date(), 6));
   const [endDate, setEndDate] = useState<Date | undefined>(new Date());
   const [showPdfPreview, setShowPdfPreview] = useState(false);
@@ -906,6 +909,73 @@ export default function Rapportage() {
         </TabsContent>
 
         <TabsContent value="financieel" className="space-y-4">
+          {/* Contributie-instellingen */}
+          <Card className="border-none shadow-md overflow-hidden">
+            <div className="bg-gradient-to-r from-[#963E56]/20 to-[#963E56] h-2" />
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="flex items-center">
+                <Settings className="h-5 w-5 mr-2 text-[#963E56]" />
+                Contributie instellingen
+              </CardTitle>
+              <Button 
+                variant="outline" 
+                onClick={() => setShowContributionSettings(!showContributionSettings)}
+                className="h-8 text-xs"
+              >
+                {showContributionSettings ? "Verbergen" : "Instellen"}
+              </Button>
+            </CardHeader>
+            {showContributionSettings && (
+              <CardContent>
+                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                  {Object.entries(contributionAmounts).map(([type, amount]) => (
+                    <div key={type} className="space-y-2">
+                      <Label htmlFor={`contribution-${type}`}>
+                        {type.charAt(0).toUpperCase() + type.slice(1)}
+                      </Label>
+                      <div className="flex items-center space-x-2">
+                        <span className="text-muted-foreground">€</span>
+                        <Input
+                          id={`contribution-${type}`}
+                          type="number"
+                          step="0.5"
+                          min="0"
+                          value={amount}
+                          onChange={(e) => {
+                            const newAmount = parseFloat(e.target.value);
+                            if (!isNaN(newAmount)) {
+                              setContributionAmounts({
+                                ...contributionAmounts,
+                                [type]: newAmount
+                              });
+                            }
+                          }}
+                          className="max-w-[120px]"
+                        />
+                        <span className="text-xs text-muted-foreground">per maand</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <div className="mt-4 flex justify-end">
+                  <Button 
+                    variant="default"
+                    className="text-xs"
+                    onClick={() => {
+                      toast({
+                        title: "Contributie bedragen bijgewerkt",
+                        description: "De inkomsten worden nu berekend met de nieuwe bedragen.",
+                      });
+                      setShowContributionSettings(false);
+                    }}
+                  >
+                    Bijdragen opslaan
+                  </Button>
+                </div>
+              </CardContent>
+            )}
+          </Card>
+          
           <div className="grid gap-4 md:grid-cols-2">
             <Card className="col-span-1 border-none shadow-md overflow-hidden">
               <div className="bg-gradient-to-r from-green-500/20 to-green-600/20 h-2" />
