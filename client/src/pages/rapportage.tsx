@@ -122,11 +122,11 @@ function groupMembersByMembershipType(members: Member[]): { name: string; count:
 
 // Groepeer leden per betaalmethode
 function groupMembersByPaymentMethod(members: Member[]): { name: string; count: number; color: string }[] {
+  // We gebruiken alleen de 3 correcte betalingsmethodes volgens de gebruiker
   const paymentMethods = [
-    { name: "Automatische incasso", color: "#963E56" },
+    { name: "Cash", color: "#963E56" },
     { name: "Overschrijving", color: "#B85370" },
-    { name: "Contant", color: "#D86985" },
-    { name: "Anders", color: "#EB96A7" }
+    { name: "Domiciliering", color: "#D86985" }
   ];
 
   // Initialiseer resultaten
@@ -136,20 +136,29 @@ function groupMembersByPaymentMethod(members: Member[]): { name: string; count: 
     color: method.color 
   }));
 
-  // Tel leden per betaalmethode
+  // Tel leden per betaalmethode en map de bestaande waarden naar de nieuwe
   members.forEach(member => {
-    const methodName = member.paymentMethod || "Anders";
-    const index = results.findIndex(r => 
-      r.name.toLowerCase() === methodName.toLowerCase()
-    );
+    let methodName = member.paymentMethod || "";
+    
+    // Mapping van bestaande waardes naar de nieuwe categorieën
+    if (methodName.toLowerCase().includes("contant") || 
+        methodName.toLowerCase().includes("cash")) {
+      methodName = "Cash";
+    } else if (methodName.toLowerCase().includes("overschrijving") ||
+              methodName.toLowerCase().includes("bank")) {
+      methodName = "Overschrijving";
+    } else if (methodName.toLowerCase().includes("incasso") ||
+              methodName.toLowerCase().includes("domiciliering") ||
+              methodName.toLowerCase().includes("automatisch")) {
+      methodName = "Domiciliering";
+    } else {
+      // Als het geen van de bekende methodes is, kiezen we Overschrijving als default
+      methodName = "Overschrijving";
+    }
+    
+    const index = results.findIndex(r => r.name === methodName);
     if (index >= 0) {
       results[index].count++;
-    } else {
-      // Als het een niet-standaard methode is, tel het bij 'Anders'
-      const andersIndex = results.findIndex(r => r.name === "Anders");
-      if (andersIndex >= 0) {
-        results[andersIndex].count++;
-      }
     }
   });
 
@@ -210,10 +219,12 @@ function groupMembersByCity(members: Member[]): { name: string; count: number; c
   // Genereer een array van kleuren voor de verschillende steden
   const colors = [
     "#3498DB", "#2ECC71", "#9B59B6", "#F1C40F", "#E67E22", "#E74C3C", 
-    "#1ABC9C", "#34495E", "#7F8C8D", "#8E44AD", "#27AE60", "#D35400"
+    "#1ABC9C", "#34495E", "#7F8C8D", "#8E44AD", "#27AE60", "#D35400",
+    "#16A085", "#2980B9", "#8E44AD", "#2C3E50", "#F39C12", "#D35400",
+    "#3498DB", "#2ECC71", "#9B59B6", "#F1C40F", "#E67E22", "#E74C3C"
   ];
 
-  // Sorteer de resultaten en limiteer tot top 10 steden
+  // Sorteer de resultaten en toon alle steden (niet beperkt tot top 10)
   return cities
     .map(city => {
       const count = members.filter(m => m.city?.toLowerCase() === city).length;
@@ -224,7 +235,6 @@ function groupMembersByCity(members: Member[]): { name: string; count: number; c
       };
     })
     .sort((a, b) => b.count - a.count)
-    .slice(0, 10)
     .map((city, index) => ({
       ...city,
       color: colors[index % colors.length]
@@ -273,10 +283,12 @@ function groupMembersByNationality(members: Member[]): { name: string; count: nu
   // Genereer een array van kleuren voor de verschillende nationaliteiten
   const colors = [
     "#3498DB", "#2ECC71", "#9B59B6", "#F1C40F", "#E67E22", "#E74C3C", 
-    "#1ABC9C", "#34495E", "#7F8C8D", "#8E44AD", "#27AE60", "#D35400"
+    "#1ABC9C", "#34495E", "#7F8C8D", "#8E44AD", "#27AE60", "#D35400",
+    "#16A085", "#2980B9", "#8E44AD", "#2C3E50", "#F39C12", "#D35400",
+    "#3498DB", "#2ECC71", "#9B59B6", "#F1C40F", "#E67E22", "#E74C3C"
   ];
 
-  // Sorteer de resultaten
+  // Sorteer de resultaten en toon alle nationaliteiten (niet beperkt tot top 10)
   return nationalities
     .map(nationality => {
       const count = members.filter(m => m.nationality?.toLowerCase() === nationality).length;
@@ -287,7 +299,6 @@ function groupMembersByNationality(members: Member[]): { name: string; count: nu
       };
     })
     .sort((a, b) => b.count - a.count)
-    .slice(0, 10) // Beperk tot top 10
     .map((nationality, index) => ({
       ...nationality,
       color: colors[index % colors.length]
@@ -382,6 +393,7 @@ export default function Rapportage() {
   const [showPdfPreview, setShowPdfPreview] = useState(false);
   const [activeTab, setActiveTab] = useState("overzicht");
   const [filterType, setFilterType] = useState<string | undefined>(undefined);
+  const [filterApplied, setFilterApplied] = useState(false);
   
   // React refs voor de grafiek componenten ten behoeve van exports
   const ageChartRef = useRef<HTMLDivElement>(null);
@@ -997,6 +1009,19 @@ export default function Rapportage() {
               <div className="flex flex-col">
                 <Label className="mb-1">Tot</Label>
                 <DatePicker date={endDate} setDate={setEndDate} />
+              </div>
+              <div className="flex flex-col justify-end h-full">
+                <Button 
+                  onClick={() => {
+                    // Hier kunnen we bijv. een nieuwe filter toepassen op de grafieken
+                    // op basis van startDate en endDate
+                    setFilterApplied(true);
+                  }}
+                  className="mt-5"
+                  variant="outline"
+                >
+                  Pas toe
+                </Button>
               </div>
             </div>
           </div>
