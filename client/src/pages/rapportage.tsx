@@ -93,11 +93,11 @@ function calculateMemberRevenue(member: Member): number {
 // Groepeer leden per lidmaatschapstype
 function groupMembersByMembershipType(members: Member[]): { name: string; count: number; color: string }[] {
   const membershipTypes = [
-    { name: "Regulier", color: "#2ECC71" },
-    { name: "Student", color: "#3498DB" },
-    { name: "Gezin", color: "#9B59B6" },
-    { name: "Verminderd tarief", color: "#F1C40F" },
-    { name: "Erelid", color: "#E67E22" }
+    { name: "Regulier", color: "#4361EE" },
+    { name: "Student", color: "#3A0CA3" },
+    { name: "Gezin", color: "#7209B7" },
+    { name: "Verminderd tarief", color: "#F72585" },
+    { name: "Erelid", color: "#4CC9F0" }
   ];
 
   // Initialiseer resultaten
@@ -193,12 +193,12 @@ function groupMembersByGender(members: Member[]): { name: string; count: number;
     { 
       name: "Man", 
       count: members.filter(m => m.gender?.toLowerCase() === "man").length,
-      color: "#3498DB"
+      color: "#4CC9F0"
     },
     { 
       name: "Vrouw", 
       count: members.filter(m => m.gender?.toLowerCase() === "vrouw").length,
-      color: "#E83E8C"
+      color: "#F72585"
     }
   ];
 }
@@ -306,7 +306,7 @@ function groupMembersByPaymentStatus(members: Member[]): { name: string; value: 
         }
         return false;
       }).length,
-      color: "#2ECC71"
+      color: "#4CC9F0"
     },
     { 
       name: "Niet betaald", 
@@ -317,7 +317,7 @@ function groupMembersByPaymentStatus(members: Member[]): { name: string; value: 
         }
         return true;
       }).length,
-      color: "#E74C3C"
+      color: "#F72585"
     }
   ];
 }
@@ -646,14 +646,33 @@ export default function Rapportage() {
                     >
                       <CartesianGrid strokeDasharray="3 3" />
                       <XAxis type="number" />
-                      <YAxis dataKey="name" type="category" width={120} />
-                      <RechartsTooltip formatter={(value) => [`${value} leden`, 'Aantal']} />
-                      <Bar dataKey="count" name="Aantal leden">
+                      <YAxis 
+                        dataKey="name" 
+                        type="category" 
+                        width={120} 
+                        tick={{ fill: '#4B5563', fontSize: 12 }}
+                      />
+                      <RechartsTooltip 
+                        formatter={(value) => [`${value} leden`, 'Aantal']}
+                        labelStyle={{ color: '#1F2937', fontWeight: 'bold' }}
+                        contentStyle={{ 
+                          backgroundColor: 'rgba(255,255,255,0.95)', 
+                          borderRadius: '8px',
+                          boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
+                          border: 'none' 
+                        }}
+                      />
+                      <Bar 
+                        dataKey="count" 
+                        name="Aantal leden"
+                        radius={[0, 4, 4, 0]}
+                        barSize={30}
+                      >
                         {membersByMembershipType.map((entry, index) => (
                           <Cell key={`cell-${index}`} fill={entry.color} />
                         ))}
                       </Bar>
-                      <Legend />
+                      <Legend wrapperStyle={{ paddingTop: 10 }} />
                     </BarChart>
                   </ResponsiveContainer>
                 </div>
@@ -674,14 +693,29 @@ export default function Rapportage() {
                 <div className="h-64 w-full">
                   <ResponsiveContainer width="100%" height="100%">
                     <RadarChart outerRadius={80} data={membersByGender}>
-                      <PolarGrid />
-                      <PolarAngleAxis dataKey="name" />
-                      <PolarRadiusAxis angle={30} domain={[0, 'auto']} />
+                      <PolarGrid stroke="#e5e7eb" />
+                      <PolarAngleAxis 
+                        dataKey="name" 
+                        tick={{ fill: '#4B5563', fontSize: 12 }}
+                      />
+                      <PolarRadiusAxis 
+                        angle={30} 
+                        domain={[0, 'auto']} 
+                        stroke="#9CA3AF"
+                        tick={{ fill: '#4B5563', fontSize: 10 }}
+                      />
                       <Radar 
                         name="Aantal leden" 
                         dataKey="count" 
-                        stroke="#8884d8" 
-                        fill="#8884d8" 
+                        stroke={membersByGender[0].color}
+                        fill={membersByGender[0].color}
+                        fillOpacity={0.6} 
+                      />
+                      <Radar 
+                        name="Aantal leden" 
+                        dataKey="count" 
+                        stroke={membersByGender[1].color}
+                        fill={membersByGender[1].color}
                         fillOpacity={0.6} 
                       />
                       <RechartsTooltip 
@@ -689,8 +723,14 @@ export default function Rapportage() {
                           `${value} leden (${Math.round(value / (members?.length || 1) * 100)}%)`,
                           name === "count" ? "Aantal" : name
                         ]}
+                        contentStyle={{ 
+                          backgroundColor: 'rgba(255,255,255,0.95)', 
+                          borderRadius: '8px',
+                          boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
+                          border: 'none' 
+                        }}
                       />
-                      <Legend />
+                      <Legend wrapperStyle={{ paddingTop: 10 }} />
                     </RadarChart>
                   </ResponsiveContainer>
                 </div>
@@ -720,9 +760,15 @@ export default function Rapportage() {
                           `${value} leden (${Math.round(value / (members?.length || 1) * 100)}%)`,
                           name === "value" ? "Aantal" : name
                         ]}
+                        contentStyle={{ 
+                          backgroundColor: 'rgba(255,255,255,0.95)', 
+                          borderRadius: '8px',
+                          boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
+                          border: 'none' 
+                        }}
                       />
-                      <Legend />
-                      <Bar dataKey="value" name="Aantal leden" barSize={30}>
+                      <Legend wrapperStyle={{ paddingTop: 10 }} />
+                      <Bar dataKey="value" name="Aantal leden" barSize={30} radius={[4, 4, 0, 0]}>
                         {membersByPaymentStatus.map((entry, index) => (
                           <Cell key={`cell-${index}`} fill={entry.color} />
                         ))}
@@ -730,9 +776,10 @@ export default function Rapportage() {
                       <Line 
                         type="monotone" 
                         dataKey="value" 
-                        stroke="#ff7300" 
+                        stroke="#7209B7" 
                         name="Trend" 
-                        strokeWidth={2} 
+                        strokeWidth={2}
+                        activeDot={{ r: 6, fill: "#7209B7", stroke: "white", strokeWidth: 2 }}
                       />
                     </ComposedChart>
                   </ResponsiveContainer>
