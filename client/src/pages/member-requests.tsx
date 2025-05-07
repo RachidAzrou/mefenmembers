@@ -945,7 +945,7 @@ export default function MemberRequests() {
                       <TableRow>
                         <TableHead>Naam</TableHead>
                         <TableHead>Datum</TableHead>
-                        <TableHead className="text-right">Acties</TableHead>
+                        <TableHead className="text-center">Acties</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
