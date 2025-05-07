@@ -177,7 +177,7 @@ export default function RegisterRequest() {
               </div>
               <div className="mt-4 md:mt-0">
                 <img 
-                  src="./attached_assets/logo moskee.png" 
+                  src="/logo moskee.png" 
                   alt="MEFEN Moskee Logo" 
                   className="h-16 w-auto bg-white rounded-md p-1"
                 />
