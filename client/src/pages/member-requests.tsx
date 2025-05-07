@@ -216,23 +216,12 @@ export default function MemberRequests() {
 
   return (
     <div className="container mx-auto py-8 px-4">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center border-b pb-4 mb-6">
-        <div className="flex items-center gap-3">
-          <div className="bg-primary text-primary-foreground p-2 rounded-lg">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" />
-              <rect width="8" height="4" x="8" y="2" rx="1" ry="1" />
-              <path d="M12 11h4" />
-              <path d="M12 16h4" />
-              <path d="M8 11h.01" />
-              <path d="M8 16h.01" />
-            </svg>
-          </div>
-          <div>
-            <h1 className="text-2xl md:text-3xl font-bold">Lidmaatschapsaanvragen</h1>
-            <p className="text-gray-500 mt-1">Beheer nieuwe aanvragen en bekijk verwerkte aanvragen</p>
-          </div>
-        </div>
+      <div className="flex flex-col justify-start items-start bg-primary/90 text-white p-6 rounded-lg mb-6">
+        <h1 className="text-2xl md:text-3xl font-bold">Aanvragen</h1>
+        <p className="mt-1 opacity-90">Beheer nieuwe aanvragen en bekijk verwerkte aanvragen</p>
+      </div>
+      
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
         <div className="mt-4 md:mt-0 flex gap-2">
           <Button 
             onClick={() => window.open('/register-request', '_blank')}
@@ -255,9 +244,7 @@ export default function MemberRequests() {
           <CardHeader className="pb-2">
             <CardTitle className="text-lg flex items-center gap-2">
               <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-primary">
-                <path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3" />
-                <path d="M3 16v3a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-3" />
-                <line x1="3" y1="10" x2="21" y2="10" />
+                <path d="M21.2 8.4c.5.38.8.97.8 1.6v10a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V10a2 2 0 0 1 2-2h3.8a2 2 0 0 0 1.4-.6L12 4.6a2 2 0 0 1 1.4-.6H20a2 2 0 0 1 2 2v1.8c0 .26-.1.51-.2.72" />
               </svg>
               Totaal aantal aanvragen
             </CardTitle>
