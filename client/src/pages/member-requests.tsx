@@ -35,9 +35,12 @@ import {
   X,
   AlertCircle,
   Search, 
-  ArrowLeft 
+  ArrowLeft,
+  PencilIcon,
+  Save
 } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { nl } from "date-fns/locale";
@@ -196,8 +199,11 @@ export default function MemberRequests() {
   
   // Bijwerken van een aanvraag
   const updateMutation = useMutation({
-    mutationFn: async (request: MemberRequest) => {
-      const response = await apiRequest("PUT", `/api/member-requests?id=${request.id}`, request);
+    mutationFn: async (request: Partial<EditableMemberRequest>) => {
+      if (!request.id) {
+        throw new Error("ID is vereist voor het bijwerken van een aanvraag");
+      }
+      const response = await apiRequest("PUT", `/api/member-requests?id=${request.id}`, request as MemberRequest);
       return await response.json();
     },
     onSuccess: () => {
@@ -1887,6 +1893,7 @@ export default function MemberRequests() {
                     <Select 
                       value={(editedRequest?.membershipType || selectedRequest.membershipType) as "standaard" | "student" | "senior"}
                       onValueChange={(value: "standaard" | "student" | "senior") => setEditedRequest({...editedRequest || selectedRequest, membershipType: value})}
+                      disabled={selectedRequest.status !== "pending" || !isEditing}
                     >
                       <SelectTrigger id="membershipType" className="mt-1">
                         <SelectValue placeholder="Selecteer type" />
@@ -1898,6 +1905,114 @@ export default function MemberRequests() {
                       </SelectContent>
                     </Select>
                   </div>
+                </div>
+              </div>
+              
+              <div className="mb-6">
+                <h3 className="text-lg font-semibold text-[#963E56] mb-4 flex items-center gap-2">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <rect x="2" y="5" width="20" height="14" rx="2" />
+                    <line x1="2" y1="10" x2="22" y2="10" />
+                  </svg>
+                  Betaalgegevens
+                </h3>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="paymentMethod">Betaalwijze</Label>
+                    <Select 
+                      value={(editedRequest?.paymentMethod || selectedRequest.paymentMethod || "overschrijving") as "cash" | "domiciliering" | "overschrijving" | "bancontact"}
+                      onValueChange={(value: "cash" | "domiciliering" | "overschrijving" | "bancontact") => setEditedRequest({...editedRequest || selectedRequest, paymentMethod: value})}
+                      disabled={selectedRequest.status !== "pending" || !isEditing}
+                    >
+                      <SelectTrigger id="paymentMethod" className="mt-1">
+                        <SelectValue placeholder="Selecteer betaalwijze" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="cash">Cash</SelectItem>
+                        <SelectItem value="bancontact">Bancontact</SelectItem>
+                        <SelectItem value="overschrijving">Overschrijving</SelectItem>
+                        <SelectItem value="domiciliering">Domiciliëring</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="paymentTerm">Betalingstermijn</Label>
+                    <Select 
+                      value={(editedRequest?.paymentTerm || selectedRequest.paymentTerm || "jaarlijks") as "maandelijks" | "driemaandelijks" | "jaarlijks"}
+                      onValueChange={(value: "maandelijks" | "driemaandelijks" | "jaarlijks") => setEditedRequest({...editedRequest || selectedRequest, paymentTerm: value})}
+                      disabled={selectedRequest.status !== "pending" || !isEditing}
+                    >
+                      <SelectTrigger id="paymentTerm" className="mt-1">
+                        <SelectValue placeholder="Selecteer betalingstermijn" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="jaarlijks">Jaarlijks</SelectItem>
+                        <SelectItem value="driemaandelijks">Driemaandelijks</SelectItem>
+                        <SelectItem value="maandelijks">Maandelijks</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  <div className="flex items-center space-x-2">
+                    <Checkbox 
+                      id="autoRenew" 
+                      checked={editedRequest?.autoRenew || selectedRequest.autoRenew || false}
+                      onCheckedChange={(checked) => 
+                        setEditedRequest({...editedRequest || selectedRequest, autoRenew: checked as boolean})
+                      }
+                      disabled={selectedRequest.status !== "pending" || !isEditing}
+                      className="data-[state=checked]:bg-[#963E56] data-[state=checked]:border-[#963E56]"
+                    />
+                    <Label htmlFor="autoRenew" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                      Automatisch verlengen
+                    </Label>
+                  </div>
+                  
+                  {/* Alleen rekeninggegevens tonen als betaalwijze domiciliëring of overschrijving is */}
+                  {((editedRequest?.paymentMethod || selectedRequest.paymentMethod) === "domiciliering" ||
+                    (editedRequest?.paymentMethod || selectedRequest.paymentMethod) === "overschrijving") && (
+                    <>
+                      <div className="col-span-1 md:col-span-2 border-t pt-4 mt-2">
+                        <h4 className="text-sm font-semibold mb-3">Rekeninggegevens</h4>
+                      </div>
+                      
+                      <div>
+                        <Label htmlFor="accountNumber">IBAN</Label>
+                        <Input
+                          id="accountNumber"
+                          value={editedRequest?.accountNumber || selectedRequest.accountNumber || ''}
+                          onChange={(e) => setEditedRequest({...editedRequest || selectedRequest, accountNumber: e.target.value})}
+                          className="mt-1"
+                          disabled={selectedRequest.status !== "pending" || !isEditing}
+                        />
+                      </div>
+                      
+                      <div>
+                        <Label htmlFor="accountHolderName">Naam rekeninghouder</Label>
+                        <Input
+                          id="accountHolderName"
+                          value={editedRequest?.accountHolderName || selectedRequest.accountHolderName || ''}
+                          onChange={(e) => setEditedRequest({...editedRequest || selectedRequest, accountHolderName: e.target.value})}
+                          className="mt-1"
+                          disabled={selectedRequest.status !== "pending" || !isEditing}
+                        />
+                      </div>
+                      
+                      <div>
+                        <Label htmlFor="bicSwift">BIC/SWIFT-code</Label>
+                        <Input
+                          id="bicSwift"
+                          value={editedRequest?.bicSwift || selectedRequest.bicSwift || ''}
+                          onChange={(e) => setEditedRequest({...editedRequest || selectedRequest, bicSwift: e.target.value})}
+                          className="mt-1"
+                          disabled={selectedRequest.status !== "pending" || !isEditing}
+                        />
+                        <p className="text-xs text-gray-500 mt-1">Alleen nodig voor buitenlandse rekeningen</p>
+                      </div>
+                    </>
+                  )}
                 </div>
               </div>
 
@@ -1922,61 +2037,93 @@ export default function MemberRequests() {
             <div className="bg-gray-50 px-6 py-4 border-t flex items-center justify-between">
               <Button 
                 variant="outline"
-                className="gap-1"
+                className="border-[#963E56]/30 hover:bg-[#963E56]/5 hover:border-[#963E56]/50 transition-all gap-2 pl-3 pr-4 py-2"
                 onClick={() => setShowDetailView(false)}
               >
                 <ArrowLeft className="h-4 w-4" />
-                Terug
+                <span>Terug naar overzicht</span>
               </Button>
               
-              <div className="flex items-center gap-2">
-                <Button 
-                  variant="outline"
-                  className="text-red-600 border-red-200 hover:bg-red-50 hover:text-red-700"
-                  onClick={() => {
-                    setShowDetailView(false);
-                    if (rejectionReason.trim()) {
-                      confirmRejection();
-                    } else {
-                      setShowRejectionDialog(true);
-                    }
-                  }}
-                  disabled={rejectMutation.isPending}
-                >
-                  {rejectMutation.isPending ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Bezig...
-                    </>
+              {selectedRequest.status === "pending" && (
+                <div className="flex items-center gap-2">
+                  {isEditing ? (
+                    <Button 
+                      className="bg-[#963E56] hover:bg-[#7d3447] text-white px-5"
+                      onClick={() => {
+                        // Save changes to the edited request
+                        if (editedRequest) {
+                          updateMutation.mutate(editedRequest as MemberRequest);
+                        }
+                        setIsEditing(false);
+                      }}
+                      disabled={updateMutation.isPending}
+                    >
+                      {updateMutation.isPending ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Opslaan...
+                        </>
+                      ) : (
+                        <>
+                          <Save className="mr-2 h-4 w-4" />
+                          Wijzigingen opslaan
+                        </>
+                      )}
+                    </Button>
                   ) : (
                     <>
-                      <XIcon className="mr-2 h-4 w-4" />
-                      Afwijzen
+                      <Button 
+                        variant="outline"
+                        className="text-red-600 border-red-200 hover:bg-red-50 hover:text-red-700"
+                        onClick={() => {
+                          setShowDetailView(false);
+                          if (rejectionReason.trim()) {
+                            confirmRejection();
+                          } else {
+                            setShowRejectionDialog(true);
+                          }
+                        }}
+                        disabled={rejectMutation.isPending}
+                      >
+                        <XIcon className="mr-2 h-4 w-4" />
+                        Afwijzen
+                      </Button>
+                      <Button 
+                        className="bg-green-600 hover:bg-green-700 text-white"
+                        onClick={() => {
+                          setShowDetailView(false);
+                          setShowApprovalDialog(true);
+                        }}
+                        disabled={approveMutation.isPending}
+                      >
+                        <CheckIcon className="mr-2 h-4 w-4" />
+                        Goedkeuren
+                      </Button>
+                      <Button 
+                        className="bg-blue-600 hover:bg-blue-700 text-white"
+                        onClick={() => setIsEditing(true)}
+                      >
+                        <PencilIcon className="mr-2 h-4 w-4" />
+                        Bewerken
+                      </Button>
                     </>
                   )}
-                </Button>
-                
-                <Button 
-                  className="bg-[#963E56] hover:bg-[#7d3447] text-white"
-                  onClick={() => {
-                    setShowDetailView(false);
-                    handleApprove(editedRequest || selectedRequest);
-                  }}
-                  disabled={approveMutation.isPending}
-                >
-                  {approveMutation.isPending ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Bezig...
-                    </>
+                </div>
+              )}
+              
+              {selectedRequest.status !== "pending" && (
+                <div className="text-sm bg-gray-100 px-4 py-2 rounded-md border">
+                  {selectedRequest.status === "approved" ? (
+                    <span className="text-green-600 font-medium flex items-center gap-1">
+                      <CheckIcon className="h-4 w-4" /> Goedgekeurd op {formatDate(selectedRequest.processedDate || '')}
+                    </span>
                   ) : (
-                    <>
-                      <CheckIcon className="mr-2 h-4 w-4" />
-                      Goedkeuren
-                    </>
+                    <span className="text-red-600 font-medium flex items-center gap-1">
+                      <XIcon className="h-4 w-4" /> Afgewezen op {formatDate(selectedRequest.processedDate || '')}
+                    </span>
                   )}
-                </Button>
-              </div>
+                </div>
+              )}
             </div>
           </div>
         </div>
