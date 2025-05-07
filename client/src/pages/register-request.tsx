@@ -71,6 +71,15 @@ const registrationSchema = z.object({
   
   // Eventuele opmerkingen
   notes: z.string().optional(),
+}).refine((data) => {
+  // Validatie: Bij domiciliëring is een rekeningnummer verplicht
+  if (data.paymentMethod === 'domiciliering') {
+    return !!data.accountNumber;
+  }
+  return true;
+}, {
+  message: "Rekeningnummer is verplicht bij domiciliëring",
+  path: ["accountNumber"],
 });
 
 type FormData = z.infer<typeof registrationSchema>;
@@ -434,17 +443,147 @@ export default function RegisterRequest() {
                     
                     <FormField
                       control={form.control}
-                      name="accountNumber"
+                      name="paymentTerm"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>IBAN Rekeningnummer</FormLabel>
-                          <FormControl>
-                            <Input placeholder="BE00 0000 0000 0000" {...field} />
-                          </FormControl>
+                          <FormLabel>Betalingstermijn</FormLabel>
+                          <Select 
+                            onValueChange={field.onChange} 
+                            defaultValue={field.value}
+                          >
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Selecteer betalingstermijn" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="jaarlijks">Jaarlijks</SelectItem>
+                              <SelectItem value="driemaandelijks">Driemaandelijks</SelectItem>
+                              <SelectItem value="maandelijks">Maandelijks</SelectItem>
+                            </SelectContent>
+                          </Select>
                           <FormDescription>
-                            Optioneel, voor automatische betalingen
+                            Hoe vaak wil je je lidmaatschap betalen?
                           </FormDescription>
                           <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    
+                    <FormField
+                      control={form.control}
+                      name="paymentMethod"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Betalingswijze</FormLabel>
+                          <Select 
+                            onValueChange={field.onChange} 
+                            defaultValue={field.value}
+                          >
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Selecteer betalingswijze" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="cash">Cash</SelectItem>
+                              <SelectItem value="bancontact">Bancontact</SelectItem>
+                              <SelectItem value="overschrijving">Overschrijving</SelectItem>
+                              <SelectItem value="domiciliering">Domiciliëring</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    
+                    {/* Conditionele berichten op basis van betalingsmethode */}
+                    {form.watch("paymentMethod") === "cash" && (
+                      <div className="col-span-2 bg-yellow-50 border border-yellow-200 rounded-md p-4">
+                        <p className="text-yellow-800 text-sm">
+                          <strong>Let op:</strong> Bij betaling met cash dient u een medewerker van de moskee aan te spreken. 
+                          Uw inschrijving wordt pas officieel na ontvangst van de betaling.
+                        </p>
+                      </div>
+                    )}
+                    
+                    {form.watch("paymentMethod") === "bancontact" && (
+                      <div className="col-span-2 bg-yellow-50 border border-yellow-200 rounded-md p-4">
+                        <p className="text-yellow-800 text-sm">
+                          <strong>Let op:</strong> Bij betaling met Bancontact dient u een medewerker van de moskee aan te spreken. 
+                          Uw inschrijving wordt pas officieel na ontvangst van de betaling.
+                        </p>
+                      </div>
+                    )}
+                    
+                    {form.watch("paymentMethod") === "overschrijving" && (
+                      <div className="col-span-2 bg-blue-50 border border-blue-200 rounded-md p-4">
+                        <p className="text-blue-800 text-sm">
+                          <strong>Belangrijk:</strong> Uw inschrijving wordt pas officieel na ontvangst van uw eerste betaling via overschrijving.
+                          De betaalgegevens worden naar uw e-mailadres gestuurd na goedkeuring van uw aanvraag.
+                        </p>
+                      </div>
+                    )}
+                    
+                    {form.watch("paymentMethod") === "domiciliering" && (
+                      <div className="col-span-2">
+                        <FormField
+                          control={form.control}
+                          name="accountNumber"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>IBAN Rekeningnummer <span className="text-red-500">*</span></FormLabel>
+                              <FormControl>
+                                <Input placeholder="BE00 0000 0000 0000" {...field} />
+                              </FormControl>
+                              <FormDescription>
+                                Vereist voor domiciliëring
+                              </FormDescription>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+                    )}
+                    
+                    {form.watch("paymentMethod") !== "domiciliering" && (
+                      <FormField
+                        control={form.control}
+                        name="accountNumber"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>IBAN Rekeningnummer</FormLabel>
+                            <FormControl>
+                              <Input placeholder="BE00 0000 0000 0000" {...field} />
+                            </FormControl>
+                            <FormDescription>
+                              Optioneel, voor eventuele terugbetalingen
+                            </FormDescription>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    )}
+                    
+                    <FormField
+                      control={form.control}
+                      name="autoRenew"
+                      render={({ field }) => (
+                        <FormItem className="flex flex-row items-start space-x-3 space-y-0 p-4 border border-gray-200 rounded-md">
+                          <FormControl>
+                            <Checkbox
+                              checked={field.value}
+                              onCheckedChange={field.onChange}
+                            />
+                          </FormControl>
+                          <div className="space-y-1 leading-none">
+                            <FormLabel>
+                              Automatisch verlengen
+                            </FormLabel>
+                            <FormDescription>
+                              Hiermee wordt uw lidmaatschap automatisch verlengd bij het verstrijken van de termijn
+                            </FormDescription>
+                          </div>
                         </FormItem>
                       )}
                     />
