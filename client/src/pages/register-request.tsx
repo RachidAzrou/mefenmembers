@@ -57,6 +57,7 @@ const registrationSchema = z.object({
   
   // Lidmaatschap
   membershipTypes: z.array(z.string()).min(1, "Selecteer minstens één type lidmaatschap"),
+  membershipType: z.enum(["standaard", "student", "senior"]).optional(),
   paymentTerm: z.enum(["maandelijks", "driemaandelijks", "jaarlijks"]).default("jaarlijks"),
   paymentMethod: z.enum(["cash", "domiciliering", "overschrijving", "bancontact"]).default("cash"),
   autoRenew: z.boolean().default(true),
@@ -101,6 +102,7 @@ export default function RegisterRequest() {
       email: "",
       phoneNumber: "",
       membershipTypes: ["standaard"],
+      membershipType: "standaard",
       paymentTerm: "jaarlijks",
       paymentMethod: "cash",
       autoRenew: true,
@@ -416,7 +418,7 @@ export default function RegisterRequest() {
                     <h2 className="text-lg sm:text-xl font-semibold">Contactgegevens</h2>
                   </div>
                   
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 sm:gap-6">
+                  <div className="grid grid-cols-1 gap-5 sm:gap-6">
                     <FormField
                       control={form.control}
                       name="email"
@@ -428,7 +430,7 @@ export default function RegisterRequest() {
                               type="email" 
                               placeholder="voorbeeld@email.com" 
                               {...field}
-                              className="text-sm" 
+                              className="text-sm h-12" 
                               inputMode="email"
                               autoComplete="email"
                             />
@@ -457,7 +459,7 @@ export default function RegisterRequest() {
                                 placeholder="Bijv. 0493401411" 
                                 value={field.value ? formatPhoneNumber(field.value) : ""}
                                 onChange={handleInputChange}
-                                className="text-sm"
+                                className="text-sm h-12"
                                 inputMode="tel"
                                 type="tel"
                                 autoComplete="tel"
@@ -587,79 +589,32 @@ export default function RegisterRequest() {
                     <h2 className="text-lg sm:text-xl font-semibold">Lidmaatschap</h2>
                   </div>
                   
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 sm:gap-6">
+                  <div className="grid grid-cols-1 gap-5 sm:gap-6">
                     <FormField
                       control={form.control}
-                      name="membershipTypes"
+                      name="membershipType"
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel className="text-sm sm:text-base">Type lidmaatschap <span className="text-red-500">*</span></FormLabel>
-                          <FormDescription className="text-xs sm:text-sm">
-                            Selecteer één of meerdere types
-                          </FormDescription>
-                          <div className="space-y-3 mt-1">
-                            <div className="flex flex-wrap gap-2">
-                              {field.value.map((type) => (
-                                <Badge 
-                                  key={type} 
-                                  variant="secondary"
-                                  className="bg-[#963E56]/10 text-[#963E56] hover:bg-[#963E56]/20 gap-1 pl-2 h-8"
-                                >
-                                  {type === "standaard" ? "Standaard" : 
-                                   type === "student" ? "Student" : 
-                                   type === "senior" ? "Senior" : type}
-                                  <X 
-                                    className="h-3.5 w-3.5 cursor-pointer rounded-full" 
-                                    onClick={() => {
-                                      field.onChange(field.value.filter(t => t !== type));
-                                    }}
-                                  />
-                                </Badge>
-                              ))}
-                            </div>
-                            {/* Verbeterde mobiel-vriendelijke layout met grotere klikgebieden */}
-                            <div className="space-y-2">
-                              {["standaard", "student", "senior"].map((type) => {
-                                const isSelected = field.value.includes(type);
-                                return (
-                                  <div 
-                                    key={type}
-                                    className={`flex items-center rounded-md border p-4 ${
-                                      isSelected 
-                                        ? "border-[#963E56] bg-[#963E56]/10" 
-                                        : "border-gray-200 bg-white"
-                                    }`}
-                                    onClick={() => {
-                                      if (isSelected) {
-                                        field.onChange(field.value.filter(t => t !== type));
-                                      } else {
-                                        field.onChange([...field.value, type]);
-                                      }
-                                    }}
-                                  >
-                                    <div className="flex items-center justify-between w-full">
-                                      <span className="text-base font-medium">
-                                        {type === "standaard" ? "Standaard" : 
-                                         type === "student" ? "Student" : 
-                                         type === "senior" ? "Senior" : type}
-                                      </span>
-                                      <Checkbox 
-                                        checked={isSelected}
-                                        className="h-5 w-5 data-[state=checked]:bg-[#963E56] data-[state=checked]:border-[#963E56]"
-                                        onCheckedChange={(checked) => {
-                                          if (checked) {
-                                            field.onChange([...field.value, type]);
-                                          } else {
-                                            field.onChange(field.value.filter(t => t !== type));
-                                          }
-                                        }}
-                                      />
-                                    </div>
-                                  </div>
-                                )
-                              })}
-                            </div>
-                          </div>
+                          <Select 
+                            onValueChange={(value) => {
+                              field.onChange(value);
+                              // Update membershipTypes array to contain only the selected value
+                              form.setValue('membershipTypes', [value]);
+                            }} 
+                            defaultValue={field.value || (form.getValues().membershipTypes?.[0] || "")}
+                          >
+                            <FormControl>
+                              <SelectTrigger className="text-sm h-12">
+                                <SelectValue placeholder="Selecteer type lidmaatschap" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="standaard">Standaard</SelectItem>
+                              <SelectItem value="student">Student</SelectItem>
+                              <SelectItem value="senior">Senior</SelectItem>
+                            </SelectContent>
+                          </Select>
                           <FormMessage />
                         </FormItem>
                       )}
