@@ -930,11 +930,7 @@ export default function MemberRequests() {
                     <TableHeader>
                       <TableRow>
                         <TableHead>Naam</TableHead>
-                        <TableHead>Email</TableHead>
-                        <TableHead>Telefoon</TableHead>
-                        <TableHead>Type</TableHead>
                         <TableHead>Datum</TableHead>
-                        <TableHead>Status</TableHead>
                         <TableHead className="text-right">Acties</TableHead>
                       </TableRow>
                     </TableHeader>
@@ -944,15 +940,7 @@ export default function MemberRequests() {
                           <TableCell className="font-medium">
                             {request.firstName} {request.lastName}
                           </TableCell>
-                          <TableCell>{request.email}</TableCell>
-                          <TableCell>{request.phoneNumber}</TableCell>
-                          <TableCell>
-                            {request.membershipType === "standaard" && "Standaard"}
-                            {request.membershipType === "student" && "Student"}
-                            {request.membershipType === "senior" && "Senior"}
-                          </TableCell>
                           <TableCell>{formatDate(request.requestDate)}</TableCell>
-                          <TableCell>{getStatusBadge(request.status)}</TableCell>
                           <TableCell className="text-right space-x-1 whitespace-nowrap">
                             <Button 
                               variant="ghost" 
@@ -974,7 +962,19 @@ export default function MemberRequests() {
                               onClick={() => handleApprove(request)}
                               className="text-green-600 hover:text-green-800"
                             >
-                              <CheckIcon className="h-4 w-4" />
+                              <svg 
+                                xmlns="http://www.w3.org/2000/svg" 
+                                viewBox="0 0 24 24" 
+                                fill="none" 
+                                stroke="currentColor" 
+                                strokeWidth="2" 
+                                strokeLinecap="round" 
+                                strokeLinejoin="round" 
+                                className="h-4 w-4"
+                              >
+                                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                                <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                              </svg>
                             </Button>
                             <Button 
                               variant="ghost" 
@@ -982,7 +982,18 @@ export default function MemberRequests() {
                               onClick={() => handleReject(request)}
                               className="text-red-500 hover:text-red-800"
                             >
-                              <XIcon className="h-4 w-4" />
+                              <svg 
+                                xmlns="http://www.w3.org/2000/svg" 
+                                viewBox="0 0 24 24" 
+                                fill="none" 
+                                stroke="currentColor" 
+                                strokeWidth="2" 
+                                strokeLinecap="round" 
+                                strokeLinejoin="round" 
+                                className="h-4 w-4"
+                              >
+                                <path d="M12 22a10 10 0 1 1 0-20 10 10 0 0 1 0 20zm0 0a9.99 9.99 0 0 1-8.94-5.5M12 8v4m0 4h.01"></path>
+                              </svg>
                             </Button>
                             <Button 
                               variant="ghost" 
@@ -1026,12 +1037,7 @@ export default function MemberRequests() {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Naam</TableHead>
-                    <TableHead>Email</TableHead>
-                    <TableHead>Telefoon</TableHead>
-                    <TableHead>Type</TableHead>
-                    <TableHead>Aanvraagdatum</TableHead>
-                    <TableHead>Verwerkt</TableHead>
-                    <TableHead>Status</TableHead>
+                    <TableHead>Datum</TableHead>
                     <TableHead className="text-right">Acties</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -1041,16 +1047,7 @@ export default function MemberRequests() {
                       <TableCell className="font-medium">
                         {request.firstName} {request.lastName}
                       </TableCell>
-                      <TableCell>{request.email}</TableCell>
-                      <TableCell>{request.phoneNumber}</TableCell>
-                      <TableCell>
-                        {request.membershipType === "standaard" && "Standaard"}
-                        {request.membershipType === "student" && "Student"}
-                        {request.membershipType === "senior" && "Senior"}
-                      </TableCell>
                       <TableCell>{formatDate(request.requestDate)}</TableCell>
-                      <TableCell>{formatDate(request.processedDate)}</TableCell>
-                      <TableCell>{getStatusBadge(request.status)}</TableCell>
                       <TableCell className="text-right">
                         <Button 
                           variant="ghost" 
