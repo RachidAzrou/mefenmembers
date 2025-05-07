@@ -21,8 +21,8 @@ import { format, subMonths, differenceInYears, differenceInMonths } from 'date-f
 import { nl } from 'date-fns/locale';
 import { Member } from '@shared/schema';
 import { Separator } from '@/components/ui/separator';
-import html2canvas from 'html2canvas';
-import jsPDF from 'jspdf';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { exportChartAsJPG, exportAllChartsToPDF } from '@/lib/chart-export';
 
 // Helper functie om leeftijd te berekenen op basis van geboortedatum
 function calculateAge(birthDate: Date | string | null | undefined): number {
@@ -122,10 +122,10 @@ function groupMembersByMembershipType(members: Member[]): { name: string; count:
 // Groepeer leden per betaalmethode
 function groupMembersByPaymentMethod(members: Member[]): { name: string; count: number; color: string }[] {
   const paymentMethods = [
-    { name: "Automatische incasso", color: "#2ECC71" },
-    { name: "Overschrijving", color: "#3498DB" },
-    { name: "Contant", color: "#9B59B6" },
-    { name: "Anders", color: "#E67E22" }
+    { name: "Automatische incasso", color: "#963E56" },
+    { name: "Overschrijving", color: "#B85370" },
+    { name: "Contant", color: "#D86985" },
+    { name: "Anders", color: "#EB96A7" }
   ];
 
   // Initialiseer resultaten
@@ -158,10 +158,10 @@ function groupMembersByPaymentMethod(members: Member[]): { name: string; count: 
 // Groepeer leden per betalingstermijn
 function groupMembersByPaymentTerm(members: Member[]): { name: string; count: number; color: string }[] {
   const paymentTerms = [
-    { name: "Maandelijks", color: "#2ECC71" },
-    { name: "Per kwartaal", color: "#3498DB" },
-    { name: "Halfjaarlijks", color: "#9B59B6" },
-    { name: "Jaarlijks", color: "#E67E22" }
+    { name: "Maandelijks", color: "#963E56" },
+    { name: "Per kwartaal", color: "#B85370" },
+    { name: "Halfjaarlijks", color: "#D86985" },
+    { name: "Jaarlijks", color: "#F1ACBA" }
   ];
 
   // Initialiseer resultaten
@@ -399,11 +399,11 @@ export default function Rapportage() {
   
   // Lidmaatschapstypen voor de vergelijkingstab
   const membershipTypes = [
-    { name: "Regulier", color: "#2ECC71" },
-    { name: "Student", color: "#3498DB" },
-    { name: "Gezin", color: "#9B59B6" },
-    { name: "Verminderd tarief", color: "#F1C40F" },
-    { name: "Erelid", color: "#E67E22" }
+    { name: "Regulier", color: "#963E56" },
+    { name: "Student", color: "#B85370" },
+    { name: "Gezin", color: "#D86985" },
+    { name: "Verminderd tarief", color: "#E47F95" },
+    { name: "Erelid", color: "#F1ACBA" }
   ];
   
   // Demografische statistieken
