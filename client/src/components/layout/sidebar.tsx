@@ -7,7 +7,8 @@ import {
   LogOut, Menu, ChevronLeft, ChevronRight,
   User, UsersRound, Home,
   PlusCircle, FileSpreadsheet, Edit,
-  Inbox, ChevronDown, ChevronUp
+  Inbox, ChevronDown, ChevronUp,
+  BarChart3
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { auth } from "@/lib/firebase";
@@ -78,6 +79,7 @@ export function Sidebar() {
     },
     { icon: Inbox, label: "Aanvragen", href: "/member-requests" },
     { icon: FileSpreadsheet, label: "Exporteren", href: "/export" },
+    { icon: BarChart3, label: "Rapportage", href: "/rapportage" },
   ];
 
   const handleNavigation = (href: string) => {
