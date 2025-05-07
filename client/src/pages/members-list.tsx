@@ -104,6 +104,14 @@ export default function MembersList() {
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
   const [location, navigate] = useLocation();
   
+  // Nieuwe filters toevoegen
+  const [votingFilter, setVotingFilter] = useState<"all" | "eligible" | "not-eligible">("all");
+  const [membershipTypeFilter, setMembershipTypeFilter] = useState<"all" | "standaard" | "student" | "senior">("all");
+  const [paymentTermFilter, setPaymentTermFilter] = useState<"all" | "maandelijks" | "jaarlijks">("all");
+  const [paymentMethodFilter, setPaymentMethodFilter] = useState<"all" | "automatisch" | "overschrijving" | "contant">("all");
+  const [genderFilter, setGenderFilter] = useState<"all" | "man" | "vrouw">("all");
+  const [showFilters, setShowFilters] = useState<boolean>(false);
+  
   // Verwerk URL query parameters bij eerste laden
   useEffect(() => {
     // Parse huidige URL parameters
@@ -250,24 +258,56 @@ export default function MembersList() {
       (member.email && member.email.toLowerCase().includes(searchQuery.toLowerCase())) ||
       member.phoneNumber.includes(searchQuery);
     
-    // Vervolgens op actieve filter
-    let matchesFilter = true;
+    // Vervolgens op actieve filter (betaalstatus)
+    let matchesPaymentFilter = true;
     if (activeFilter === "paid") {
-      matchesFilter = member.paymentStatus === true;
+      matchesPaymentFilter = member.paymentStatus === true;
     } else if (activeFilter === "unpaid") {
-      matchesFilter = member.paymentStatus === false;
+      matchesPaymentFilter = member.paymentStatus === false;
     } else if (activeFilter === "recent") {
       // Beschouw "recent" als lid geworden in de afgelopen 30 dagen
       const thirtyDaysAgo = new Date();
       thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-      matchesFilter = new Date(member.registrationDate) >= thirtyDaysAgo;
+      matchesPaymentFilter = new Date(member.registrationDate) >= thirtyDaysAgo;
+    }
+    
+    // Filter op stemgerechtigdheid
+    let matchesVotingFilter = true;
+    if (votingFilter === "eligible") {
+      matchesVotingFilter = isVotingEligible(member);
+    } else if (votingFilter === "not-eligible") {
+      matchesVotingFilter = !isVotingEligible(member);
+    }
+    
+    // Filter op lidmaatschapstype
+    let matchesMembershipType = true;
+    if (membershipTypeFilter !== "all") {
+      matchesMembershipType = member.membershipType === membershipTypeFilter;
+    }
+    
+    // Filter op betalingstermijn
+    let matchesPaymentTerm = true;
+    if (paymentTermFilter !== "all") {
+      matchesPaymentTerm = member.paymentTerm === paymentTermFilter;
+    }
+    
+    // Filter op betaalmethode
+    let matchesPaymentMethod = true;
+    if (paymentMethodFilter !== "all") {
+      matchesPaymentMethod = member.paymentMethod === paymentMethodFilter;
+    }
+    
+    // Filter op geslacht
+    let matchesGender = true;
+    if (genderFilter !== "all") {
+      matchesGender = member.gender === genderFilter;
     }
     
     // URL Parameters verwerken indien aanwezig
     const url = new URL(window.location.href);
     const params = url.searchParams;
     
-    // Gender filter
+    // Gender filter van URL (als deze bestaat)
     if (params.has("gender")) {
       const genderParam = params.get("gender");
       if ((genderParam === "man" || genderParam === "vrouw") && member.gender !== genderParam) {
@@ -275,7 +315,7 @@ export default function MembersList() {
       }
     }
     
-    // Lidmaatschapstype filter
+    // Lidmaatschapstype filter van URL (als deze bestaat)
     if (params.has("type")) {
       const typeParam = params.get("type");
       if (typeParam && member.membershipType !== typeParam) {
@@ -283,21 +323,19 @@ export default function MembersList() {
       }
     }
     
-    // Stemgerechtigden filter
+    // Stemgerechtigden filter van URL (als deze bestaat)
     if (params.has("voting") && params.get("voting") === "true") {
-      // Voorwaarde 1: Meerderjarig (18+)
-      const age = calculateAge(member.birthDate);
-      if (age === null || age < 18) return false;
-      
-      // Voorwaarde 2: Minstens 5 jaar aaneensluitend lid
-      const membershipYears = calculateMembershipYears(member);
-      if (membershipYears < 5) return false;
-      
-      // Voorwaarde 3: Elk jaar betaald (huidige betalingsstatus)
-      if (!member.paymentStatus) return false;
+      if (!isVotingEligible(member)) return false;
     }
     
-    return matchesSearch && matchesFilter;
+    // Combineer alle filtercriteria
+    return matchesSearch && 
+           matchesPaymentFilter && 
+           matchesVotingFilter && 
+           matchesMembershipType && 
+           matchesPaymentTerm && 
+           matchesPaymentMethod && 
+           matchesGender;
   });
   
   // Sorteer de gefilterde leden
