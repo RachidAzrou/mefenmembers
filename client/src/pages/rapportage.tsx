@@ -3,7 +3,6 @@ import { useQuery } from "@tanstack/react-query";
 import { 
   BarChart, Bar, XAxis, YAxis, Tooltip as RechartsTooltip, Legend, ResponsiveContainer, 
   PieChart, Pie, Cell, LineChart, Line, CartesianGrid,
-  RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar,
   ScatterChart, Scatter, ZAxis, AreaChart, Area, ComposedChart
 } from 'recharts';
 import { 
@@ -13,7 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DatePicker } from "@/components/ui/date-picker";
 import { Label } from '@/components/ui/label';
-import { PDFDownloadLink, PDFViewer } from '@react-pdf/renderer';
+import { PDFDownloadLink } from '@react-pdf/renderer';
 import { Loader2, Download, Calendar, ChevronDown, ChevronUp, Users, Wallet, CreditCard, Clock, UserCheck, BarChart3, 
   MapPin, Map as MapIcon, Globe, LineChart as LineChartIcon, PieChart as PieChartIcon, Target, Zap, Activity } from "lucide-react";
 import MyPdfDocument from '@/components/pdf/report-pdf';
@@ -22,9 +21,8 @@ import { format, subMonths, differenceInYears, differenceInMonths } from 'date-f
 import { nl } from 'date-fns/locale';
 import { Member } from '@shared/schema';
 import { Separator } from '@/components/ui/separator';
-import { 
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue 
-} from "@/components/ui/select";
+import html2canvas from 'html2canvas';
+import jsPDF from 'jspdf';
 
 // Helper functie om leeftijd te berekenen op basis van geboortedatum
 function calculateAge(birthDate: Date | string | null | undefined): number {
