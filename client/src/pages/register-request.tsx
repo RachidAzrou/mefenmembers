@@ -424,13 +424,13 @@ export default function RegisterRequest() {
                       name="email"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>E-mail <span className="text-red-500">*</span></FormLabel>
+                          <FormLabel className="text-sm sm:text-base">E-mail <span className="text-red-500">*</span></FormLabel>
                           <FormControl>
                             <Input 
                               type="email" 
                               placeholder="voorbeeld@email.com" 
                               {...field}
-                              className="text-sm h-12" 
+                              className="text-sm h-14 text-base" 
                               inputMode="email"
                               autoComplete="email"
                             />
@@ -453,13 +453,13 @@ export default function RegisterRequest() {
                         
                         return (
                           <FormItem>
-                            <FormLabel>Telefoonnummer <span className="text-red-500">*</span></FormLabel>
+                            <FormLabel className="text-sm sm:text-base">Telefoonnummer <span className="text-red-500">*</span></FormLabel>
                             <FormControl>
                               <Input 
                                 placeholder="Bijv. 0493401411" 
                                 value={field.value ? formatPhoneNumber(field.value) : ""}
                                 onChange={handleInputChange}
-                                className="text-sm h-12"
+                                className="text-sm h-14 text-base"
                                 inputMode="tel"
                                 type="tel"
                                 autoComplete="tel"
@@ -488,7 +488,7 @@ export default function RegisterRequest() {
                               <Input 
                                 placeholder="Straatnaam" 
                                 {...field} 
-                                className="text-sm"
+                                className="text-sm h-14 text-base"
                                 autoComplete="street-address"
                               />
                             </FormControl>
@@ -605,7 +605,7 @@ export default function RegisterRequest() {
                             defaultValue={field.value || (form.getValues().membershipTypes?.[0] || "")}
                           >
                             <FormControl>
-                              <SelectTrigger className="text-sm h-12">
+                              <SelectTrigger className="text-sm h-14 text-base">
                                 <SelectValue placeholder="Selecteer type lidmaatschap" />
                               </SelectTrigger>
                             </FormControl>
@@ -631,7 +631,7 @@ export default function RegisterRequest() {
                             defaultValue={field.value}
                           >
                             <FormControl>
-                              <SelectTrigger className="text-sm h-12">
+                              <SelectTrigger className="text-sm h-14 text-base">
                                 <SelectValue placeholder="Selecteer betalingstermijn" />
                               </SelectTrigger>
                             </FormControl>
@@ -660,7 +660,7 @@ export default function RegisterRequest() {
                             defaultValue={field.value}
                           >
                             <FormControl>
-                              <SelectTrigger className="text-sm h-12">
+                              <SelectTrigger className="text-sm h-14 text-base">
                                 <SelectValue placeholder="Selecteer betalingswijze" />
                               </SelectTrigger>
                             </FormControl>
