@@ -4,7 +4,7 @@ import {
   BarChart, Bar, XAxis, YAxis, Tooltip as RechartsTooltip, Legend, ResponsiveContainer, 
   PieChart, Pie, Cell, LineChart, Line, CartesianGrid,
   RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar,
-  ScatterChart, Scatter, ZAxis, AreaChart, Area
+  ScatterChart, Scatter, ZAxis, AreaChart, Area, ComposedChart
 } from 'recharts';
 import { 
   Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle 
