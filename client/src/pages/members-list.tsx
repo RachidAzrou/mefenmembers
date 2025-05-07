@@ -1292,7 +1292,7 @@ export default function MembersList() {
                       }} 
                       className="ml-auto flex items-center hover:text-[#963E56] transition-colors"
                     >
-                      {showDeleteIcons ? "Normaal" : "Acties"}
+                      Acties
                       {/* drie puntjes verwijderd op verzoek van de gebruiker */}
                     </button>
                   </TableHead>
