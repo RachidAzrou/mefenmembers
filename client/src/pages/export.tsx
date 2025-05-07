@@ -529,7 +529,7 @@ export default function ExportPage() {
 
     return (
       <Document>
-        <Page size="A4" style={styles.page}>
+        <Page size="A4" orientation="landscape" style={styles.page}>
           {/* Header met logo en titel */}
           <View style={styles.headerContainer}>
             <View style={styles.headerLeft}>
