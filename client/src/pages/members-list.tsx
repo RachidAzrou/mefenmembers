@@ -855,6 +855,17 @@ export default function MembersList() {
               />
             </div>
             
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className={`md:w-auto w-full mt-2 md:mt-0 bg-white border-gray-200 text-xs sm:text-sm ${showFilters ? 'border-[#963E56] bg-pink-50' : ''}`}
+              onClick={() => setShowFilters(!showFilters)}
+            >
+              <Filter className={`h-3.5 w-3.5 mr-2 ${showFilters ? 'text-[#963E56]' : ''}`} />
+              Filters {showFilters ? 'verbergen' : 'tonen'}
+              {showFilters ? <ChevronUp className="ml-2 h-3.5 w-3.5" /> : <ChevronDown className="ml-2 h-3.5 w-3.5" />}
+            </Button>
+
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button 
@@ -955,6 +966,306 @@ export default function MembersList() {
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
+
+          {/* Filter-paneel */}
+          {showFilters && (
+            <div className="mb-6 p-4 border border-gray-200 bg-gray-50 rounded-lg shadow-sm">
+              <div className="mb-3 flex justify-between items-center">
+                <h3 className="text-sm font-medium text-gray-700">Uitgebreide filters</h3>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-8 px-2 text-xs text-gray-500 hover:text-gray-700"
+                  onClick={() => {
+                    setVotingFilter('all');
+                    setMembershipTypeFilter('all');
+                    setPaymentTermFilter('all');
+                    setPaymentMethodFilter('all');
+                    setGenderFilter('all');
+                  }}
+                >
+                  <X className="h-3 w-3 mr-1" />
+                  Wis filters
+                </Button>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                {/* Filter op stemgerechtigdheid */}
+                <div className="space-y-2">
+                  <div className="text-xs font-medium text-gray-700 flex items-center gap-1.5">
+                    <Vote className="h-3.5 w-3.5 text-[#963E56]" />
+                    Stemgerechtigdheid
+                  </div>
+                  <div className="flex flex-wrap gap-1.5">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className={`text-xs h-7 px-2 ${votingFilter === 'all' ? 'bg-[#963E56]/10 text-[#963E56] border-[#963E56]/30' : ''}`}
+                      onClick={() => setVotingFilter('all')}
+                    >
+                      Alle
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className={`text-xs h-7 px-2 ${votingFilter === 'eligible' ? 'bg-[#963E56]/10 text-[#963E56] border-[#963E56]/30' : ''}`}
+                      onClick={() => setVotingFilter('eligible')}
+                    >
+                      Stemgerechtigd
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className={`text-xs h-7 px-2 ${votingFilter === 'not-eligible' ? 'bg-[#963E56]/10 text-[#963E56] border-[#963E56]/30' : ''}`}
+                      onClick={() => setVotingFilter('not-eligible')}
+                    >
+                      Niet stemgerechtigd
+                    </Button>
+                  </div>
+                </div>
+                
+                {/* Filter op lidmaatschapstype */}
+                <div className="space-y-2">
+                  <div className="text-xs font-medium text-gray-700 flex items-center gap-1.5">
+                    <CreditCard className="h-3.5 w-3.5 text-[#963E56]" />
+                    Lidmaatschapstype
+                  </div>
+                  <div className="flex flex-wrap gap-1.5">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className={`text-xs h-7 px-2 ${membershipTypeFilter === 'all' ? 'bg-[#963E56]/10 text-[#963E56] border-[#963E56]/30' : ''}`}
+                      onClick={() => setMembershipTypeFilter('all')}
+                    >
+                      Alle
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className={`text-xs h-7 px-2 ${membershipTypeFilter === 'standaard' ? 'bg-[#963E56]/10 text-[#963E56] border-[#963E56]/30' : ''}`}
+                      onClick={() => setMembershipTypeFilter('standaard')}
+                    >
+                      Standaard
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className={`text-xs h-7 px-2 ${membershipTypeFilter === 'student' ? 'bg-[#963E56]/10 text-[#963E56] border-[#963E56]/30' : ''}`}
+                      onClick={() => setMembershipTypeFilter('student')}
+                    >
+                      Student
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className={`text-xs h-7 px-2 ${membershipTypeFilter === 'senior' ? 'bg-[#963E56]/10 text-[#963E56] border-[#963E56]/30' : ''}`}
+                      onClick={() => setMembershipTypeFilter('senior')}
+                    >
+                      Senior
+                    </Button>
+                  </div>
+                </div>
+                
+                {/* Filter op betalingstermijn */}
+                <div className="space-y-2">
+                  <div className="text-xs font-medium text-gray-700 flex items-center gap-1.5">
+                    <CalendarDays className="h-3.5 w-3.5 text-[#963E56]" />
+                    Betaaltermijn
+                  </div>
+                  <div className="flex flex-wrap gap-1.5">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className={`text-xs h-7 px-2 ${paymentTermFilter === 'all' ? 'bg-[#963E56]/10 text-[#963E56] border-[#963E56]/30' : ''}`}
+                      onClick={() => setPaymentTermFilter('all')}
+                    >
+                      Alle
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className={`text-xs h-7 px-2 ${paymentTermFilter === 'jaarlijks' ? 'bg-[#963E56]/10 text-[#963E56] border-[#963E56]/30' : ''}`}
+                      onClick={() => setPaymentTermFilter('jaarlijks')}
+                    >
+                      Jaarlijks
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className={`text-xs h-7 px-2 ${paymentTermFilter === 'maandelijks' ? 'bg-[#963E56]/10 text-[#963E56] border-[#963E56]/30' : ''}`}
+                      onClick={() => setPaymentTermFilter('maandelijks')}
+                    >
+                      Maandelijks
+                    </Button>
+                  </div>
+                </div>
+                
+                {/* Filter op betaalmethode */}
+                <div className="space-y-2">
+                  <div className="text-xs font-medium text-gray-700 flex items-center gap-1.5">
+                    <Banknote className="h-3.5 w-3.5 text-[#963E56]" />
+                    Betaalmethode
+                  </div>
+                  <div className="flex flex-wrap gap-1.5">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className={`text-xs h-7 px-2 ${paymentMethodFilter === 'all' ? 'bg-[#963E56]/10 text-[#963E56] border-[#963E56]/30' : ''}`}
+                      onClick={() => setPaymentMethodFilter('all')}
+                    >
+                      Alle
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className={`text-xs h-7 px-2 ${paymentMethodFilter === 'automatisch' ? 'bg-[#963E56]/10 text-[#963E56] border-[#963E56]/30' : ''}`}
+                      onClick={() => setPaymentMethodFilter('automatisch')}
+                    >
+                      Automatisch
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className={`text-xs h-7 px-2 ${paymentMethodFilter === 'overschrijving' ? 'bg-[#963E56]/10 text-[#963E56] border-[#963E56]/30' : ''}`}
+                      onClick={() => setPaymentMethodFilter('overschrijving')}
+                    >
+                      Overschrijving
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className={`text-xs h-7 px-2 ${paymentMethodFilter === 'contant' ? 'bg-[#963E56]/10 text-[#963E56] border-[#963E56]/30' : ''}`}
+                      onClick={() => setPaymentMethodFilter('contant')}
+                    >
+                      Contant
+                    </Button>
+                  </div>
+                </div>
+                
+                {/* Filter op geslacht */}
+                <div className="space-y-2">
+                  <div className="text-xs font-medium text-gray-700 flex items-center gap-1.5">
+                    <User className="h-3.5 w-3.5 text-[#963E56]" />
+                    Geslacht
+                  </div>
+                  <div className="flex flex-wrap gap-1.5">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className={`text-xs h-7 px-2 ${genderFilter === 'all' ? 'bg-[#963E56]/10 text-[#963E56] border-[#963E56]/30' : ''}`}
+                      onClick={() => setGenderFilter('all')}
+                    >
+                      Alle
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className={`text-xs h-7 px-2 ${genderFilter === 'man' ? 'bg-[#963E56]/10 text-[#963E56] border-[#963E56]/30' : ''}`}
+                      onClick={() => setGenderFilter('man')}
+                    >
+                      Man
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className={`text-xs h-7 px-2 ${genderFilter === 'vrouw' ? 'bg-[#963E56]/10 text-[#963E56] border-[#963E56]/30' : ''}`}
+                      onClick={() => setGenderFilter('vrouw')}
+                    >
+                      Vrouw
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Actieve filters badges */}
+                <div className="space-y-2 col-span-1 sm:col-span-2 md:col-span-3">
+                  <div className="text-xs font-medium text-gray-700 flex items-center gap-1.5">
+                    <Filter className="h-3.5 w-3.5 text-gray-500" />
+                    Actieve filters:
+                  </div>
+                  <div className="flex flex-wrap gap-1.5">
+                    {votingFilter !== 'all' && (
+                      <Badge variant="outline" className="bg-gray-50 text-xs py-1 gap-1 pr-1">
+                        Stemgerechtigdheid: {votingFilter === 'eligible' ? 'Stemgerechtigd' : 'Niet stemgerechtigd'}
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-4 w-4 p-0 rounded-full hover:bg-gray-200"
+                          onClick={() => setVotingFilter('all')}
+                        >
+                          <X className="h-2 w-2" />
+                        </Button>
+                      </Badge>
+                    )}
+                    
+                    {membershipTypeFilter !== 'all' && (
+                      <Badge variant="outline" className="bg-gray-50 text-xs py-1 gap-1 pr-1">
+                        Type: {membershipTypeFilter}
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-4 w-4 p-0 rounded-full hover:bg-gray-200"
+                          onClick={() => setMembershipTypeFilter('all')}
+                        >
+                          <X className="h-2 w-2" />
+                        </Button>
+                      </Badge>
+                    )}
+                    
+                    {paymentTermFilter !== 'all' && (
+                      <Badge variant="outline" className="bg-gray-50 text-xs py-1 gap-1 pr-1">
+                        Termijn: {paymentTermFilter}
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-4 w-4 p-0 rounded-full hover:bg-gray-200"
+                          onClick={() => setPaymentTermFilter('all')}
+                        >
+                          <X className="h-2 w-2" />
+                        </Button>
+                      </Badge>
+                    )}
+                    
+                    {paymentMethodFilter !== 'all' && (
+                      <Badge variant="outline" className="bg-gray-50 text-xs py-1 gap-1 pr-1">
+                        Betaalmethode: {paymentMethodFilter}
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-4 w-4 p-0 rounded-full hover:bg-gray-200"
+                          onClick={() => setPaymentMethodFilter('all')}
+                        >
+                          <X className="h-2 w-2" />
+                        </Button>
+                      </Badge>
+                    )}
+                    
+                    {genderFilter !== 'all' && (
+                      <Badge variant="outline" className="bg-gray-50 text-xs py-1 gap-1 pr-1">
+                        Geslacht: {genderFilter}
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-4 w-4 p-0 rounded-full hover:bg-gray-200"
+                          onClick={() => setGenderFilter('all')}
+                        >
+                          <X className="h-2 w-2" />
+                        </Button>
+                      </Badge>
+                    )}
+                    
+                    {votingFilter === 'all' && 
+                      membershipTypeFilter === 'all' && 
+                      paymentTermFilter === 'all' && 
+                      paymentMethodFilter === 'all' && 
+                      genderFilter === 'all' && (
+                        <span className="text-xs text-gray-500 italic">Geen actieve filters</span>
+                      )
+                    }
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
           
           <div className="rounded-lg overflow-hidden border border-gray-100 shadow-sm">
             <Table>
