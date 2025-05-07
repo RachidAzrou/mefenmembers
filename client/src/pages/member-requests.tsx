@@ -1052,7 +1052,7 @@ export default function MemberRequests() {
                           variant="ghost" 
                           size="icon"
                           onClick={() => {
-                            // Open in een nieuw tabblad
+                            // Navigeer naar detailpagina binnen de app
                             setLocation(`/member-request-detail/${request.id}`);
                           }}
                           className="text-primary hover:text-primary/80"
