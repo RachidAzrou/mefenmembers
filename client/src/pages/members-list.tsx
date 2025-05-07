@@ -1328,19 +1328,19 @@ export default function MembersList() {
                   sortedMembers.map((member) => (
                     <TableRow key={member?.id || 'unknown'} className="hover:bg-gray-50/50 transition-colors">
                       <TableCell className="font-medium text-xs sm:text-sm py-2 sm:py-4">
+                        <button 
+                            className="text-[#963E56] hover:text-[#7e3447] hover:underline cursor-pointer font-medium"
+                            onClick={() => navigate(`/member-detail?id=${member.id}`)}
+                          >
+                            {member?.memberNumber !== undefined 
+                              ? member.memberNumber.toString().padStart(4, '0')
+                              : "----"}
+                          </button>
                         <Popover>
                           <PopoverTrigger asChild>
-                            <button 
-                              className="text-[#963E56] hover:text-[#7e3447] hover:underline cursor-pointer"
-                              onClick={(e) => {
-                                e.preventDefault();
-                                e.stopPropagation();
-                              }}
-                            >
-                              {member?.memberNumber !== undefined 
-                                ? member.memberNumber.toString().padStart(4, '0')
-                                : "----"}
-                            </button>
+                            <Button variant="ghost" size="icon" className="h-7 w-7 ml-1 text-gray-400 hover:text-gray-600">
+                              <Info className="h-3.5 w-3.5" />
+                            </Button>
                           </PopoverTrigger>
                           <PopoverContent align="start" className="w-80 p-0">
                             <div className="bg-gradient-to-r from-[#963E56]/90 to-[#963E56] p-3 text-white rounded-t-md">
