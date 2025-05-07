@@ -68,9 +68,12 @@ export function Sidebar() {
 
   const menuItems = [
     { icon: Home, label: "Dashboard", href: "/dashboard" },
-    { icon: PersonWithListIcon, label: "Ledenlijst", href: "/members" },
-    { icon: PlusCircle, label: "Lid toevoegen", href: "/member-add" },
-    { icon: Edit, label: "Lid bewerken", href: "/member-edit" },
+    { icon: PersonWithListIcon, label: "Ledenlijst", href: "/members", 
+      subItems: [
+        { icon: PlusCircle, label: "Lid toevoegen", href: "/member-add" },
+        { icon: Edit, label: "Lid bewerken", href: "/member-edit" },
+      ]
+    },
     { icon: Inbox, label: "Aanvragen", href: "/member-requests" },
     { icon: FileSpreadsheet, label: "Exporteren", href: "/export" },
   ];
@@ -161,7 +164,7 @@ export function Sidebar() {
         <ScrollArea className="flex-1">
           <div className="space-y-1 p-2">
             {menuItems.map((item) => (
-              <div key={item.href}>
+              <div key={item.href} className="space-y-1">
                 <Link
                   href={item.href}
                   onClick={() => handleNavigation(item.href)}
@@ -193,6 +196,40 @@ export function Sidebar() {
                     )}
                   </Button>
                 </Link>
+                
+                {/* Sub-items onder Ledenlijst */}
+                {!collapsed && item.subItems && (
+                  <div className="pl-6 space-y-1 mt-1 border-l-2 border-gray-200 ml-5">
+                    {item.subItems.map((subItem) => (
+                      <Link
+                        key={subItem.href}
+                        href={subItem.href}
+                        onClick={() => handleNavigation(subItem.href)}
+                      >
+                        <Button
+                          variant={location === subItem.href ? "secondary" : "ghost"}
+                          className={cn(
+                            "w-full h-10 relative transition-all duration-200 text-sm",
+                            location === subItem.href
+                              ? "bg-primary/10 text-primary hover:bg-primary/15"
+                              : "hover:bg-primary/5 hover:text-primary text-gray-500",
+                            "justify-start"
+                          )}
+                        >
+                          {React.createElement(subItem.icon, {
+                            className: cn(
+                              "h-4 w-4 transition-colors duration-200",
+                              location === subItem.href ? "text-primary" : "text-gray-500"
+                            )
+                          })}
+                          <span className="ml-2">
+                            {subItem.label}
+                          </span>
+                        </Button>
+                      </Link>
+                    ))}
+                  </div>
+                )}
               </div>
             ))}
           </div>
