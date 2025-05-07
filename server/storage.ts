@@ -1,8 +1,11 @@
 import { 
   members,
+  memberRequests,
   deletedMemberNumbers,
   type Member,
   type InsertMember,
+  type MemberRequest,
+  type InsertMemberRequest,
   type DeletedMemberNumber,
   type InsertDeletedMemberNumber
 } from "@shared/schema";
@@ -28,6 +31,14 @@ export interface IStorage {
   getDeletedMemberNumbers(): Promise<DeletedMemberNumber[]>;
   getNextAvailableMemberNumber(): Promise<number>;
   removeDeletedMemberNumber(memberNumber: number): Promise<void>;
+  
+  // Lidmaatschapsaanvragen beheer
+  getMemberRequest(id: number): Promise<MemberRequest | undefined>;
+  listMemberRequests(): Promise<MemberRequest[]>;
+  createMemberRequest(request: InsertMemberRequest): Promise<MemberRequest>;
+  updateMemberRequestStatus(id: number, status: 'pending' | 'approved' | 'rejected', processedBy?: number): Promise<MemberRequest>;
+  deleteMemberRequest(id: number): Promise<void>;
+  approveMemberRequest(id: number, processedBy: number): Promise<Member>;
 
   // Session store for authentication
   sessionStore: session.Store;
@@ -343,6 +354,109 @@ export class DatabaseStorage implements IStorage {
   async removeDeletedMemberNumber(memberNumber: number): Promise<void> {
     await db.delete(deletedMemberNumbers)
       .where(eq(deletedMemberNumbers.memberNumber, memberNumber));
+  }
+  
+  // Lidmaatschapsaanvragen beheer
+  async getMemberRequest(id: number): Promise<MemberRequest | undefined> {
+    const [request] = await db.select().from(memberRequests).where(eq(memberRequests.id, id));
+    return request;
+  }
+
+  async listMemberRequests(): Promise<MemberRequest[]> {
+    return await db.select()
+      .from(memberRequests)
+      .orderBy(desc(memberRequests.requestDate));
+  }
+
+  async createMemberRequest(request: InsertMemberRequest): Promise<MemberRequest> {
+    // Voeg IP-adres toe als het beschikbaar is maar niet in het verzoek zit
+    if (request.ipAddress === undefined) {
+      request.ipAddress = null;
+    }
+
+    // Zorg ervoor dat status altijd 'pending' is bij aanmaken
+    const requestData = {
+      ...request,
+      status: 'pending',
+      requestDate: new Date(),
+    };
+
+    // Voeg het verzoek toe
+    const [created] = await db.insert(memberRequests).values([requestData] as any).returning();
+    return created;
+  }
+
+  async updateMemberRequestStatus(
+    id: number, 
+    status: 'pending' | 'approved' | 'rejected', 
+    processedBy?: number
+  ): Promise<MemberRequest> {
+    const updateData: Record<string, any> = { 
+      status, 
+      processedDate: new Date()
+    };
+    
+    if (processedBy !== undefined) {
+      updateData.processedBy = processedBy;
+    }
+
+    const [updated] = await db
+      .update(memberRequests)
+      .set(updateData)
+      .where(eq(memberRequests.id, id))
+      .returning();
+    
+    return updated;
+  }
+
+  async deleteMemberRequest(id: number): Promise<void> {
+    await db.delete(memberRequests).where(eq(memberRequests.id, id));
+  }
+
+  async approveMemberRequest(id: number, processedBy: number): Promise<Member> {
+    // Haal het verzoek op
+    const request = await this.getMemberRequest(id);
+    if (!request) {
+      throw new Error(`Lidmaatschapsaanvraag met ID ${id} niet gevonden`);
+    }
+
+    // Controleer of het verzoek al is verwerkt
+    if (request.status !== 'pending') {
+      throw new Error(`Lidmaatschapsaanvraag met ID ${id} is al ${request.status}`);
+    }
+
+    // Bereid lid data voor
+    const memberData: InsertMember = {
+      firstName: request.firstName,
+      lastName: request.lastName,
+      phoneNumber: request.phoneNumber,
+      email: request.email,
+      gender: request.gender as any,
+      birthDate: request.birthDate,
+      nationality: request.nationality,
+      street: request.street,
+      houseNumber: request.houseNumber,
+      busNumber: request.busNumber,
+      postalCode: request.postalCode,
+      city: request.city,
+      membershipType: request.membershipType as any,
+      startDate: new Date(),
+      paymentStatus: false,
+      registrationDate: new Date(),
+      privacyConsent: request.privacyConsent,
+      notes: request.notes || `Aangemaakt vanuit aanvraag #${id}`,
+      accountNumber: request.accountNumber,
+      bicSwift: request.bicSwift,
+      accountHolderName: request.accountHolderName
+    };
+
+    // Maak een nieuw lid aan op basis van het verzoek
+    const member = await this.createMember(memberData);
+
+    // Update de status van het verzoek naar 'approved'
+    await this.updateMemberRequestStatus(id, 'approved', processedBy);
+
+    return member;
   }
 }
 
