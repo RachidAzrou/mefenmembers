@@ -12,9 +12,9 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DatePicker } from "@/components/ui/date-picker";
 import { Label } from '@/components/ui/label';
-import { PDFDownloadLink } from '@react-pdf/renderer';
+import { PDFDownloadLink, PDFViewer } from '@react-pdf/renderer';
 import { Loader2, Download, Calendar, ChevronDown, ChevronUp, Users, Wallet, CreditCard, Clock, UserCheck, BarChart3, 
-  MapPin, Map as MapIcon, Globe, LineChart as LineChartIcon, PieChart as PieChartIcon, Target, Zap, Activity } from "lucide-react";
+  MapPin, Map as MapIcon, Globe, LineChart as LineChartIcon, PieChart as PieChartIcon, Target, Zap, Activity, FileIcon, ImageIcon } from "lucide-react";
 import MyPdfDocument from '@/components/pdf/report-pdf';
 import { cn } from '@/lib/utils';
 import { format, subMonths, differenceInYears, differenceInMonths } from 'date-fns';
@@ -381,6 +381,16 @@ export default function Rapportage() {
   const [showPdfPreview, setShowPdfPreview] = useState(false);
   const [activeTab, setActiveTab] = useState("overzicht");
   const [filterType, setFilterType] = useState<string | undefined>(undefined);
+  
+  // React refs voor de grafiek componenten ten behoeve van exports
+  const ageChartRef = useRef<HTMLDivElement>(null);
+  const genderChartRef = useRef<HTMLDivElement>(null);
+  const membershipChartRef = useRef<HTMLDivElement>(null);
+  const paymentStatusChartRef = useRef<HTMLDivElement>(null);
+  const paymentMethodChartRef = useRef<HTMLDivElement>(null);
+  const paymentTermChartRef = useRef<HTMLDivElement>(null);
+  const growthChartRef = useRef<HTMLDivElement>(null);
+  const revenueChartRef = useRef<HTMLDivElement>(null);
 
   // Haal ledendata op
   const { data: members, isLoading } = useQuery<Member[]>({
@@ -448,6 +458,22 @@ export default function Rapportage() {
     monthlyRevenue,
     totalMonthlyRevenue
   };
+  
+  // Functie om alle grafieken te exporteren naar één PDF bestand
+  const handleExportAllCharts = async () => {
+    const chartRefs = {
+      'Leeftijdsgroepen': ageChartRef,
+      'Geslachtsverdeling': genderChartRef,
+      'Lidmaatschapstypen': membershipChartRef,
+      'Betaalstatus': paymentStatusChartRef,
+      'Betalingsmethodes': paymentMethodChartRef,
+      'Betalingstermijnen': paymentTermChartRef,
+      'Ledengroei': growthChartRef,
+      'Maandelijkse Inkomsten': revenueChartRef
+    };
+    
+    await exportAllChartsToPDF(chartRefs, 'MEFEN-Grafieken');
+  };
 
   if (isLoading) {
     return (
@@ -514,11 +540,20 @@ export default function Rapportage() {
                 ) : (
                   <>
                     <Download className="h-4 w-4 mr-2" />
-                    PDF downloaden
+                    PDF rapport
                   </>
                 )
               }
             </PDFDownloadLink>
+            
+            <Button 
+              variant="secondary" 
+              onClick={handleExportAllCharts}
+              className="inline-flex items-center gap-2 h-10 px-4"
+            >
+              <FileIcon className="h-4 w-4" />
+              Grafieken PDF
+            </Button>
           </div>
         </div>
 
@@ -595,14 +630,23 @@ export default function Rapportage() {
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-2">
             <Card className="col-span-1 border-none shadow-md overflow-hidden">
               <div className="bg-gradient-to-r from-blue-500/20 to-blue-600/20 h-2" />
-              <CardHeader>
+              <CardHeader className="flex flex-row items-center justify-between pb-2">
                 <CardTitle className="flex items-center">
                   <BarChart3 className="h-5 w-5 mr-2 text-blue-600" />
                   Leden per leeftijdsgroep
                 </CardTitle>
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  onClick={() => exportChartAsJPG(ageChartRef, 'leeftijdsgroepen-grafiek')}
+                  className="h-7 w-7"
+                  title="Download als JPG"
+                >
+                  <ImageIcon className="h-4 w-4" />
+                </Button>
               </CardHeader>
               <CardContent className="pl-2">
-                <div className="h-80 w-full">
+                <div className="h-80 w-full" ref={ageChartRef}>
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart
                       data={membersByAgeGroup}
@@ -628,14 +672,23 @@ export default function Rapportage() {
             
             <Card className="col-span-1 border-none shadow-md overflow-hidden">
               <div className="bg-gradient-to-r from-amber-500/20 to-amber-600/20 h-2" />
-              <CardHeader>
+              <CardHeader className="flex flex-row items-center justify-between pb-2">
                 <CardTitle className="flex items-center">
                   <PieChart className="h-5 w-5 mr-2 text-amber-600" />
                   Verdeling per lidmaatschapstype
                 </CardTitle>
+                <Button 
+                  variant="ghost" 
+                  size="icon"
+                  onClick={() => exportChartAsJPG(membershipChartRef, 'lidmaatschapstypen-grafiek')}
+                  className="h-7 w-7"
+                  title="Download als JPG"
+                >
+                  <ImageIcon className="h-4 w-4" />
+                </Button>
               </CardHeader>
               <CardContent>
-                <div className="h-80 w-full">
+                <div className="h-80 w-full" ref={membershipChartRef}>
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart
                       layout="vertical"
@@ -681,14 +734,23 @@ export default function Rapportage() {
           <div className="grid gap-4 md:grid-cols-2">
             <Card className="col-span-1 border-none shadow-md overflow-hidden">
               <div className="bg-gradient-to-r from-blue-500/20 to-blue-600/20 h-2" />
-              <CardHeader>
+              <CardHeader className="flex flex-row items-center justify-between pb-2">
                 <CardTitle className="flex items-center">
                   <Users className="h-5 w-5 mr-2 text-blue-600" />
                   Geslachtsverdeling
                 </CardTitle>
+                <Button 
+                  variant="ghost" 
+                  size="icon"
+                  onClick={() => exportChartAsJPG(genderChartRef, 'geslachtsverdeling-grafiek')}
+                  className="h-7 w-7"
+                  title="Download als JPG"
+                >
+                  <ImageIcon className="h-4 w-4" />
+                </Button>
               </CardHeader>
               <CardContent>
-                <div className="h-64 w-full">
+                <div className="h-64 w-full" ref={genderChartRef}>
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
                       <Pie 
@@ -729,14 +791,23 @@ export default function Rapportage() {
             
             <Card className="col-span-1 border-none shadow-md overflow-hidden">
               <div className="bg-gradient-to-r from-[#963E56]/20 to-[#963E56] h-2" />
-              <CardHeader>
+              <CardHeader className="flex flex-row items-center justify-between pb-2">
                 <CardTitle className="flex items-center">
                   <CreditCard className="h-5 w-5 mr-2 text-[#963E56]" />
                   Betaalstatus
                 </CardTitle>
+                <Button 
+                  variant="ghost" 
+                  size="icon"
+                  onClick={() => exportChartAsJPG(paymentStatusChartRef, 'betaalstatus-grafiek')}
+                  className="h-7 w-7"
+                  title="Download als JPG"
+                >
+                  <ImageIcon className="h-4 w-4" />
+                </Button>
               </CardHeader>
               <CardContent>
-                <div className="h-64 w-full">
+                <div className="h-64 w-full" ref={paymentStatusChartRef}>
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
                       <Pie 
