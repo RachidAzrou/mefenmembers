@@ -1,107 +1,81 @@
-# Fix voor de privacy checkbox bug in productie
+# Productie Fix Instructies
 
-## Probleem
+Deze instructies helpen bij het oplossen van twee kritieke problemen in de productieomgeving:
 
-In de productieversie op Vercel krijgen gebruikers een leeg scherm wanneer ze op de privacy checkbox klikken in het registratieformulier. Dit probleem wordt veroorzaakt door een onClick handler op het div-element dat de checkbox bevat.
+1. **Privacy checkbox probleem** - Oplossing voor leeg scherm bij klikken op de privacy checkbox
+2. **405 Method Not Allowed fout** - Oplossing voor het ontbrekende API-endpoint voor lidmaatschapsaanvragen
 
-## Oplossing
+## Probleem 1: Privacy Checkbox Fix
 
-Je moet de code in het bestand `client/src/pages/register-request.tsx` aanpassen. Hier is de exacte code die je moet wijzigen:
+### Het probleem
+Wanneer een gebruiker op de privacy checkbox klikt in het registratieformulier, verschijnt er een leeg scherm.
 
-### Huidige problematische code:
+### De oplossing
+De oplossing zit in het aanpassen van de `register-request.tsx` code. Dit bestand is al gecorrigeerd in de lokale omgeving, maar moet nog worden doorgevoerd in de productieomgeving.
 
-```jsx
-<FormField
-  control={form.control}
-  name="privacyConsent"
-  render={({ field }) => (
-    <FormItem className="border border-gray-200 rounded-lg shadow-sm">
-      <div 
-        className="flex flex-row items-start space-x-4 p-4 sm:p-5"
-        onClick={() => field.onChange(!field.value)}  // Deze regel veroorzaakt het probleem
-      >
-        <FormControl>
-          <Checkbox
-            checked={field.value}
-            onCheckedChange={field.onChange}
-            className="mt-1 h-6 w-6 rounded-md data-[state=checked]:bg-[#963E56] data-[state=checked]:text-white"
-          />
-        </FormControl>
-        <div className="space-y-1 leading-tight">
-          <FormLabel className="text-base font-medium cursor-pointer">
-            Ik ga akkoord met de verwerking van mijn gegevens <span className="text-red-500">*</span>
-          </FormLabel>
-          <FormDescription className="text-xs sm:text-sm">
-            Je gegevens worden vertrouwelijk behandeld en alleen gebruikt voor het beheren van je lidmaatschap.
-          </FormDescription>
-        </div>
-      </div>
-      <FormMessage className="px-4 pb-3" />
-    </FormItem>
-  )}
-/>
+### Wat is er veranderd?
+1. De `onClick` handler is verwijderd van het div-element dat de checkbox bevat
+2. Er is een `id="privacy-consent-checkbox"` toegevoegd aan de checkbox
+3. Er is een `htmlFor="privacy-consent-checkbox"` attribuut toegevoegd aan het label
+4. Er is een `onClick={(e) => e.preventDefault()}` handler toegevoegd aan het label
+
+## Probleem 2: 405 Method Not Allowed Fix
+
+### Het probleem
+Wanneer een gebruiker het aanmeldformulier verstuurt, krijgt deze een 405 (Method Not Allowed) fout omdat het API-endpoint voor lidmaatschapsaanvragen ontbreekt in de productieomgeving.
+
+### De oplossing
+Er is een nieuw bestand gemaakt genaamd `member-requests.js` in de `vercel-deploy/api/` map dat de API-endpoints voor lidmaatschapsaanvragen implementeert.
+
+## Implementatie in productie
+
+Om deze fixes te implementeren in de productieomgeving, kunt u een van de volgende methodes gebruiken:
+
+### Methode 1: Directe Update in Vercel Dashboard
+
+1. Log in op uw Vercel account
+2. Ga naar het project dashboard van uw MEFEN-applicatie
+3. Ga naar het "Files" tabblad
+4. Navigeer naar `/api/` en upload het nieuwe bestand `member-requests.js`
+   - Upload het bestand dat u vindt in deze repository onder `vercel-deploy/api/member-requests.js`
+5. Als de privacy checkbox fix nog niet is doorgevoerd, zoek dan het bestand `register-request.tsx` en pas het aan zoals beschreven in "Probleem 1"
+
+### Methode 2: Nieuwe Deployment
+
+1. Push de huidige wijzigingen naar uw GitHub repository
+2. Vercel zal automatisch een nieuwe deployment starten
+3. Controleer of de deployment succesvol is
+4. Test de applicatie om te verifiëren dat beide problemen zijn opgelost
+
+### Methode 3: CLI Deployment
+
+Als u Vercel CLI heeft geïnstalleerd, kunt u de volgende commando's gebruiken:
+
+```bash
+# Ga naar de hoofdmap van het project
+cd /path/to/mefen-project
+
+# Gebruik Vercel CLI om te deployen
+vercel --prod
 ```
 
-### Vervang het door deze gecorrigeerde code:
+## Verificatie
 
-```jsx
-<FormField
-  control={form.control}
-  name="privacyConsent"
-  render={({ field }) => (
-    <FormItem className="border border-gray-200 rounded-lg shadow-sm">
-      <div className="flex flex-row items-start space-x-4 p-4 sm:p-5">
-        <FormControl>
-          <Checkbox
-            checked={field.value}
-            onCheckedChange={field.onChange}
-            className="mt-1 h-6 w-6 rounded-md data-[state=checked]:bg-[#963E56] data-[state=checked]:text-white"
-            id="privacy-consent-checkbox"
-          />
-        </FormControl>
-        <div className="space-y-1 leading-tight">
-          <FormLabel 
-            htmlFor="privacy-consent-checkbox"
-            className="text-base font-medium cursor-pointer"
-            onClick={(e) => e.preventDefault()}
-          >
-            Ik ga akkoord met de verwerking van mijn gegevens <span className="text-red-500">*</span>
-          </FormLabel>
-          <FormDescription className="text-xs sm:text-sm">
-            Je gegevens worden vertrouwelijk behandeld en alleen gebruikt voor het beheren van je lidmaatschap.
-          </FormDescription>
-        </div>
-      </div>
-      <FormMessage className="px-4 pb-3" />
-    </FormItem>
-  )}
-/>
-```
+Na het implementeren van de fixes, controleer het volgende:
 
-## Belangrijkste wijzigingen:
+1. **Privacy checkbox test**: Ga naar het registratieformulier en klik op de privacy checkbox. Er zou geen leeg scherm mogen verschijnen.
 
-1. **Verwijderd**: De `onClick={() => field.onChange(!field.value)}` handler van het div-element
-2. **Toegevoegd**: `id="privacy-consent-checkbox"` aan de Checkbox component
-3. **Toegevoegd**: `htmlFor="privacy-consent-checkbox"` aan het FormLabel element
-4. **Toegevoegd**: `onClick={(e) => e.preventDefault()}` aan het FormLabel element om dubbele klikgedrag te voorkomen
+2. **Aanmeldingstest**: Vul het volledige registratieformulier in en klik op versturen. U zou een bevestiging moeten krijgen dat de aanvraag is ingediend (geen 405 fout).
 
-## Implementeren van de fix:
+## Rollback Plan
 
-1. Pas deze wijzigingen toe in het `register-request.tsx` bestand
-2. Commit en push je wijzigingen naar je Git repository
-3. Vercel zal automatisch een nieuwe versie bouwen en deployen
+Als er problemen zijn met de nieuwe implementatie, kunt u altijd terugkeren naar een vorige werkende versie via het Vercel dashboard:
 
-Of als alternatief:
+1. Ga naar het "Deployments" tabblad in het Vercel dashboard
+2. Zoek de laatste werkende deployment
+3. Klik op "..." naast die deployment
+4. Selecteer "Promote to Production"
 
-1. Bouw een nieuwe versie lokaal met `npm run build`
-2. Deploy de nieuwe versie handmatig naar Vercel met de Vercel CLI:
-   ```
-   vercel --prod
-   ```
+## Contact
 
-## Testen na deployment:
-
-Na het deployen, test je of:
-1. Het registratieformulier correct wordt geladen
-2. Je kunt klikken op de privacy checkbox zonder dat het scherm leeg wordt
-3. Je een aanvraag kunt indienen als alle velden correct zijn ingevuld
+Als u vragen heeft of hulp nodig heeft bij het implementeren van deze fixes, neem dan contact op met [contactgegevens].
