@@ -617,29 +617,35 @@ export default function RegisterRequest() {
                                 </Badge>
                               ))}
                             </div>
-                            <Card className="border border-gray-200">
-                              <CardContent className="p-3 grid grid-cols-1 sm:grid-cols-3 gap-3">
-                                {["standaard", "student", "senior"].map((type) => {
-                                  const isSelected = field.value.includes(type);
-                                  return (
-                                    <div 
-                                      key={type}
-                                      className={`flex items-center space-x-2 rounded-md border p-3 ${
-                                        isSelected 
-                                          ? "border-[#963E56]/50 bg-[#963E56]/5" 
-                                          : "border-gray-200 hover:bg-gray-100"
-                                      }`}
-                                      onClick={() => {
-                                        if (isSelected) {
-                                          field.onChange(field.value.filter(t => t !== type));
-                                        } else {
-                                          field.onChange([...field.value, type]);
-                                        }
-                                      }}
-                                    >
+                            {/* Verbeterde mobiel-vriendelijke layout met grotere klikgebieden */}
+                            <div className="space-y-2">
+                              {["standaard", "student", "senior"].map((type) => {
+                                const isSelected = field.value.includes(type);
+                                return (
+                                  <div 
+                                    key={type}
+                                    className={`flex items-center rounded-md border p-4 ${
+                                      isSelected 
+                                        ? "border-[#963E56] bg-[#963E56]/10" 
+                                        : "border-gray-200 bg-white"
+                                    }`}
+                                    onClick={() => {
+                                      if (isSelected) {
+                                        field.onChange(field.value.filter(t => t !== type));
+                                      } else {
+                                        field.onChange([...field.value, type]);
+                                      }
+                                    }}
+                                  >
+                                    <div className="flex items-center justify-between w-full">
+                                      <span className="text-base font-medium">
+                                        {type === "standaard" ? "Standaard" : 
+                                         type === "student" ? "Student" : 
+                                         type === "senior" ? "Senior" : type}
+                                      </span>
                                       <Checkbox 
                                         checked={isSelected}
-                                        className="data-[state=checked]:bg-[#963E56] data-[state=checked]:border-[#963E56]"
+                                        className="h-5 w-5 data-[state=checked]:bg-[#963E56] data-[state=checked]:border-[#963E56]"
                                         onCheckedChange={(checked) => {
                                           if (checked) {
                                             field.onChange([...field.value, type]);
@@ -648,16 +654,11 @@ export default function RegisterRequest() {
                                           }
                                         }}
                                       />
-                                      <span className="text-sm">
-                                        {type === "standaard" ? "Standaard" : 
-                                         type === "student" ? "Student" : 
-                                         type === "senior" ? "Senior" : type}
-                                      </span>
                                     </div>
-                                  )
-                                })}
-                              </CardContent>
-                            </Card>
+                                  </div>
+                                )
+                              })}
+                            </div>
                           </div>
                           <FormMessage />
                         </FormItem>
@@ -675,7 +676,7 @@ export default function RegisterRequest() {
                             defaultValue={field.value}
                           >
                             <FormControl>
-                              <SelectTrigger className="text-sm h-10">
+                              <SelectTrigger className="text-sm h-12">
                                 <SelectValue placeholder="Selecteer betalingstermijn" />
                               </SelectTrigger>
                             </FormControl>
@@ -704,7 +705,7 @@ export default function RegisterRequest() {
                             defaultValue={field.value}
                           >
                             <FormControl>
-                              <SelectTrigger className="text-sm h-10">
+                              <SelectTrigger className="text-sm h-12">
                                 <SelectValue placeholder="Selecteer betalingswijze" />
                               </SelectTrigger>
                             </FormControl>
@@ -817,21 +818,26 @@ export default function RegisterRequest() {
                       control={form.control}
                       name="autoRenew"
                       render={({ field }) => (
-                        <FormItem className="col-span-2 flex flex-row items-center justify-between space-y-0 rounded-lg border border-[#963E56]/20 bg-[#963E56]/5 p-3 sm:p-4 shadow-sm">
-                          <div className="space-y-0.5 pr-3">
-                            <FormLabel className="text-sm sm:text-base text-[#963E56] font-medium">Automatisch verlengen</FormLabel>
-                            <FormDescription className="text-xs sm:text-sm text-[#963E56]/80">
-                              Lidmaatschap verlengt automatisch na afloop
-                            </FormDescription>
+                        <FormItem className="col-span-2 rounded-lg border border-[#963E56]/20 bg-[#963E56]/5 shadow-sm">
+                          <div 
+                            className="flex flex-row items-center justify-between p-4 sm:p-5"
+                            onClick={() => field.onChange(!field.value)}
+                          >
+                            <div className="space-y-1 pr-3">
+                              <FormLabel className="text-base sm:text-lg text-[#963E56] font-medium cursor-pointer">Automatisch verlengen</FormLabel>
+                              <FormDescription className="text-xs sm:text-sm text-[#963E56]/80">
+                                Lidmaatschap verlengt automatisch na afloop
+                              </FormDescription>
+                            </div>
+                            <FormControl>
+                              <Switch
+                                checked={field.value}
+                                onCheckedChange={field.onChange}
+                                className="h-6 w-11 data-[state=checked]:bg-[#963E56]"
+                              />
+                            </FormControl>
                           </div>
-                          <FormControl>
-                            <Switch
-                              checked={field.value}
-                              onCheckedChange={field.onChange}
-                              className="data-[state=checked]:bg-[#963E56]"
-                            />
-                          </FormControl>
-                          <FormMessage />
+                          <FormMessage className="px-4 pb-3" />
                         </FormItem>
                       )}
                     />
@@ -845,23 +851,28 @@ export default function RegisterRequest() {
                   control={form.control}
                   name="privacyConsent"
                   render={({ field }) => (
-                    <FormItem className="flex flex-row items-start space-x-3 space-y-0 p-4 sm:p-5 border border-gray-200 rounded-lg shadow-sm">
-                      <FormControl>
-                        <Checkbox
-                          checked={field.value}
-                          onCheckedChange={field.onChange}
-                          className="mt-1 h-5 w-5 rounded-md data-[state=checked]:bg-[#963E56] data-[state=checked]:text-white"
-                        />
-                      </FormControl>
-                      <div className="space-y-1 leading-tight">
-                        <FormLabel className="text-sm sm:text-base">
-                          Ik ga akkoord met de verwerking van mijn gegevens <span className="text-red-500">*</span>
-                        </FormLabel>
-                        <FormDescription className="text-xs sm:text-sm">
-                          Je gegevens worden vertrouwelijk behandeld en alleen gebruikt voor het beheren van je lidmaatschap.
-                        </FormDescription>
-                        <FormMessage />
+                    <FormItem className="border border-gray-200 rounded-lg shadow-sm">
+                      <div 
+                        className="flex flex-row items-start space-x-4 p-4 sm:p-5"
+                        onClick={() => field.onChange(!field.value)}
+                      >
+                        <FormControl>
+                          <Checkbox
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                            className="mt-1 h-6 w-6 rounded-md data-[state=checked]:bg-[#963E56] data-[state=checked]:text-white"
+                          />
+                        </FormControl>
+                        <div className="space-y-1 leading-tight">
+                          <FormLabel className="text-base font-medium cursor-pointer">
+                            Ik ga akkoord met de verwerking van mijn gegevens <span className="text-red-500">*</span>
+                          </FormLabel>
+                          <FormDescription className="text-xs sm:text-sm">
+                            Je gegevens worden vertrouwelijk behandeld en alleen gebruikt voor het beheren van je lidmaatschap.
+                          </FormDescription>
+                        </div>
                       </div>
+                      <FormMessage className="px-4 pb-3" />
                     </FormItem>
                   )}
                 />
