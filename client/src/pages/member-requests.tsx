@@ -37,6 +37,7 @@ import {
   Search, 
   ArrowLeft 
 } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { nl } from "date-fns/locale";
@@ -75,17 +76,36 @@ interface MemberRequest {
   processedBy: number | null;
   notes: string | null;
   privacyConsent: boolean;
+  // Uitgebreide velden voor betaling en bankgegevens
+  paymentMethod?: "cash" | "domiciliering" | "overschrijving" | "bancontact";
+  paymentTerm?: "maandelijks" | "driemaandelijks" | "jaarlijks";
+  autoRenew?: boolean;
+  accountNumber?: string | null;
+  accountHolderName?: string | null;
+  bicSwift?: string | null;
 }
 
 export default function MemberRequests() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  // Om TypeScript fouten te voorkomen, maken we een volledig type voor een bewerkte aanvraag
+  type EditableMemberRequest = {
+    [K in keyof MemberRequest]: MemberRequest[K];
+  } & {
+    paymentMethod: "cash" | "domiciliering" | "overschrijving" | "bancontact";
+    paymentTerm: "maandelijks" | "driemaandelijks" | "jaarlijks";
+    autoRenew: boolean;
+    accountNumber: string | null;
+    accountHolderName: string | null;
+    bicSwift: string | null;
+  };
+  
   const [selectedRequest, setSelectedRequest] = useState<MemberRequest | null>(null);
   const [rejectionReason, setRejectionReason] = useState("");
   const [showRejectionDialog, setShowRejectionDialog] = useState(false);
   const [showApprovalDialog, setShowApprovalDialog] = useState(false);
   const [showDetailView, setShowDetailView] = useState(false);
-  const [editedRequest, setEditedRequest] = useState<MemberRequest | null>(null);
+  const [editedRequest, setEditedRequest] = useState<Partial<EditableMemberRequest> | null>(null);
   const [nextMemberNumber, setNextMemberNumber] = useState<string | null>(null);
   const [isEditMode, setIsEditMode] = useState(false);
   const { isAdmin } = useRole();
@@ -654,7 +674,7 @@ export default function MemberRequests() {
                 
                 <Card>
                   <CardHeader>
-                    <CardTitle className="text-lg">Lidmaatschap</CardTitle>
+                    <CardTitle className="text-lg">Lidmaatschap & Betaling</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-3">
                     {isEditMode ? (
@@ -676,6 +696,49 @@ export default function MemberRequests() {
                           </Select>
                         </div>
                         <div>
+                          <Label htmlFor="detail-paymentmethod">Betaalwijze</Label>
+                          <Select 
+                            value={editedRequest?.paymentMethod || "cash"}
+                            onValueChange={(value) => setEditedRequest({...editedRequest || selectedRequest, paymentMethod: value})}
+                          >
+                            <SelectTrigger id="detail-paymentmethod" className="mt-1">
+                              <SelectValue placeholder="Selecteer betaalwijze" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="cash">Contant</SelectItem>
+                              <SelectItem value="domiciliering">Domiciliëring</SelectItem>
+                              <SelectItem value="overschrijving">Overschrijving</SelectItem>
+                              <SelectItem value="bancontact">Bancontact</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div>
+                          <Label htmlFor="detail-paymentterm">Betaaltermijn</Label>
+                          <Select 
+                            value={editedRequest?.paymentTerm || "jaarlijks"}
+                            onValueChange={(value) => setEditedRequest({...editedRequest || selectedRequest, paymentTerm: value})}
+                          >
+                            <SelectTrigger id="detail-paymentterm" className="mt-1">
+                              <SelectValue placeholder="Selecteer betaaltermijn" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="maandelijks">Maandelijks</SelectItem>
+                              <SelectItem value="driemaandelijks">Driemaandelijks</SelectItem>
+                              <SelectItem value="jaarlijks">Jaarlijks</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div className="flex items-center space-x-2 mt-4">
+                          <Switch 
+                            id="auto-renew"
+                            checked={editedRequest?.autoRenew || true}
+                            onCheckedChange={(checked) => 
+                              setEditedRequest({...editedRequest || selectedRequest, autoRenew: checked})
+                            }
+                          />
+                          <Label htmlFor="auto-renew" className="font-normal text-sm">Automatisch verlengen</Label>
+                        </div>
+                        <div>
                           <p className="text-sm text-gray-500 mb-1">Aanvraagdatum</p>
                           <p>{formatDate(selectedRequest.requestDate)}</p>
                         </div>
@@ -687,9 +750,82 @@ export default function MemberRequests() {
                           <p className="capitalize">{selectedRequest.membershipType}</p>
                         </div>
                         <div>
+                          <p className="text-sm text-gray-500">Betaalwijze</p>
+                          <p className="capitalize">{selectedRequest.paymentMethod || "Contant"}</p>
+                        </div>
+                        <div>
+                          <p className="text-sm text-gray-500">Betaaltermijn</p>
+                          <p className="capitalize">{selectedRequest.paymentTerm || "Jaarlijks"}</p>
+                        </div>
+                        <div>
+                          <p className="text-sm text-gray-500">Automatisch verlengen</p>
+                          <p>{selectedRequest.autoRenew ? "Ja" : "Nee"}</p>
+                        </div>
+                        <div>
                           <p className="text-sm text-gray-500">Aanvraagdatum</p>
                           <p>{formatDate(selectedRequest.requestDate)}</p>
                         </div>
+                      </>
+                    )}
+                  </CardContent>
+                </Card>
+                
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg">Bankgegevens</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    {isEditMode ? (
+                      <>
+                        <div>
+                          <Label htmlFor="detail-accountnumber">IBAN Rekeningnummer</Label>
+                          <Input
+                            id="detail-accountnumber"
+                            value={editedRequest?.accountNumber || selectedRequest.accountNumber || ''}
+                            onChange={(e) => setEditedRequest({...editedRequest || selectedRequest, accountNumber: e.target.value})}
+                            className="mt-1"
+                            placeholder="bv. BE68539007547034"
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="detail-accountholder">Naam rekeninghouder</Label>
+                          <Input
+                            id="detail-accountholder"
+                            value={editedRequest?.accountHolderName || selectedRequest.accountHolderName || ''}
+                            onChange={(e) => setEditedRequest({...editedRequest || selectedRequest, accountHolderName: e.target.value})}
+                            className="mt-1"
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="detail-bicswift">BIC/SWIFT Code</Label>
+                          <Input
+                            id="detail-bicswift"
+                            value={editedRequest?.bicSwift || selectedRequest.bicSwift || ''}
+                            onChange={(e) => setEditedRequest({...editedRequest || selectedRequest, bicSwift: e.target.value})}
+                            className="mt-1"
+                          />
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        {selectedRequest.accountNumber ? (
+                          <>
+                            <div>
+                              <p className="text-sm text-gray-500">IBAN Rekeningnummer</p>
+                              <p>{selectedRequest.accountNumber}</p>
+                            </div>
+                            <div>
+                              <p className="text-sm text-gray-500">Naam rekeninghouder</p>
+                              <p>{selectedRequest.accountHolderName || "Niet opgegeven"}</p>
+                            </div>
+                            <div>
+                              <p className="text-sm text-gray-500">BIC/SWIFT Code</p>
+                              <p>{selectedRequest.bicSwift || "Niet opgegeven"}</p>
+                            </div>
+                          </>
+                        ) : (
+                          <p className="text-gray-500 italic">Geen bankgegevens opgegeven</p>
+                        )}
                       </>
                     )}
                   </CardContent>
@@ -1063,7 +1199,7 @@ export default function MemberRequests() {
                 
                 <Card>
                   <CardHeader>
-                    <CardTitle className="text-lg">Lidmaatschap</CardTitle>
+                    <CardTitle className="text-lg">Lidmaatschap & Betaling</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-3">
                     {isEditMode ? (
@@ -1101,6 +1237,49 @@ export default function MemberRequests() {
                           </Select>
                         </div>
                         <div>
+                          <Label htmlFor="proc-paymentmethod">Betaalwijze</Label>
+                          <Select 
+                            value={editedRequest?.paymentMethod || "cash"}
+                            onValueChange={(value) => setEditedRequest({...editedRequest || selectedRequest, paymentMethod: value})}
+                          >
+                            <SelectTrigger id="proc-paymentmethod" className="mt-1">
+                              <SelectValue placeholder="Selecteer betaalwijze" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="cash">Contant</SelectItem>
+                              <SelectItem value="domiciliering">Domiciliëring</SelectItem>
+                              <SelectItem value="overschrijving">Overschrijving</SelectItem>
+                              <SelectItem value="bancontact">Bancontact</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div>
+                          <Label htmlFor="proc-paymentterm">Betaaltermijn</Label>
+                          <Select 
+                            value={editedRequest?.paymentTerm || "jaarlijks"}
+                            onValueChange={(value) => setEditedRequest({...editedRequest || selectedRequest, paymentTerm: value})}
+                          >
+                            <SelectTrigger id="proc-paymentterm" className="mt-1">
+                              <SelectValue placeholder="Selecteer betaaltermijn" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="maandelijks">Maandelijks</SelectItem>
+                              <SelectItem value="driemaandelijks">Driemaandelijks</SelectItem>
+                              <SelectItem value="jaarlijks">Jaarlijks</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div className="flex items-center space-x-2 mt-4">
+                          <Switch 
+                            id="proc-auto-renew"
+                            checked={editedRequest?.autoRenew || true}
+                            onCheckedChange={(checked) => 
+                              setEditedRequest({...editedRequest || selectedRequest, autoRenew: checked})
+                            }
+                          />
+                          <Label htmlFor="proc-auto-renew" className="font-normal text-sm">Automatisch verlengen</Label>
+                        </div>
+                        <div>
                           <p className="text-sm text-gray-500 mb-1">Aanvraagdatum</p>
                           <p>{formatDate(selectedRequest.requestDate)}</p>
                         </div>
@@ -1120,6 +1299,18 @@ export default function MemberRequests() {
                           <p>{getStatusBadge(selectedRequest.status)}</p>
                         </div>
                         <div>
+                          <p className="text-sm text-gray-500">Betaalwijze</p>
+                          <p className="capitalize">{selectedRequest.paymentMethod || "Contant"}</p>
+                        </div>
+                        <div>
+                          <p className="text-sm text-gray-500">Betaaltermijn</p>
+                          <p className="capitalize">{selectedRequest.paymentTerm || "Jaarlijks"}</p>
+                        </div>
+                        <div>
+                          <p className="text-sm text-gray-500">Automatisch verlengen</p>
+                          <p>{selectedRequest.autoRenew ? "Ja" : "Nee"}</p>
+                        </div>
+                        <div>
                           <p className="text-sm text-gray-500">Aanvraagdatum</p>
                           <p>{formatDate(selectedRequest.requestDate)}</p>
                         </div>
@@ -1127,6 +1318,67 @@ export default function MemberRequests() {
                           <p className="text-sm text-gray-500">Verwerkingsdatum</p>
                           <p>{formatDate(selectedRequest.processedDate)}</p>
                         </div>
+                      </>
+                    )}
+                  </CardContent>
+                </Card>
+                
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg">Bankgegevens</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    {isEditMode ? (
+                      <>
+                        <div>
+                          <Label htmlFor="proc-accountnumber">IBAN Rekeningnummer</Label>
+                          <Input
+                            id="proc-accountnumber"
+                            value={editedRequest?.accountNumber || selectedRequest.accountNumber || ''}
+                            onChange={(e) => setEditedRequest({...editedRequest || selectedRequest, accountNumber: e.target.value})}
+                            className="mt-1"
+                            placeholder="bv. BE68539007547034"
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="proc-accountholder">Naam rekeninghouder</Label>
+                          <Input
+                            id="proc-accountholder"
+                            value={editedRequest?.accountHolderName || selectedRequest.accountHolderName || ''}
+                            onChange={(e) => setEditedRequest({...editedRequest || selectedRequest, accountHolderName: e.target.value})}
+                            className="mt-1"
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="proc-bicswift">BIC/SWIFT Code</Label>
+                          <Input
+                            id="proc-bicswift"
+                            value={editedRequest?.bicSwift || selectedRequest.bicSwift || ''}
+                            onChange={(e) => setEditedRequest({...editedRequest || selectedRequest, bicSwift: e.target.value})}
+                            className="mt-1"
+                          />
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        {selectedRequest.accountNumber ? (
+                          <>
+                            <div>
+                              <p className="text-sm text-gray-500">IBAN Rekeningnummer</p>
+                              <p>{selectedRequest.accountNumber}</p>
+                            </div>
+                            <div>
+                              <p className="text-sm text-gray-500">Naam rekeninghouder</p>
+                              <p>{selectedRequest.accountHolderName || "Niet opgegeven"}</p>
+                            </div>
+                            <div>
+                              <p className="text-sm text-gray-500">BIC/SWIFT Code</p>
+                              <p>{selectedRequest.bicSwift || "Niet opgegeven"}</p>
+                            </div>
+                          </>
+                        ) : (
+                          <p className="text-gray-500 italic">Geen bankgegevens opgegeven</p>
+                        )}
                       </>
                     )}
                   </CardContent>
