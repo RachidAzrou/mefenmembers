@@ -657,9 +657,13 @@ export default function Rapportage() {
 
         <TabsContent value="financieel" className="space-y-4">
           <div className="grid gap-4 md:grid-cols-2">
-            <Card className="col-span-1">
+            <Card className="col-span-1 border-none shadow-md overflow-hidden">
+              <div className="bg-gradient-to-r from-green-500/20 to-green-600/20 h-2" />
               <CardHeader>
-                <CardTitle>Betalingsmethodes</CardTitle>
+                <CardTitle className="flex items-center">
+                  <CreditCard className="h-5 w-5 mr-2 text-green-600" />
+                  Betalingsmethodes
+                </CardTitle>
               </CardHeader>
               <CardContent className="pl-2">
                 <div className="h-80 w-full">
@@ -686,9 +690,13 @@ export default function Rapportage() {
               </CardContent>
             </Card>
             
-            <Card className="col-span-1">
+            <Card className="col-span-1 border-none shadow-md overflow-hidden">
+              <div className="bg-gradient-to-r from-purple-500/20 to-purple-600/20 h-2" />
               <CardHeader>
-                <CardTitle>Betalingstermijnen</CardTitle>
+                <CardTitle className="flex items-center">
+                  <Clock className="h-5 w-5 mr-2 text-purple-600" />
+                  Betalingstermijnen
+                </CardTitle>
               </CardHeader>
               <CardContent className="pl-2">
                 <div className="h-80 w-full">
@@ -716,9 +724,13 @@ export default function Rapportage() {
             </Card>
           </div>
 
-          <Card>
+          <Card className="border-none shadow-md overflow-hidden">
+            <div className="bg-gradient-to-r from-[#963E56]/20 to-[#963E56] h-2" />
             <CardHeader>
-              <CardTitle>Geschatte maandelijkse inkomsten</CardTitle>
+              <CardTitle className="flex items-center">
+                <Wallet className="h-5 w-5 mr-2 text-[#963E56]" />
+                Geschatte maandelijkse inkomsten
+              </CardTitle>
               <CardDescription>
                 Gebaseerd op huidige lidmaatschapstypen en betalingstermijnen
               </CardDescription>
@@ -765,9 +777,13 @@ export default function Rapportage() {
             </div>
           </div>
 
-          <Card>
+          <Card className="border-none shadow-md overflow-hidden">
+            <div className="bg-gradient-to-r from-blue-500/20 to-blue-600/20 h-2" />
             <CardHeader>
-              <CardTitle>Nieuwe leden per maand</CardTitle>
+              <CardTitle className="flex items-center">
+                <BarChart3 className="h-5 w-5 mr-2 text-blue-600" />
+                Nieuwe leden per maand
+              </CardTitle>
             </CardHeader>
             <CardContent className="pl-2">
               <div className="h-80 w-full">
@@ -790,9 +806,13 @@ export default function Rapportage() {
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="border-none shadow-md overflow-hidden">
+            <div className="bg-gradient-to-r from-purple-500/20 to-purple-600/20 h-2" />
             <CardHeader>
-              <CardTitle>Cumulatieve ledengroei</CardTitle>
+              <CardTitle className="flex items-center">
+                <LineChart className="h-5 w-5 mr-2 text-purple-600" />
+                Cumulatieve ledengroei
+              </CardTitle>
             </CardHeader>
             <CardContent className="pl-2">
               <div className="h-80 w-full">
