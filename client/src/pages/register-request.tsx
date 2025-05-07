@@ -137,8 +137,12 @@ export default function RegisterRequest() {
   
   if (success) {
     return (
-      <div className="flex min-h-screen flex-col items-center justify-center p-4 md:p-24 bg-gray-50">
-        <div className="w-full max-w-3xl mx-auto bg-white rounded-lg shadow-md p-6 md:p-8">
+      <div className="flex min-h-screen flex-col items-center justify-center p-4 md:p-24"
+           style={{
+             background: "url('/pattern.jpg') center/cover fixed no-repeat, linear-gradient(135deg, rgba(245, 247, 250, 0.7), rgba(195, 207, 226, 0.7))",
+             backgroundBlendMode: "overlay"
+           }}>
+        <div className="w-full max-w-3xl mx-auto bg-white/90 rounded-lg shadow-md p-6 md:p-8 backdrop-blur-md">
           <div className="flex flex-col items-center text-center space-y-4">
             <div className="bg-green-100 rounded-full p-3">
               <CheckIcon className="h-10 w-10 text-green-600" />
@@ -152,6 +156,7 @@ export default function RegisterRequest() {
               <Button 
                 onClick={() => setSuccess(false)}
                 variant="outline"
+                className="hover:bg-primary/10 transition-colors"
               >
                 Nieuwe aanvraag indienen
               </Button>
@@ -163,9 +168,13 @@ export default function RegisterRequest() {
   }
   
   return (
-    <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen py-12 px-4 sm:px-6 lg:px-8" 
+         style={{
+           background: "url('/pattern.jpg') center/cover fixed no-repeat, linear-gradient(135deg, rgba(245, 247, 250, 0.7), rgba(195, 207, 226, 0.7))",
+           backgroundBlendMode: "overlay"
+         }}>
       <div className="max-w-4xl mx-auto">
-        <div className="bg-white shadow-xl rounded-lg overflow-hidden">
+        <div className="bg-white/90 shadow-xl rounded-lg overflow-hidden backdrop-blur-md">
           {/* Header in bordeauxrode stijl zoals dashboard */}
           <div className="bg-[#963E56] p-6 md:p-8 text-white rounded-t-lg">
             <h1 className="text-2xl font-bold">
