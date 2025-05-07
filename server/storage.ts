@@ -416,16 +416,7 @@ export class DatabaseStorage implements IStorage {
       throw new Error(`Lidmaatschapsaanvraag met ID ${id} is al ${request.status}`);
     }
 
-    // Helper functie om datum conversie te handelen
-    const convertDate = (date: Date | string | null | undefined): Date | null => {
-      if (!date) return null;
-      if (date instanceof Date) return date;
-      try {
-        return new Date(date);
-      } catch {
-        return null;
-      }
-    };
+    // Gebruik de globale toDateObject functie voor datum conversies
 
     // TypeScript heeft moeite met de type-compatibiliteit, dus converteren we alles expliciet
     // naar de juiste types en vorm waar nodig
@@ -448,18 +439,8 @@ export class DatabaseStorage implements IStorage {
       partialMemberData.gender = undefined;
     }
     
-    // Datum conversie
-    if (request.birthDate) {
-      try {
-        // Controleer of het een string is (van JSON) of een Date object
-        partialMemberData.birthDate = typeof request.birthDate === 'string' ? 
-          new Date(request.birthDate) : request.birthDate as Date;
-      } catch {
-        partialMemberData.birthDate = null;
-      }
-    } else {
-      partialMemberData.birthDate = null;
-    }
+    // Datum conversie met de utility functie
+    partialMemberData.birthDate = toDateObject(request.birthDate);
     
     // Overige velden
     partialMemberData.nationality = request.nationality || null;
