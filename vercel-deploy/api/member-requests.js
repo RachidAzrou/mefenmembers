@@ -69,13 +69,18 @@ async function firebaseRequest(method, path, data = null) {
 
 // Vercel serverless functie voor lidmaatschapsaanvragen
 export default async function handler(req, res) {
-  // Log omgeving info voor debug doeleinden
+  // Log omgeving info voor debug doeleinden met expliciete waarden (alleen eerste tekens voor veiligheid)
+  const firebase_db_url = process.env.FIREBASE_DATABASE_URL || "Fallback URL gebruikt";
+  const firebase_api_key = process.env.FIREBASE_API_KEY || "Fallback API key gebruikt";
+  
   console.log("Vercel Serverless Function Environment - Member Requests:", {
     NODE_ENV: process.env.NODE_ENV,
     VERCEL_ENV: process.env.VERCEL_ENV,
     DATABASE_URL: process.env.DATABASE_URL ? "Aanwezig" : "Ontbreekt",
-    FIREBASE_DATABASE_URL: process.env.FIREBASE_DATABASE_URL ? "Aanwezig" : "Ontbreekt",
-    FIREBASE_API_KEY: process.env.FIREBASE_API_KEY ? "Aanwezig" : "Ontbreekt"
+    FIREBASE_DATABASE_URL: firebase_db_url.substring(0, 20) + "..." || "Ontbreekt",
+    FIREBASE_API_KEY: firebase_api_key.substring(0, 5) + "..." || "Ontbreekt",
+    FALLBACK_URL_USED: !process.env.FIREBASE_DATABASE_URL,
+    FALLBACK_API_KEY_USED: !process.env.FIREBASE_API_KEY
   });
   
   try {
