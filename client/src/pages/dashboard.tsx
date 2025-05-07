@@ -369,7 +369,7 @@ export default function Dashboard() {
               ) : (
                 <>
                   {/* Stemgerechtigden statistieken */}
-                  <div className="flex items-center justify-between p-4 rounded-lg bg-gray-50">
+                  <div className="flex items-center p-4 rounded-lg bg-gray-50">
                     <div className="flex items-center gap-4">
                       <div className="bg-[#963E56]/20 p-3 rounded-full">
                         <UserCheck className="h-5 w-5 text-[#963E56]" />
@@ -408,11 +408,6 @@ export default function Dashboard() {
                         </div>
                       </div>
                     </div>
-                    <Link href="/members?voting=true">
-                      <Button size="sm" variant="outline" className="border-[#963E56] text-[#963E56] hover:bg-[#963E56]/10">
-                        Toon lijst
-                      </Button>
-                    </Link>
                   </div>
                   
                   {/* Voortgangsindicator voor stemgerechtigden */}
@@ -570,7 +565,7 @@ export default function Dashboard() {
                   {/* Tieners (13-17) */}
                   <div className="flex items-center gap-4 p-4 rounded-lg bg-gray-50">
                     <div className="bg-yellow-100 p-3 rounded-full">
-                      <Baby className="h-5 w-5 text-yellow-600" />
+                      <Backpack className="h-5 w-5 text-yellow-600" />
                     </div>
                     <div>
                       <div className="text-sm text-gray-500">13-17 jaar</div>
@@ -583,7 +578,7 @@ export default function Dashboard() {
                   {/* Jongvolwassenen (18-24) */}
                   <div className="flex items-center gap-4 p-4 rounded-lg bg-gray-50">
                     <div className="bg-green-100 p-3 rounded-full">
-                      <Backpack className="h-5 w-5 text-green-600" />
+                      <GraduationCap className="h-5 w-5 text-green-600" />
                     </div>
                     <div>
                       <div className="text-sm text-gray-500">18-24 jaar</div>
