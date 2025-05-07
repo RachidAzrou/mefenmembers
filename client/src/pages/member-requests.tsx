@@ -217,56 +217,108 @@ export default function MemberRequests() {
     <div className="container mx-auto py-8 px-4">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
         <div>
-          <h1 className="text-3xl font-bold">Lidmaatschapsaanvragen</h1>
+          <h1 className="text-2xl md:text-3xl font-bold text-primary">Lidmaatschapsaanvragen</h1>
           <p className="text-gray-500 mt-1">Beheer nieuwe aanvragen en bekijk verwerkte aanvragen</p>
         </div>
-        <div className="mt-4 md:mt-0">
+        <div className="mt-4 md:mt-0 flex gap-2">
           <Button 
             onClick={() => window.open('/register-request', '_blank')}
             variant="outline"
+            className="flex items-center gap-2"
           >
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-external-link">
+              <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+              <polyline points="15 3 21 3 21 9" />
+              <line x1="10" y1="14" x2="21" y2="3" />
+            </svg>
             Bekijk aanmeldformulier
           </Button>
         </div>
       </div>
 
       <div className="stats grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-        <Card>
+        <Card className="bg-white border shadow-sm hover:shadow transition-shadow duration-200">
           <CardHeader className="pb-2">
-            <CardTitle className="text-lg">Totaal aantal aanvragen</CardTitle>
+            <CardTitle className="text-lg flex items-center gap-2">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-primary">
+                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+                <circle cx="9" cy="7" r="4"></circle>
+                <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
+                <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+              </svg>
+              Totaal aantal aanvragen
+            </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-3xl font-bold">{requests?.length || 0}</p>
+            <p className="text-3xl font-bold text-primary">{requests?.length || 0}</p>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="bg-white border shadow-sm hover:shadow transition-shadow duration-200">
           <CardHeader className="pb-2">
-            <CardTitle className="text-lg">In behandeling</CardTitle>
+            <CardTitle className="text-lg flex items-center gap-2">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-amber-500">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="12" y1="8" x2="12" y2="12"></line>
+                <line x1="12" y1="16" x2="12.01" y2="16"></line>
+              </svg>
+              In behandeling
+            </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-3xl font-bold">{pendingRequests.length}</p>
+            <p className="text-3xl font-bold text-amber-500">{pendingRequests.length}</p>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="bg-white border shadow-sm hover:shadow transition-shadow duration-200">
           <CardHeader className="pb-2">
-            <CardTitle className="text-lg">Verwerkt</CardTitle>
+            <CardTitle className="text-lg flex items-center gap-2">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-green-600">
+                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                <polyline points="22 4 12 14.01 9 11.01"></polyline>
+              </svg>
+              Verwerkt
+            </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-3xl font-bold">{processedRequests.length}</p>
+            <p className="text-3xl font-bold text-green-600">{processedRequests.length}</p>
           </CardContent>
         </Card>
       </div>
 
-      <Tabs defaultValue="pending">
-        <TabsList className="mb-6">
-          <TabsTrigger value="pending">In behandeling ({pendingRequests.length})</TabsTrigger>
-          <TabsTrigger value="processed">Verwerkt ({processedRequests.length})</TabsTrigger>
+      <Tabs defaultValue="pending" className="bg-white p-4 rounded-md border shadow-sm">
+        <TabsList className="mb-6 grid w-full grid-cols-2 bg-gray-100 p-1 rounded-md">
+          <TabsTrigger value="pending" className="rounded-md data-[state=active]:bg-white">
+            <div className="flex items-center gap-2">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-amber-500">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="12" y1="8" x2="12" y2="12"></line>
+                <line x1="12" y1="16" x2="12.01" y2="16"></line>
+              </svg>
+              In behandeling ({pendingRequests.length})
+            </div>
+          </TabsTrigger>
+          <TabsTrigger value="processed" className="rounded-md data-[state=active]:bg-white">
+            <div className="flex items-center gap-2">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-green-600">
+                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                <polyline points="22 4 12 14.01 9 11.01"></polyline>
+              </svg>
+              Verwerkt ({processedRequests.length})
+            </div>
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="pending">
           {pendingRequests.length === 0 ? (
-            <div className="text-center py-10 border rounded-md bg-gray-50">
-              <p className="text-gray-500">Er zijn geen aanvragen in behandeling</p>
+            <div className="text-center py-10 rounded-md bg-gray-50">
+              <div className="flex flex-col items-center justify-center">
+                <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400 mb-3">
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <line x1="12" y1="8" x2="12" y2="12"></line>
+                  <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                </svg>
+                <p className="text-gray-500 font-medium">Er zijn geen aanvragen in behandeling</p>
+                <p className="text-gray-400 text-sm mt-1">Nieuwe aanvragen zullen hier verschijnen</p>
+              </div>
             </div>
           ) : (
             <div className="overflow-x-auto">
@@ -323,8 +375,15 @@ export default function MemberRequests() {
 
         <TabsContent value="processed">
           {processedRequests.length === 0 ? (
-            <div className="text-center py-10 border rounded-md bg-gray-50">
-              <p className="text-gray-500">Er zijn geen verwerkte aanvragen</p>
+            <div className="text-center py-10 rounded-md bg-gray-50">
+              <div className="flex flex-col items-center justify-center">
+                <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400 mb-3">
+                  <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                  <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                </svg>
+                <p className="text-gray-500 font-medium">Er zijn geen verwerkte aanvragen</p>
+                <p className="text-gray-400 text-sm mt-1">Verwerkte aanvragen zullen hier verschijnen</p>
+              </div>
             </div>
           ) : (
             <div className="overflow-x-auto">
@@ -373,19 +432,25 @@ export default function MemberRequests() {
 
       {/* Goedkeurings dialog */}
       <Dialog open={showApprovalDialog} onOpenChange={setShowApprovalDialog}>
-        <DialogContent>
+        <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>Lidmaatschapsaanvraag goedkeuren</DialogTitle>
+            <DialogTitle className="flex items-center gap-2 text-lg">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-green-600">
+                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                <polyline points="22 4 12 14.01 9 11.01"></polyline>
+              </svg>
+              Lidmaatschapsaanvraag goedkeuren
+            </DialogTitle>
             <DialogDescription>
-              Je staat op het punt om de aanvraag van {selectedRequest?.firstName} {selectedRequest?.lastName} goed te keuren.
+              Je staat op het punt om de aanvraag van <span className="font-medium">{selectedRequest?.firstName} {selectedRequest?.lastName}</span> goed te keuren.
               Dit zal automatisch een nieuw lid aanmaken met de gegevens uit deze aanvraag.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-gray-50 p-4 rounded-md border">
               <div>
                 <p className="text-sm font-medium text-gray-500">Naam</p>
-                <p>{selectedRequest?.firstName} {selectedRequest?.lastName}</p>
+                <p className="font-medium">{selectedRequest?.firstName} {selectedRequest?.lastName}</p>
               </div>
               <div>
                 <p className="text-sm font-medium text-gray-500">E-mail</p>
@@ -401,9 +466,12 @@ export default function MemberRequests() {
               </div>
             </div>
           </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowApprovalDialog(false)}>Annuleren</Button>
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={() => setShowApprovalDialog(false)}>
+              Annuleren
+            </Button>
             <Button 
+              className="bg-green-600 hover:bg-green-700 text-white"
               onClick={confirmApproval}
               disabled={approveMutation.isPending}
             >
@@ -412,7 +480,15 @@ export default function MemberRequests() {
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   Bezig...
                 </>
-              ) : "Goedkeuren en lid aanmaken"}
+              ) : (
+                <>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                    <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                  </svg>
+                  Goedkeuren en lid aanmaken
+                </>
+              )}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -420,35 +496,58 @@ export default function MemberRequests() {
 
       {/* Afwijzings dialog */}
       <Dialog open={showRejectionDialog} onOpenChange={setShowRejectionDialog}>
-        <DialogContent>
+        <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>Lidmaatschapsaanvraag afwijzen</DialogTitle>
+            <DialogTitle className="flex items-center gap-2 text-lg">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-red-600">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="15" y1="9" x2="9" y2="15"></line>
+                <line x1="9" y1="9" x2="15" y2="15"></line>
+              </svg>
+              Lidmaatschapsaanvraag afwijzen
+            </DialogTitle>
             <DialogDescription>
-              Je staat op het punt om de aanvraag van {selectedRequest?.firstName} {selectedRequest?.lastName} af te wijzen.
+              Je staat op het punt om de aanvraag van <span className="font-medium">{selectedRequest?.firstName} {selectedRequest?.lastName}</span> af te wijzen.
               Geef hieronder een reden voor de afwijzing.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
+            <Label htmlFor="rejection-reason" className="text-sm font-medium">
+              Reden van afwijzing
+            </Label>
             <Textarea 
+              id="rejection-reason"
               value={rejectionReason}
               onChange={(e) => setRejectionReason(e.target.value)}
-              placeholder="Reden van afwijzing..."
-              className="min-h-[100px]"
+              placeholder="Beschrijf waarom deze aanvraag is afgewezen..."
+              className="min-h-[120px]"
             />
           </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowRejectionDialog(false)}>Annuleren</Button>
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={() => setShowRejectionDialog(false)}>
+              Annuleren
+            </Button>
             <Button 
               variant="destructive"
               onClick={confirmRejection}
               disabled={rejectMutation.isPending || !rejectionReason.trim()}
+              className="bg-red-600 hover:bg-red-700"
             >
               {rejectMutation.isPending ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   Bezig...
                 </>
-              ) : "Aanvraag afwijzen"}
+              ) : (
+                <>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="15" y1="9" x2="9" y2="15"></line>
+                    <line x1="9" y1="9" x2="15" y2="15"></line>
+                  </svg>
+                  Aanvraag afwijzen
+                </>
+              )}
             </Button>
           </DialogFooter>
         </DialogContent>
