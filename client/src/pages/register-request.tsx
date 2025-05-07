@@ -21,7 +21,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useState, useEffect } from "react";
-import { CalendarIcon, CheckIcon, Loader2 } from "lucide-react";
+import { CalendarIcon, CheckIcon, Loader2, User } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import { cn, formatPhoneNumber } from "@/lib/utils";
@@ -166,32 +166,15 @@ export default function RegisterRequest() {
     <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-4xl mx-auto">
         <div className="bg-white shadow-xl rounded-lg overflow-hidden">
-          {/* Header met logo als watermerk en gradient */}
-          <div className="bg-gradient-to-r from-[#963E56] to-[#8A3A4E] px-6 py-6 text-white relative overflow-hidden">
-            {/* Watermerk logo */}
-            <div className="absolute top-0 right-0 opacity-10 h-full flex items-center">
-              <img 
-                src="/logo-white-transparent.png"
-                alt=""
-                className="h-[200px] w-auto"
-              />
-            </div>
-            
-            <div className="flex flex-col md:flex-row md:items-center md:justify-between relative z-10">
-              <div>
-                <h1 className="text-2xl font-bold">MEFEN Moskee Lidmaatschapsaanvraag</h1>
-                <p className="mt-1 opacity-90">
-                  Vul dit formulier in om je aan te melden als lid van de MEFEN Moskee
-                </p>
-              </div>
-              <div className="mt-4 md:mt-0 flex items-center justify-center">
-                <img 
-                  src="/logo-white-transparent.png" 
-                  alt="MEFEN Moskee Logo" 
-                  className="h-24 w-auto"
-                />
-              </div>
-            </div>
+          {/* Header in dezelfde stijl als dashboard */}
+          <div className="p-6 md:p-8">
+            <h1 className="text-2xl font-bold flex items-center">
+              <User className="h-6 w-6 mr-2 text-[#963E56]" />
+              MEFEN Moskee Lidmaatschapsaanvraag
+            </h1>
+            <p className="mt-2 text-gray-500">
+              Vul dit formulier in om je aan te melden als lid van de MEFEN Moskee
+            </p>
           </div>
           
           {/* Formulier */}
