@@ -66,22 +66,11 @@ export function Sidebar() {
     </svg>
   );
 
-  const [membersExpanded, setMembersExpanded] = useState(false);
-
   const menuItems = [
     { icon: Home, label: "Dashboard", href: "/dashboard" },
-    { 
-      icon: PersonWithListIcon, 
-      label: "Ledenlijst", 
-      href: "/members",
-      hasSubmenu: true,
-      expanded: membersExpanded,
-      toggleExpand: () => setMembersExpanded(!membersExpanded),
-      submenuItems: [
-        { icon: PlusCircle, label: "Lid toevoegen", href: "/member-add" },
-        { icon: Edit, label: "Lid bewerken", href: "/member-edit" },
-      ]
-    },
+    { icon: PersonWithListIcon, label: "Ledenlijst", href: "/members" },
+    { icon: PlusCircle, label: "Lid toevoegen", href: "/member-add" },
+    { icon: Edit, label: "Lid bewerken", href: "/member-edit" },
     { icon: Inbox, label: "Aanvragen", href: "/member-requests" },
     { icon: FileSpreadsheet, label: "Exporteren", href: "/export" },
   ];
