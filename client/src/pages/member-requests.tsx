@@ -1041,6 +1041,7 @@ export default function MemberRequests() {
                   <TableRow>
                     <TableHead>Naam</TableHead>
                     <TableHead>Datum</TableHead>
+                    <TableHead>Status</TableHead>
                     <TableHead className="text-center">Acties</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -1051,6 +1052,17 @@ export default function MemberRequests() {
                         {request.firstName} {request.lastName}
                       </TableCell>
                       <TableCell>{formatDate(request.requestDate)}</TableCell>
+                      <TableCell>
+                        {request.status === "approved" ? (
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                            Goedgekeurd
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-rose-100 text-rose-800">
+                            Afgewezen
+                          </span>
+                        )}
+                      </TableCell>
                       <TableCell className="text-center">
                         <Button 
                           variant="ghost" 

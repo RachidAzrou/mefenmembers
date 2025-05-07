@@ -170,17 +170,17 @@ export default function MemberRequestDetail() {
               </Button>
               <div className="flex items-center">
                 {request.status === "pending" && (
-                  <Badge variant="outline" className="bg-white/20 text-white border-white/40">
+                  <Badge variant="outline" className="bg-white text-[#963E56] border-white font-medium">
                     In behandeling
                   </Badge>
                 )}
                 {request.status === "approved" && (
-                  <Badge variant="outline" className="bg-green-500/20 text-green-700 border-green-300">
+                  <Badge variant="outline" className="bg-white text-green-600 border-white font-medium">
                     Goedgekeurd
                   </Badge>
                 )}
                 {request.status === "rejected" && (
-                  <Badge variant="outline" className="bg-red-500/20 text-red-700 border-red-300">
+                  <Badge variant="outline" className="bg-white text-rose-600 border-white font-medium">
                     Afgewezen
                   </Badge>
                 )}
