@@ -235,7 +235,7 @@ export default function MemberRequests() {
               <line x1="16" y1="17" x2="8" y2="17" />
               <line x1="10" y1="9" x2="8" y2="9" />
             </svg>
-            Bekijk aanmeldformulier
+            Aanmeldformulier
           </Button>
         </div>
       </div>

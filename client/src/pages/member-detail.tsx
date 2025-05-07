@@ -209,7 +209,7 @@ export default function MemberDetail() {
       </div>
       
       {/* Knoppen onder de header */}
-      <div className="flex space-x-2">
+      <div className="flex justify-between">
         <Button 
           variant="outline" 
           size="sm" 
