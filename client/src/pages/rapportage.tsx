@@ -218,12 +218,12 @@ function groupMembersByGender(members: Member[]): { name: string; count: number;
     { 
       name: "Man", 
       count: members.filter(m => m.gender?.toLowerCase() === "man").length,
-      color: overviewChartColors.primary
+      color: overviewChartColors.bordeaux
     },
     { 
       name: "Vrouw", 
       count: members.filter(m => m.gender?.toLowerCase() === "vrouw").length,
-      color: overviewChartColors.secondaryLight1
+      color: overviewChartColors.groen2
     }
   ];
 }
@@ -350,12 +350,12 @@ function groupMembersByPaymentStatus(members: Member[]): { name: string; value: 
     { 
       name: "Betaald", 
       value: betaald,
-      color: overviewChartColors.tertiary // Groen voor betaald
+      color: overviewChartColors.groen2 // Groen voor betaald
     },
     { 
       name: "Niet betaald", 
       value: nietBetaald,
-      color: overviewChartColors.quaternary // Oranje voor niet betaald
+      color: overviewChartColors.geel2 // Geel voor niet betaald
     }
   ];
 }
@@ -461,13 +461,13 @@ export default function Rapportage() {
   const membershipGrowth = members ? analyzeMembershipGrowth(members) : [];
   const monthlyRevenue = members ? calculateMonthlyRevenue(members, contributionAmounts) : [];
   
-  // Lidmaatschapstypen voor de vergelijkingstab
+  // Lidmaatschapstypen voor de vergelijkingstab (dezelfde structuur als in de overzichtstab)
   const membershipTypes = [
-    { name: "Regulier", color: "#963E56" },
-    { name: "Student", color: "#B85370" },
-    { name: "Gezin", color: "#D86985" },
-    { name: "Verminderd tarief", color: "#E47F95" },
-    { name: "Erelid", color: "#F1ACBA" }
+    { name: "Regulier", color: overviewChartColors.bordeaux },
+    { name: "Student", color: overviewChartColors.bordeauxLight2 },
+    { name: "Gezin", color: overviewChartColors.groen2 },
+    { name: "Verminderd tarief", color: overviewChartColors.groen3 },
+    { name: "Erelid", color: overviewChartColors.geel2 }
   ];
   
   // Demografische statistieken
