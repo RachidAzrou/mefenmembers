@@ -34,16 +34,39 @@ function calculateAge(birthDate: Date | string | null | undefined): number {
   return differenceInYears(new Date(), birthDateObj);
 }
 
+// Uniform kleurenpalet voor alle grafieken in de overzicht-tab
+const overviewChartColors = {
+  primary: "#963E56", // Bordeauxrood - primaire kleur
+  secondary: "#4A7BB3", // Blauw
+  tertiary: "#5AAA95", // Groen
+  quaternary: "#E9A03F", // Oranje/Amber
+  
+  // Gradaties van de primaire kleur
+  primaryLight1: "#B85370",
+  primaryLight2: "#D86985",
+  primaryLight3: "#E47F95",
+  primaryLight4: "#EB96A7",
+  primaryLight5: "#F1ACBA",
+  primaryLight6: "#F7C3CC",
+  
+  // Gradaties van de secundaire kleur
+  secondaryLight1: "#6A93C2",
+  secondaryLight2: "#89ABD1",
+  secondaryLight3: "#A8C3E0",
+  secondaryLight4: "#C7DBEF",
+  secondaryLight5: "#E6F3FF",
+};
+
 // Groepeer leden per leeftijdscategorie
 function groupMembersByAgeRange(members: Member[]): { name: string; count: number; color: string }[] {
   const ageGroups = [
-    { name: "0-12", min: 0, max: 12, color: "#963E56" },
-    { name: "13-17", min: 13, max: 17, color: "#B85370" },
-    { name: "18-24", min: 18, max: 24, color: "#D86985" },
-    { name: "25-34", min: 25, max: 34, color: "#E47F95" },
-    { name: "35-49", min: 35, max: 49, color: "#EB96A7" },
-    { name: "50-64", min: 50, max: 64, color: "#F1ACBA" },
-    { name: "65+", min: 65, max: 120, color: "#F7C3CC" }
+    { name: "0-12", min: 0, max: 12, color: overviewChartColors.primaryLight1 },
+    { name: "13-17", min: 13, max: 17, color: overviewChartColors.primaryLight2 },
+    { name: "18-24", min: 18, max: 24, color: overviewChartColors.primaryLight3 },
+    { name: "25-34", min: 25, max: 34, color: overviewChartColors.primaryLight4 },
+    { name: "35-49", min: 35, max: 49, color: overviewChartColors.primaryLight5 },
+    { name: "50-64", min: 50, max: 64, color: overviewChartColors.quaternary },
+    { name: "65+", min: 65, max: 120, color: overviewChartColors.tertiary }
   ];
 
   // Initialiseer resultaten met 0 voor alle categorieën
@@ -88,11 +111,11 @@ function calculateMemberRevenue(member: Member, contributionAmounts: Record<stri
 // Groepeer leden per lidmaatschapstype
 function groupMembersByMembershipType(members: Member[]): { name: string; count: number; color: string }[] {
   const membershipTypes = [
-    { name: "Regulier", color: "#963E56" },
-    { name: "Student", color: "#B85370" },
-    { name: "Gezin", color: "#D86985" },
-    { name: "Verminderd tarief", color: "#E47F95" },
-    { name: "Erelid", color: "#F1ACBA" }
+    { name: "Regulier", color: overviewChartColors.primary },
+    { name: "Student", color: overviewChartColors.secondaryLight1 },
+    { name: "Gezin", color: overviewChartColors.quaternary },
+    { name: "Verminderd tarief", color: overviewChartColors.tertiary },
+    { name: "Erelid", color: overviewChartColors.primaryLight5 }
   ];
 
   // Initialiseer resultaten
@@ -120,9 +143,9 @@ function groupMembersByMembershipType(members: Member[]): { name: string; count:
 function groupMembersByPaymentMethod(members: Member[]): { name: string; count: number; color: string }[] {
   // We gebruiken alleen de 3 correcte betalingsmethodes volgens de gebruiker
   const paymentMethods = [
-    { name: "Cash", color: "#963E56" },
-    { name: "Overschrijving", color: "#B85370" },
-    { name: "Domiciliering", color: "#D86985" }
+    { name: "Cash", color: overviewChartColors.primary },
+    { name: "Overschrijving", color: overviewChartColors.secondary },
+    { name: "Domiciliering", color: overviewChartColors.tertiary }
   ];
 
   // Initialiseer resultaten
@@ -164,10 +187,10 @@ function groupMembersByPaymentMethod(members: Member[]): { name: string; count: 
 // Groepeer leden per betalingstermijn
 function groupMembersByPaymentTerm(members: Member[]): { name: string; count: number; color: string }[] {
   const paymentTerms = [
-    { name: "Maandelijks", color: "#963E56" },
-    { name: "Per kwartaal", color: "#B85370" },
-    { name: "Halfjaarlijks", color: "#D86985" },
-    { name: "Jaarlijks", color: "#F1ACBA" }
+    { name: "Maandelijks", color: overviewChartColors.primary },
+    { name: "Per kwartaal", color: overviewChartColors.secondaryLight1 },
+    { name: "Halfjaarlijks", color: overviewChartColors.secondaryLight3 },
+    { name: "Jaarlijks", color: overviewChartColors.quaternary }
   ];
 
   // Initialiseer resultaten
@@ -197,12 +220,12 @@ function groupMembersByGender(members: Member[]): { name: string; count: number;
     { 
       name: "Man", 
       count: members.filter(m => m.gender?.toLowerCase() === "man").length,
-      color: "#963E56"
+      color: overviewChartColors.primary
     },
     { 
       name: "Vrouw", 
       count: members.filter(m => m.gender?.toLowerCase() === "vrouw").length,
-      color: "#D86985"
+      color: overviewChartColors.secondaryLight1
     }
   ];
 }
@@ -304,8 +327,6 @@ function groupMembersByNationality(members: Member[]): { name: string; count: nu
 
 // Groepeer leden per betaalstatus
 function groupMembersByPaymentStatus(members: Member[]): { name: string; value: number; color: string }[] {
-  console.log("Payment status values:", members.map(m => m.paymentStatus));
-  
   // Tel hoeveel leden betaald hebben
   const betaald = members.filter(m => {
     // Check voor alle mogelijke variaties van "betaald" in de status
@@ -331,12 +352,12 @@ function groupMembersByPaymentStatus(members: Member[]): { name: string; value: 
     { 
       name: "Betaald", 
       value: betaald,
-      color: "#2ECC71" // Groen voor betaald
+      color: overviewChartColors.tertiary // Groen voor betaald
     },
     { 
       name: "Niet betaald", 
       value: nietBetaald,
-      color: "#E74C3C" // Rood voor niet betaald
+      color: overviewChartColors.quaternary // Oranje voor niet betaald
     }
   ];
 }
@@ -458,13 +479,7 @@ export default function Rapportage() {
 
   // Bereken het aantal leden dat stemgerechtigd is (18+)
   const eligibleVoters = members ? members.filter(member => {
-    // Debug: Log voor de leeftijdsberekening
-    console.log("Member:", member.firstName, member.lastName, "Birth date:", member.birthDate, "Age:", member.birthDate ? calculateAge(member.birthDate) : "unknown");
-    
-    // Als geboortedatum ontbreekt, controleer of stemgerechtigdFlag direct is ingesteld
-    if (member.stemgerechtigd === true) return true;
-    
-    // Anders bereken op basis van leeftijd als geboortedatum beschikbaar is
+    // Bereken op basis van leeftijd als geboortedatum beschikbaar is
     if (member.birthDate) {
       return calculateAge(member.birthDate) >= 18;
     }
@@ -556,23 +571,6 @@ export default function Rapportage() {
           </TabsList>
           
           <div className="flex items-center gap-2">
-            <Select onValueChange={setFilterType} value={filterType || "all"}>
-              <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Alle leden" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Alle leden</SelectItem>
-                <SelectItem value="regulier">Regulier</SelectItem>
-                <SelectItem value="student">Student</SelectItem>
-                <SelectItem value="gezin">Gezin</SelectItem>
-                <SelectItem value="verminderd">Verminderd tarief</SelectItem>
-              </SelectContent>
-            </Select>
-            
-            <Button variant="outline" className="gap-1" onClick={() => setShowPdfPreview(!showPdfPreview)}>
-              {showPdfPreview ? "Verberg PDF" : "PDF bekijken"}
-            </Button>
-            
             <PDFDownloadLink 
               document={<MyPdfDocument data={pdfData} />} 
               fileName="MEFEN-Rapportage.pdf"
@@ -582,36 +580,18 @@ export default function Rapportage() {
                 loading ? (
                   <>
                     <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    Genereren...
+                    Rapport genereren...
                   </>
                 ) : (
                   <>
                     <Download className="h-4 w-4 mr-2" />
-                    PDF rapport
+                    Rapport downloaden
                   </>
                 )
               }
             </PDFDownloadLink>
-            
-            <Button 
-              variant="secondary" 
-              onClick={handleExportAllCharts}
-              className="inline-flex items-center gap-2 h-10 px-4"
-            >
-              <FileIcon className="h-4 w-4" />
-              Grafieken PDF
-            </Button>
           </div>
         </div>
-
-        {/* PDF Preview sectie */}
-        {showPdfPreview && (
-          <div className="mb-6 border rounded-lg overflow-hidden" style={{ height: 500 }}>
-            <PDFViewer width="100%" height="100%" style={{ border: 'none' }}>
-              <MyPdfDocument data={pdfData} />
-            </PDFViewer>
-          </div>
-        )}
 
         <TabsContent value="overzicht" className="space-y-4">
           {/* Overzichtskaarten sectie */}
