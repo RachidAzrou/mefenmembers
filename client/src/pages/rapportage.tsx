@@ -656,11 +656,24 @@ export default function Rapportage() {
                       margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
                     >
                       <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="name" />
-                      <YAxis />
+                      <XAxis 
+                        dataKey="name" 
+                        label={{ 
+                          value: 'Leeftijdsgroep', 
+                          position: 'insideBottom', 
+                          offset: -5 
+                        }} 
+                      />
+                      <YAxis 
+                        label={{ 
+                          value: 'Aantal leden', 
+                          angle: -90, 
+                          position: 'insideLeft' 
+                        }} 
+                      />
                       <RechartsTooltip 
                         formatter={(value, name, props) => [`${value} leden`, 'Aantal']}
-                        labelFormatter={(label) => `Leeftijd ${label}`}
+                        labelFormatter={(label) => `Leeftijdsgroep: ${label}`}
                       />
                       <Bar dataKey="count" name="Leden">
                         {membersByAgeGroup.map((entry, index) => (
@@ -855,14 +868,23 @@ export default function Rapportage() {
           <div className="grid gap-4 md:grid-cols-2">
             <Card className="col-span-1 border-none shadow-md overflow-hidden">
               <div className="bg-gradient-to-r from-green-500/20 to-green-600/20 h-2" />
-              <CardHeader>
+              <CardHeader className="flex flex-row items-center justify-between pb-2">
                 <CardTitle className="flex items-center">
                   <CreditCard className="h-5 w-5 mr-2 text-green-600" />
                   Betalingsmethodes
                 </CardTitle>
+                <Button 
+                  variant="ghost" 
+                  size="icon"
+                  onClick={() => exportChartAsJPG(paymentMethodChartRef, 'betalingsmethodes-grafiek')}
+                  className="h-7 w-7"
+                  title="Download als JPG"
+                >
+                  <ImageIcon className="h-4 w-4" />
+                </Button>
               </CardHeader>
               <CardContent className="pl-2">
-                <div className="h-80 w-full">
+                <div className="h-80 w-full" ref={paymentMethodChartRef}>
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart
                       layout="vertical"
@@ -870,12 +892,24 @@ export default function Rapportage() {
                       margin={{ top: 20, right: 30, left: 100, bottom: 5 }}
                     >
                       <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis type="number" />
-                      <YAxis type="category" dataKey="name" />
+                      <XAxis 
+                        type="number" 
+                        label={{
+                          value: 'Aantal leden',
+                          position: 'insideBottom',
+                          offset: -5
+                        }}
+                      />
+                      <YAxis 
+                        type="category" 
+                        dataKey="name" 
+                        width={120}
+                      />
                       <RechartsTooltip 
                         formatter={(value, name, props) => [`${value} leden`, 'Aantal']}
                       />
-                      <Bar dataKey="count" name="Leden">
+                      <Legend verticalAlign="top" height={36} />
+                      <Bar dataKey="count" name="Aantal leden per betaalmethode">
                         {membersByPaymentMethod.map((entry, index) => (
                           <Cell key={`cell-${index}`} fill={entry.color} />
                         ))}
@@ -888,14 +922,23 @@ export default function Rapportage() {
             
             <Card className="col-span-1 border-none shadow-md overflow-hidden">
               <div className="bg-gradient-to-r from-purple-500/20 to-purple-600/20 h-2" />
-              <CardHeader>
+              <CardHeader className="flex flex-row items-center justify-between pb-2">
                 <CardTitle className="flex items-center">
                   <Clock className="h-5 w-5 mr-2 text-purple-600" />
                   Betalingstermijnen
                 </CardTitle>
+                <Button 
+                  variant="ghost" 
+                  size="icon"
+                  onClick={() => exportChartAsJPG(paymentTermChartRef, 'betalingstermijnen-grafiek')}
+                  className="h-7 w-7"
+                  title="Download als JPG"
+                >
+                  <ImageIcon className="h-4 w-4" />
+                </Button>
               </CardHeader>
               <CardContent className="pl-2">
-                <div className="h-80 w-full">
+                <div className="h-80 w-full" ref={paymentTermChartRef}>
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart
                       layout="vertical"
@@ -903,12 +946,24 @@ export default function Rapportage() {
                       margin={{ top: 20, right: 30, left: 100, bottom: 5 }}
                     >
                       <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis type="number" />
-                      <YAxis type="category" dataKey="name" />
+                      <XAxis 
+                        type="number" 
+                        label={{
+                          value: 'Aantal leden',
+                          position: 'insideBottom',
+                          offset: -5
+                        }}
+                      />
+                      <YAxis 
+                        type="category" 
+                        dataKey="name" 
+                        width={120}
+                      />
                       <RechartsTooltip 
                         formatter={(value, name, props) => [`${value} leden`, 'Aantal']}
                       />
-                      <Bar dataKey="count" name="Leden">
+                      <Legend verticalAlign="top" height={36} />
+                      <Bar dataKey="count" name="Aantal leden per betalingstermijn">
                         {membersByPaymentTerm.map((entry, index) => (
                           <Cell key={`cell-${index}`} fill={entry.color} />
                         ))}
@@ -922,29 +977,53 @@ export default function Rapportage() {
 
           <Card className="border-none shadow-md overflow-hidden">
             <div className="bg-gradient-to-r from-[#963E56]/20 to-[#963E56] h-2" />
-            <CardHeader>
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="flex items-center">
                 <Wallet className="h-5 w-5 mr-2 text-[#963E56]" />
                 Geschatte maandelijkse inkomsten
               </CardTitle>
-              <CardDescription>
-                Gebaseerd op huidige lidmaatschapstypen en betalingstermijnen
-              </CardDescription>
+              <Button 
+                variant="ghost" 
+                size="icon"
+                onClick={() => exportChartAsJPG(revenueChartRef, 'maandelijkse-inkomsten-grafiek')}
+                className="h-7 w-7"
+                title="Download als JPG"
+              >
+                <ImageIcon className="h-4 w-4" />
+              </Button>
             </CardHeader>
             <CardContent className="pl-2">
-              <div className="h-80 w-full">
+              <CardDescription className="mb-4">
+                Gebaseerd op huidige lidmaatschapstypen en betalingstermijnen
+              </CardDescription>
+              <div className="h-80 w-full" ref={revenueChartRef}>
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart
                     data={monthlyRevenue}
-                    margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+                    margin={{ top: 20, right: 30, left: 20, bottom: 20 }}
                   >
                     <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="maand" />
-                    <YAxis />
+                    <XAxis 
+                      dataKey="maand" 
+                      label={{ 
+                        value: 'Maand', 
+                        position: 'insideBottom', 
+                        offset: -10 
+                      }}
+                    />
+                    <YAxis 
+                      label={{ 
+                        value: 'Bedrag in Euro (€)', 
+                        angle: -90, 
+                        position: 'insideLeft' 
+                      }}
+                    />
                     <RechartsTooltip 
                       formatter={(value, name, props) => [`€${value}`, 'Inkomsten']}
+                      labelFormatter={(label) => `Maand: ${label}`}
                     />
-                    <Bar dataKey="inkomsten" name="Inkomsten" fill="#2ECC71" />
+                    <Legend verticalAlign="top" height={36} />
+                    <Bar dataKey="inkomsten" name="Maandelijkse inkomsten (€)" fill="#2ECC71" />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
@@ -1417,68 +1496,54 @@ export default function Rapportage() {
             
             <Card className="border-none shadow-md overflow-hidden">
               <div className="bg-gradient-to-r from-blue-500/20 to-blue-600/20 h-2" />
-              <CardHeader>
+              <CardHeader className="flex flex-row items-center justify-between pb-2">
                 <CardTitle className="flex items-center">
                   <PieChartIcon className="h-5 w-5 mr-2 text-blue-600" />
-                  Leeftijd en betaalstatus
+                  Betaalstatus verdeling
                 </CardTitle>
+                <Button 
+                  variant="ghost" 
+                  size="icon"
+                  onClick={() => exportChartAsJPG(paymentStatusChartRef, 'betaalstatus-verdeling')}
+                  className="h-7 w-7"
+                  title="Download als JPG"
+                >
+                  <ImageIcon className="h-4 w-4" />
+                </Button>
               </CardHeader>
               <CardContent>
-                <div className="h-80 w-full">
+                <div className="h-80 w-full" ref={paymentStatusChartRef}>
                   <ResponsiveContainer width="100%" height="100%">
-                    <ScatterChart
-                      margin={{
-                        top: 20,
-                        right: 20,
-                        bottom: 20,
-                        left: 20,
-                      }}
-                    >
-                      <CartesianGrid />
-                      <XAxis type="number" dataKey="age" name="Leeftijd" />
-                      <YAxis 
-                        type="number" 
-                        dataKey="revenue" 
-                        name="Maandelijkse bijdrage (€)" 
-                        domain={[0, 'dataMax + 2']}
+                    <PieChart>
+                      <Pie
+                        data={membersByPaymentStatus}
+                        cx="50%"
+                        cy="50%"
+                        labelLine={true}
+                        outerRadius={100}
+                        fill="#8884d8"
+                        dataKey="value"
+                        nameKey="name"
+                        label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(1)}%`}
+                      >
+                        {membersByPaymentStatus.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={entry.color} />
+                        ))}
+                      </Pie>
+                      <Legend 
+                        verticalAlign="bottom" 
+                        height={36} 
+                        formatter={(value, entry, index) => (
+                          <span style={{ color: membersByPaymentStatus[index].color }}>
+                            {value} ({membersByPaymentStatus[index].value} leden)
+                          </span>
+                        )}
                       />
                       <RechartsTooltip 
-                        formatter={(value, name) => 
-                          name === "Leeftijd" ? 
-                            [`${value} jaar`, name] : 
-                            [`€${value}`, "Maandelijkse bijdrage"]
-                        }
-                        cursor={{ strokeDasharray: '3 3' }}
+                        formatter={(value, name) => [`${value} leden`, name]}
+                        labelFormatter={() => 'Betaalstatus'}
                       />
-                      <Scatter 
-                        name="Betalend" 
-                        data={
-                          members?.filter(m => typeof m.paymentStatus === 'string' && 
-                            m.paymentStatus.toLowerCase() === "betaald")
-                            .map(m => ({
-                              age: calculateAge(m.birthDate),
-                              revenue: calculateMemberRevenue(m),
-                              name: m.firstName
-                            })) || []
-                        }
-                        fill="#2ECC71"
-                      />
-                      <Scatter 
-                        name="Niet-betalend" 
-                        data={
-                          members?.filter(m => !m.paymentStatus || 
-                            (typeof m.paymentStatus === 'string' && 
-                              m.paymentStatus.toLowerCase() !== "betaald"))
-                            .map(m => ({
-                              age: calculateAge(m.birthDate),
-                              revenue: calculateMemberRevenue(m),
-                              name: m.firstName
-                            })) || []
-                        }
-                        fill="#E74C3C"
-                      />
-                      <Legend />
-                    </ScatterChart>
+                    </PieChart>
                   </ResponsiveContainer>
                 </div>
               </CardContent>
