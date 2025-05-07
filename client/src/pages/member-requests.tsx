@@ -66,7 +66,7 @@ export default function MemberRequests() {
   const [rejectionReason, setRejectionReason] = useState("");
   const [showRejectionDialog, setShowRejectionDialog] = useState(false);
   const [showApprovalDialog, setShowApprovalDialog] = useState(false);
-  const { role } = useRole();
+  const { isAdmin } = useRole();
 
   // Ophalen van alle aanvragen
   const { data: requests, isLoading } = useQuery<MemberRequest[]>({
@@ -350,7 +350,7 @@ export default function MemberRequests() {
                       <TableCell>{formatDate(request.requestDate)}</TableCell>
                       <TableCell>{formatDate(request.processedDate)}</TableCell>
                       <TableCell>
-                        {role === 'beheerder' && (
+                        {isAdmin && (
                           <Button 
                             size="sm" 
                             variant="outline" 

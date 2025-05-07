@@ -17,6 +17,25 @@ import { pool } from "./db";
 
 const PostgresSessionStore = connectPg(session);
 
+// Helper functie om te controleren of een waarde een Date-object is
+function isDateObject(value: any): value is Date {
+  return Object.prototype.toString.call(value) === '[object Date]' && !isNaN(value.getTime());
+}
+
+// Helper functie om een date string of Date object naar een Date te converteren
+function toDateObject(value: string | Date | null | undefined): Date | null {
+  if (!value) return null;
+  if (typeof value === 'string') {
+    try {
+      const date = new Date(value);
+      return isNaN(date.getTime()) ? null : date;
+    } catch {
+      return null;
+    }
+  }
+  return isDateObject(value) ? value : null;
+}
+
 export interface IStorage {
   // Member operations
   getMember(id: number): Promise<Member | undefined>;
@@ -136,8 +155,8 @@ export class DatabaseStorage implements IStorage {
     
     // Lidmaatschap
     if (member.membershipType !== undefined) updateObj.membershipType = member.membershipType;
-    if (member.startDate !== undefined) updateObj.startDate = member.startDate instanceof Date ? member.startDate : new Date(member.startDate);
-    if (member.endDate !== undefined) updateObj.endDate = member.endDate ? (member.endDate instanceof Date ? member.endDate : new Date(member.endDate)) : null;
+    if (member.startDate !== undefined) updateObj.startDate = toDateObject(member.startDate) || new Date();
+    if (member.endDate !== undefined) updateObj.endDate = toDateObject(member.endDate);
     if (member.autoRenew !== undefined) updateObj.autoRenew = member.autoRenew;
     if (member.paymentTerm !== undefined) updateObj.paymentTerm = member.paymentTerm;
     if (member.paymentMethod !== undefined) updateObj.paymentMethod = member.paymentMethod;
@@ -157,36 +176,8 @@ export class DatabaseStorage implements IStorage {
     }
     
     if (member.birthDate !== undefined) {
-      // Behandel de birthDate met extra voorzorgsmaatregelen
-      if (member.birthDate === null) {
-        // Als null is doorgegeven, gebruik null
-        updateObj.birthDate = null;
-      } else if (member.birthDate instanceof Date) {
-        // Als het al een Date is, gebruik deze direct
-        updateObj.birthDate = member.birthDate;
-      } else if (member.birthDate === "") {
-        // Als het een lege string is, gebruik null
-        updateObj.birthDate = null;
-      } else if (typeof member.birthDate === 'string') {
-        // Als het een string is, probeer deze te parsen
-        try {
-          const parsedDate = new Date(member.birthDate);
-          if (isNaN(parsedDate.getTime())) {
-            console.error("Invalid date string in storage:", member.birthDate);
-            // Als het een ongeldige datum is, gebruik null
-            updateObj.birthDate = null;
-          } else {
-            updateObj.birthDate = parsedDate;
-          }
-        } catch (error) {
-          console.error("Error parsing date in storage:", error);
-          updateObj.birthDate = null;
-        }
-      } else {
-        // In het geval dat we een onbekend type krijgen
-        console.warn("Unknown type for birthDate in storage:", typeof member.birthDate);
-        updateObj.birthDate = null;
-      }
+      // Gebruik de toDateObject helper functie voor birthDate conversie
+      updateObj.birthDate = toDateObject(member.birthDate);
     }
     
     if (member.accountNumber !== undefined) {
@@ -460,8 +451,9 @@ export class DatabaseStorage implements IStorage {
     // Datum conversie
     if (request.birthDate) {
       try {
-        partialMemberData.birthDate = request.birthDate instanceof Date ? 
-          request.birthDate : new Date(request.birthDate);
+        // Controleer of het een string is (van JSON) of een Date object
+        partialMemberData.birthDate = typeof request.birthDate === 'string' ? 
+          new Date(request.birthDate) : request.birthDate as Date;
       } catch {
         partialMemberData.birthDate = null;
       }
