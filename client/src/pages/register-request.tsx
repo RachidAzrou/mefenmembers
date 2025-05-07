@@ -236,16 +236,16 @@ export default function RegisterRequest() {
                         name="lastName"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel className="text-sm sm:text-base">Naam <span className="text-red-500">*</span></FormLabel>
+                            <FormLabel className="text-sm sm:text-base font-medium">Naam <span className="text-red-500">*</span></FormLabel>
                             <FormControl>
                               <Input 
                                 placeholder="Naam" 
                                 {...field} 
-                                className="h-10 text-sm"
+                                className="h-12 sm:h-10 text-base sm:text-sm px-4 rounded-lg focus:border-[#963E56] focus:ring-[#963E56]/30"
                                 autoComplete="family-name"
                               />
                             </FormControl>
-                            <FormMessage />
+                            <FormMessage className="font-medium text-sm" />
                           </FormItem>
                         )}
                       />
@@ -258,22 +258,22 @@ export default function RegisterRequest() {
                         name="gender"
                         render={({ field }) => (
                           <FormItem className="flex flex-col">
-                            <FormLabel className="text-sm sm:text-base">Geslacht <span className="text-red-500">*</span></FormLabel>
+                            <FormLabel className="text-sm sm:text-base font-medium">Geslacht <span className="text-red-500">*</span></FormLabel>
                             <Select 
                               onValueChange={field.onChange} 
                               defaultValue={field.value}
                             >
                               <FormControl>
-                                <SelectTrigger className="h-10 text-sm">
+                                <SelectTrigger className="h-12 sm:h-10 text-base sm:text-sm px-4 rounded-lg focus:border-[#963E56] focus:ring-[#963E56]/30">
                                   <SelectValue placeholder="Selecteer geslacht" />
                                 </SelectTrigger>
                               </FormControl>
-                              <SelectContent>
-                                <SelectItem value="man">Man</SelectItem>
-                                <SelectItem value="vrouw">Vrouw</SelectItem>
+                              <SelectContent className="text-base sm:text-sm">
+                                <SelectItem value="man" className="py-3 sm:py-2">Man</SelectItem>
+                                <SelectItem value="vrouw" className="py-3 sm:py-2">Vrouw</SelectItem>
                               </SelectContent>
                             </Select>
-                            <FormMessage />
+                            <FormMessage className="font-medium text-sm" />
                           </FormItem>
                         )}
                       />
@@ -395,15 +395,15 @@ export default function RegisterRequest() {
                         name="nationality"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel className="text-sm sm:text-base">Nationaliteit</FormLabel>
+                            <FormLabel className="text-sm sm:text-base font-medium">Nationaliteit</FormLabel>
                             <FormControl>
                               <Input 
                                 placeholder="Nationaliteit" 
                                 {...field} 
-                                className="h-10 text-sm"
+                                className="h-12 sm:h-10 text-base sm:text-sm px-4 rounded-lg focus:border-[#963E56] focus:ring-[#963E56]/30"
                               />
                             </FormControl>
-                            <FormMessage />
+                            <FormMessage className="font-medium text-sm" />
                           </FormItem>
                         )}
                       />
@@ -424,18 +424,18 @@ export default function RegisterRequest() {
                       name="email"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="text-sm sm:text-base">E-mail <span className="text-red-500">*</span></FormLabel>
+                          <FormLabel className="text-sm sm:text-base font-medium">E-mail <span className="text-red-500">*</span></FormLabel>
                           <FormControl>
                             <Input 
                               type="email" 
                               placeholder="voorbeeld@email.com" 
                               {...field}
-                              className="text-sm h-14 text-base" 
+                              className="h-12 sm:h-10 text-base sm:text-sm px-4 rounded-lg focus:border-[#963E56] focus:ring-[#963E56]/30" 
                               inputMode="email"
                               autoComplete="email"
                             />
                           </FormControl>
-                          <FormMessage />
+                          <FormMessage className="font-medium text-sm" />
                         </FormItem>
                       )}
                     />
@@ -453,22 +453,22 @@ export default function RegisterRequest() {
                         
                         return (
                           <FormItem>
-                            <FormLabel className="text-sm sm:text-base">Telefoonnummer <span className="text-red-500">*</span></FormLabel>
+                            <FormLabel className="text-sm sm:text-base font-medium">Telefoonnummer <span className="text-red-500">*</span></FormLabel>
                             <FormControl>
                               <Input 
                                 placeholder="Bijv. 0493401411" 
                                 value={field.value ? formatPhoneNumber(field.value) : ""}
                                 onChange={handleInputChange}
-                                className="text-sm h-14 text-base"
+                                className="h-12 sm:h-10 text-base sm:text-sm px-4 rounded-lg focus:border-[#963E56] focus:ring-[#963E56]/30"
                                 inputMode="tel"
                                 type="tel"
                                 autoComplete="tel"
                               />
                             </FormControl>
-                            <FormDescription className="text-xs sm:text-sm">
+                            <FormDescription className="text-xs sm:text-sm mt-1.5">
                               Streepjes worden automatisch toegevoegd
                             </FormDescription>
-                            <FormMessage />
+                            <FormMessage className="font-medium text-sm" />
                           </FormItem>
                         );
                       }}
@@ -595,7 +595,7 @@ export default function RegisterRequest() {
                       name="membershipType"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="text-sm sm:text-base">Type lidmaatschap <span className="text-red-500">*</span></FormLabel>
+                          <FormLabel className="text-sm sm:text-base font-medium">Type lidmaatschap <span className="text-red-500">*</span></FormLabel>
                           <Select 
                             onValueChange={(value) => {
                               field.onChange(value);
@@ -605,17 +605,17 @@ export default function RegisterRequest() {
                             defaultValue={field.value || (form.getValues().membershipTypes?.[0] || "")}
                           >
                             <FormControl>
-                              <SelectTrigger className="text-sm h-14 text-base">
+                              <SelectTrigger className="h-12 sm:h-10 text-base sm:text-sm px-4 rounded-lg focus:border-[#963E56] focus:ring-[#963E56]/30">
                                 <SelectValue placeholder="Selecteer type lidmaatschap" />
                               </SelectTrigger>
                             </FormControl>
-                            <SelectContent>
-                              <SelectItem value="standaard">Standaard</SelectItem>
-                              <SelectItem value="student">Student</SelectItem>
-                              <SelectItem value="senior">Senior</SelectItem>
+                            <SelectContent className="text-base sm:text-sm">
+                              <SelectItem value="standaard" className="py-3 sm:py-2">Standaard</SelectItem>
+                              <SelectItem value="student" className="py-3 sm:py-2">Student</SelectItem>
+                              <SelectItem value="senior" className="py-3 sm:py-2">Senior</SelectItem>
                             </SelectContent>
                           </Select>
-                          <FormMessage />
+                          <FormMessage className="font-medium text-sm" />
                         </FormItem>
                       )}
                     />
@@ -625,26 +625,26 @@ export default function RegisterRequest() {
                       name="paymentTerm"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="text-sm sm:text-base">Betalingstermijn</FormLabel>
+                          <FormLabel className="text-sm sm:text-base font-medium">Betalingstermijn</FormLabel>
                           <Select 
                             onValueChange={field.onChange} 
                             defaultValue={field.value}
                           >
                             <FormControl>
-                              <SelectTrigger className="text-sm h-14 text-base">
+                              <SelectTrigger className="h-12 sm:h-10 text-base sm:text-sm px-4 rounded-lg focus:border-[#963E56] focus:ring-[#963E56]/30">
                                 <SelectValue placeholder="Selecteer betalingstermijn" />
                               </SelectTrigger>
                             </FormControl>
-                            <SelectContent>
-                              <SelectItem value="jaarlijks">Jaarlijks</SelectItem>
-                              <SelectItem value="driemaandelijks">Driemaandelijks</SelectItem>
-                              <SelectItem value="maandelijks">Maandelijks</SelectItem>
+                            <SelectContent className="text-base sm:text-sm">
+                              <SelectItem value="jaarlijks" className="py-3 sm:py-2">Jaarlijks</SelectItem>
+                              <SelectItem value="driemaandelijks" className="py-3 sm:py-2">Driemaandelijks</SelectItem>
+                              <SelectItem value="maandelijks" className="py-3 sm:py-2">Maandelijks</SelectItem>
                             </SelectContent>
                           </Select>
-                          <FormDescription className="text-xs sm:text-sm">
+                          <FormDescription className="text-xs sm:text-sm mt-1.5">
                             Hoe vaak wil je je lidmaatschap betalen?
                           </FormDescription>
-                          <FormMessage />
+                          <FormMessage className="font-medium text-sm" />
                         </FormItem>
                       )}
                     />
@@ -654,24 +654,24 @@ export default function RegisterRequest() {
                       name="paymentMethod"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="text-sm sm:text-base">Betalingswijze</FormLabel>
+                          <FormLabel className="text-sm sm:text-base font-medium">Betalingswijze</FormLabel>
                           <Select 
                             onValueChange={field.onChange} 
                             defaultValue={field.value}
                           >
                             <FormControl>
-                              <SelectTrigger className="text-sm h-14 text-base">
+                              <SelectTrigger className="h-12 sm:h-10 text-base sm:text-sm px-4 rounded-lg focus:border-[#963E56] focus:ring-[#963E56]/30">
                                 <SelectValue placeholder="Selecteer betalingswijze" />
                               </SelectTrigger>
                             </FormControl>
-                            <SelectContent>
-                              <SelectItem value="cash">Cash</SelectItem>
-                              <SelectItem value="bancontact">Bancontact</SelectItem>
-                              <SelectItem value="overschrijving">Overschrijving</SelectItem>
-                              <SelectItem value="domiciliering">Domiciliëring</SelectItem>
+                            <SelectContent className="text-base sm:text-sm">
+                              <SelectItem value="cash" className="py-3 sm:py-2">Cash</SelectItem>
+                              <SelectItem value="bancontact" className="py-3 sm:py-2">Bancontact</SelectItem>
+                              <SelectItem value="overschrijving" className="py-3 sm:py-2">Overschrijving</SelectItem>
+                              <SelectItem value="domiciliering" className="py-3 sm:py-2">Domiciliëring</SelectItem>
                             </SelectContent>
                           </Select>
-                          <FormMessage />
+                          <FormMessage className="font-medium text-sm" />
                         </FormItem>
                       )}
                     />
@@ -711,19 +711,19 @@ export default function RegisterRequest() {
                           name="accountNumber"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel>IBAN<span className="text-red-500">*</span></FormLabel>
+                              <FormLabel className="text-sm sm:text-base font-medium">IBAN<span className="text-red-500">*</span></FormLabel>
                               <FormControl>
                                 <Input 
                                   placeholder="IBAN (BE68539007547034)" 
                                   {...field}
-                                  className="text-sm"
+                                  className="h-12 sm:h-10 text-base sm:text-sm px-4 rounded-lg focus:border-[#963E56] focus:ring-[#963E56]/30"
                                   inputMode="text"
                                 />
                               </FormControl>
-                              <FormDescription className="text-xs sm:text-sm">
+                              <FormDescription className="text-xs sm:text-sm mt-1.5">
                                 IBAN-formaat: BE68 5390 0754 7034
                               </FormDescription>
-                              <FormMessage />
+                              <FormMessage className="font-medium text-sm" />
                             </FormItem>
                           )}
                         />
@@ -733,15 +733,15 @@ export default function RegisterRequest() {
                           name="accountHolderName"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel>Naam rekeninghouder<span className="text-red-500">*</span></FormLabel>
+                              <FormLabel className="text-sm sm:text-base font-medium">Naam rekeninghouder<span className="text-red-500">*</span></FormLabel>
                               <FormControl>
                                 <Input 
                                   placeholder="Naam rekeninghouder" 
                                   {...field}
-                                  className="text-sm" 
+                                  className="h-12 sm:h-10 text-base sm:text-sm px-4 rounded-lg focus:border-[#963E56] focus:ring-[#963E56]/30" 
                                 />
                               </FormControl>
-                              <FormMessage />
+                              <FormMessage className="font-medium text-sm" />
                             </FormItem>
                           )}
                         />
