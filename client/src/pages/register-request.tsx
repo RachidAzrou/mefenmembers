@@ -137,32 +137,32 @@ export default function RegisterRequest() {
   
   if (success) {
     return (
-      <div className="flex min-h-screen flex-col items-center justify-center p-4 md:p-24"
+      <div className="flex min-h-screen flex-col items-center justify-center p-3 sm:p-6 md:p-12"
            style={{
              background: "url('/pattern.jpg') center/cover fixed no-repeat, linear-gradient(135deg, rgba(245, 247, 250, 0.7), rgba(195, 207, 226, 0.7))",
              backgroundBlendMode: "overlay"
            }}>
-        <div className="w-full max-w-3xl mx-auto bg-white/90 rounded-lg shadow-xl overflow-hidden backdrop-blur-md">
+        <div className="w-full max-w-3xl mx-auto bg-white/95 rounded-xl shadow-xl overflow-hidden backdrop-blur-md">
           {/* Header in bordeauxrode stijl, net als form */}
-          <div className="bg-[#963E56] p-6 md:p-8 text-white rounded-t-lg">
-            <h1 className="text-2xl font-bold text-center">
+          <div className="bg-[#963E56] p-5 sm:p-6 md:p-8 text-white rounded-t-xl">
+            <h1 className="text-xl sm:text-2xl font-bold text-center">
               MEFEN Moskee Lidmaatschapsaanvraag
             </h1>
           </div>
           
-          <div className="p-8 md:p-10 flex flex-col items-center text-center space-y-6">
-            <div className="rounded-full bg-[#963E56]/10 p-4 w-20 h-20 flex items-center justify-center">
-              <CheckIcon className="h-10 w-10 text-[#963E56]" />
+          <div className="p-6 sm:p-8 md:p-10 flex flex-col items-center text-center space-y-4 sm:space-y-6">
+            <div className="rounded-full bg-[#963E56]/10 p-3 sm:p-4 w-16 sm:w-20 h-16 sm:h-20 flex items-center justify-center">
+              <CheckIcon className="h-8 w-8 sm:h-10 sm:w-10 text-[#963E56]" />
             </div>
-            <h2 className="text-2xl font-bold text-gray-800">Aanvraag Succesvol Ingediend!</h2>
-            <p className="text-gray-600 max-w-md text-lg">
+            <h2 className="text-xl sm:text-2xl font-bold text-gray-800">Aanvraag Succesvol Ingediend!</h2>
+            <p className="text-gray-600 max-w-md text-sm sm:text-base md:text-lg">
               Bedankt voor je aanvraag. We zullen deze zo snel mogelijk beoordelen en nemen contact 
               met je op via de door jou opgegeven contactgegevens.
             </p>
-            <div className="mt-6">
+            <div className="mt-4 sm:mt-6 w-full sm:w-auto">
               <Button 
                 onClick={() => setSuccess(false)}
-                className="bg-[#963E56] hover:bg-[#7d3447] text-white font-medium px-6 py-2 rounded-md transition-colors"
+                className="w-full sm:w-auto bg-[#963E56] hover:bg-[#7d3447] text-white font-medium px-6 py-3 rounded-md transition-colors shadow-sm"
               >
                 Nieuwe aanvraag indienen
               </Button>
@@ -362,10 +362,13 @@ export default function RegisterRequest() {
                                   value={birthDateInput}
                                   onChange={handleInputChange}
                                   onBlur={handleBlur}
+                                  className="text-sm"
+                                  inputMode="numeric"
+                                  pattern="\d{1,2}/\d{1,2}/\d{4}"
                                 />
                               </FormControl>
                               <FormDescription className="text-xs sm:text-sm">
-                                Vul de geboortedatum in (formaat: DD/MM/JJJJ).
+                                Formaat: DD/MM/JJJJ (bijv. 15/06/1985)
                               </FormDescription>
                               <FormMessage />
                             </FormItem>
@@ -431,11 +434,18 @@ export default function RegisterRequest() {
                             <FormLabel>Telefoonnummer <span className="text-red-500">*</span></FormLabel>
                             <FormControl>
                               <Input 
-                                placeholder="Bijv. 0493-40-14-11" 
+                                placeholder="Bijv. 0493401411" 
                                 value={field.value ? formatPhoneNumber(field.value) : ""}
                                 onChange={handleInputChange}
+                                className="text-sm"
+                                inputMode="tel"
+                                type="tel"
+                                autoComplete="tel"
                               />
                             </FormControl>
+                            <FormDescription className="text-xs sm:text-sm">
+                              Streepjes worden automatisch toegevoegd
+                            </FormDescription>
                             <FormMessage />
                           </FormItem>
                         );
@@ -629,8 +639,8 @@ export default function RegisterRequest() {
                     )}
                     
                     {form.watch("paymentMethod") === "bancontact" && (
-                      <div className="col-span-2 bg-yellow-50 border border-yellow-200 rounded-md p-4">
-                        <p className="text-yellow-800 text-sm">
+                      <div className="col-span-2 bg-yellow-50 border border-yellow-200 rounded-lg p-3 sm:p-4 shadow-sm">
+                        <p className="text-yellow-800 text-xs sm:text-sm">
                           <strong>Let op:</strong> Bij betaling met Bancontact dient u een medewerker van de moskee aan te spreken. 
                           Uw inschrijving wordt pas officieel na ontvangst van de betaling.
                         </p>
@@ -640,9 +650,9 @@ export default function RegisterRequest() {
                     {/* Toon bankgegevens alleen als betalingsmethode domiciliëring of overschrijving is */}
                     {(form.watch("paymentMethod") === "domiciliering" || 
                       form.watch("paymentMethod") === "overschrijving") && (
-                      <div className="col-span-2 p-4 border border-blue-100 bg-blue-50/50 rounded-md space-y-4">
-                        <div className="bg-blue-50 border border-blue-200 rounded-md p-4">
-                          <p className="text-blue-800 text-sm">
+                      <div className="col-span-2 p-3 sm:p-4 border border-blue-100 bg-blue-50/50 rounded-lg shadow-sm space-y-3 sm:space-y-4">
+                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 sm:p-4 shadow-sm">
+                          <p className="text-blue-800 text-xs sm:text-sm">
                             <strong>Belangrijk:</strong> Uw inschrijving wordt pas officieel na ontvangst van uw eerste betaling via {form.watch("paymentMethod") === "domiciliering" ? "domiciliëring" : "overschrijving"}.
                             De betaalgegevens worden naar uw e-mailadres gestuurd na goedkeuring van uw aanvraag.
                           </p>
@@ -656,12 +666,14 @@ export default function RegisterRequest() {
                               <FormLabel>IBAN<span className="text-red-500">*</span></FormLabel>
                               <FormControl>
                                 <Input 
-                                  placeholder="IBAN (bijv. BE68539007547034)" 
-                                  {...field} 
+                                  placeholder="IBAN (BE68539007547034)" 
+                                  {...field}
+                                  className="text-sm"
+                                  inputMode="text"
                                 />
                               </FormControl>
-                              <FormDescription>
-                                IBAN-formaat: BE68 5390 0754 7034 (spaties worden automatisch verwijderd)
+                              <FormDescription className="text-xs sm:text-sm">
+                                IBAN-formaat: BE68 5390 0754 7034
                               </FormDescription>
                               <FormMessage />
                             </FormItem>
@@ -677,7 +689,8 @@ export default function RegisterRequest() {
                               <FormControl>
                                 <Input 
                                   placeholder="Naam rekeninghouder" 
-                                  {...field} 
+                                  {...field}
+                                  className="text-sm" 
                                 />
                               </FormControl>
                               <FormMessage />
@@ -693,12 +706,13 @@ export default function RegisterRequest() {
                               <FormLabel>BIC/SWIFT-code</FormLabel>
                               <FormControl>
                                 <Input 
-                                  placeholder="BIC/SWIFT (alleen voor buitenlandse rekeningen)" 
-                                  {...field} 
+                                  placeholder="BIC/SWIFT" 
+                                  {...field}
+                                  className="text-sm" 
                                 />
                               </FormControl>
-                              <FormDescription>
-                                Alleen verplicht voor buitenlandse rekeningen.
+                              <FormDescription className="text-xs sm:text-sm">
+                                Alleen nodig voor buitenlandse rekeningen
                               </FormDescription>
                               <FormMessage />
                             </FormItem>
@@ -711,11 +725,11 @@ export default function RegisterRequest() {
                       control={form.control}
                       name="autoRenew"
                       render={({ field }) => (
-                        <FormItem className="col-span-2 flex flex-row items-center justify-between space-y-0 rounded-md border border-[#963E56]/20 bg-[#963E56]/5 p-4">
-                          <div className="space-y-0.5">
-                            <FormLabel className="text-base text-[#963E56] font-medium">Automatisch verlengen</FormLabel>
-                            <FormDescription className="text-[#963E56]/80">
-                              Het lidmaatschap wordt automatisch verlengd bij het verstrijken van de termijn
+                        <FormItem className="col-span-2 flex flex-row items-center justify-between space-y-0 rounded-lg border border-[#963E56]/20 bg-[#963E56]/5 p-3 sm:p-4 shadow-sm">
+                          <div className="space-y-0.5 pr-3">
+                            <FormLabel className="text-sm sm:text-base text-[#963E56] font-medium">Automatisch verlengen</FormLabel>
+                            <FormDescription className="text-xs sm:text-sm text-[#963E56]/80">
+                              Lidmaatschap verlengt automatisch na afloop
                             </FormDescription>
                           </div>
                           <FormControl>
@@ -739,18 +753,19 @@ export default function RegisterRequest() {
                   control={form.control}
                   name="privacyConsent"
                   render={({ field }) => (
-                    <FormItem className="flex flex-row items-start space-x-3 space-y-0 p-4 border border-gray-200 rounded-md">
+                    <FormItem className="flex flex-row items-start space-x-3 space-y-0 p-3 sm:p-4 border border-gray-200 rounded-lg shadow-sm">
                       <FormControl>
                         <Checkbox
                           checked={field.value}
                           onCheckedChange={field.onChange}
+                          className="mt-1 h-5 w-5 rounded-md data-[state=checked]:bg-[#963E56] data-[state=checked]:text-white"
                         />
                       </FormControl>
-                      <div className="space-y-1 leading-none">
-                        <FormLabel>
+                      <div className="space-y-1 leading-tight">
+                        <FormLabel className="text-sm sm:text-base">
                           Ik ga akkoord met de verwerking van mijn gegevens <span className="text-red-500">*</span>
                         </FormLabel>
-                        <FormDescription>
+                        <FormDescription className="text-xs sm:text-sm">
                           Je gegevens worden vertrouwelijk behandeld en alleen gebruikt voor het beheren van je lidmaatschap.
                         </FormDescription>
                         <FormMessage />
@@ -760,15 +775,15 @@ export default function RegisterRequest() {
                 />
                 
                 {/* Submit knop */}
-                <div className="flex justify-end">
+                <div className="flex justify-center sm:justify-end mt-4 sm:mt-2">
                   <Button 
                     type="submit" 
-                    className="w-full md:w-auto"
+                    className="w-full sm:w-auto bg-[#963E56] hover:bg-[#7d3447] text-white shadow-sm p-6 sm:p-6 h-auto font-medium text-base"
                     disabled={mutation.isPending}
                   >
                     {mutation.isPending ? (
                       <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        <Loader2 className="mr-2 h-5 w-5 animate-spin" />
                         Bezig met indienen...
                       </>
                     ) : "Verstuur aanvraag"}
