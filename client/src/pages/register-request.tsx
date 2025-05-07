@@ -13,6 +13,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
 import { nl } from "date-fns/locale";
 import { useForm } from "react-hook-form";
@@ -21,7 +23,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useState, useEffect } from "react";
-import { CalendarIcon, CheckIcon, Loader2, User } from "lucide-react";
+import { CalendarIcon, CheckIcon, Loader2, User, X } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import { cn, formatPhoneNumber } from "@/lib/utils";
@@ -174,7 +176,7 @@ export default function RegisterRequest() {
   }
   
   return (
-    <div className="min-h-screen py-6 px-3 sm:py-12 sm:px-6 lg:px-8" 
+    <div className="min-h-screen py-4 px-2 sm:py-6 sm:px-4 md:py-12 md:px-6 lg:px-8" 
          style={{
            background: "url('/pattern.jpg') center/cover fixed no-repeat, linear-gradient(135deg, rgba(245, 247, 250, 0.7), rgba(195, 207, 226, 0.7))",
            backgroundBlendMode: "overlay"
@@ -182,19 +184,19 @@ export default function RegisterRequest() {
       <div className="w-full max-w-4xl mx-auto">
         <div className="bg-white/95 shadow-xl rounded-xl overflow-hidden backdrop-blur-md">
           {/* Header in bordeauxrode stijl zoals dashboard */}
-          <div className="bg-[#963E56] p-5 sm:p-6 md:p-8 text-white rounded-t-xl">
-            <h1 className="text-xl sm:text-2xl font-bold text-center sm:text-left">
+          <div className="bg-[#963E56] p-4 sm:p-5 md:p-6 text-white rounded-t-xl">
+            <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-center">
               MEFEN Moskee Lidmaatschapsaanvraag
             </h1>
-            <p className="mt-2 opacity-90 text-sm sm:text-base text-center sm:text-left">
+            <p className="mt-1 sm:mt-2 opacity-90 text-xs sm:text-sm md:text-base text-center">
               Vul onderstaand formulier in om lid te worden
             </p>
           </div>
           
           {/* Formulier */}
-          <div className="p-4 sm:p-6 md:p-8">
+          <div className="p-3 sm:p-4 md:p-6">
             <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5 sm:space-y-6 md:space-y-8">
                 
                 {/* Sectie: Persoonsgegevens */}
                 <div className="border border-gray-200 rounded-lg p-3 sm:p-4 md:p-6 space-y-4 sm:space-y-6 shadow-sm">
@@ -211,9 +213,14 @@ export default function RegisterRequest() {
                         name="firstName"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Voornaam <span className="text-red-500">*</span></FormLabel>
+                            <FormLabel className="text-sm sm:text-base">Voornaam <span className="text-red-500">*</span></FormLabel>
                             <FormControl>
-                              <Input placeholder="Voornaam" {...field} />
+                              <Input 
+                                placeholder="Voornaam" 
+                                {...field} 
+                                className="h-10 text-sm"
+                                autoComplete="given-name"
+                              />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -227,9 +234,14 @@ export default function RegisterRequest() {
                         name="lastName"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Naam <span className="text-red-500">*</span></FormLabel>
+                            <FormLabel className="text-sm sm:text-base">Naam <span className="text-red-500">*</span></FormLabel>
                             <FormControl>
-                              <Input placeholder="Naam" {...field} />
+                              <Input 
+                                placeholder="Naam" 
+                                {...field} 
+                                className="h-10 text-sm"
+                                autoComplete="family-name"
+                              />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -244,13 +256,13 @@ export default function RegisterRequest() {
                         name="gender"
                         render={({ field }) => (
                           <FormItem className="flex flex-col">
-                            <FormLabel>Geslacht <span className="text-red-500">*</span></FormLabel>
+                            <FormLabel className="text-sm sm:text-base">Geslacht <span className="text-red-500">*</span></FormLabel>
                             <Select 
                               onValueChange={field.onChange} 
                               defaultValue={field.value}
                             >
                               <FormControl>
-                                <SelectTrigger>
+                                <SelectTrigger className="h-10 text-sm">
                                   <SelectValue placeholder="Selecteer geslacht" />
                                 </SelectTrigger>
                               </FormControl>
@@ -259,9 +271,6 @@ export default function RegisterRequest() {
                                 <SelectItem value="vrouw">Vrouw</SelectItem>
                               </SelectContent>
                             </Select>
-                            <FormDescription className="text-xs sm:text-sm">
-                              &nbsp;
-                            </FormDescription>
                             <FormMessage />
                           </FormItem>
                         )}
@@ -384,9 +393,13 @@ export default function RegisterRequest() {
                         name="nationality"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Nationaliteit</FormLabel>
+                            <FormLabel className="text-sm sm:text-base">Nationaliteit</FormLabel>
                             <FormControl>
-                              <Input placeholder="Nationaliteit" {...field} />
+                              <Input 
+                                placeholder="Nationaliteit" 
+                                {...field} 
+                                className="h-10 text-sm"
+                              />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
