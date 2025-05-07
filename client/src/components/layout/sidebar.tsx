@@ -189,12 +189,6 @@ export function Sidebar() {
                           location === item.href ? "text-primary" : "text-gray-500"
                         )
                       })}
-                      {/* Notificatie badge voor aanvragen */}
-                      {item.href === "/member-requests" && pendingCount > 0 && (
-                        <span className="absolute -top-1 -right-1 bg-[#963E56] text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                          {pendingCount > 9 ? '9+' : pendingCount}
-                        </span>
-                      )}
                     </div>
                     {!collapsed && (
                       <div className="flex items-center flex-1">
@@ -204,7 +198,12 @@ export function Sidebar() {
                         )}>
                           {item.label}
                         </span>
-                        {/* Notificatie badge verwijderd om dubbele notificatie te voorkomen */}
+                        {/* Notificatie badge naast tekst */}
+                        {item.href === "/member-requests" && pendingCount > 0 && (
+                          <span className="ml-2 bg-[#963E56] text-white text-xs rounded-full h-5 min-w-5 px-1 flex items-center justify-center">
+                            {pendingCount > 99 ? '99+' : pendingCount}
+                          </span>
+                        )}
                       </div>
                     )}
                   </Button>
