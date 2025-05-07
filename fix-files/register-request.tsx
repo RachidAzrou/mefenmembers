@@ -928,7 +928,6 @@ export default function RegisterRequest() {
                                 <FormLabel 
                                   htmlFor="privacy-consent-checkbox"
                                   className="text-base font-medium cursor-pointer"
-                                  onClick={(e) => e.preventDefault()}
                                 >
                                   Ik ga akkoord met de verwerking van mijn gegevens <span className="text-red-500">*</span>
                                 </FormLabel>
