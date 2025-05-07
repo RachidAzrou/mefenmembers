@@ -76,6 +76,7 @@ export default function MemberRequests() {
   const [showApprovalDialog, setShowApprovalDialog] = useState(false);
   const [showDetailView, setShowDetailView] = useState(false);
   const [editedRequest, setEditedRequest] = useState<MemberRequest | null>(null);
+  const [nextMemberNumber, setNextMemberNumber] = useState<string | null>(null);
   const { isAdmin } = useRole();
 
   // Ophalen van alle aanvragen
@@ -171,8 +172,31 @@ export default function MemberRequests() {
     return format(new Date(dateString), "dd/MM/yyyy", { locale: nl });
   };
 
-  const handleApprove = (request: MemberRequest) => {
+  // Ophalen van het eerstvolgende beschikbare lidnummer
+  const { data: generatedNumber } = useQuery<{ memberNumber: string }>({
+    queryKey: ["/api/members/generate-number"],
+    queryFn: getQueryFn({ on401: "throw" }),
+    enabled: false, // We roepen deze query handmatig aan
+  });
+
+  const handleApprove = async (request: MemberRequest) => {
     setSelectedRequest(request);
+    
+    try {
+      // Eerst het volgende beschikbare lidnummer ophalen
+      const response = await fetch('/api/members/generate-number');
+      if (!response.ok) throw new Error('Kon geen lidnummer genereren');
+      const data = await response.json();
+      setNextMemberNumber(data.memberNumber);
+    } catch (error) {
+      console.error('Fout bij het ophalen van lidnummer:', error);
+      toast({
+        title: "Waarschuwing",
+        description: "Kon geen lidnummer ophalen. Ga toch door met goedkeuring.",
+        variant: "destructive",
+      });
+    }
+    
     setShowApprovalDialog(true);
   };
 
@@ -689,13 +713,10 @@ export default function MemberRequests() {
 
       {/* Goedkeurings dialog */}
       <Dialog open={showApprovalDialog} onOpenChange={setShowApprovalDialog}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-2xl">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-lg">
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-green-600">
-                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-                <polyline points="22 4 12 14.01 9 11.01"></polyline>
-              </svg>
+            <DialogTitle className="flex items-center gap-2 text-lg text-[#963E56]">
+              <CheckIcon className="h-5 w-5" />
               Lidmaatschapsaanvraag goedkeuren
             </DialogTitle>
             <DialogDescription>
@@ -703,32 +724,66 @@ export default function MemberRequests() {
               Dit zal automatisch een nieuw lid aanmaken met de gegevens uit deze aanvraag.
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-4 py-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-gray-50 p-4 rounded-md border">
-              <div>
-                <p className="text-sm font-medium text-gray-500">Naam</p>
-                <p className="font-medium">{selectedRequest?.firstName} {selectedRequest?.lastName}</p>
+          
+          <div className="bg-[#963E56]/5 border border-[#963E56]/20 rounded-md p-4 my-4">
+            <div className="flex items-center gap-2 mb-2">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-[#963E56]">
+                <path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+              </svg>
+              <h3 className="font-medium text-[#963E56]">Lidmaatschapsgegevens</h3>
+            </div>
+            <p className="text-sm text-gray-600 mb-4">
+              Het volgende lidnummer wordt toegewezen: <span className="font-bold">{nextMemberNumber || "..."}</span>
+            </p>
+            
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+              <div className="bg-white p-3 rounded border">
+                <p className="text-xs font-medium text-gray-500">Naam</p>
+                <p className="font-medium truncate">{selectedRequest?.firstName} {selectedRequest?.lastName}</p>
               </div>
-              <div>
-                <p className="text-sm font-medium text-gray-500">E-mail</p>
-                <p>{selectedRequest?.email}</p>
+              
+              <div className="bg-white p-3 rounded border">
+                <p className="text-xs font-medium text-gray-500">Type lidmaatschap</p>
+                <p className="capitalize truncate">{selectedRequest?.membershipType}</p>
               </div>
-              <div>
-                <p className="text-sm font-medium text-gray-500">Telefoonnummer</p>
-                <p>{selectedRequest?.phoneNumber}</p>
+              
+              <div className="bg-white p-3 rounded border">
+                <p className="text-xs font-medium text-gray-500">Betaalstatus</p>
+                <Badge variant="outline" className="bg-amber-50 text-amber-700 hover:bg-amber-50 border-amber-200">
+                  Moet nog betalen
+                </Badge>
               </div>
-              <div>
-                <p className="text-sm font-medium text-gray-500">Type lidmaatschap</p>
-                <p className="capitalize">{selectedRequest?.membershipType}</p>
+              
+              <div className="bg-white p-3 rounded border">
+                <p className="text-xs font-medium text-gray-500">E-mail</p>
+                <p className="truncate">{selectedRequest?.email}</p>
+              </div>
+              
+              <div className="bg-white p-3 rounded border">
+                <p className="text-xs font-medium text-gray-500">Telefoonnummer</p>
+                <p className="truncate">{selectedRequest?.phoneNumber}</p>
+              </div>
+              
+              <div className="bg-white p-3 rounded border">
+                <p className="text-xs font-medium text-gray-500">Betaaltermijn</p>
+                <p className="truncate">Jaarlijks</p>
               </div>
             </div>
+            
+            <div className="mt-4 text-sm">
+              <p className="text-gray-600">
+                <strong>Belangrijk:</strong> Na goedkeuring wordt het nieuwe lid aangemaakt met betaalstatus "Niet betaald". 
+                Je kunt de betaalstatus later bijwerken op de ledenpagina.
+              </p>
+            </div>
           </div>
+          
           <DialogFooter className="gap-2">
             <Button variant="outline" onClick={() => setShowApprovalDialog(false)}>
               Annuleren
             </Button>
             <Button 
-              className="bg-green-600 hover:bg-green-700 text-white"
+              className="bg-[#963E56] hover:bg-[#7d3447] text-white"
               onClick={confirmApproval}
               disabled={approveMutation.isPending}
             >
@@ -739,10 +794,7 @@ export default function MemberRequests() {
                 </>
               ) : (
                 <>
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
-                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-                    <polyline points="22 4 12 14.01 9 11.01"></polyline>
-                  </svg>
+                  <CheckIcon className="mr-2 h-4 w-4" />
                   Goedkeuren en lid aanmaken
                 </>
               )}
@@ -753,42 +805,71 @@ export default function MemberRequests() {
 
       {/* Afwijzings dialog */}
       <Dialog open={showRejectionDialog} onOpenChange={setShowRejectionDialog}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-xl">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-lg">
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-red-600">
-                <circle cx="12" cy="12" r="10"></circle>
-                <line x1="15" y1="9" x2="9" y2="15"></line>
-                <line x1="9" y1="9" x2="15" y2="15"></line>
-              </svg>
+            <DialogTitle className="flex items-center gap-2 text-lg text-[#963E56]">
+              <XIcon className="h-5 w-5" />
               Lidmaatschapsaanvraag afwijzen
             </DialogTitle>
             <DialogDescription>
               Je staat op het punt om de aanvraag van <span className="font-medium">{selectedRequest?.firstName} {selectedRequest?.lastName}</span> af te wijzen.
-              Geef hieronder een reden voor de afwijzing.
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-4 py-4">
-            <Label htmlFor="rejection-reason" className="text-sm font-medium">
-              Reden van afwijzing
-            </Label>
-            <Textarea 
-              id="rejection-reason"
-              value={rejectionReason}
-              onChange={(e) => setRejectionReason(e.target.value)}
-              placeholder="Beschrijf waarom deze aanvraag is afgewezen..."
-              className="min-h-[120px]"
-            />
+          
+          <div className="bg-[#963E56]/5 border border-[#963E56]/20 rounded-md p-4 my-4">
+            <div className="flex items-center gap-2 mb-2">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-[#963E56]">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="15" y1="9" x2="9" y2="15"></line>
+                <line x1="9" y1="9" x2="15" y2="15"></line>
+              </svg>
+              <h3 className="font-medium text-[#963E56]">Reden voor afwijzing</h3>
+            </div>
+            
+            <div className="mt-2">
+              <p className="text-sm text-gray-600 mb-2">
+                Geef een duidelijke reden voor de afwijzing. Deze informatie is alleen voor intern gebruik.
+              </p>
+              <Textarea 
+                id="rejection-reason"
+                value={rejectionReason}
+                onChange={(e) => setRejectionReason(e.target.value)}
+                placeholder="Beschrijf waarom deze aanvraag is afgewezen..."
+                className="min-h-[120px] w-full border-gray-300"
+              />
+            </div>
+            
+            <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="bg-white p-3 rounded border">
+                <p className="text-xs font-medium text-gray-500">Naam</p>
+                <p className="font-medium truncate">{selectedRequest?.firstName} {selectedRequest?.lastName}</p>
+              </div>
+              
+              <div className="bg-white p-3 rounded border">
+                <p className="text-xs font-medium text-gray-500">Type lidmaatschap</p>
+                <p className="capitalize truncate">{selectedRequest?.membershipType}</p>
+              </div>
+              
+              <div className="bg-white p-3 rounded border">
+                <p className="text-xs font-medium text-gray-500">E-mail</p>
+                <p className="truncate">{selectedRequest?.email}</p>
+              </div>
+              
+              <div className="bg-white p-3 rounded border">
+                <p className="text-xs font-medium text-gray-500">Aanvraagdatum</p>
+                <p className="truncate">{selectedRequest?.requestDate ? formatDate(selectedRequest.requestDate) : 'N/A'}</p>
+              </div>
+            </div>
           </div>
+          
           <DialogFooter className="gap-2">
             <Button variant="outline" onClick={() => setShowRejectionDialog(false)}>
               Annuleren
             </Button>
             <Button 
-              variant="destructive"
+              className="bg-[#963E56] hover:bg-[#7d3447] text-white"
               onClick={confirmRejection}
               disabled={rejectMutation.isPending || !rejectionReason.trim()}
-              className="bg-red-600 hover:bg-red-700"
             >
               {rejectMutation.isPending ? (
                 <>
@@ -797,11 +878,7 @@ export default function MemberRequests() {
                 </>
               ) : (
                 <>
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
-                    <circle cx="12" cy="12" r="10"></circle>
-                    <line x1="15" y1="9" x2="9" y2="15"></line>
-                    <line x1="9" y1="9" x2="15" y2="15"></line>
-                  </svg>
+                  <XIcon className="mr-2 h-4 w-4" />
                   Aanvraag afwijzen
                 </>
               )}
