@@ -692,36 +692,25 @@ export default function Rapportage() {
               <CardContent>
                 <div className="h-64 w-full">
                   <ResponsiveContainer width="100%" height="100%">
-                    <RadarChart outerRadius={80} data={membersByGender}>
-                      <PolarGrid stroke="#e5e7eb" />
-                      <PolarAngleAxis 
-                        dataKey="name" 
-                        tick={{ fill: '#4B5563', fontSize: 12 }}
-                      />
-                      <PolarRadiusAxis 
-                        angle={30} 
-                        domain={[0, 'auto']} 
-                        stroke="#9CA3AF"
-                        tick={{ fill: '#4B5563', fontSize: 10 }}
-                      />
-                      <Radar 
-                        name="Aantal leden" 
+                    <PieChart>
+                      <Pie 
+                        data={membersByGender} 
                         dataKey="count" 
-                        stroke={membersByGender[0].color}
-                        fill={membersByGender[0].color}
-                        fillOpacity={0.6} 
-                      />
-                      <Radar 
-                        name="Aantal leden" 
-                        dataKey="count" 
-                        stroke={membersByGender[1].color}
-                        fill={membersByGender[1].color}
-                        fillOpacity={0.6} 
-                      />
+                        nameKey="name"
+                        cx="50%" 
+                        cy="50%" 
+                        outerRadius={80}
+                        labelLine={true}
+                        label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                      >
+                        {membersByGender.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={entry.color} />
+                        ))}
+                      </Pie>
                       <RechartsTooltip 
                         formatter={(value, name) => [
                           `${value} leden (${Math.round(value / (members?.length || 1) * 100)}%)`,
-                          name === "count" ? "Aantal" : name
+                          name
                         ]}
                         contentStyle={{ 
                           backgroundColor: 'rgba(255,255,255,0.95)', 
@@ -730,8 +719,11 @@ export default function Rapportage() {
                           border: 'none' 
                         }}
                       />
-                      <Legend wrapperStyle={{ paddingTop: 10 }} />
-                    </RadarChart>
+                      <Legend 
+                        wrapperStyle={{ paddingTop: 10 }}
+                        formatter={(value, entry) => <span style={{ color: '#4B5563' }}>{value}</span>}
+                      />
+                    </PieChart>
                   </ResponsiveContainer>
                 </div>
               </CardContent>
@@ -748,17 +740,26 @@ export default function Rapportage() {
               <CardContent>
                 <div className="h-64 w-full">
                   <ResponsiveContainer width="100%" height="100%">
-                    <ComposedChart
-                      data={membersByPaymentStatus}
-                      margin={{ top: 20, right: 20, bottom: 20, left: 20 }}
-                    >
-                      <CartesianGrid stroke="#f5f5f5" />
-                      <XAxis dataKey="name" scale="band" />
-                      <YAxis />
-                      <RechartsTooltip
+                    <PieChart>
+                      <Pie 
+                        data={membersByPaymentStatus} 
+                        dataKey="value" 
+                        nameKey="name"
+                        cx="50%" 
+                        cy="50%" 
+                        outerRadius={80}
+                        innerRadius={40}
+                        labelLine={true}
+                        label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                      >
+                        {membersByPaymentStatus.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={entry.color} />
+                        ))}
+                      </Pie>
+                      <RechartsTooltip 
                         formatter={(value, name) => [
                           `${value} leden (${Math.round(value / (members?.length || 1) * 100)}%)`,
-                          name === "value" ? "Aantal" : name
+                          name
                         ]}
                         contentStyle={{ 
                           backgroundColor: 'rgba(255,255,255,0.95)', 
@@ -767,21 +768,10 @@ export default function Rapportage() {
                           border: 'none' 
                         }}
                       />
-                      <Legend wrapperStyle={{ paddingTop: 10 }} />
-                      <Bar dataKey="value" name="Aantal leden" barSize={30} radius={[4, 4, 0, 0]}>
-                        {membersByPaymentStatus.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={entry.color} />
-                        ))}
-                      </Bar>
-                      <Line 
-                        type="monotone" 
-                        dataKey="value" 
-                        stroke="#7209B7" 
-                        name="Trend" 
-                        strokeWidth={2}
-                        activeDot={{ r: 6, fill: "#7209B7", stroke: "white", strokeWidth: 2 }}
+                      <Legend 
+                        wrapperStyle={{ paddingTop: 10 }} 
                       />
-                    </ComposedChart>
+                    </PieChart>
                   </ResponsiveContainer>
                 </div>
               </CardContent>
