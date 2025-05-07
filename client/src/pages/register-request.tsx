@@ -56,7 +56,7 @@ const registrationSchema = z.object({
   city: z.string().optional(),
   
   // Lidmaatschap
-  membershipType: z.enum(["standaard", "student", "senior"]).default("standaard"),
+  membershipTypes: z.array(z.string()).min(1, "Selecteer minstens één type lidmaatschap"),
   paymentTerm: z.enum(["maandelijks", "driemaandelijks", "jaarlijks"]).default("jaarlijks"),
   paymentMethod: z.enum(["cash", "domiciliering", "overschrijving", "bancontact"]).default("cash"),
   autoRenew: z.boolean().default(true),
@@ -100,7 +100,7 @@ export default function RegisterRequest() {
       lastName: "",
       email: "",
       phoneNumber: "",
-      membershipType: "standaard",
+      membershipTypes: ["standaard"],
       paymentTerm: "jaarlijks",
       paymentMethod: "cash",
       autoRenew: true,
@@ -590,25 +590,75 @@ export default function RegisterRequest() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <FormField
                       control={form.control}
-                      name="membershipType"
+                      name="membershipTypes"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="text-sm sm:text-base">Type lidmaatschap</FormLabel>
-                          <Select 
-                            onValueChange={field.onChange} 
-                            defaultValue={field.value}
-                          >
-                            <FormControl>
-                              <SelectTrigger className="text-sm h-10">
-                                <SelectValue placeholder="Selecteer type" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              <SelectItem value="standaard">Standaard</SelectItem>
-                              <SelectItem value="student">Student</SelectItem>
-                              <SelectItem value="senior">Senior</SelectItem>
-                            </SelectContent>
-                          </Select>
+                          <FormLabel className="text-sm sm:text-base">Type lidmaatschap <span className="text-red-500">*</span></FormLabel>
+                          <FormDescription className="text-xs sm:text-sm">
+                            Selecteer één of meerdere types
+                          </FormDescription>
+                          <div className="space-y-3 mt-1">
+                            <div className="flex flex-wrap gap-2">
+                              {field.value.map((type) => (
+                                <Badge 
+                                  key={type} 
+                                  variant="secondary"
+                                  className="bg-[#963E56]/10 text-[#963E56] hover:bg-[#963E56]/20 gap-1 pl-2 h-8"
+                                >
+                                  {type === "standaard" ? "Standaard" : 
+                                   type === "student" ? "Student" : 
+                                   type === "senior" ? "Senior" : type}
+                                  <X 
+                                    className="h-3.5 w-3.5 cursor-pointer rounded-full" 
+                                    onClick={() => {
+                                      field.onChange(field.value.filter(t => t !== type));
+                                    }}
+                                  />
+                                </Badge>
+                              ))}
+                            </div>
+                            <Card className="border border-gray-200">
+                              <CardContent className="p-3 grid grid-cols-1 sm:grid-cols-3 gap-2">
+                                {["standaard", "student", "senior"].map((type) => {
+                                  const isSelected = field.value.includes(type);
+                                  return (
+                                    <div 
+                                      key={type}
+                                      className={`flex items-center space-x-2 rounded-md border p-2 ${
+                                        isSelected 
+                                          ? "border-[#963E56]/50 bg-[#963E56]/5" 
+                                          : "border-gray-200 hover:bg-gray-100"
+                                      }`}
+                                      onClick={() => {
+                                        if (isSelected) {
+                                          field.onChange(field.value.filter(t => t !== type));
+                                        } else {
+                                          field.onChange([...field.value, type]);
+                                        }
+                                      }}
+                                    >
+                                      <Checkbox 
+                                        checked={isSelected}
+                                        className="data-[state=checked]:bg-[#963E56] data-[state=checked]:border-[#963E56]"
+                                        onCheckedChange={(checked) => {
+                                          if (checked) {
+                                            field.onChange([...field.value, type]);
+                                          } else {
+                                            field.onChange(field.value.filter(t => t !== type));
+                                          }
+                                        }}
+                                      />
+                                      <span className="text-sm">
+                                        {type === "standaard" ? "Standaard" : 
+                                         type === "student" ? "Student" : 
+                                         type === "senior" ? "Senior" : type}
+                                      </span>
+                                    </div>
+                                  )
+                                })}
+                              </CardContent>
+                            </Card>
+                          </div>
                           <FormMessage />
                         </FormItem>
                       )}
