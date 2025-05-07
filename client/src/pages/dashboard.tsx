@@ -369,8 +369,8 @@ export default function Dashboard() {
               ) : (
                 <>
                   {/* Stemgerechtigden statistieken */}
-                  <div className="flex items-center p-4 rounded-lg bg-gray-50">
-                    <div className="flex items-center gap-4">
+                  <Link href="/members?voting=true">
+                    <div className="flex items-center gap-4 p-4 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors cursor-pointer">
                       <div className="bg-[#963E56]/20 p-3 rounded-full">
                         <UserCheck className="h-5 w-5 text-[#963E56]" />
                       </div>
@@ -408,7 +408,7 @@ export default function Dashboard() {
                         </div>
                       </div>
                     </div>
-                  </div>
+                  </Link>
                   
                   {/* Voortgangsindicator voor stemgerechtigden */}
                   <div className="space-y-2">
@@ -563,56 +563,64 @@ export default function Dashboard() {
               ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   {/* Tieners (13-17) */}
-                  <div className="flex items-center gap-4 p-4 rounded-lg bg-gray-50">
-                    <div className="bg-yellow-100 p-3 rounded-full">
-                      <Backpack className="h-5 w-5 text-yellow-600" />
-                    </div>
-                    <div>
-                      <div className="text-sm text-gray-500">13-17 jaar</div>
-                      <div className="font-medium">
-                        {teenagers} leden
+                  <Link href="/members?age_range=13-17">
+                    <div className="flex items-center gap-4 p-4 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors cursor-pointer">
+                      <div className="bg-yellow-100 p-3 rounded-full">
+                        <Backpack className="h-5 w-5 text-yellow-600" />
+                      </div>
+                      <div>
+                        <div className="text-sm text-gray-500">13-17 jaar</div>
+                        <div className="font-medium">
+                          {teenagers} leden
+                        </div>
                       </div>
                     </div>
-                  </div>
+                  </Link>
                   
                   {/* Jongvolwassenen (18-24) */}
-                  <div className="flex items-center gap-4 p-4 rounded-lg bg-gray-50">
-                    <div className="bg-green-100 p-3 rounded-full">
-                      <GraduationCap className="h-5 w-5 text-green-600" />
-                    </div>
-                    <div>
-                      <div className="text-sm text-gray-500">18-24 jaar</div>
-                      <div className="font-medium">
-                        {youngAdults} leden
+                  <Link href="/members?age_range=18-24">
+                    <div className="flex items-center gap-4 p-4 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors cursor-pointer">
+                      <div className="bg-green-100 p-3 rounded-full">
+                        <GraduationCap className="h-5 w-5 text-green-600" />
+                      </div>
+                      <div>
+                        <div className="text-sm text-gray-500">18-24 jaar</div>
+                        <div className="font-medium">
+                          {youngAdults} leden
+                        </div>
                       </div>
                     </div>
-                  </div>
+                  </Link>
                   
                   {/* Volwassenen (25-64) */}
-                  <div className="flex items-center gap-4 p-4 rounded-lg bg-gray-50">
-                    <div className="bg-blue-100 p-3 rounded-full">
-                      <Briefcase className="h-5 w-5 text-blue-600" />
-                    </div>
-                    <div>
-                      <div className="text-sm text-gray-500">25-64 jaar</div>
-                      <div className="font-medium">
-                        {adults} leden
+                  <Link href="/members?age_range=25-64">
+                    <div className="flex items-center gap-4 p-4 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors cursor-pointer">
+                      <div className="bg-blue-100 p-3 rounded-full">
+                        <Briefcase className="h-5 w-5 text-blue-600" />
+                      </div>
+                      <div>
+                        <div className="text-sm text-gray-500">25-64 jaar</div>
+                        <div className="font-medium">
+                          {adults} leden
+                        </div>
                       </div>
                     </div>
-                  </div>
+                  </Link>
                   
                   {/* Senioren (65+) */}
-                  <div className="flex items-center gap-4 p-4 rounded-lg bg-gray-50">
-                    <div className="bg-purple-100 p-3 rounded-full">
-                      <Glasses className="h-5 w-5 text-purple-600" />
-                    </div>
-                    <div>
-                      <div className="text-sm text-gray-500">65+ jaar</div>
-                      <div className="font-medium">
-                        {elderly} leden
+                  <Link href="/members?age_range=65">
+                    <div className="flex items-center gap-4 p-4 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors cursor-pointer">
+                      <div className="bg-purple-100 p-3 rounded-full">
+                        <Glasses className="h-5 w-5 text-purple-600" />
+                      </div>
+                      <div>
+                        <div className="text-sm text-gray-500">65+ jaar</div>
+                        <div className="font-medium">
+                          {elderly} leden
+                        </div>
                       </div>
                     </div>
-                  </div>
+                  </Link>
                 </div>
               )}
             </div>
