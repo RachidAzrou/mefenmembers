@@ -691,7 +691,7 @@ export default function MembersList() {
               textColor = "text-purple-700";
             }
           } else if (params.has("voting") && params.get("voting") === "true") {
-            filterText = "Filter: Stemgerechtigde leden (18+)";
+            filterText = "Filter: Stemgerechtigd (18+)";
             filterIcon = <UserCheck className="h-4 w-4 mr-1" />;
             bgColor = "bg-[#963E56]/20";
             textColor = "text-[#963E56]";
