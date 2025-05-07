@@ -510,9 +510,9 @@ export default function RegisterRequest() {
                       <h2 className="text-lg sm:text-xl font-semibold">Contactgegevens</h2>
                     </div>
                     
-                    <div className="grid grid-cols-1 gap-5 sm:gap-6">
-                      {/* Email en telefoon altijd onder elkaar (ook op desktop) */}
-                      <div className="space-y-5 sm:space-y-6">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 sm:gap-6">
+                      {/* Email en telefoon naast elkaar op grote schermen, maar onder elkaar op mobiel */}
+                      <div>
                         <FormField
                           control={form.control}
                           name="email"
@@ -533,7 +533,9 @@ export default function RegisterRequest() {
                             </FormItem>
                           )}
                         />
-                        
+                      </div>
+                      
+                      <div>
                         <FormField
                           control={form.control}
                           name="phoneNumber"
@@ -569,10 +571,8 @@ export default function RegisterRequest() {
                         />
                       </div>
                       
-                      {/* Adres velden */}
-                      
-                      {/* Straat */}
-                      <div className="col-span-2 md:col-span-1">
+                      {/* Adres velden (allemaal op volle breedte) */}
+                      <div className="col-span-1 sm:col-span-2">
                         <FormField
                           control={form.control}
                           name="street"
@@ -594,7 +594,7 @@ export default function RegisterRequest() {
                       </div>
                       
                       {/* Huisnummer en Bus op één rij */}
-                      <div className="col-span-2 md:col-span-1 grid grid-cols-2 gap-3 sm:gap-4">
+                      <div className="sm:col-span-1 grid grid-cols-2 gap-3 sm:gap-4">
                         <FormField
                           control={form.control}
                           name="houseNumber"
@@ -633,8 +633,8 @@ export default function RegisterRequest() {
                         />
                       </div>
                       
-                      {/* Postcode en Plaats naast elkaar op mobiel */}
-                      <div className="col-span-2 grid grid-cols-2 gap-3 sm:gap-4">
+                      {/* Postcode en Plaats naast elkaar */}
+                      <div className="sm:col-span-1 grid grid-cols-2 gap-3 sm:gap-4">
                         <FormField
                           control={form.control}
                           name="postalCode"
