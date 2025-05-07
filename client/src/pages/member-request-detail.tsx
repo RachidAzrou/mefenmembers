@@ -1,23 +1,14 @@
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Switch } from "@/components/ui/switch";
-import { Textarea } from "@/components/ui/textarea";
+import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Calendar } from "@/components/ui/calendar";
-import { ArrowLeft, Calendar as CalendarIcon, Save, Loader2, CheckCircle2, XCircle } from "lucide-react";
+import { ArrowLeft, Loader2, CheckCircle2, XCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useParams, useLocation } from "wouter";
 import { format } from "date-fns";
 import { nl } from "date-fns/locale";
-import { useState, useEffect } from "react";
-import { cn } from "@/lib/utils";
+import { useState } from "react";
 
 interface MemberRequest {
   id: number;
@@ -58,9 +49,6 @@ export default function MemberRequestDetail() {
   const [, setLocation] = useLocation();
   const { id } = useParams<{ id: string }>();
   const { toast } = useToast();
-  const [isEditing, setIsEditing] = useState(false);
-  const [editedRequest, setEditedRequest] = useState<Partial<MemberRequest> | null>(null);
-  const [birthDate, setBirthDate] = useState<Date | undefined>(undefined);
 
   // Fetch member request data
   const { data: request, isLoading, error } = useQuery({
@@ -72,47 +60,13 @@ export default function MemberRequestDetail() {
     },
     enabled: !!id,
   });
-  
-  // Update birthDate when request data is loaded
-  useEffect(() => {
-    if (request?.birthDate) {
-      setBirthDate(new Date(request.birthDate));
-    }
-  }, [request]);
-
-  // Update member request
-  const updateMutation = useMutation({
-    mutationFn: async (data: Partial<MemberRequest>) => {
-      const res = await apiRequest("PUT", "/api/member-requests/status", { 
-        id: Number(id),
-        ...data 
-      });
-      return await res.json();
-    },
-    onSuccess: () => {
-      toast({
-        title: "Wijzigingen opgeslagen",
-        description: "De aanvraag is succesvol bijgewerkt.",
-      });
-      setIsEditing(false);
-      setEditedRequest(null);
-      queryClient.invalidateQueries({ queryKey: ["/api/member-requests"] });
-    },
-    onError: (error: Error) => {
-      toast({
-        title: "Fout bij opslaan",
-        description: error.message,
-        variant: "destructive",
-      });
-    },
-  });
 
   // Approve member request
   const approveMutation = useMutation({
     mutationFn: async () => {
       const res = await apiRequest("POST", "/api/member-requests/approve", { 
         id: Number(id),
-        processedBy: 1 // Hard-coded user ID, in a real app this would be the current user
+        processedBy: 1 // Hard-coded user ID
       });
       return await res.json();
     },
@@ -163,30 +117,13 @@ export default function MemberRequestDetail() {
     },
   });
 
-  // Handle form submission
-  const handleSave = () => {
-    if (editedRequest) {
-      // Include birthDate in the update if it was changed
-      const updatedData: Partial<MemberRequest> = {
-        ...editedRequest
-      };
-      
-      if (birthDate && (!request?.birthDate || new Date(request.birthDate).getTime() !== birthDate.getTime())) {
-        updatedData.birthDate = birthDate.toISOString();
-      }
-      
-      updateMutation.mutate(updatedData);
-    }
-  };
-
-  // Handle approve
   const handleApprove = () => {
     approveMutation.mutate();
   };
 
-  // Handle reject (with confirmation dialog)
-  const handleReject = (rejectionReason: string) => {
-    rejectMutation.mutate(rejectionReason);
+  const handleReject = () => {
+    const reason = prompt("Reden voor afwijzing:");
+    if (reason) rejectMutation.mutate(reason);
   };
 
   if (isLoading) {
@@ -272,456 +209,179 @@ export default function MemberRequestDetail() {
           {/* Actiebuttons voor penderende aanvragen */}
           {request.status === "pending" && (
             <div className="flex justify-end gap-3 mx-6 my-4">
-              {isEditing ? (
-                <>
-                  <Button
-                    variant="outline"
-                    onClick={() => {
-                      setIsEditing(false);
-                      setEditedRequest(null);
-                    }}
-                  >
-                    Annuleren
-                  </Button>
-                  <Button
-                    className="bg-[#963E56] hover:bg-[#7d3447] text-white"
-                    onClick={handleSave}
-                    disabled={updateMutation.isPending}
-                  >
-                    {updateMutation.isPending ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Bezig...
-                      </>
-                    ) : (
-                      <>
-                        <Save className="mr-2 h-4 w-4" />
-                        Opslaan
-                      </>
-                    )}
-                  </Button>
-                </>
-              ) : (
-                <>
-                  <Button
-                    variant="outline"
-                    className="border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700 hover:border-red-300"
-                    onClick={() => {
-                      const reason = prompt("Reden voor afwijzing:")
-                      if (reason) handleReject(reason);
-                    }}
-                    disabled={rejectMutation.isPending}
-                  >
-                    {rejectMutation.isPending ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Bezig...
-                      </>
-                    ) : (
-                      <>
-                        <XCircle className="mr-2 h-4 w-4" />
-                        Afwijzen
-                      </>
-                    )}
-                  </Button>
-                  <Button
-                    className="bg-green-600 hover:bg-green-700 text-white"
-                    onClick={handleApprove}
-                    disabled={approveMutation.isPending}
-                  >
-                    {approveMutation.isPending ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Bezig...
-                      </>
-                    ) : (
-                      <>
-                        <CheckCircle2 className="mr-2 h-4 w-4" />
-                        Goedkeuren
-                      </>
-                    )}
-                  </Button>
-                  <Button
-                    variant="default"
-                    className="bg-[#963E56] hover:bg-[#7d3447] text-white"
-                    onClick={() => setIsEditing(true)}
-                  >
-                    Bewerken
-                  </Button>
-                </>
-              )}
+              <Button
+                variant="outline"
+                className="border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700 hover:border-red-300"
+                onClick={handleReject}
+                disabled={rejectMutation.isPending}
+              >
+                {rejectMutation.isPending ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Bezig...
+                  </>
+                ) : (
+                  <>
+                    <XCircle className="mr-2 h-4 w-4" />
+                    Afwijzen
+                  </>
+                )}
+              </Button>
+              <Button
+                className="bg-green-600 hover:bg-green-700 text-white"
+                onClick={handleApprove}
+                disabled={approveMutation.isPending}
+              >
+                {approveMutation.isPending ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Bezig...
+                  </>
+                ) : (
+                  <>
+                    <CheckCircle2 className="mr-2 h-4 w-4" />
+                    Goedkeuren
+                  </>
+                )}
+              </Button>
             </div>
           )}
           
-          {/* Formulier */}
+          {/* Formulier (alleen weergeven, niet bewerken) */}
           <div className="p-4 sm:p-6">
             <div className="space-y-6 sm:space-y-8">
-              
-              {/* Sectie: Persoonsgegevens */}
-              <div className="border border-gray-200 rounded-lg p-4 sm:p-5 md:p-6 space-y-5 sm:space-y-6 shadow-sm">
-                <div className="flex items-center gap-3 mb-3 sm:mb-4">
-                  <div className="h-8 w-8 rounded-full bg-[#963E56] text-white flex items-center justify-center font-semibold text-base">1</div>
-                  <h2 className="text-lg sm:text-xl font-semibold">Persoonsgegevens</h2>
-                </div>
-                
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 sm:gap-6">
-                  {/* Rij 1: Voornaam en Achternaam */}
+              {/* Persoonsgegevens */}
+              <Card className="p-4 sm:p-6 border-gray-200 shadow-sm">
+                <h2 className="text-lg sm:text-xl font-semibold text-[#963E56] mb-4">
+                  Persoonsgegevens
+                </h2>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="firstName" className="text-sm sm:text-base">
-                      Voornaam <span className="text-red-500">*</span>
-                    </Label>
-                    <Input
-                      id="firstName"
-                      value={editedRequest?.firstName ?? request.firstName}
-                      onChange={(e) => setEditedRequest({ ...editedRequest || {}, firstName: e.target.value })}
-                      className="mt-1 h-10"
-                      disabled={!isEditing || isProcessed}
-                    />
+                    <p className="text-sm font-medium text-gray-500">Naam</p>
+                    <p className="mt-1">{request.firstName} {request.lastName}</p>
                   </div>
-                  
                   <div>
-                    <Label htmlFor="lastName" className="text-sm sm:text-base">
-                      Naam <span className="text-red-500">*</span>
-                    </Label>
-                    <Input
-                      id="lastName"
-                      value={editedRequest?.lastName ?? request.lastName}
-                      onChange={(e) => setEditedRequest({ ...editedRequest || {}, lastName: e.target.value })}
-                      className="mt-1 h-10"
-                      disabled={!isEditing || isProcessed}
-                    />
+                    <p className="text-sm font-medium text-gray-500">Geslacht</p>
+                    <p className="mt-1">{request.gender === "man" ? "Man" : request.gender === "vrouw" ? "Vrouw" : "-"}</p>
                   </div>
-                  
-                  {/* Rij 2: Geslacht en Geboortedatum */}
                   <div>
-                    <Label htmlFor="gender" className="text-sm sm:text-base">
-                      Geslacht <span className="text-red-500">*</span>
-                    </Label>
-                    <Select
-                      value={editedRequest?.gender ?? request.gender || ""}
-                      onValueChange={(value) => setEditedRequest({ ...editedRequest || {}, gender: value })}
-                      disabled={!isEditing || isProcessed}
-                    >
-                      <SelectTrigger id="gender" className="h-10">
-                        <SelectValue placeholder="Selecteer geslacht" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="man">Man</SelectItem>
-                        <SelectItem value="vrouw">Vrouw</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    <p className="text-sm font-medium text-gray-500">Geboortedatum</p>
+                    <p className="mt-1">{formatDate(request.birthDate)}</p>
                   </div>
-                  
                   <div>
-                    <Label htmlFor="birthDate" className="text-sm sm:text-base">
-                      Geboortedatum <span className="text-red-500">*</span>
-                    </Label>
-                    <div className="relative mt-1">
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <Button
-                            variant={"outline"}
-                            className={cn(
-                              "w-full h-10 justify-start text-left font-normal",
-                              !birthDate && "text-muted-foreground"
-                            )}
-                            disabled={!isEditing || isProcessed}
-                          >
-                            <CalendarIcon className="mr-2 h-4 w-4" />
-                            {birthDate ? format(birthDate, "dd/MM/yyyy", { locale: nl }) : <span>Selecteer datum</span>}
-                          </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0">
-                          <Calendar
-                            mode="single"
-                            selected={birthDate}
-                            onSelect={setBirthDate}
-                            initialFocus
-                            disabled={(date) => date > new Date()}
-                            locale={nl}
-                          />
-                        </PopoverContent>
-                      </Popover>
-                    </div>
-                  </div>
-                  
-                  {/* Nationaliteit */}
-                  <div>
-                    <Label htmlFor="nationality" className="text-sm sm:text-base">
-                      Nationaliteit
-                    </Label>
-                    <Input
-                      id="nationality"
-                      value={editedRequest?.nationality ?? request.nationality || ""}
-                      onChange={(e) => setEditedRequest({ ...editedRequest || {}, nationality: e.target.value })}
-                      className="mt-1 h-10"
-                      disabled={!isEditing || isProcessed}
-                    />
+                    <p className="text-sm font-medium text-gray-500">Nationaliteit</p>
+                    <p className="mt-1">{request.nationality || "-"}</p>
                   </div>
                 </div>
-              </div>
-              
-              {/* Sectie: Contactgegevens */}
-              <div className="border border-gray-200 rounded-lg p-4 sm:p-5 md:p-6 space-y-5 sm:space-y-6 shadow-sm">
-                <div className="flex items-center gap-3 mb-3 sm:mb-4">
-                  <div className="h-8 w-8 rounded-full bg-[#963E56] text-white flex items-center justify-center font-semibold text-base">2</div>
-                  <h2 className="text-lg sm:text-xl font-semibold">Contactgegevens</h2>
+              </Card>
+
+              {/* Contactgegevens */}
+              <Card className="p-4 sm:p-6 border-gray-200 shadow-sm">
+                <h2 className="text-lg sm:text-xl font-semibold text-[#963E56] mb-4">
+                  Contactgegevens
+                </h2>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-sm font-medium text-gray-500">E-mailadres</p>
+                    <p className="mt-1">{request.email}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-gray-500">Telefoonnummer</p>
+                    <p className="mt-1">{request.phoneNumber}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-gray-500">Adres</p>
+                    <p className="mt-1">
+                      {request.street ? (
+                        <>
+                          {request.street} {request.houseNumber}
+                          {request.busNumber ? ` bus ${request.busNumber}` : ""}<br />
+                          {request.postalCode} {request.city}
+                        </>
+                      ) : (
+                        "-"
+                      )}
+                    </p>
+                  </div>
                 </div>
-                
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 sm:gap-6">
+              </Card>
+
+              {/* Lidmaatschap */}
+              <Card className="p-4 sm:p-6 border-gray-200 shadow-sm">
+                <h2 className="text-lg sm:text-xl font-semibold text-[#963E56] mb-4">
+                  Lidmaatschapsgegevens
+                </h2>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="email" className="text-sm sm:text-base">
-                      E-mailadres <span className="text-red-500">*</span>
-                    </Label>
-                    <Input
-                      id="email"
-                      type="email"
-                      value={editedRequest?.email ?? request.email}
-                      onChange={(e) => setEditedRequest({ ...editedRequest || {}, email: e.target.value })}
-                      className="mt-1 h-10"
-                      disabled={!isEditing || isProcessed}
-                    />
+                    <p className="text-sm font-medium text-gray-500">Type lidmaatschap</p>
+                    <p className="mt-1">
+                      {request.membershipType === "standaard" ? "Standaard" : 
+                       request.membershipType === "student" ? "Student" : 
+                       request.membershipType === "senior" ? "Senior" : "-"}
+                    </p>
                   </div>
-                  
                   <div>
-                    <Label htmlFor="phoneNumber" className="text-sm sm:text-base">
-                      Telefoonnummer <span className="text-red-500">*</span>
-                    </Label>
-                    <Input
-                      id="phoneNumber"
-                      value={editedRequest?.phoneNumber ?? request.phoneNumber}
-                      onChange={(e) => setEditedRequest({ ...editedRequest || {}, phoneNumber: e.target.value })}
-                      className="mt-1 h-10"
-                      disabled={!isEditing || isProcessed}
-                    />
+                    <p className="text-sm font-medium text-gray-500">Betaalwijze</p>
+                    <p className="mt-1">
+                      {request.paymentMethod === "cash" ? "Cash" : 
+                       request.paymentMethod === "bancontact" ? "Bancontact" : 
+                       request.paymentMethod === "overschrijving" ? "Overschrijving" : 
+                       request.paymentMethod === "domiciliering" ? "Domiciliëring" : "Overschrijving (standaard)"}
+                    </p>
                   </div>
-                  
-                  {/* Adres */}
                   <div>
-                    <Label htmlFor="street" className="text-sm sm:text-base">
-                      Straat
-                    </Label>
-                    <Input
-                      id="street"
-                      value={editedRequest?.street ?? request.street || ""}
-                      onChange={(e) => setEditedRequest({ ...editedRequest || {}, street: e.target.value })}
-                      className="mt-1 h-10"
-                      disabled={!isEditing || isProcessed}
-                    />
+                    <p className="text-sm font-medium text-gray-500">Betalingstermijn</p>
+                    <p className="mt-1">
+                      {request.paymentTerm === "maandelijks" ? "Maandelijks" : 
+                       request.paymentTerm === "driemaandelijks" ? "Driemaandelijks" : 
+                       request.paymentTerm === "jaarlijks" ? "Jaarlijks" : "Jaarlijks (standaard)"}
+                    </p>
                   </div>
-                  
-                  <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <p className="text-sm font-medium text-gray-500">Automatisch verlengen</p>
+                    <p className="mt-1">
+                      {request.autoRenew === true ? "Ja" : 
+                       request.autoRenew === false ? "Nee" : 
+                       "Ja (standaard)"}
+                    </p>
+                  </div>
+                </div>
+              </Card>
+
+              {/* Bankgegevens (alleen weergeven bij domiciliëring) */}
+              {request.paymentMethod === "domiciliering" && (
+                <Card className="p-4 sm:p-6 border-gray-200 shadow-sm">
+                  <h2 className="text-lg sm:text-xl font-semibold text-[#963E56] mb-4">
+                    Bankgegevens
+                  </h2>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                      <Label htmlFor="houseNumber" className="text-sm sm:text-base">
-                        Huisnummer
-                      </Label>
-                      <Input
-                        id="houseNumber"
-                        value={editedRequest?.houseNumber ?? request.houseNumber || ""}
-                        onChange={(e) => setEditedRequest({ ...editedRequest || {}, houseNumber: e.target.value })}
-                        className="mt-1 h-10"
-                        disabled={!isEditing || isProcessed}
-                      />
+                      <p className="text-sm font-medium text-gray-500">IBAN Rekeningnummer</p>
+                      <p className="mt-1">{request.accountNumber || "-"}</p>
                     </div>
-                    
                     <div>
-                      <Label htmlFor="busNumber" className="text-sm sm:text-base">
-                        Bus
-                      </Label>
-                      <Input
-                        id="busNumber"
-                        value={editedRequest?.busNumber ?? request.busNumber || ""}
-                        onChange={(e) => setEditedRequest({ ...editedRequest || {}, busNumber: e.target.value })}
-                        className="mt-1 h-10"
-                        disabled={!isEditing || isProcessed}
-                      />
+                      <p className="text-sm font-medium text-gray-500">Naam rekeninghouder</p>
+                      <p className="mt-1">{request.accountHolderName || "-"}</p>
                     </div>
+                    {request.bicSwift && (
+                      <div>
+                        <p className="text-sm font-medium text-gray-500">BIC/SWIFT Code</p>
+                        <p className="mt-1">{request.bicSwift}</p>
+                      </div>
+                    )}
                   </div>
-                  
-                  <div>
-                    <Label htmlFor="postalCode" className="text-sm sm:text-base">
-                      Postcode
-                    </Label>
-                    <Input
-                      id="postalCode"
-                      value={editedRequest?.postalCode ?? request.postalCode || ""}
-                      onChange={(e) => setEditedRequest({ ...editedRequest || {}, postalCode: e.target.value })}
-                      className="mt-1 h-10"
-                      disabled={!isEditing || isProcessed}
-                    />
-                  </div>
-                  
-                  <div>
-                    <Label htmlFor="city" className="text-sm sm:text-base">
-                      Gemeente
-                    </Label>
-                    <Input
-                      id="city"
-                      value={editedRequest?.city ?? request.city || ""}
-                      onChange={(e) => setEditedRequest({ ...editedRequest || {}, city: e.target.value })}
-                      className="mt-1 h-10"
-                      disabled={!isEditing || isProcessed}
-                    />
-                  </div>
-                </div>
-              </div>
-              
-              {/* Sectie: Lidmaatschap */}
-              <div className="border border-gray-200 rounded-lg p-4 sm:p-5 md:p-6 space-y-5 sm:space-y-6 shadow-sm">
-                <div className="flex items-center gap-3 mb-3 sm:mb-4">
-                  <div className="h-8 w-8 rounded-full bg-[#963E56] text-white flex items-center justify-center font-semibold text-base">3</div>
-                  <h2 className="text-lg sm:text-xl font-semibold">Lidmaatschap</h2>
-                </div>
-                
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 sm:gap-6">
-                  <div>
-                    <Label htmlFor="membershipType" className="text-sm sm:text-base">
-                      Type lidmaatschap <span className="text-red-500">*</span>
-                    </Label>
-                    <Select
-                      value={editedRequest?.membershipType ?? request.membershipType}
-                      onValueChange={(value) => setEditedRequest({ ...editedRequest || {}, membershipType: value as "standaard" | "student" | "senior" })}
-                      disabled={!isEditing || isProcessed}
-                    >
-                      <SelectTrigger id="membershipType" className="h-10">
-                        <SelectValue placeholder="Selecteer type" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="standaard">Standaard</SelectItem>
-                        <SelectItem value="student">Student</SelectItem>
-                        <SelectItem value="senior">Senior</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  
-                  <div>
-                    <Label htmlFor="paymentMethod" className="text-sm sm:text-base">
-                      Betaalwijze <span className="text-red-500">*</span>
-                    </Label>
-                    <Select
-                      value={editedRequest?.paymentMethod ?? request.paymentMethod || "overschrijving"}
-                      onValueChange={(value) => setEditedRequest({ ...editedRequest || {}, paymentMethod: value as "cash" | "domiciliering" | "overschrijving" | "bancontact" })}
-                      disabled={!isEditing || isProcessed}
-                    >
-                      <SelectTrigger id="paymentMethod" className="h-10">
-                        <SelectValue placeholder="Selecteer betaalwijze" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="cash">Cash</SelectItem>
-                        <SelectItem value="bancontact">Bancontact</SelectItem>
-                        <SelectItem value="overschrijving">Overschrijving</SelectItem>
-                        <SelectItem value="domiciliering">Domiciliëring</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  
-                  <div>
-                    <Label htmlFor="paymentTerm" className="text-sm sm:text-base">
-                      Betalingstermijn <span className="text-red-500">*</span>
-                    </Label>
-                    <Select
-                      value={editedRequest?.paymentTerm ?? request.paymentTerm || "jaarlijks"}
-                      onValueChange={(value) => setEditedRequest({ ...editedRequest || {}, paymentTerm: value as "maandelijks" | "driemaandelijks" | "jaarlijks" })}
-                      disabled={!isEditing || isProcessed}
-                    >
-                      <SelectTrigger id="paymentTerm" className="h-10">
-                        <SelectValue placeholder="Selecteer termijn" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="maandelijks">Maandelijks</SelectItem>
-                        <SelectItem value="driemaandelijks">Driemaandelijks</SelectItem>
-                        <SelectItem value="jaarlijks">Jaarlijks</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  
-                  <div className="flex items-center justify-between space-x-2 h-10 mt-6">
-                    <Label htmlFor="autoRenew" className="text-sm sm:text-base cursor-pointer">
-                      Automatische verlenging
-                    </Label>
-                    <Switch
-                      id="autoRenew"
-                      checked={editedRequest?.autoRenew ?? request.autoRenew ?? true}
-                      onCheckedChange={(checked) => setEditedRequest({ ...editedRequest || {}, autoRenew: checked })}
-                      disabled={!isEditing || isProcessed}
-                      className="data-[state=checked]:bg-[#963E56]"
-                    />
-                  </div>
-                </div>
-              </div>
-              
-              {/* Sectie: Bankgegevens (alleen weergeven bij domiciliëring) */}
-              {((request.paymentMethod === "domiciliering") || (editedRequest?.paymentMethod === "domiciliering")) && (
-                <div className="border border-gray-200 rounded-lg p-4 sm:p-5 md:p-6 space-y-5 sm:space-y-6 shadow-sm">
-                  <div className="flex items-center gap-3 mb-3 sm:mb-4">
-                    <div className="h-8 w-8 rounded-full bg-[#963E56] text-white flex items-center justify-center font-semibold text-base">4</div>
-                    <h2 className="text-lg sm:text-xl font-semibold">Bankgegevens</h2>
-                  </div>
-                  
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 sm:gap-6">
-                    <div>
-                      <Label htmlFor="accountNumber" className="text-sm sm:text-base">
-                        IBAN Rekeningnummer <span className="text-red-500">*</span>
-                      </Label>
-                      <Input
-                        id="accountNumber"
-                        value={editedRequest?.accountNumber ?? request.accountNumber || ""}
-                        onChange={(e) => setEditedRequest({ ...editedRequest || {}, accountNumber: e.target.value })}
-                        className="mt-1 h-10"
-                        disabled={!isEditing || isProcessed}
-                        placeholder="bijv. BE68 5390 0754 7034"
-                      />
-                    </div>
-                    
-                    <div>
-                      <Label htmlFor="accountHolderName" className="text-sm sm:text-base">
-                        Naam rekeninghouder
-                      </Label>
-                      <Input
-                        id="accountHolderName"
-                        value={editedRequest?.accountHolderName ?? request.accountHolderName || ""}
-                        onChange={(e) => setEditedRequest({ ...editedRequest || {}, accountHolderName: e.target.value })}
-                        className="mt-1 h-10"
-                        disabled={!isEditing || isProcessed}
-                      />
-                    </div>
-                    
-                    <div>
-                      <Label htmlFor="bicSwift" className="text-sm sm:text-base">
-                        BIC/SWIFT Code
-                      </Label>
-                      <Input
-                        id="bicSwift"
-                        value={editedRequest?.bicSwift ?? request.bicSwift || ""}
-                        onChange={(e) => setEditedRequest({ ...editedRequest || {}, bicSwift: e.target.value })}
-                        className="mt-1 h-10"
-                        disabled={!isEditing || isProcessed}
-                      />
-                    </div>
-                  </div>
-                </div>
+                </Card>
               )}
-              
-              {/* Sectie: Opmerkingen */}
-              <div className="border border-gray-200 rounded-lg p-4 sm:p-5 md:p-6 space-y-5 sm:space-y-6 shadow-sm">
-                <div className="flex items-center gap-3 mb-3 sm:mb-4">
-                  <div className="h-8 w-8 rounded-full bg-[#963E56] text-white flex items-center justify-center font-semibold text-base">
-                    {((request.paymentMethod === "domiciliering") || (editedRequest?.paymentMethod === "domiciliering")) ? "5" : "4"}
-                  </div>
-                  <h2 className="text-lg sm:text-xl font-semibold">Opmerkingen</h2>
-                </div>
-                
-                <div>
-                  <Textarea
-                    id="notes"
-                    value={editedRequest?.notes ?? request.notes || ""}
-                    onChange={(e) => setEditedRequest({ ...editedRequest || {}, notes: e.target.value })}
-                    placeholder="Extra informatie of opmerkingen"
-                    className="min-h-[120px]"
-                    disabled={!isEditing || isProcessed}
-                  />
-                </div>
-              </div>
+
+              {/* Opmerkingen */}
+              {request.notes && (
+                <Card className="p-4 sm:p-6 border-gray-200 shadow-sm">
+                  <h2 className="text-lg sm:text-xl font-semibold text-[#963E56] mb-4">
+                    Opmerkingen
+                  </h2>
+                  <p className="whitespace-pre-wrap">{request.notes}</p>
+                </Card>
+              )}
             </div>
           </div>
         </div>

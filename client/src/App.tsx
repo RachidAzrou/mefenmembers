@@ -74,6 +74,7 @@ function Router() {
       <Route path="/member-edit" component={() => <PrivateRoute component={MemberEdit} />} />
       <Route path="/member-detail" component={() => <PrivateRoute component={MemberDetail} />} />
       <Route path="/member-requests" component={() => <PrivateRoute component={MemberRequests} />} />
+      <Route path="/member-request-detail/:id" component={() => <PrivateRoute component={MemberRequestDetail} />} />
       <Route path="/export" component={() => <PrivateRoute component={Export} />} />
       
       {/* Fallback route */}
