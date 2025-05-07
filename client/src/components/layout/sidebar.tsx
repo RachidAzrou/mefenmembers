@@ -13,6 +13,7 @@ import { useState, useEffect } from "react";
 import { auth } from "@/lib/firebase";
 import { signOut } from "firebase/auth";
 import { useRole } from "@/hooks/use-role";
+import { usePendingRequests } from "@/hooks/use-pending-requests";
 import { logUserAction, UserActionTypes } from "@/lib/activity-logger";
 
 export function Sidebar() {
@@ -20,6 +21,7 @@ export function Sidebar() {
   const [collapsed, setCollapsed] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const { isAdmin } = useRole();
+  const { pendingCount } = usePendingRequests();
   const currentUser = auth.currentUser || { email: "gebruiker@mefen.nl" };
 
   useEffect(() => {
@@ -180,19 +182,35 @@ export function Sidebar() {
                       isMobile && !collapsed && "text-base"
                     )}
                   >
-                    {React.createElement(item.icon, {
-                      className: cn(
-                        "h-6 w-6 md:h-5 md:w-5 transition-colors duration-200",
-                        location === item.href ? "text-primary" : "text-gray-500"
-                      )
-                    })}
+                    <div className="relative">
+                      {React.createElement(item.icon, {
+                        className: cn(
+                          "h-6 w-6 md:h-5 md:w-5 transition-colors duration-200",
+                          location === item.href ? "text-primary" : "text-gray-500"
+                        )
+                      })}
+                      {/* Notificatie badge voor aanvragen */}
+                      {item.href === "/member-requests" && pendingCount > 0 && (
+                        <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                          {pendingCount > 9 ? '9+' : pendingCount}
+                        </span>
+                      )}
+                    </div>
                     {!collapsed && (
-                      <span className={cn(
-                        "ml-3 transition-opacity duration-200",
-                        isMobile && "text-base font-medium"
-                      )}>
-                        {item.label}
-                      </span>
+                      <div className="flex items-center flex-1">
+                        <span className={cn(
+                          "ml-3 transition-opacity duration-200",
+                          isMobile && "text-base font-medium"
+                        )}>
+                          {item.label}
+                        </span>
+                        {/* Notificatie badge voor aanvragen (naast tekst bij expanded sidebar) */}
+                        {item.href === "/member-requests" && pendingCount > 0 && (
+                          <span className="ml-2 bg-red-500 text-white text-xs rounded-full h-5 min-w-5 px-1 flex items-center justify-center">
+                            {pendingCount > 99 ? '99+' : pendingCount}
+                          </span>
+                        )}
+                      </div>
                     )}
                   </Button>
                 </Link>
