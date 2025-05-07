@@ -58,9 +58,15 @@ const registrationSchema = z.object({
   
   // Lidmaatschap
   membershipTypes: z.array(z.string()).min(1, "Selecteer minstens één type lidmaatschap"),
-  membershipType: z.enum(["standaard", "student", "senior"]).optional(),
-  paymentTerm: z.enum(["maandelijks", "driemaandelijks", "jaarlijks"]).default("jaarlijks"),
-  paymentMethod: z.enum(["cash", "domiciliering", "overschrijving", "bancontact"]).default("cash"),
+  membershipType: z.enum(["standaard", "student", "senior"], {
+    required_error: "Type lidmaatschap is verplicht",
+  }),
+  paymentTerm: z.enum(["maandelijks", "driemaandelijks", "jaarlijks"], {
+    required_error: "Betalingstermijn is verplicht",
+  }),
+  paymentMethod: z.enum(["cash", "domiciliering", "overschrijving", "bancontact"], {
+    required_error: "Betalingswijze is verplicht",
+  }),
   autoRenew: z.boolean().default(true),
   
   // Bankgegevens
@@ -122,6 +128,8 @@ export default function RegisterRequest() {
       form.trigger(['membershipType', 'paymentTerm', 'paymentMethod', 'autoRenew', 'accountNumber', 'accountHolderName']);
       if (
         form.formState.errors.membershipType || 
+        form.formState.errors.paymentTerm || 
+        form.formState.errors.paymentMethod || 
         (form.watch('paymentMethod') === 'domiciliering' && form.formState.errors.accountNumber)
       ) {
         return;
@@ -246,35 +254,37 @@ export default function RegisterRequest() {
           
           {/* Formulier */}
           <div className="p-4 sm:p-6">
-            {/* Voortgangsindicator voor het formulier */}
-            <div className="flex justify-center mb-6">
-              <div className="flex items-center justify-between max-w-xs w-full">
-                {Array.from({ length: totalSteps }).map((_, index) => (
-                  <div key={index} className="flex items-center">
-                    <div 
-                      className={cn(
-                        "w-8 h-8 rounded-full flex items-center justify-center font-medium text-sm transition-colors",
-                        currentStep > index + 1 
-                          ? "bg-[#963E56] text-white" 
-                          : currentStep === index + 1 
-                            ? "bg-[#963E56] text-white" 
-                            : "bg-gray-200 text-gray-500"
-                      )}
-                    >
-                      {currentStep > index + 1 ? <CheckIcon className="h-4 w-4" /> : index + 1}
-                    </div>
-                    {index < totalSteps - 1 && (
+            {/* Voortgangsindicator voor het formulier - alleen op mobiel */}
+            {isMobile && (
+              <div className="flex justify-center mb-6">
+                <div className="flex items-center justify-between max-w-xs w-full">
+                  {Array.from({ length: totalSteps }).map((_, index) => (
+                    <div key={index} className="flex items-center">
                       <div 
                         className={cn(
-                          "h-0.5 w-8 sm:w-12", 
-                          currentStep > index + 1 ? "bg-[#963E56]" : "bg-gray-200"
+                          "w-8 h-8 rounded-full flex items-center justify-center font-medium text-sm transition-colors",
+                          currentStep > index + 1 
+                            ? "bg-[#963E56] text-white" 
+                            : currentStep === index + 1 
+                              ? "bg-[#963E56] text-white" 
+                              : "bg-gray-200 text-gray-500"
                         )}
-                      />
-                    )}
-                  </div>
-                ))}
+                      >
+                        {currentStep > index + 1 ? <CheckIcon className="h-4 w-4" /> : index + 1}
+                      </div>
+                      {index < totalSteps - 1 && (
+                        <div 
+                          className={cn(
+                            "h-0.5 w-8 sm:w-12", 
+                            currentStep > index + 1 ? "bg-[#963E56]" : "bg-gray-200"
+                          )}
+                        />
+                      )}
+                    </div>
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
 
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-7 sm:space-y-8">
@@ -714,7 +724,7 @@ export default function RegisterRequest() {
                           name="paymentTerm"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel className="text-sm sm:text-base font-medium">Betalingstermijn</FormLabel>
+                              <FormLabel className="text-sm sm:text-base font-medium">Betalingstermijn <span className="text-red-500">*</span></FormLabel>
                               <Select 
                                 onValueChange={field.onChange} 
                                 defaultValue={field.value}
@@ -743,7 +753,7 @@ export default function RegisterRequest() {
                           name="paymentMethod"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel className="text-sm sm:text-base font-medium">Betalingswijze</FormLabel>
+                              <FormLabel className="text-sm sm:text-base font-medium">Betalingswijze <span className="text-red-500">*</span></FormLabel>
                               <Select 
                                 onValueChange={field.onChange} 
                                 defaultValue={field.value}
