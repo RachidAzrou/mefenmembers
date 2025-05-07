@@ -24,10 +24,10 @@ import {
 } from "@/components/ui/select";
 
 // Helper functie om leeftijd te berekenen op basis van geboortedatum
-function calculateAge(dateOfBirth: Date | string | null | undefined): number {
-  if (!dateOfBirth) return 0;
-  const birthDate = new Date(dateOfBirth);
-  return differenceInYears(new Date(), birthDate);
+function calculateAge(birthDate: Date | string | null | undefined): number {
+  if (!birthDate) return 0;
+  const birthDateObj = new Date(birthDate);
+  return differenceInYears(new Date(), birthDateObj);
 }
 
 // Groepeer leden per leeftijdscategorie
@@ -51,7 +51,7 @@ function groupMembersByAgeRange(members: Member[]): { name: string; count: numbe
 
   // Tel leden per leeftijdscategorie
   members.forEach(member => {
-    const age = calculateAge(member.dateOfBirth);
+    const age = calculateAge(member.birthDate);
     const group = ageGroups.find(g => age >= g.min && age <= g.max);
     if (group) {
       const index = results.findIndex(r => r.name === group.name);
@@ -205,14 +205,23 @@ function groupMembersByPaymentStatus(members: Member[]): { name: string; value: 
   return [
     { 
       name: "Betaald", 
-      value: members.filter(m => m.paymentStatus?.toLowerCase() === "betaald").length,
+      value: members.filter(m => {
+        if (typeof m.paymentStatus === 'string') {
+          return m.paymentStatus.toLowerCase() === "betaald";
+        }
+        return false;
+      }).length,
       color: "#2ECC71"
     },
     { 
       name: "Niet betaald", 
-      value: members.filter(m => 
-        m.paymentStatus?.toLowerCase() === "niet betaald" || !m.paymentStatus
-      ).length,
+      value: members.filter(m => {
+        if (!m.paymentStatus) return true;
+        if (typeof m.paymentStatus === 'string') {
+          return m.paymentStatus.toLowerCase() === "niet betaald";
+        }
+        return true;
+      }).length,
       color: "#E74C3C"
     }
   ];
@@ -297,14 +306,14 @@ export default function Rapportage() {
 
   // Bereken het aantal leden dat stemgerechtigd is (18+)
   const eligibleVoters = members ? members.filter(member => {
-    if (!member.dateOfBirth) return false;
-    return calculateAge(member.dateOfBirth) >= 18;
+    if (!member.birthDate) return false;
+    return calculateAge(member.birthDate) >= 18;
   }).length : 0;
 
   // Bereken gemiddelde leeftijd
   const averageAge = members && members.length > 0 
     ? Math.round(members.reduce((sum, member) => {
-        return sum + (member.dateOfBirth ? calculateAge(member.dateOfBirth) : 0);
+        return sum + (member.birthDate ? calculateAge(member.birthDate) : 0);
       }, 0) / members.length) 
     : 0;
 
@@ -360,12 +369,12 @@ export default function Rapportage() {
           </TabsList>
           
           <div className="flex items-center gap-2">
-            <Select onValueChange={setFilterType} value={filterType || ""}>
+            <Select onValueChange={setFilterType} value={filterType || "all"}>
               <SelectTrigger className="w-[180px]">
                 <SelectValue placeholder="Alle leden" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Alle leden</SelectItem>
+                <SelectItem value="all">Alle leden</SelectItem>
                 <SelectItem value="regulier">Regulier</SelectItem>
                 <SelectItem value="student">Student</SelectItem>
                 <SelectItem value="gezin">Gezin</SelectItem>
