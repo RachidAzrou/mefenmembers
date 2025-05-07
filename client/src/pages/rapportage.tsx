@@ -67,15 +67,8 @@ function groupMembersByAgeRange(members: Member[]): { name: string; count: numbe
 }
 
 // Bereken de geschatte inkomsten per lid per maand op basis van betalingstermijn
-function calculateMemberRevenue(member: Member): number {
-  const membershipTypes: Record<string, number> = {
-    "regulier": 10,
-    "student": 5,
-    "gezin": 20,
-    "verminderd tarief": 2.5,
-    "erelid": 0
-  };
-
+// Functie bijgewerkt om contributieAmounts uit state te gebruiken
+function calculateMemberRevenue(member: Member, contributionAmounts: Record<string, number>): number {
   const paymentTermMultiplier: Record<string, number> = {
     "jaarlijks": 1/12,
     "halfjaarlijks": 1/6,
@@ -83,7 +76,8 @@ function calculateMemberRevenue(member: Member): number {
     "maandelijks": 1
   };
 
-  const baseAmount = membershipTypes[member.membershipType?.toLowerCase() || "regulier"] || 10;
+  const memberType = member.membershipType?.toLowerCase() || "regulier";
+  const baseAmount = contributionAmounts[memberType] || 10;
   const multiplier = paymentTermMultiplier[member.paymentTerm?.toLowerCase() || "maandelijks"] || 1;
   
   return baseAmount * multiplier;
@@ -308,27 +302,39 @@ function groupMembersByNationality(members: Member[]): { name: string; count: nu
 
 // Groepeer leden per betaalstatus
 function groupMembersByPaymentStatus(members: Member[]): { name: string; value: number; color: string }[] {
+  console.log("Payment status values:", members.map(m => m.paymentStatus));
+  
+  // Tel hoeveel leden betaald hebben
+  const betaald = members.filter(m => {
+    // Check voor alle mogelijke variaties van "betaald" in de status
+    if (typeof m.paymentStatus === 'string') {
+      const status = m.paymentStatus.toLowerCase();
+      return status.includes('betaald') || 
+             status.includes('paid') || 
+             status === 'ja' || 
+             status === 'yes' ||
+             status === 'true';
+    }
+    // Boolean true betekent ook betaald
+    if (typeof m.paymentStatus === 'boolean') {
+      return m.paymentStatus === true;
+    }
+    return false;
+  }).length;
+  
+  // Niet betaald is het totaal aantal leden min betaald
+  const nietBetaald = members.length - betaald;
+  
   return [
     { 
       name: "Betaald", 
-      value: members.filter(m => {
-        if (typeof m.paymentStatus === 'string') {
-          return m.paymentStatus.toLowerCase() === "betaald";
-        }
-        return false;
-      }).length,
-      color: "#963E56"
+      value: betaald,
+      color: "#2ECC71" // Groen voor betaald
     },
     { 
       name: "Niet betaald", 
-      value: members.filter(m => {
-        if (!m.paymentStatus) return true;
-        if (typeof m.paymentStatus === 'string') {
-          return m.paymentStatus.toLowerCase() === "niet betaald";
-        }
-        return true;
-      }).length,
-      color: "#D86985"
+      value: nietBetaald,
+      color: "#E74C3C" // Rood voor niet betaald
     }
   ];
 }
@@ -363,13 +369,13 @@ function analyzeMembershipGrowth(members: Member[]): any[] {
 }
 
 // Bereken geschatte inkomsten per maand
-function calculateMonthlyRevenue(members: Member[]): any[] {
+function calculateMonthlyRevenue(members: Member[], contributionAmounts: Record<string, number>): any[] {
   const today = new Date();
   const results = [];
 
-  // Bereken totale maandelijkse inkomsten
+  // Bereken totale maandelijkse inkomsten met de contributie-instellingen
   const totalMonthlyRevenue = members.reduce((total, member) => {
-    return total + calculateMemberRevenue(member);
+    return total + calculateMemberRevenue(member, contributionAmounts);
   }, 0);
 
   // Genereer data voor de afgelopen 12 maanden (geschat op basis van huidige leden)
@@ -396,6 +402,16 @@ export default function Rapportage() {
   const [filterType, setFilterType] = useState<string | undefined>(undefined);
   const [filterApplied, setFilterApplied] = useState(false);
   
+  // State voor het beheren van bijdragebedragen
+  const [showContributionSettings, setShowContributionSettings] = useState(false);
+  const [contributionAmounts, setContributionAmounts] = useState({
+    "regulier": 10,
+    "student": 5,
+    "gezin": 20,
+    "verminderd tarief": 2.5,
+    "erelid": 0
+  });
+  
   // React refs voor de grafiek componenten ten behoeve van exports
   const ageChartRef = useRef<HTMLDivElement>(null);
   const genderChartRef = useRef<HTMLDivElement>(null);
@@ -421,7 +437,7 @@ export default function Rapportage() {
   const membersByGender = members ? groupMembersByGender(members) : [];
   const membersByPaymentStatus = members ? groupMembersByPaymentStatus(members) : [];
   const membershipGrowth = members ? analyzeMembershipGrowth(members) : [];
-  const monthlyRevenue = members ? calculateMonthlyRevenue(members) : [];
+  const monthlyRevenue = members ? calculateMonthlyRevenue(members, contributionAmounts) : [];
   
   // Lidmaatschapstypen voor de vergelijkingstab
   const membershipTypes = [
@@ -439,8 +455,18 @@ export default function Rapportage() {
 
   // Bereken het aantal leden dat stemgerechtigd is (18+)
   const eligibleVoters = members ? members.filter(member => {
-    if (!member.birthDate) return false;
-    return calculateAge(member.birthDate) >= 18;
+    // Debug: Log voor de leeftijdsberekening
+    console.log("Member:", member.firstName, member.lastName, "Birth date:", member.birthDate, "Age:", member.birthDate ? calculateAge(member.birthDate) : "unknown");
+    
+    // Als geboortedatum ontbreekt, controleer of stemgerechtigdFlag direct is ingesteld
+    if (member.stemgerechtigd === true) return true;
+    
+    // Anders bereken op basis van leeftijd als geboortedatum beschikbaar is
+    if (member.birthDate) {
+      return calculateAge(member.birthDate) >= 18;
+    }
+    
+    return false;
   }).length : 0;
 
   // Bereken gemiddelde leeftijd
@@ -450,10 +476,10 @@ export default function Rapportage() {
       }, 0) / members.length) 
     : 0;
 
-  // Bereken totale maandelijkse inkomsten
+  // Bereken totale maandelijkse inkomsten met de huidige contributie-instellingen
   const totalMonthlyRevenue = members 
     ? members.reduce((total, member) => {
-        return total + calculateMemberRevenue(member);
+        return total + calculateMemberRevenue(member, contributionAmounts);
       }, 0)
     : 0;
 
