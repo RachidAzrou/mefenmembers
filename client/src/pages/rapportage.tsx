@@ -34,13 +34,13 @@ function calculateAge(birthDate: Date | string | null | undefined): number {
 // Groepeer leden per leeftijdscategorie
 function groupMembersByAgeRange(members: Member[]): { name: string; count: number; color: string }[] {
   const ageGroups = [
-    { name: "0-12", min: 0, max: 12, color: "#4361EE" },
-    { name: "13-17", min: 13, max: 17, color: "#4CC9F0" },
-    { name: "18-24", min: 18, max: 24, color: "#4895EF" },
-    { name: "25-34", min: 25, max: 34, color: "#3F37C9" },
-    { name: "35-49", min: 35, max: 49, color: "#560BAD" },
-    { name: "50-64", min: 50, max: 64, color: "#7209B7" },
-    { name: "65+", min: 65, max: 120, color: "#B5179E" }
+    { name: "0-12", min: 0, max: 12, color: "#963E56" },
+    { name: "13-17", min: 13, max: 17, color: "#B85370" },
+    { name: "18-24", min: 18, max: 24, color: "#D86985" },
+    { name: "25-34", min: 25, max: 34, color: "#E47F95" },
+    { name: "35-49", min: 35, max: 49, color: "#EB96A7" },
+    { name: "50-64", min: 50, max: 64, color: "#F1ACBA" },
+    { name: "65+", min: 65, max: 120, color: "#F7C3CC" }
   ];
 
   // Initialiseer resultaten met 0 voor alle categorieën
@@ -91,11 +91,11 @@ function calculateMemberRevenue(member: Member): number {
 // Groepeer leden per lidmaatschapstype
 function groupMembersByMembershipType(members: Member[]): { name: string; count: number; color: string }[] {
   const membershipTypes = [
-    { name: "Regulier", color: "#4361EE" },
-    { name: "Student", color: "#3A0CA3" },
-    { name: "Gezin", color: "#7209B7" },
-    { name: "Verminderd tarief", color: "#F72585" },
-    { name: "Erelid", color: "#4CC9F0" }
+    { name: "Regulier", color: "#963E56" },
+    { name: "Student", color: "#B85370" },
+    { name: "Gezin", color: "#D86985" },
+    { name: "Verminderd tarief", color: "#E47F95" },
+    { name: "Erelid", color: "#F1ACBA" }
   ];
 
   // Initialiseer resultaten
@@ -191,12 +191,12 @@ function groupMembersByGender(members: Member[]): { name: string; count: number;
     { 
       name: "Man", 
       count: members.filter(m => m.gender?.toLowerCase() === "man").length,
-      color: "#4CC9F0"
+      color: "#963E56"
     },
     { 
       name: "Vrouw", 
       count: members.filter(m => m.gender?.toLowerCase() === "vrouw").length,
-      color: "#F72585"
+      color: "#D86985"
     }
   ];
 }
@@ -304,7 +304,7 @@ function groupMembersByPaymentStatus(members: Member[]): { name: string; value: 
         }
         return false;
       }).length,
-      color: "#4CC9F0"
+      color: "#963E56"
     },
     { 
       name: "Niet betaald", 
@@ -315,7 +315,7 @@ function groupMembersByPaymentStatus(members: Member[]): { name: string; value: 
         }
         return true;
       }).length,
-      color: "#F72585"
+      color: "#D86985"
     }
   ];
 }
