@@ -189,23 +189,25 @@ export default function MemberEdit() {
                 </div>
               </div>
 
-              <Button 
-                type="submit" 
-                disabled={isSearching}
-                className="w-full md:w-auto bg-[#963E56] hover:bg-[#7e3447]"
-              >
-                {isSearching ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Zoeken...
-                  </>
-                ) : (
-                  <>
-                    <Search className="mr-2 h-4 w-4" />
-                    Zoeken
-                  </>
-                )}
-              </Button>
+              <div className="flex justify-end">
+                <Button 
+                  type="submit" 
+                  disabled={isSearching}
+                  className="w-full md:w-auto bg-[#963E56] hover:bg-[#7e3447]"
+                >
+                  {isSearching ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Zoeken...
+                    </>
+                  ) : (
+                    <>
+                      <Search className="mr-2 h-4 w-4" />
+                      Zoeken
+                    </>
+                  )}
+                </Button>
+              </div>
             </form>
           </Form>
         </CardContent>

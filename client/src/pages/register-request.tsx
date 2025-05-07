@@ -177,7 +177,7 @@ export default function RegisterRequest() {
               </div>
               <div className="mt-4 md:mt-0">
                 <img 
-                  src="/attached_assets/logo moskee.png" 
+                  src="./attached_assets/logo moskee.png" 
                   alt="MEFEN Moskee Logo" 
                   className="h-16 w-auto bg-white rounded-md p-1"
                 />
@@ -778,18 +778,20 @@ export default function RegisterRequest() {
                 />
                 
                 {/* Submit knop */}
-                <Button 
-                  type="submit" 
-                  className="w-full md:w-auto"
-                  disabled={mutation.isPending}
-                >
-                  {mutation.isPending ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Bezig met indienen...
-                    </>
-                  ) : "Verstuur aanvraag"}
-                </Button>
+                <div className="flex justify-end">
+                  <Button 
+                    type="submit" 
+                    className="w-full md:w-auto"
+                    disabled={mutation.isPending}
+                  >
+                    {mutation.isPending ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Bezig met indienen...
+                      </>
+                    ) : "Verstuur aanvraag"}
+                  </Button>
+                </div>
               </form>
             </Form>
           </div>
