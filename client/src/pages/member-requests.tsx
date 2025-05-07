@@ -87,6 +87,7 @@ export default function MemberRequests() {
   const [showDetailView, setShowDetailView] = useState(false);
   const [editedRequest, setEditedRequest] = useState<MemberRequest | null>(null);
   const [nextMemberNumber, setNextMemberNumber] = useState<string | null>(null);
+  const [isEditMode, setIsEditMode] = useState(false);
   const { isAdmin } = useRole();
 
   // Ophalen van alle aanvragen
@@ -167,6 +168,29 @@ export default function MemberRequests() {
     onError: (error: Error) => {
       toast({
         title: "Fout bij verwijderen",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+  
+  // Bijwerken van een aanvraag
+  const updateMutation = useMutation({
+    mutationFn: async (request: MemberRequest) => {
+      const response = await apiRequest("PUT", `/api/member-requests?id=${request.id}`, request);
+      return await response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/member-requests"] });
+      toast({
+        title: "Aanvraag bijgewerkt",
+        description: "De aanvraag is succesvol bijgewerkt.",
+      });
+      setIsEditMode(false);
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Fout bij bijwerken",
         description: error.message,
         variant: "destructive",
       });
@@ -727,7 +751,10 @@ export default function MemberRequests() {
           <div className="bg-gradient-to-r from-[#963E56]/90 to-[#963E56] py-4 px-6 text-white">
             <DialogHeader className="text-white mb-0 p-0">
               <DialogTitle className="flex items-center gap-2 text-lg text-white">
-                <CheckIcon className="h-5 w-5" />
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5">
+                  <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z" />
+                  <path d="m9 12 2 2 4-4" />
+                </svg>
                 Lidmaatschapsaanvraag goedkeuren
               </DialogTitle>
               <DialogDescription className="text-white/90">
@@ -774,10 +801,8 @@ export default function MemberRequests() {
                 </div>
                 
                 <div className="bg-white p-3 rounded-md border border-[#963E56]/10 shadow-sm">
-                  <p className="text-xs font-medium text-gray-500">Betaalstatus</p>
-                  <Badge variant="outline" className="bg-amber-50 text-amber-700 hover:bg-amber-50 border-amber-200">
-                    Moet nog betalen
-                  </Badge>
+                  <p className="text-xs font-medium text-gray-500">Betaalwijze</p>
+                  <p className="truncate">Automatische incasso</p>
                 </div>
                 
                 <div className="bg-white p-3 rounded-md border border-[#963E56]/10 shadow-sm">
@@ -866,10 +891,8 @@ export default function MemberRequests() {
                 </div>
                 
                 <div className="bg-white p-3 rounded-md border border-[#963E56]/10 shadow-sm">
-                  <p className="text-xs font-medium text-gray-500">Betaalstatus</p>
-                  <Badge variant="outline" className="bg-amber-50 text-amber-700 hover:bg-amber-50 border-amber-200">
-                    Moet nog betalen
-                  </Badge>
+                  <p className="text-xs font-medium text-gray-500">Betaalwijze</p>
+                  <p className="truncate">Automatische incasso</p>
                 </div>
                 
                 <div className="bg-white p-3 rounded-md border border-[#963E56]/10 shadow-sm">
