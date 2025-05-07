@@ -176,7 +176,7 @@ export default function RegisterRequest() {
   }
   
   return (
-    <div className="min-h-screen py-6 px-3 sm:py-8 sm:px-4 md:py-12 md:px-6 lg:px-8" 
+    <div className="min-h-screen py-6 px-3 sm:py-8 sm:px-4 md:py-12 md:px-6 lg:px-8 pb-20 sm:pb-16" 
          style={{
            background: "url('/pattern.jpg') center/cover fixed no-repeat, linear-gradient(135deg, rgba(245, 247, 250, 0.7), rgba(195, 207, 226, 0.7))",
            backgroundBlendMode: "overlay"
@@ -205,7 +205,7 @@ export default function RegisterRequest() {
                     <h2 className="text-lg sm:text-xl font-semibold">Persoonsgegevens</h2>
                   </div>
                   
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 sm:gap-6">
                     {/* Rij 1: Voornaam en Achternaam */}
                     <div>
                       <FormField
@@ -410,13 +410,13 @@ export default function RegisterRequest() {
                 </div>
                 
                 {/* Sectie: Contactgegevens */}
-                <div className="border border-gray-200 rounded-lg p-3 sm:p-4 md:p-6 space-y-4 sm:space-y-6 shadow-sm">
-                  <div className="flex items-center gap-2 mb-2 sm:mb-4">
-                    <div className="h-7 w-7 sm:h-8 sm:w-8 rounded-full bg-[#963E56] text-white flex items-center justify-center font-semibold text-sm sm:text-base">2</div>
+                <div className="border border-gray-200 rounded-lg p-4 sm:p-5 md:p-6 space-y-5 sm:space-y-6 shadow-sm">
+                  <div className="flex items-center gap-3 mb-3 sm:mb-4">
+                    <div className="h-8 w-8 rounded-full bg-[#963E56] text-white flex items-center justify-center font-semibold text-base">2</div>
                     <h2 className="text-lg sm:text-xl font-semibold">Contactgegevens</h2>
                   </div>
                   
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 sm:gap-6">
                     <FormField
                       control={form.control}
                       name="email"
@@ -581,13 +581,13 @@ export default function RegisterRequest() {
                 </div>
                 
                 {/* Sectie: Lidmaatschap */}
-                <div className="border border-gray-200 rounded-lg p-3 sm:p-4 md:p-6 space-y-4 sm:space-y-6 shadow-sm">
-                  <div className="flex items-center gap-2 mb-2 sm:mb-4">
-                    <div className="h-7 w-7 sm:h-8 sm:w-8 rounded-full bg-[#963E56] text-white flex items-center justify-center font-semibold text-sm sm:text-base">3</div>
+                <div className="border border-gray-200 rounded-lg p-4 sm:p-5 md:p-6 space-y-5 sm:space-y-6 shadow-sm">
+                  <div className="flex items-center gap-3 mb-3 sm:mb-4">
+                    <div className="h-8 w-8 rounded-full bg-[#963E56] text-white flex items-center justify-center font-semibold text-base">3</div>
                     <h2 className="text-lg sm:text-xl font-semibold">Lidmaatschap</h2>
                   </div>
                   
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 sm:gap-6">
                     <FormField
                       control={form.control}
                       name="membershipTypes"
@@ -618,13 +618,13 @@ export default function RegisterRequest() {
                               ))}
                             </div>
                             <Card className="border border-gray-200">
-                              <CardContent className="p-3 grid grid-cols-1 sm:grid-cols-3 gap-2">
+                              <CardContent className="p-3 grid grid-cols-1 sm:grid-cols-3 gap-3">
                                 {["standaard", "student", "senior"].map((type) => {
                                   const isSelected = field.value.includes(type);
                                   return (
                                     <div 
                                       key={type}
-                                      className={`flex items-center space-x-2 rounded-md border p-2 ${
+                                      className={`flex items-center space-x-2 rounded-md border p-3 ${
                                         isSelected 
                                           ? "border-[#963E56]/50 bg-[#963E56]/5" 
                                           : "border-gray-200 hover:bg-gray-100"
@@ -845,7 +845,7 @@ export default function RegisterRequest() {
                   control={form.control}
                   name="privacyConsent"
                   render={({ field }) => (
-                    <FormItem className="flex flex-row items-start space-x-3 space-y-0 p-3 sm:p-4 border border-gray-200 rounded-lg shadow-sm">
+                    <FormItem className="flex flex-row items-start space-x-3 space-y-0 p-4 sm:p-5 border border-gray-200 rounded-lg shadow-sm">
                       <FormControl>
                         <Checkbox
                           checked={field.value}
@@ -867,10 +867,10 @@ export default function RegisterRequest() {
                 />
                 
                 {/* Submit knop */}
-                <div className="flex justify-center sm:justify-end mt-4 sm:mt-2">
+                <div className="flex justify-center sm:justify-end mt-6">
                   <Button 
                     type="submit" 
-                    className="w-full sm:w-auto bg-[#963E56] hover:bg-[#7d3447] text-white shadow-sm p-6 sm:p-6 h-auto font-medium text-base"
+                    className="w-full sm:w-auto bg-[#963E56] hover:bg-[#7d3447] text-white shadow-sm py-4 px-6 h-auto font-medium text-base rounded-md"
                     disabled={mutation.isPending}
                   >
                     {mutation.isPending ? (
