@@ -14,6 +14,7 @@ import Export from "@/pages/export";
 import MemberRequests from "@/pages/member-requests";
 import MemberRequestDetail from "@/pages/member-request-detail";
 import RegisterRequest from "@/pages/register-request";
+import Rapportage from "@/pages/rapportage";
 import { Sidebar } from "@/components/layout/sidebar";
 import { auth } from "./lib/firebase";
 import { useAuthState } from "react-firebase-hooks/auth";
@@ -76,6 +77,7 @@ function Router() {
       <Route path="/member-requests" component={() => <PrivateRoute component={MemberRequests} />} />
       <Route path="/member-request-detail/:id" component={() => <PrivateRoute component={MemberRequestDetail} />} />
       <Route path="/export" component={() => <PrivateRoute component={Export} />} />
+      <Route path="/rapportage" component={() => <PrivateRoute component={Rapportage} />} />
       
       {/* Fallback route */}
       <Route component={NotFound} />
