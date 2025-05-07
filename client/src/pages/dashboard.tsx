@@ -239,143 +239,187 @@ export default function Dashboard() {
         </CardContent>
       </Card>
       
-      {/* 2. Lidmaatschapstype statistieken */}
-      <Card className="border-none shadow-md overflow-hidden">
-        <div className="bg-gradient-to-r from-amber-500/20 to-amber-600/20 h-2" />
-        <CardHeader>
-          <CardTitle className="text-lg flex items-center">
-            <BarChart3 className="h-5 w-5 mr-2 text-amber-600" />
-            Lidmaatschapstype
-          </CardTitle>
-          <CardDescription>
-            Verdeling op basis van lidmaatschapstype
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {isLoading ? (
-              <div className="space-y-3">
-                <Skeleton className="h-5 w-full" />
-                <Skeleton className="h-5 w-full" />
-                <Skeleton className="h-5 w-full" />
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 gap-3">
-                {/* Standaard lidmaatschap */}
-                <Link href="/members?type=standaard">
-                  <div className="flex items-center gap-4 p-4 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors cursor-pointer">
-                    <div className="bg-amber-100 p-3 rounded-full">
-                      <UserCheck className="h-5 w-5 text-amber-600" />
-                    </div>
-                    <div className="flex-1">
-                      <div className="text-sm text-gray-500">Standaard lidmaatschap</div>
-                      <div className="flex justify-between items-center">
-                        <div className="font-medium">
-                          {members.filter(m => 
-                            m.membershipType?.toLowerCase() === 'standaard' || 
-                            m.membershipType?.toLowerCase() === 'standard' ||
-                            m.membershipType === 'Standaard'
-                          ).length} leden
+      {/* 2. Lidmaatschapstype en Stemgerechtigden sectie */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Lidmaatschapstype statistieken - Linkerkant */}
+        <Card className="border-none shadow-md overflow-hidden">
+          <div className="bg-gradient-to-r from-amber-500/20 to-amber-600/20 h-2" />
+          <CardHeader>
+            <CardTitle className="text-lg flex items-center">
+              <BarChart3 className="h-5 w-5 mr-2 text-amber-600" />
+              Lidmaatschapstype
+            </CardTitle>
+            <CardDescription>
+              Verdeling op basis van lidmaatschapstype
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {isLoading ? (
+                <div className="space-y-3">
+                  <Skeleton className="h-5 w-full" />
+                  <Skeleton className="h-5 w-full" />
+                  <Skeleton className="h-5 w-full" />
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 gap-3">
+                  {/* Standaard lidmaatschap */}
+                  <Link href="/members?type=standaard">
+                    <div className="flex items-center gap-4 p-4 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors cursor-pointer">
+                      <div className="bg-amber-100 p-3 rounded-full">
+                        <UserCheck className="h-5 w-5 text-amber-600" />
+                      </div>
+                      <div className="flex-1">
+                        <div className="text-sm text-gray-500">Standaard lidmaatschap</div>
+                        <div className="flex justify-between items-center">
+                          <div className="font-medium">
+                            {members.filter(m => 
+                              m.membershipType?.toLowerCase() === 'standaard' || 
+                              m.membershipType?.toLowerCase() === 'standard' ||
+                              m.membershipType === 'Standaard'
+                            ).length} leden
+                          </div>
+                          <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200">
+                            {members.length ? Math.round((members.filter(m => 
+                              m.membershipType?.toLowerCase() === 'standaard' || 
+                              m.membershipType?.toLowerCase() === 'standard' ||
+                              m.membershipType === 'Standaard'
+                            ).length / members.length) * 100) : 0}%
+                          </Badge>
                         </div>
-                        <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200">
-                          {members.length ? Math.round((members.filter(m => 
-                            m.membershipType?.toLowerCase() === 'standaard' || 
-                            m.membershipType?.toLowerCase() === 'standard' ||
-                            m.membershipType === 'Standaard'
-                          ).length / members.length) * 100) : 0}%
-                        </Badge>
                       </div>
                     </div>
-                  </div>
-                </Link>
-                
-                {/* Student lidmaatschap */}
-                <Link href="/members?type=student">
-                  <div className="flex items-center gap-4 p-4 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors cursor-pointer">
-                    <div className="bg-green-100 p-3 rounded-full">
-                      <GraduationCap className="h-5 w-5 text-green-600" />
-                    </div>
-                    <div className="flex-1">
-                      <div className="text-sm text-gray-500">Student lidmaatschap</div>
-                      <div className="flex justify-between items-center">
-                        <div className="font-medium">
-                          {members.filter(m => 
-                            m.membershipType?.toLowerCase() === 'student' || 
-                            m.membershipType === 'Student'
-                          ).length} leden
+                  </Link>
+                  
+                  {/* Student lidmaatschap */}
+                  <Link href="/members?type=student">
+                    <div className="flex items-center gap-4 p-4 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors cursor-pointer">
+                      <div className="bg-green-100 p-3 rounded-full">
+                        <GraduationCap className="h-5 w-5 text-green-600" />
+                      </div>
+                      <div className="flex-1">
+                        <div className="text-sm text-gray-500">Student lidmaatschap</div>
+                        <div className="flex justify-between items-center">
+                          <div className="font-medium">
+                            {members.filter(m => 
+                              m.membershipType?.toLowerCase() === 'student' || 
+                              m.membershipType === 'Student'
+                            ).length} leden
+                          </div>
+                          <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+                            {members.length ? Math.round((members.filter(m => 
+                              m.membershipType?.toLowerCase() === 'student' || 
+                              m.membershipType === 'Student'
+                            ).length / members.length) * 100) : 0}%
+                          </Badge>
                         </div>
-                        <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
-                          {members.length ? Math.round((members.filter(m => 
-                            m.membershipType?.toLowerCase() === 'student' || 
-                            m.membershipType === 'Student'
-                          ).length / members.length) * 100) : 0}%
-                        </Badge>
                       </div>
                     </div>
-                  </div>
-                </Link>
-                
-                {/* Senior lidmaatschap */}
-                <Link href="/members?type=senior">
-                  <div className="flex items-center gap-4 p-4 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors cursor-pointer">
-                    <div className="bg-purple-100 p-3 rounded-full">
-                      <Glasses className="h-5 w-5 text-purple-600" />
-                    </div>
-                    <div className="flex-1">
-                      <div className="text-sm text-gray-500">Senior lidmaatschap</div>
-                      <div className="flex justify-between items-center">
-                        <div className="font-medium">
-                          {members.filter(m => 
-                            m.membershipType?.toLowerCase() === 'senior' || 
-                            m.membershipType === 'Senior'
-                          ).length} leden
+                  </Link>
+                  
+                  {/* Senior lidmaatschap */}
+                  <Link href="/members?type=senior">
+                    <div className="flex items-center gap-4 p-4 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors cursor-pointer">
+                      <div className="bg-purple-100 p-3 rounded-full">
+                        <Glasses className="h-5 w-5 text-purple-600" />
+                      </div>
+                      <div className="flex-1">
+                        <div className="text-sm text-gray-500">Senior lidmaatschap</div>
+                        <div className="flex justify-between items-center">
+                          <div className="font-medium">
+                            {members.filter(m => 
+                              m.membershipType?.toLowerCase() === 'senior' || 
+                              m.membershipType === 'Senior'
+                            ).length} leden
+                          </div>
+                          <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-200">
+                            {members.length ? Math.round((members.filter(m => 
+                              m.membershipType?.toLowerCase() === 'senior' || 
+                              m.membershipType === 'Senior'
+                            ).length / members.length) * 100) : 0}%
+                          </Badge>
                         </div>
-                        <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-200">
-                          {members.length ? Math.round((members.filter(m => 
-                            m.membershipType?.toLowerCase() === 'senior' || 
-                            m.membershipType === 'Senior'
-                          ).length / members.length) * 100) : 0}%
-                        </Badge>
                       </div>
                     </div>
-                  </div>
-                </Link>
-              </div>
-            )}
-          </div>
-        </CardContent>
-      </Card>
-      
-      {/* 3. Stemgerechtigden statistieken */}
-      <Card className="border-none shadow-md overflow-hidden">
-        <div className="bg-gradient-to-r from-[#963E56]/20 to-[#963E56] h-2" />
-        <CardHeader>
-          <CardTitle className="text-lg flex items-center">
-            <UserCheck className="h-5 w-5 mr-2 text-[#963E56]" />
-            Stemgerechtigden
-          </CardTitle>
-          <CardDescription>
-            Leden die stemgerechtigd zijn (meerderjarig + 5 jaar lid + betaald)
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {isLoading ? (
-              <div className="space-y-3">
-                <Skeleton className="h-5 w-full" />
-              </div>
-            ) : (
-              <>
-                {/* Stemgerechtigden statistieken */}
-                <div className="flex items-center justify-between p-4 rounded-lg bg-gray-50">
-                  <div className="flex items-center gap-4">
-                    <div className="bg-[#963E56]/20 p-3 rounded-full">
-                      <UserCheck className="h-5 w-5 text-[#963E56]" />
+                  </Link>
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+        
+        {/* Stemgerechtigden statistieken - Rechterkant */}
+        <Card className="border-none shadow-md overflow-hidden">
+          <div className="bg-gradient-to-r from-[#963E56]/20 to-[#963E56] h-2" />
+          <CardHeader>
+            <CardTitle className="text-lg flex items-center">
+              <UserCheck className="h-5 w-5 mr-2 text-[#963E56]" />
+              Stemgerechtigden
+            </CardTitle>
+            <CardDescription>
+              Leden die stemgerechtigd zijn (meerderjarig + 5 jaar lid + betaald)
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {isLoading ? (
+                <div className="space-y-3">
+                  <Skeleton className="h-5 w-full" />
+                </div>
+              ) : (
+                <>
+                  {/* Stemgerechtigden statistieken */}
+                  <div className="flex items-center justify-between p-4 rounded-lg bg-gray-50">
+                    <div className="flex items-center gap-4">
+                      <div className="bg-[#963E56]/20 p-3 rounded-full">
+                        <UserCheck className="h-5 w-5 text-[#963E56]" />
+                      </div>
+                      <div>
+                        <div className="text-sm text-gray-500">Stemgerechtigde leden</div>
+                        <div className="font-medium">
+                          {members.filter(member => {
+                            // Voorwaarde 1: Meerderjarig (18+)
+                            const age = calculateAge(member.birthDate);
+                            if (!age || age < 18) return false;
+                            
+                            // Voorwaarde 2: Minstens 5 jaar aaneensluitend lid
+                            const today = new Date();
+                            // Gebruik startDate in plaats van registrationDate voor het berekenen van lidmaatschapsjaren
+                            const startDate = new Date(member.startDate || member.registrationDate);
+                            let years = today.getFullYear() - startDate.getFullYear();
+                            
+                            // Controleer of de 'verjaardag' van het lidmaatschap al is gepasseerd dit jaar
+                            if (
+                              today.getMonth() < startDate.getMonth() || 
+                              (today.getMonth() === startDate.getMonth() && today.getDate() < startDate.getDate())
+                            ) {
+                              years--;
+                            }
+                            
+                            if (years < 5) return false;
+                            
+                            // Voorwaarde 3: Elk jaar betaald
+                            // Omdat we nog geen betalingsgeschiedenis bijhouden, gebruiken we de huidige betalingsstatus
+                            if (!member.paymentStatus) return false;
+                            
+                            // Aan alle voorwaarden voldaan
+                            return true;
+                          }).length} leden
+                        </div>
+                      </div>
                     </div>
-                    <div>
-                      <div className="text-sm text-gray-500">Stemgerechtigde leden</div>
-                      <div className="font-medium">
-                        {members.filter(member => {
+                    <Link href="/members?voting=true">
+                      <Button size="sm" variant="outline" className="border-[#963E56] text-[#963E56] hover:bg-[#963E56]/10">
+                        Toon lijst
+                      </Button>
+                    </Link>
+                  </div>
+                  
+                  {/* Voortgangsindicator voor stemgerechtigden */}
+                  <div className="space-y-2">
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm font-medium">
+                        {Math.round((members.filter(member => {
                           // Voorwaarde 1: Meerderjarig (18+)
                           const age = calculateAge(member.birthDate);
                           if (!age || age < 18) return false;
@@ -386,7 +430,7 @@ export default function Dashboard() {
                           const startDate = new Date(member.startDate || member.registrationDate);
                           let years = today.getFullYear() - startDate.getFullYear();
                           
-                          // Controleer of de 'verjaardag' van het lidmaatschap al is gepasseerd dit jaar
+                          // Controleer of het lidmaatschap lang genoeg is
                           if (
                             today.getMonth() < startDate.getMonth() || 
                             (today.getMonth() === startDate.getMonth() && today.getDate() < startDate.getDate())
@@ -396,39 +440,24 @@ export default function Dashboard() {
                           
                           if (years < 5) return false;
                           
-                          // Voorwaarde 3: Elk jaar betaald
-                          // Omdat we nog geen betalingsgeschiedenis bijhouden, gebruiken we de huidige betalingsstatus
+                          // Voorwaarde 3: Betaald
                           if (!member.paymentStatus) return false;
                           
-                          // Aan alle voorwaarden voldaan
                           return true;
-                        }).length} leden
-                      </div>
+                        }).length / members.length) * 100)}% van totaal
+                      </span>
                     </div>
-                  </div>
-                  <Link href="/members?voting=true">
-                    <Button size="sm" variant="outline" className="border-[#963E56] text-[#963E56] hover:bg-[#963E56]/10">
-                      Toon lijst
-                    </Button>
-                  </Link>
-                </div>
-                
-                {/* Voortgangsindicator voor stemgerechtigden */}
-                <div className="space-y-2">
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm font-medium">
-                      {Math.round((members.filter(member => {
-                        // Voorwaarde 1: Meerderjarig (18+)
+                    <Progress 
+                      value={Math.round((members.filter(member => {
+                        // Dezelfde voorwaarden als hierboven
                         const age = calculateAge(member.birthDate);
                         if (!age || age < 18) return false;
                         
-                        // Voorwaarde 2: Minstens 5 jaar aaneensluitend lid
                         const today = new Date();
                         // Gebruik startDate in plaats van registrationDate voor het berekenen van lidmaatschapsjaren
                         const startDate = new Date(member.startDate || member.registrationDate);
                         let years = today.getFullYear() - startDate.getFullYear();
                         
-                        // Controleer of het lidmaatschap lang genoeg is
                         if (
                           today.getMonth() < startDate.getMonth() || 
                           (today.getMonth() === startDate.getMonth() && today.getDate() < startDate.getDate())
@@ -437,45 +466,19 @@ export default function Dashboard() {
                         }
                         
                         if (years < 5) return false;
-                        
-                        // Voorwaarde 3: Betaald
                         if (!member.paymentStatus) return false;
                         
                         return true;
-                      }).length / members.length) * 100)}% van totaal
-                    </span>
+                      }).length / members.length) * 100)} 
+                      className="h-2" 
+                    />
                   </div>
-                  <Progress 
-                    value={Math.round((members.filter(member => {
-                      // Dezelfde voorwaarden als hierboven
-                      const age = calculateAge(member.birthDate);
-                      if (!age || age < 18) return false;
-                      
-                      const today = new Date();
-                      // Gebruik startDate in plaats van registrationDate voor het berekenen van lidmaatschapsjaren
-                      const startDate = new Date(member.startDate || member.registrationDate);
-                      let years = today.getFullYear() - startDate.getFullYear();
-                      
-                      if (
-                        today.getMonth() < startDate.getMonth() || 
-                        (today.getMonth() === startDate.getMonth() && today.getDate() < startDate.getDate())
-                      ) {
-                        years--;
-                      }
-                      
-                      if (years < 5) return false;
-                      if (!member.paymentStatus) return false;
-                      
-                      return true;
-                    }).length / members.length) * 100)} 
-                    className="h-2" 
-                  />
-                </div>
-              </>
-            )}
-          </div>
-        </CardContent>
-      </Card>
+                </>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
       
       {/* 4. Geslacht statistieken */}
       <Card className="border-none shadow-md overflow-hidden">
