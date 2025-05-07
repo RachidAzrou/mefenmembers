@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MEFEN Moskee - Privacy Checkbox Fix</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        pre {
+            background-color: #f5f5f5;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            border: 1px solid #ddd;
+        }
+        code {
+            font-family: Monaco, Consolas, "Andale Mono", "DejaVu Sans Mono", monospace;
+            font-size: 14px;
+        }
+        h1, h2, h3 {
+            color: #963E56;
+        }
+        .diff-removed {
+            background-color: #ffecec;
+            color: #bd2c00;
+            text-decoration: line-through;
+        }
+        .diff-added {
+            background-color: #eaffea;
+            color: #55a532;
+        }
+        .important {
+            background-color: #fffacd;
+            padding: 10px;
+            border-left: 4px solid #ffeb3b;
+        }
+    </style>
+</head>
+<body>
+    <h1>MEFEN Moskee - Privacy Checkbox Fix</h1>
+    
+    <h2>Probleem</h2>
+    <p>Bij het registratieformulier verschijnt er een leeg scherm wanneer gebruikers op de privacy checkbox klikken.</p>
+    
+    <h2>Oorzaak</h2>
+    <p>Er is een <code>onClick</code> handler op het div-element dat de checkbox bevat. Deze handler conflicteert met de checkbox zelf, waardoor een JavaScript-fout optreedt.</p>
+    
+    <h2>De Fix</h2>
+    <p>Zoek in de bundle naar de code die overeenkomt met de volgende problematische implementatie:</p>
+    
+    <pre><code>// Problematische code (bevat een bug)
+&lt;FormItem className="border border-gray-200 rounded-lg shadow-sm"&gt;
+  &lt;div 
+    className="flex flex-row items-start space-x-4 p-4 sm:p-5"
+    <span class="diff-removed">onClick={() => field.onChange(!field.value)}</span>
+  &gt;
+    &lt;FormControl&gt;
+      &lt;Checkbox
+        checked={field.value}
+        onCheckedChange={field.onChange}
+        className="mt-1 h-6 w-6 rounded-md data-[state=checked]:bg-[#963E56] data-[state=checked]:text-white"
+      /&gt;
+    &lt;/FormControl&gt;
+    &lt;div className="space-y-1 leading-tight"&gt;
+      &lt;FormLabel className="text-base font-medium cursor-pointer"&gt;
+        Ik ga akkoord met de verwerking van mijn gegevens &lt;span className="text-red-500"&gt;*&lt;/span&gt;
+      &lt;/FormLabel&gt;
+      &lt;FormDescription className="text-xs sm:text-sm"&gt;
+        Je gegevens worden vertrouwelijk behandeld en alleen gebruikt voor het beheren van je lidmaatschap.
+      &lt;/FormDescription&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+  &lt;FormMessage className="px-4 pb-3" /&gt;
+&lt;/FormItem&gt;</code></pre>
+
+    <p>Vervang het door de volgende gecorrigeerde code:</p>
+    
+    <pre><code>// Gecorrigeerde code
+&lt;FormItem className="border border-gray-200 rounded-lg shadow-sm"&gt;
+  &lt;div className="flex flex-row items-start space-x-4 p-4 sm:p-5"&gt;
+    &lt;FormControl&gt;
+      &lt;Checkbox
+        checked={field.value}
+        onCheckedChange={field.onChange}
+        className="mt-1 h-6 w-6 rounded-md data-[state=checked]:bg-[#963E56] data-[state=checked]:text-white"
+        <span class="diff-added">id="privacy-consent-checkbox"</span>
+      /&gt;
+    &lt;/FormControl&gt;
+    &lt;div className="space-y-1 leading-tight"&gt;
+      &lt;FormLabel 
+        <span class="diff-added">htmlFor="privacy-consent-checkbox"</span>
+        className="text-base font-medium cursor-pointer"
+        <span class="diff-added">onClick={(e) => e.preventDefault()}</span>
+      &gt;
+        Ik ga akkoord met de verwerking van mijn gegevens &lt;span className="text-red-500"&gt;*&lt;/span&gt;
+      &lt;/FormLabel&gt;
+      &lt;FormDescription className="text-xs sm:text-sm"&gt;
+        Je gegevens worden vertrouwelijk behandeld en alleen gebruikt voor het beheren van je lidmaatschap.
+      &lt;/FormDescription&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+  &lt;FormMessage className="px-4 pb-3" /&gt;
+&lt;/FormItem&gt;</code></pre>
+
+    <h2>Implementatie</h2>
+    <p>De belangrijkste wijzigingen zijn:</p>
+    <ol>
+        <li><strong>Verwijderen</strong> van de <code>onClick</code> handler op het div-element</li>
+        <li><strong>Toevoegen</strong> van een <code>id</code> aan de Checkbox component</li>
+        <li><strong>Toevoegen</strong> van een <code>htmlFor</code> attribuut aan het FormLabel element</li>
+        <li><strong>Toevoegen</strong> van een preventieve <code>onClick</code> handler op het label om dubbele klikgedrag te voorkomen</li>
+    </ol>
+
+    <div class="important">
+        <p><strong>Belangrijk:</strong> Na het aanbrengen van deze wijzigingen in de broncode, moet je de applicatie opnieuw bouwen en deployen naar Vercel.</p>
+    </div>
+</body>
+</html>
