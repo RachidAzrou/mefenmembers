@@ -1361,7 +1361,7 @@ export default function Rapportage() {
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart
                       data={membersByAgeGroup}
-                      margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+                      margin={{ top: 20, right: 20, left: 20, bottom: 40 }}
                     >
                       <CartesianGrid strokeDasharray="3 3" />
                       <XAxis 
@@ -1405,7 +1405,7 @@ export default function Rapportage() {
                 <Button 
                   variant="ghost" 
                   size="icon"
-                  onClick={() => exportChartAsJPG(growthChartRef, 'groei-grafiek')}
+                  onClick={() => exportChartAsJPG(cumulativeGrowthChartRef, 'groei-grafiek')}
                   className="h-7 w-7"
                   title="Download als JPG"
                 >
@@ -1413,7 +1413,7 @@ export default function Rapportage() {
                 </Button>
               </CardHeader>
               <CardContent>
-                <div className="h-80 w-full" ref={growthChartRef}>
+                <div className="h-80 w-full" ref={cumulativeGrowthChartRef}>
                   <ResponsiveContainer width="100%" height="100%">
                     <AreaChart
                       data={membershipGrowth.slice(-12).map((month, index, arr) => {
@@ -1433,8 +1433,21 @@ export default function Rapportage() {
                         </linearGradient>
                       </defs>
                       <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="maand" />
-                      <YAxis />
+                      <XAxis 
+                        dataKey="maand"
+                        label={{ 
+                          value: 'Maand', 
+                          position: 'insideBottom', 
+                          offset: -5 
+                        }}  
+                      />
+                      <YAxis 
+                        label={{ 
+                          value: 'Aantal leden', 
+                          angle: -90, 
+                          position: 'insideLeft' 
+                        }} 
+                      />
                       <RechartsTooltip 
                         formatter={(value, name) => [`${value} leden`, 'Cumulatief']}
                         labelFormatter={(label) => `${membershipGrowth.find(m => m.maand === label)?.maand_jaar}`}
@@ -1458,14 +1471,23 @@ export default function Rapportage() {
           <div className="grid gap-4 md:grid-cols-2">
             <Card className="border-none shadow-md overflow-hidden">
               <div className="bg-gradient-to-r from-amber-500/20 to-amber-600/20 h-2" />
-              <CardHeader>
+              <CardHeader className="flex flex-row items-center justify-between pb-2">
                 <CardTitle className="flex items-center">
                   <Zap className="h-5 w-5 mr-2 text-amber-600" />
                   Betaalmethode per type lidmaatschap
                 </CardTitle>
+                <Button 
+                  variant="ghost" 
+                  size="icon"
+                  onClick={() => exportChartAsJPG(paymentMethodChartRef, 'betaalmethodes-grafiek')}
+                  className="h-7 w-7"
+                  title="Download als JPG"
+                >
+                  <ImageIcon className="h-4 w-4" />
+                </Button>
               </CardHeader>
               <CardContent>
-                <div className="h-80 w-full">
+                <div className="h-80 w-full" ref={paymentMethodChartRef}>
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart
                       data={membershipTypes.map(type => {
@@ -1505,10 +1527,23 @@ export default function Rapportage() {
                       margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
                     >
                       <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="name" />
-                      <YAxis />
+                      <XAxis 
+                        dataKey="name"
+                        label={{ 
+                          value: 'Lidmaatschapstype', 
+                          position: 'insideBottom', 
+                          offset: -5 
+                        }}  
+                      />
+                      <YAxis 
+                        label={{ 
+                          value: 'Aantal leden', 
+                          angle: -90, 
+                          position: 'insideLeft' 
+                        }} 
+                      />
                       <RechartsTooltip />
-                      <Legend />
+                      <Legend wrapperStyle={{ paddingTop: 10 }} />
                       <Bar dataKey="Automatische incasso" stackId="a" fill="#2ECC71" />
                       <Bar dataKey="Overschrijving" stackId="a" fill="#3498DB" />
                       <Bar dataKey="Contant" stackId="a" fill="#9B59B6" />
