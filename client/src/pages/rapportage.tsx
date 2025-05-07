@@ -3,7 +3,8 @@ import { useQuery } from "@tanstack/react-query";
 import { 
   BarChart, Bar, XAxis, YAxis, Tooltip as RechartsTooltip, Legend, ResponsiveContainer, 
   PieChart, Pie, Cell, LineChart, Line, CartesianGrid,
-  ScatterChart, Scatter, ZAxis, AreaChart, Area, ComposedChart
+  ScatterChart, Scatter, ZAxis, AreaChart, Area, ComposedChart,
+  RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar
 } from 'recharts';
 import { 
   Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle 
@@ -391,6 +392,7 @@ export default function Rapportage() {
   const paymentTermChartRef = useRef<HTMLDivElement>(null);
   const growthChartRef = useRef<HTMLDivElement>(null);
   const revenueChartRef = useRef<HTMLDivElement>(null);
+  const radarChartRef = useRef<HTMLDivElement>(null);
 
   // Haal ledendata op
   const { data: members, isLoading } = useQuery<Member[]>({
@@ -469,7 +471,8 @@ export default function Rapportage() {
       'Betalingsmethodes': paymentMethodChartRef,
       'Betalingstermijnen': paymentTermChartRef,
       'Ledengroei': growthChartRef,
-      'Maandelijkse Inkomsten': revenueChartRef
+      'Maandelijkse Inkomsten': revenueChartRef,
+      'Leeftijdsgroep Radar': radarChartRef
     };
     
     await exportAllChartsToPDF(chartRefs, 'MEFEN-Grafieken');
@@ -1234,14 +1237,23 @@ export default function Rapportage() {
           <div className="grid gap-4 md:grid-cols-2">
             <Card className="border-none shadow-md overflow-hidden">
               <div className="bg-gradient-to-r from-purple-500/20 to-purple-600/20 h-2" />
-              <CardHeader>
+              <CardHeader className="flex flex-row items-center justify-between pb-2">
                 <CardTitle className="flex items-center">
                   <Target className="h-5 w-5 mr-2 text-purple-600" />
                   Radargrafiek - Leeftijdsgroepen
                 </CardTitle>
+                <Button 
+                  variant="ghost" 
+                  size="icon"
+                  onClick={() => exportChartAsJPG(radarChartRef, 'leeftijd-radar-grafiek')}
+                  className="h-7 w-7"
+                  title="Download als JPG"
+                >
+                  <ImageIcon className="h-4 w-4" />
+                </Button>
               </CardHeader>
               <CardContent>
-                <div className="h-80 w-full">
+                <div className="h-80 w-full" ref={radarChartRef}>
                   <ResponsiveContainer width="100%" height="100%">
                     <RadarChart outerRadius={90} data={membersByAgeGroup}>
                       <PolarGrid />
@@ -1263,14 +1275,23 @@ export default function Rapportage() {
             
             <Card className="border-none shadow-md overflow-hidden">
               <div className="bg-gradient-to-r from-cyan-500/20 to-cyan-600/20 h-2" />
-              <CardHeader>
+              <CardHeader className="flex flex-row items-center justify-between pb-2">
                 <CardTitle className="flex items-center">
                   <Activity className="h-5 w-5 mr-2 text-cyan-600" />
                   Ledengroei (cumulatief)
                 </CardTitle>
+                <Button 
+                  variant="ghost" 
+                  size="icon"
+                  onClick={() => exportChartAsJPG(growthChartRef, 'groei-grafiek')}
+                  className="h-7 w-7"
+                  title="Download als JPG"
+                >
+                  <ImageIcon className="h-4 w-4" />
+                </Button>
               </CardHeader>
               <CardContent>
-                <div className="h-80 w-full">
+                <div className="h-80 w-full" ref={growthChartRef}>
                   <ResponsiveContainer width="100%" height="100%">
                     <AreaChart
                       data={membershipGrowth.slice(-12).map((month, index, arr) => {
