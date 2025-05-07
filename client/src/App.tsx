@@ -11,6 +11,8 @@ import MemberAdd from "@/pages/member-add";
 import MemberEdit from "@/pages/member-edit";
 import MemberDetail from "@/pages/member-detail";
 import Export from "@/pages/export";
+import MemberRequests from "@/pages/member-requests";
+import RegisterRequest from "@/pages/register-request";
 import { Sidebar } from "@/components/layout/sidebar";
 import { auth } from "./lib/firebase";
 import { useAuthState } from "react-firebase-hooks/auth";
@@ -58,15 +60,22 @@ function PrivateRoute({ component: Component }: { component: React.ComponentType
 function Router() {
   return (
     <Switch>
+      {/* Openbare routes */}
       <Route path="/login" component={Login} />
       <Route path="/register" component={Register} />
+      <Route path="/register-request" component={RegisterRequest} />
+      
+      {/* Beveiligde routes (vereisen inloggen) */}
       <Route path="/" component={() => <PrivateRoute component={Dashboard} />} />
       <Route path="/dashboard" component={() => <PrivateRoute component={Dashboard} />} />
       <Route path="/members" component={() => <PrivateRoute component={MembersList} />} />
       <Route path="/member-add" component={() => <PrivateRoute component={MemberAdd} />} />
       <Route path="/member-edit" component={() => <PrivateRoute component={MemberEdit} />} />
       <Route path="/member-detail" component={() => <PrivateRoute component={MemberDetail} />} />
+      <Route path="/member-requests" component={() => <PrivateRoute component={MemberRequests} />} />
       <Route path="/export" component={() => <PrivateRoute component={Export} />} />
+      
+      {/* Fallback route */}
       <Route component={NotFound} />
     </Switch>
   );
