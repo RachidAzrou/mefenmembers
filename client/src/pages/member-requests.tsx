@@ -216,21 +216,34 @@ export default function MemberRequests() {
 
   return (
     <div className="container mx-auto py-8 px-4">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
-        <div>
-          <h1 className="text-2xl md:text-3xl font-bold text-primary">Lidmaatschapsaanvragen</h1>
-          <p className="text-gray-500 mt-1">Beheer nieuwe aanvragen en bekijk verwerkte aanvragen</p>
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center border-b pb-4 mb-6">
+        <div className="flex items-center gap-3">
+          <div className="bg-primary text-primary-foreground p-2 rounded-lg">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" />
+              <rect width="8" height="4" x="8" y="2" rx="1" ry="1" />
+              <path d="M12 11h4" />
+              <path d="M12 16h4" />
+              <path d="M8 11h.01" />
+              <path d="M8 16h.01" />
+            </svg>
+          </div>
+          <div>
+            <h1 className="text-2xl md:text-3xl font-bold">Lidmaatschapsaanvragen</h1>
+            <p className="text-gray-500 mt-1">Beheer nieuwe aanvragen en bekijk verwerkte aanvragen</p>
+          </div>
         </div>
         <div className="mt-4 md:mt-0 flex gap-2">
           <Button 
             onClick={() => window.open('/register-request', '_blank')}
-            variant="outline"
-            className="flex items-center gap-2"
+            variant="default"
+            className="flex items-center gap-2 bg-primary hover:bg-primary/90"
           >
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-external-link">
-              <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
-              <polyline points="15 3 21 3 21 9" />
-              <line x1="10" y1="14" x2="21" y2="3" />
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+              <circle cx="8.5" cy="7" r="4"></circle>
+              <line x1="20" y1="8" x2="20" y2="14"></line>
+              <line x1="23" y1="11" x2="17" y2="11"></line>
             </svg>
             Bekijk aanmeldformulier
           </Button>
@@ -242,10 +255,9 @@ export default function MemberRequests() {
           <CardHeader className="pb-2">
             <CardTitle className="text-lg flex items-center gap-2">
               <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-primary">
-                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
-                <circle cx="9" cy="7" r="4"></circle>
-                <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
-                <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                <path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3" />
+                <path d="M3 16v3a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-3" />
+                <line x1="3" y1="10" x2="21" y2="10" />
               </svg>
               Totaal aantal aanvragen
             </CardTitle>
@@ -259,8 +271,7 @@ export default function MemberRequests() {
             <CardTitle className="text-lg flex items-center gap-2">
               <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-amber-500">
                 <circle cx="12" cy="12" r="10"></circle>
-                <line x1="12" y1="8" x2="12" y2="12"></line>
-                <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                <polyline points="12 6 12 12 16 14"></polyline>
               </svg>
               In behandeling
             </CardTitle>
@@ -291,8 +302,7 @@ export default function MemberRequests() {
             <div className="flex items-center gap-2">
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-amber-500">
                 <circle cx="12" cy="12" r="10"></circle>
-                <line x1="12" y1="8" x2="12" y2="12"></line>
-                <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                <polyline points="12 6 12 12 16 14"></polyline>
               </svg>
               In behandeling ({pendingRequests.length})
             </div>
@@ -314,8 +324,7 @@ export default function MemberRequests() {
               <div className="flex flex-col items-center justify-center">
                 <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400 mb-3">
                   <circle cx="12" cy="12" r="10"></circle>
-                  <line x1="12" y1="8" x2="12" y2="12"></line>
-                  <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                  <polyline points="12 6 12 12 16 14"></polyline>
                 </svg>
                 <p className="text-gray-500 font-medium">Er zijn geen aanvragen in behandeling</p>
                 <p className="text-gray-400 text-sm mt-1">Nieuwe aanvragen zullen hier verschijnen</p>
