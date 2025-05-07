@@ -178,7 +178,7 @@ export default function RegisterRequest() {
   }
   
   return (
-    <div className="min-h-screen py-6 px-3 sm:py-8 sm:px-4 md:py-12 md:px-6 lg:px-8 pb-20 sm:pb-16" 
+    <div className="min-h-screen py-4 px-3 sm:py-8 sm:px-4 md:py-12 md:px-6 lg:px-8 pb-28 sm:pb-16" 
          style={{
            background: "url('/pattern.jpg') center/cover fixed no-repeat, linear-gradient(135deg, rgba(245, 247, 250, 0.7), rgba(195, 207, 226, 0.7))",
            backgroundBlendMode: "overlay"
@@ -190,7 +190,7 @@ export default function RegisterRequest() {
             <h1 className="text-xl sm:text-2xl font-bold text-center">
               MEFEN Moskee Lidmaatschapsaanvraag
             </h1>
-            <p className="mt-2 opacity-90 text-sm text-center">
+            <p className="mt-2 opacity-90 text-sm sm:text-base text-center">
               Vul onderstaand formulier in om lid te worden
             </p>
           </div>
@@ -198,7 +198,7 @@ export default function RegisterRequest() {
           {/* Formulier */}
           <div className="p-4 sm:p-6">
             <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 sm:space-y-8">
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-7 sm:space-y-8">
                 
                 {/* Sectie: Persoonsgegevens */}
                 <div className="border border-gray-200 rounded-lg p-4 sm:p-5 md:p-6 space-y-5 sm:space-y-6 shadow-sm">
@@ -215,16 +215,16 @@ export default function RegisterRequest() {
                         name="firstName"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel className="text-sm sm:text-base">Voornaam <span className="text-red-500">*</span></FormLabel>
+                            <FormLabel className="text-sm sm:text-base font-medium">Voornaam <span className="text-red-500">*</span></FormLabel>
                             <FormControl>
                               <Input 
                                 placeholder="Voornaam" 
                                 {...field} 
-                                className="h-10 text-sm"
+                                className="h-12 sm:h-10 text-base sm:text-sm px-4 rounded-lg focus:border-[#963E56] focus:ring-[#963E56]/30"
                                 autoComplete="given-name"
                               />
                             </FormControl>
-                            <FormMessage />
+                            <FormMessage className="font-medium text-sm" />
                           </FormItem>
                         )}
                       />
@@ -366,22 +366,22 @@ export default function RegisterRequest() {
                           
                           return (
                             <FormItem className="flex flex-col">
-                              <FormLabel>Geboortedatum <span className="text-red-500">*</span></FormLabel>
+                              <FormLabel className="text-sm sm:text-base font-medium">Geboortedatum <span className="text-red-500">*</span></FormLabel>
                               <FormControl>
                                 <Input
                                   placeholder="DD/MM/JJJJ"
                                   value={birthDateInput}
                                   onChange={handleInputChange}
                                   onBlur={handleBlur}
-                                  className="text-sm"
+                                  className="h-12 sm:h-10 text-base sm:text-sm px-4 rounded-lg focus:border-[#963E56] focus:ring-[#963E56]/30"
                                   inputMode="numeric"
                                   pattern="\d{1,2}/\d{1,2}/\d{4}"
                                 />
                               </FormControl>
-                              <FormDescription className="text-xs sm:text-sm">
+                              <FormDescription className="text-xs sm:text-sm mt-1.5">
                                 Formaat: DD/MM/JJJJ (bijv. 15/06/1985)
                               </FormDescription>
-                              <FormMessage />
+                              <FormMessage className="font-medium text-sm" />
                             </FormItem>
                           );
                         }}
