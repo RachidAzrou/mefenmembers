@@ -4,7 +4,7 @@ import {
   BarChart, Bar, XAxis, YAxis, Tooltip as RechartsTooltip, Legend, ResponsiveContainer, 
   PieChart, Pie, Cell, LineChart, Line, CartesianGrid,
   ScatterChart, Scatter, ZAxis, AreaChart, Area, ComposedChart,
-  RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar
+
 } from 'recharts';
 import { 
   Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle 
@@ -392,7 +392,7 @@ export default function Rapportage() {
   const paymentTermChartRef = useRef<HTMLDivElement>(null);
   const growthChartRef = useRef<HTMLDivElement>(null);
   const revenueChartRef = useRef<HTMLDivElement>(null);
-  const radarChartRef = useRef<HTMLDivElement>(null);
+  const ageGroupChartRef = useRef<HTMLDivElement>(null);
 
   // Haal ledendata op
   const { data: members, isLoading } = useQuery<Member[]>({
@@ -472,7 +472,7 @@ export default function Rapportage() {
       'Betalingstermijnen': paymentTermChartRef,
       'Ledengroei': growthChartRef,
       'Maandelijkse Inkomsten': revenueChartRef,
-      'Leeftijdsgroep Radar': radarChartRef
+      'Leeftijdsgroepen Verdeling': ageGroupChartRef
     };
     
     await exportAllChartsToPDF(chartRefs, 'MEFEN-Grafieken');
@@ -1239,13 +1239,13 @@ export default function Rapportage() {
               <div className="bg-gradient-to-r from-purple-500/20 to-purple-600/20 h-2" />
               <CardHeader className="flex flex-row items-center justify-between pb-2">
                 <CardTitle className="flex items-center">
-                  <Target className="h-5 w-5 mr-2 text-purple-600" />
-                  Radargrafiek - Leeftijdsgroepen
+                  <BarChart3 className="h-5 w-5 mr-2 text-purple-600" />
+                  Leeftijdsgroepen verdeling
                 </CardTitle>
                 <Button 
                   variant="ghost" 
                   size="icon"
-                  onClick={() => exportChartAsJPG(radarChartRef, 'leeftijd-radar-grafiek')}
+                  onClick={() => exportChartAsJPG(ageGroupChartRef, 'leeftijdsgroepen-verdeling')}
                   className="h-7 w-7"
                   title="Download als JPG"
                 >
@@ -1253,21 +1253,39 @@ export default function Rapportage() {
                 </Button>
               </CardHeader>
               <CardContent>
-                <div className="h-80 w-full" ref={radarChartRef}>
+                <div className="h-80 w-full" ref={ageGroupChartRef}>
                   <ResponsiveContainer width="100%" height="100%">
-                    <RadarChart outerRadius={90} data={membersByAgeGroup}>
-                      <PolarGrid />
-                      <PolarAngleAxis dataKey="name" />
-                      <PolarRadiusAxis angle={30} domain={[0, 'auto']} />
-                      <Radar 
-                        name="Aantal leden" 
-                        dataKey="count" 
-                        stroke="#8884d8" 
-                        fill="#8884d8" 
-                        fillOpacity={0.6} 
+                    <BarChart
+                      data={membersByAgeGroup}
+                      margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+                    >
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis 
+                        dataKey="name" 
+                        label={{ 
+                          value: 'Leeftijdsgroep', 
+                          position: 'insideBottom', 
+                          offset: -5 
+                        }} 
                       />
-                      <RechartsTooltip formatter={(value) => [`${value} leden`, 'Aantal']} />
-                    </RadarChart>
+                      <YAxis 
+                        label={{ 
+                          value: 'Aantal leden', 
+                          angle: -90, 
+                          position: 'insideLeft' 
+                        }} 
+                      />
+                      <RechartsTooltip 
+                        formatter={(value, name) => [`${value} leden`, 'Aantal']}
+                        labelFormatter={(label) => `Leeftijdsgroep: ${label}`}
+                      />
+                      <Legend verticalAlign="top" height={36} />
+                      <Bar dataKey="count" name="Aantal leden per leeftijdsgroep" fill="#8884d8">
+                        {membersByAgeGroup.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={entry.color} />
+                        ))}
+                      </Bar>
+                    </BarChart>
                   </ResponsiveContainer>
                 </div>
               </CardContent>
