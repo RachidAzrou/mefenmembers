@@ -195,6 +195,149 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Member request routes
+  app.get("/api/member-requests", async (req: Request, res: Response) => {
+    try {
+      // Als er een id parameter is, dan halen we een specifiek verzoek op
+      if (req.query.id) {
+        const id = parseInt(req.query.id as string);
+        if (isNaN(id)) {
+          return res.status(400).json({ error: "Ongeldig ID formaat" });
+        }
+        
+        const request = await storage.getMemberRequest(id);
+        if (!request) {
+          return res.status(404).json({ error: "Aanvraag niet gevonden" });
+        }
+
+        return res.json(request);
+      }
+
+      // Anders halen we alle verzoeken op
+      const requests = await storage.listMemberRequests();
+      res.json(requests);
+    } catch (error) {
+      console.error("Fout bij ophalen lidmaatschapsaanvragen:", error);
+      res.status(500).json({ error: "Kon lidmaatschapsaanvragen niet ophalen" });
+    }
+  });
+
+  // Publieke route voor het indienen van een lidmaatschapsaanvraag (geen authenticatie vereist)
+  app.post("/api/member-requests", async (req: Request, res: Response) => {
+    try {
+      const validationResult = insertMemberRequestSchema.safeParse(req.body);
+      
+      if (!validationResult.success) {
+        const errorMessage = fromZodError(validationResult.error).message;
+        return res.status(400).json({ error: errorMessage });
+      }
+
+      // Voeg IP-adres toe voor veiligheid (indien beschikbaar)
+      const ipAddress = req.headers['x-forwarded-for'] || req.socket.remoteAddress || null;
+      
+      const requestData = {
+        ...validationResult.data,
+        ipAddress: ipAddress as string | null
+      };
+      
+      const request = await storage.createMemberRequest(requestData);
+      
+      res.status(201).json({
+        id: request.id,
+        message: "Uw aanvraag is succesvol ingediend en wordt zo spoedig mogelijk verwerkt."
+      });
+    } catch (error) {
+      console.error("Fout bij aanmaken lidmaatschapsaanvraag:", error);
+      res.status(500).json({ error: "Kon lidmaatschapsaanvraag niet aanmaken" });
+    }
+  });
+
+  // Route voor het bijwerken van een aanvraagstatus (alleen voor beheerders)
+  app.put("/api/member-requests/status", async (req: Request, res: Response) => {
+    try {
+      const id = req.query.id ? parseInt(req.query.id as string) : undefined;
+      if (!id || isNaN(id)) {
+        return res.status(400).json({ error: "Ongeldig of ontbrekend ID" });
+      }
+
+      const { status, processedBy } = req.body;
+      
+      if (!status || !['pending', 'approved', 'rejected'].includes(status)) {
+        return res.status(400).json({ error: "Ongeldige status. Gebruik 'pending', 'approved' of 'rejected'" });
+      }
+
+      const request = await storage.getMemberRequest(id);
+      if (!request) {
+        return res.status(404).json({ error: "Aanvraag niet gevonden" });
+      }
+
+      const updatedRequest = await storage.updateMemberRequestStatus(
+        id, 
+        status as 'pending' | 'approved' | 'rejected',
+        processedBy ? parseInt(processedBy as string) : undefined
+      );
+      
+      res.json(updatedRequest);
+    } catch (error) {
+      console.error("Fout bij bijwerken aanvraagstatus:", error);
+      res.status(500).json({ error: "Kon aanvraagstatus niet bijwerken" });
+    }
+  });
+
+  // Route voor het goedkeuren en omzetten van een aanvraag naar een lid
+  app.post("/api/member-requests/approve", async (req: Request, res: Response) => {
+    try {
+      const id = req.query.id ? parseInt(req.query.id as string) : undefined;
+      if (!id || isNaN(id)) {
+        return res.status(400).json({ error: "Ongeldig of ontbrekend ID" });
+      }
+
+      const { processedBy } = req.body;
+      
+      if (!processedBy || isNaN(parseInt(processedBy as string))) {
+        return res.status(400).json({ error: "Ontbrekende of ongeldige processedBy parameter" });
+      }
+
+      const request = await storage.getMemberRequest(id);
+      if (!request) {
+        return res.status(404).json({ error: "Aanvraag niet gevonden" });
+      }
+
+      // Convert request to member
+      const member = await storage.approveMemberRequest(id, parseInt(processedBy as string));
+      
+      res.status(201).json({
+        message: "Aanvraag goedgekeurd en lid aangemaakt",
+        memberId: member.id,
+        memberNumber: member.memberNumber
+      });
+    } catch (error) {
+      console.error("Fout bij goedkeuren lidmaatschapsaanvraag:", error);
+      res.status(500).json({ error: "Kon aanvraag niet goedkeuren: " + (error instanceof Error ? error.message : String(error)) });
+    }
+  });
+
+  // Route voor het verwijderen van een aanvraag
+  app.delete("/api/member-requests", async (req: Request, res: Response) => {
+    try {
+      const id = req.query.id ? parseInt(req.query.id as string) : undefined;
+      if (!id || isNaN(id)) {
+        return res.status(400).json({ error: "Ongeldig of ontbrekend ID" });
+      }
+
+      const request = await storage.getMemberRequest(id);
+      if (!request) {
+        return res.status(404).json({ error: "Aanvraag niet gevonden" });
+      }
+
+      await storage.deleteMemberRequest(id);
+      res.status(204).end();
+    } catch (error) {
+      console.error("Fout bij verwijderen lidmaatschapsaanvraag:", error);
+      res.status(500).json({ error: "Kon lidmaatschapsaanvraag niet verwijderen" });
+    }
+  });
+
   const httpServer = createServer(app);
 
   return httpServer;

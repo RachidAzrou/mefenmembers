@@ -425,30 +425,81 @@ export class DatabaseStorage implements IStorage {
       throw new Error(`Lidmaatschapsaanvraag met ID ${id} is al ${request.status}`);
     }
 
-    // Bereid lid data voor
-    const memberData: InsertMember = {
-      firstName: request.firstName,
-      lastName: request.lastName,
-      phoneNumber: request.phoneNumber,
-      email: request.email,
-      gender: request.gender as any,
-      birthDate: request.birthDate,
-      nationality: request.nationality,
-      street: request.street,
-      houseNumber: request.houseNumber,
-      busNumber: request.busNumber,
-      postalCode: request.postalCode,
-      city: request.city,
-      membershipType: request.membershipType as any,
-      startDate: new Date(),
-      paymentStatus: false,
-      registrationDate: new Date(),
-      privacyConsent: request.privacyConsent,
-      notes: request.notes || `Aangemaakt vanuit aanvraag #${id}`,
-      accountNumber: request.accountNumber,
-      bicSwift: request.bicSwift,
-      accountHolderName: request.accountHolderName
+    // Helper functie om datum conversie te handelen
+    const convertDate = (date: Date | string | null | undefined): Date | null => {
+      if (!date) return null;
+      if (date instanceof Date) return date;
+      try {
+        return new Date(date);
+      } catch {
+        return null;
+      }
     };
+
+    // TypeScript heeft moeite met de type-compatibiliteit, dus converteren we alles expliciet
+    // naar de juiste types en vorm waar nodig
+    
+    // Creëer een partiële InsertMember
+    const partialMemberData: Partial<InsertMember> = {};
+    
+    // Verplichte velden
+    partialMemberData.firstName = request.firstName;
+    partialMemberData.lastName = request.lastName;
+    partialMemberData.phoneNumber = request.phoneNumber;
+    
+    // Optionele velden met conversies waar nodig
+    partialMemberData.email = request.email || null;
+    
+    // Verwerk gender expliciet
+    if (request.gender === "man" || request.gender === "vrouw") {
+      partialMemberData.gender = request.gender;
+    } else {
+      partialMemberData.gender = undefined;
+    }
+    
+    // Datum conversie
+    if (request.birthDate) {
+      try {
+        partialMemberData.birthDate = request.birthDate instanceof Date ? 
+          request.birthDate : new Date(request.birthDate);
+      } catch {
+        partialMemberData.birthDate = null;
+      }
+    } else {
+      partialMemberData.birthDate = null;
+    }
+    
+    // Overige velden
+    partialMemberData.nationality = request.nationality || null;
+    partialMemberData.street = request.street || null;
+    partialMemberData.houseNumber = request.houseNumber || null;
+    partialMemberData.busNumber = request.busNumber || null;
+    partialMemberData.postalCode = request.postalCode || null;
+    partialMemberData.city = request.city || null;
+    
+    // Lidmaatschap
+    if (request.membershipType === "standaard" || 
+        request.membershipType === "student" || 
+        request.membershipType === "senior") {
+      partialMemberData.membershipType = request.membershipType;
+    } else {
+      partialMemberData.membershipType = "standaard";
+    }
+    
+    partialMemberData.startDate = new Date();
+    partialMemberData.autoRenew = true;
+    partialMemberData.paymentTerm = "jaarlijks";
+    partialMemberData.paymentMethod = "cash";
+    partialMemberData.paymentStatus = false;
+    partialMemberData.registrationDate = new Date();
+    partialMemberData.privacyConsent = Boolean(request.privacyConsent);
+    partialMemberData.notes = request.notes || `Aangemaakt vanuit aanvraag #${id}`;
+    partialMemberData.accountNumber = request.accountNumber || null;
+    partialMemberData.bicSwift = request.bicSwift || null;
+    partialMemberData.accountHolderName = request.accountHolderName || null;
+    
+    // Converteer naar volledig InsertMember object
+    const memberData = partialMemberData as InsertMember;
 
     // Maak een nieuw lid aan op basis van het verzoek
     const member = await this.createMember(memberData);
