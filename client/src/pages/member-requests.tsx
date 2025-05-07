@@ -227,7 +227,19 @@ export default function MemberRequests() {
 
   // Helper functies voor aanvragen
   const pendingRequests = requests?.filter(req => req.status === "pending") || [];
-  const processedRequests = requests?.filter(req => req.status !== "pending") || [];
+  
+  // Filter verwerkte aanvragen op datum (alleen van de afgelopen 7 dagen)
+  const processedRequests = requests?.filter(req => {
+    // Alleen niet-pending aanvragen
+    if (req.status === "pending") return false;
+    
+    // Check of aanvraag niet ouder is dan 7 dagen
+    const requestDate = req.processedDate ? new Date(req.processedDate) : new Date(req.requestDate);
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+    
+    return requestDate >= sevenDaysAgo;
+  }) || [];
   
   const formatDate = (dateString: string | null) => {
     if (!dateString) return "N/A";
@@ -1094,15 +1106,9 @@ export default function MemberRequests() {
           </DialogHeader>
           <div className="mt-2 space-y-4">
             <div className="bg-gradient-to-r from-rose-50 to-white p-4 rounded-md space-y-3 border border-rose-100 mb-4">
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <p className="text-sm font-medium text-rose-700">Naam</p>
-                  <p className="font-medium">{selectedRequest?.firstName} {selectedRequest?.lastName}</p>
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-rose-700">Toe te kennen lidnummer</p>
-                  <p className="font-mono font-medium">{nextMemberNumber || "Wordt toegekend"}</p>
-                </div>
+              <div>
+                <p className="text-sm font-medium text-rose-700">Naam</p>
+                <p className="font-medium">{selectedRequest?.firstName} {selectedRequest?.lastName}</p>
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
