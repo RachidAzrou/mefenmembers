@@ -257,10 +257,12 @@ function groupMembersByPostalArea(members: Member[]): { name: string; count: num
   // Genereer een array van kleuren voor de verschillende postcodegebieden
   const colors = [
     "#3498DB", "#2ECC71", "#9B59B6", "#F1C40F", "#E67E22", "#E74C3C", 
-    "#1ABC9C", "#34495E", "#7F8C8D", "#8E44AD", "#27AE60", "#D35400"
+    "#1ABC9C", "#34495E", "#7F8C8D", "#8E44AD", "#27AE60", "#D35400",
+    "#16A085", "#2980B9", "#8E44AD", "#2C3E50", "#F39C12", "#D35400",
+    "#3498DB", "#2ECC71", "#9B59B6", "#F1C40F", "#E67E22", "#E74C3C"
   ];
 
-  // Converteer naar de juiste format en sorteer
+  // Converteer naar de juiste format en sorteer (toon alle postcodegebieden)
   return Object.entries(areaCounts)
     .map(([area, count]) => ({
       name: `${area}xx gebied`,
@@ -268,7 +270,6 @@ function groupMembersByPostalArea(members: Member[]): { name: string; count: num
       color: "#3498DB" // Standaard kleur, wordt later bijgewerkt
     }))
     .sort((a, b) => b.count - a.count)
-    .slice(0, 8) // Beperk tot top 8
     .map((item, index) => ({
       ...item,
       color: colors[index % colors.length]
@@ -791,7 +792,7 @@ export default function Rapportage() {
                         cy="50%" 
                         outerRadius={80}
                         labelLine={true}
-                        label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                        label={({ name, percent, value }) => `${name}: ${value} (${(percent * 100).toFixed(0)}%)`}
                       >
                         {membersByGender.map((entry, index) => (
                           <Cell key={`cell-${index}`} fill={entry.color} />
@@ -849,7 +850,7 @@ export default function Rapportage() {
                         outerRadius={80}
                         innerRadius={40}
                         labelLine={true}
-                        label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                        label={({ name, percent, value }) => `${name}: ${value} (${(percent * 100).toFixed(0)}%)`}
                       >
                         {membersByPaymentStatus.map((entry, index) => (
                           <Cell key={`cell-${index}`} fill={entry.color} />
