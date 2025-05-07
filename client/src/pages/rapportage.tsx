@@ -391,6 +391,7 @@ export default function Rapportage() {
   const paymentMethodChartRef = useRef<HTMLDivElement>(null);
   const paymentTermChartRef = useRef<HTMLDivElement>(null);
   const growthChartRef = useRef<HTMLDivElement>(null);
+  const cumulativeGrowthChartRef = useRef<HTMLDivElement>(null);
   const revenueChartRef = useRef<HTMLDivElement>(null);
   const ageGroupChartRef = useRef<HTMLDivElement>(null);
 
@@ -471,6 +472,7 @@ export default function Rapportage() {
       'Betalingsmethodes': paymentMethodChartRef,
       'Betalingstermijnen': paymentTermChartRef,
       'Ledengroei': growthChartRef,
+      'Cumulatieve Ledengroei': cumulativeGrowthChartRef,
       'Maandelijkse Inkomsten': revenueChartRef,
       'Leeftijdsgroepen Verdeling': ageGroupChartRef
     };
@@ -1054,26 +1056,49 @@ export default function Rapportage() {
 
           <Card className="border-none shadow-md overflow-hidden">
             <div className="bg-gradient-to-r from-blue-500/20 to-blue-600/20 h-2" />
-            <CardHeader>
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="flex items-center">
                 <BarChart3 className="h-5 w-5 mr-2 text-blue-600" />
                 Nieuwe leden per maand
               </CardTitle>
+              <Button 
+                variant="ghost" 
+                size="icon"
+                onClick={() => exportChartAsJPG(growthChartRef, 'nieuwe-leden-per-maand')}
+                className="h-7 w-7"
+                title="Download als JPG"
+              >
+                <ImageIcon className="h-4 w-4" />
+              </Button>
             </CardHeader>
             <CardContent className="pl-2">
-              <div className="h-80 w-full">
+              <div className="h-80 w-full" ref={growthChartRef}>
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart
                     data={membershipGrowth.slice(-6)} // laatste 6 maanden
-                    margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+                    margin={{ top: 20, right: 30, left: 20, bottom: 20 }}
                   >
                     <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="maand" />
-                    <YAxis />
+                    <XAxis 
+                      dataKey="maand" 
+                      label={{ 
+                        value: 'Maand', 
+                        position: 'insideBottom', 
+                        offset: -10 
+                      }}
+                    />
+                    <YAxis 
+                      label={{ 
+                        value: 'Aantal nieuwe leden', 
+                        angle: -90, 
+                        position: 'insideLeft' 
+                      }}
+                    />
                     <RechartsTooltip 
                       formatter={(value, name, props) => [`${value} leden`, 'Nieuwe leden']}
                       labelFormatter={(label) => `${membershipGrowth.find(m => m.maand === label)?.maand_jaar}`}
                     />
+                    <Legend verticalAlign="top" height={36} />
                     <Bar dataKey="nieuwe_leden" name="Nieuwe leden" fill="#3F37C9" />
                   </BarChart>
                 </ResponsiveContainer>
