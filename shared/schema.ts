@@ -48,6 +48,45 @@ export const members = pgTable("members", {
   notes: text("notes"),
 });
 
+export const memberRequests = pgTable("member_requests", {
+  id: serial("id").primaryKey(),
+  
+  // Status van de aanvraag
+  status: text("status").notNull().default("pending"), // pending, approved, rejected
+  
+  // Persoonsgegevens
+  firstName: text("first_name").notNull(),
+  lastName: text("last_name").notNull(),
+  gender: text("gender"), // man of vrouw
+  birthDate: date("birth_date"),
+  nationality: text("nationality"),
+  
+  // Contactgegevens
+  email: text("email").notNull(), // Email is verplicht voor aanvragen
+  phoneNumber: text("phone_number").notNull(),
+  street: text("street"),
+  houseNumber: text("house_number"),
+  busNumber: text("bus_number"),
+  postalCode: text("postal_code"),
+  city: text("city"),
+  
+  // Lidmaatschap
+  membershipType: text("membership_type").default("standaard"), // standaard, student, senior
+  
+  // Bankgegevens
+  accountNumber: text("account_number"),
+  bicSwift: text("bic_swift"),
+  accountHolderName: text("account_holder_name"),
+  
+  // Overig
+  requestDate: timestamp("request_date").notNull().defaultNow(),
+  processedDate: timestamp("processed_date"),
+  processedBy: integer("processed_by"), // User ID die de aanvraag heeft verwerkt
+  notes: text("notes"),
+  privacyConsent: boolean("privacy_consent").default(false),
+  ipAddress: text("ip_address"), // IP-adres van de aanvrager voor veiligheid
+});
+
 // Tabel voor het bijhouden van vrijgekomen lidnummers
 export const deletedMemberNumbers = pgTable("deleted_member_numbers", {
   id: serial("id").primaryKey(),
@@ -95,6 +134,41 @@ export const insertMemberSchema = createInsertSchema(members, {
   privacyConsent: z.boolean().default(false)
 });
 
+// Schema voor ledenverzoeken
+export const insertMemberRequestSchema = createInsertSchema(memberRequests, {
+  // Persoonsgegevens
+  gender: z.enum(["man", "vrouw"]).optional().nullable(),
+  birthDate: z.coerce.date().optional().nullable(),
+  nationality: z.string().optional().nullable(),
+  
+  // Contactgegevens
+  email: z.string().email({
+    message: "Ongeldig e-mailadres. Bijvoorbeeld: naam@voorbeeld.nl"
+  }),
+  street: z.string().optional().nullable(),
+  houseNumber: z.string().optional().nullable(),
+  busNumber: z.string().optional().nullable(),
+  postalCode: z.string().optional().nullable(),
+  city: z.string().optional().nullable(),
+  
+  // Lidmaatschap
+  membershipType: z.enum(["standaard", "student", "senior"]).default("standaard"),
+  
+  // Bankgegevens
+  accountNumber: z.string().optional().nullable()
+    .refine(val => !val || /^[A-Z]{2}[0-9]{2}[A-Z0-9]{4}[0-9]{7}([A-Z0-9]?){0,16}$/.test(val), {
+      message: "Ongeldig IBAN formaat. Bijvoorbeeld: BE68539007547034"
+    }),
+  bicSwift: z.string().optional().nullable(),
+  accountHolderName: z.string().optional().nullable(),
+  
+  // Status velden (deze zullen meestal op de server gezet worden)
+  status: z.enum(["pending", "approved", "rejected"]).default("pending"),
+  privacyConsent: z.boolean().refine(val => val === true, {
+    message: "Je moet akkoord gaan met de privacyvoorwaarden"
+  })
+});
+
 // Extra schema's voor deletedMemberNumbers
 export const insertDeletedMemberNumberSchema = createInsertSchema(deletedMemberNumbers, {
   deletedAt: z.coerce.date(),
@@ -104,9 +178,11 @@ export const insertDeletedMemberNumberSchema = createInsertSchema(deletedMemberN
 // Export types
 export type User = typeof users.$inferSelect;
 export type Member = typeof members.$inferSelect;
+export type MemberRequest = typeof memberRequests.$inferSelect;
 export type DeletedMemberNumber = typeof deletedMemberNumbers.$inferSelect;
 
 // Export insert types
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type InsertMember = z.infer<typeof insertMemberSchema>;
+export type InsertMemberRequest = z.infer<typeof insertMemberRequestSchema>;
 export type InsertDeletedMemberNumber = z.infer<typeof insertDeletedMemberNumberSchema>;
