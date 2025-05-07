@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MEFEN Moskee - Privacy Checkbox Fix</title>
+    <title>MEFEN Moskee - Privacy Fix Instructies</title>
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
@@ -12,114 +12,186 @@
             max-width: 800px;
             margin: 0 auto;
             padding: 20px;
+            background-color: #f5f7fa;
         }
-        pre {
-            background-color: #f5f5f5;
+        h1 {
+            color: #963E56;
+            border-bottom: 2px solid #963E56;
+            padding-bottom: 10px;
+        }
+        h2 {
+            color: #963E56;
+            margin-top: 30px;
+        }
+        h3 {
+            color: #333;
+            margin-top: 25px;
+        }
+        .code-block {
+            background-color: #f1f5f9;
+            border-left: 4px solid #963E56;
             padding: 15px;
-            border-radius: 5px;
+            border-radius: 4px;
             overflow-x: auto;
-            border: 1px solid #ddd;
-        }
-        code {
-            font-family: Monaco, Consolas, "Andale Mono", "DejaVu Sans Mono", monospace;
+            margin: 20px 0;
+            font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
             font-size: 14px;
         }
-        h1, h2, h3 {
-            color: #963E56;
+        .problem {
+            background-color: #fef2f2;
+            border-left: 4px solid #ef4444;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 20px 0;
         }
-        .diff-removed {
-            background-color: #ffecec;
-            color: #bd2c00;
-            text-decoration: line-through;
+        .solution {
+            background-color: #f0fdf4;
+            border-left: 4px solid #22c55e;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 20px 0;
         }
-        .diff-added {
-            background-color: #eaffea;
-            color: #55a532;
+        .highlight {
+            background-color: #ffe4e4;
+            padding: 2px 4px;
+            border-radius: 3px;
         }
-        .important {
-            background-color: #fffacd;
-            padding: 10px;
-            border-left: 4px solid #ffeb3b;
+        .highlight-green {
+            background-color: #dcfce7;
+            padding: 2px 4px;
+            border-radius: 3px;
+        }
+        .step {
+            background-color: #f8fafc;
+            border: 1px solid #e2e8f0;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .step-number {
+            display: inline-block;
+            background-color: #963E56;
+            color: white;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 28px;
+            margin-right: 10px;
+            font-weight: bold;
+        }
+        .alert {
+            background-color: #fff7ed;
+            border-left: 4px solid #f97316;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 20px 0;
         }
     </style>
 </head>
 <body>
-    <h1>MEFEN Moskee - Privacy Checkbox Fix</h1>
-    
-    <h2>Probleem</h2>
-    <p>Bij het registratieformulier verschijnt er een leeg scherm wanneer gebruikers op de privacy checkbox klikken.</p>
-    
-    <h2>Oorzaak</h2>
-    <p>Er is een <code>onClick</code> handler op het div-element dat de checkbox bevat. Deze handler conflicteert met de checkbox zelf, waardoor een JavaScript-fout optreedt.</p>
-    
-    <h2>De Fix</h2>
-    <p>Zoek in de bundle naar de code die overeenkomt met de volgende problematische implementatie:</p>
-    
-    <pre><code>// Problematische code (bevat een bug)
-&lt;FormItem className="border border-gray-200 rounded-lg shadow-sm"&gt;
-  &lt;div 
-    className="flex flex-row items-start space-x-4 p-4 sm:p-5"
-    <span class="diff-removed">onClick={() => field.onChange(!field.value)}</span>
-  &gt;
-    &lt;FormControl&gt;
-      &lt;Checkbox
-        checked={field.value}
-        onCheckedChange={field.onChange}
-        className="mt-1 h-6 w-6 rounded-md data-[state=checked]:bg-[#963E56] data-[state=checked]:text-white"
-      /&gt;
-    &lt;/FormControl&gt;
-    &lt;div className="space-y-1 leading-tight"&gt;
-      &lt;FormLabel className="text-base font-medium cursor-pointer"&gt;
-        Ik ga akkoord met de verwerking van mijn gegevens &lt;span className="text-red-500"&gt;*&lt;/span&gt;
-      &lt;/FormLabel&gt;
-      &lt;FormDescription className="text-xs sm:text-sm"&gt;
-        Je gegevens worden vertrouwelijk behandeld en alleen gebruikt voor het beheren van je lidmaatschap.
-      &lt;/FormDescription&gt;
-    &lt;/div&gt;
-  &lt;/div&gt;
-  &lt;FormMessage className="px-4 pb-3" /&gt;
-&lt;/FormItem&gt;</code></pre>
+    <h1>MEFEN Moskee - Privacy Checkbox & API Endpoints Fix</h1>
 
-    <p>Vervang het door de volgende gecorrigeerde code:</p>
+    <h2>Probleem 1: Privacy Checkbox Fix</h2>
     
-    <pre><code>// Gecorrigeerde code
-&lt;FormItem className="border border-gray-200 rounded-lg shadow-sm"&gt;
-  &lt;div className="flex flex-row items-start space-x-4 p-4 sm:p-5"&gt;
-    &lt;FormControl&gt;
-      &lt;Checkbox
-        checked={field.value}
-        onCheckedChange={field.onChange}
-        className="mt-1 h-6 w-6 rounded-md data-[state=checked]:bg-[#963E56] data-[state=checked]:text-white"
-        <span class="diff-added">id="privacy-consent-checkbox"</span>
-      /&gt;
-    &lt;/FormControl&gt;
-    &lt;div className="space-y-1 leading-tight"&gt;
-      &lt;FormLabel 
-        <span class="diff-added">htmlFor="privacy-consent-checkbox"</span>
-        className="text-base font-medium cursor-pointer"
-        <span class="diff-added">onClick={(e) => e.preventDefault()}</span>
-      &gt;
-        Ik ga akkoord met de verwerking van mijn gegevens &lt;span className="text-red-500"&gt;*&lt;/span&gt;
-      &lt;/FormLabel&gt;
-      &lt;FormDescription className="text-xs sm:text-sm"&gt;
-        Je gegevens worden vertrouwelijk behandeld en alleen gebruikt voor het beheren van je lidmaatschap.
-      &lt;/FormDescription&gt;
-    &lt;/div&gt;
-  &lt;/div&gt;
-  &lt;FormMessage className="px-4 pb-3" /&gt;
-&lt;/FormItem&gt;</code></pre>
-
-    <h2>Implementatie</h2>
-    <p>De belangrijkste wijzigingen zijn:</p>
-    <ol>
-        <li><strong>Verwijderen</strong> van de <code>onClick</code> handler op het div-element</li>
-        <li><strong>Toevoegen</strong> van een <code>id</code> aan de Checkbox component</li>
-        <li><strong>Toevoegen</strong> van een <code>htmlFor</code> attribuut aan het FormLabel element</li>
-        <li><strong>Toevoegen</strong> van een preventieve <code>onClick</code> handler op het label om dubbele klikgedrag te voorkomen</li>
-    </ol>
-
-    <div class="important">
-        <p><strong>Belangrijk:</strong> Na het aanbrengen van deze wijzigingen in de broncode, moet je de applicatie opnieuw bouwen en deployen naar Vercel.</p>
+    <div class="problem">
+        <h3>Het probleem</h3>
+        <p>Wanneer een gebruiker op de privacy checkbox klikt in het registratieformulier, verschijnt er een leeg scherm doordat de onClick handler op het div-element conflicteert met de functionaliteit van de checkbox.</p>
     </div>
+
+    <div class="solution">
+        <h3>De oplossing</h3>
+        <p>Verwijder de onClick handler van het div-element en koppel het label correct aan de checkbox.</p>
+    </div>
+
+    <h3>Problematische code</h3>
+    <div class="code-block">
+<pre><span class="highlight">&lt;div 
+  className="flex flex-row items-start space-x-4 p-4 sm:p-5"
+  onClick={() => field.onChange(!field.value)}
+&gt;</span>
+  &lt;FormControl&gt;
+    &lt;Checkbox
+      checked={field.value}
+      onCheckedChange={field.onChange}
+      className="mt-1 h-6 w-6 rounded-md data-[state=checked]:bg-[#963E56]"
+    /&gt;
+  &lt;/FormControl&gt;
+  &lt;div className="space-y-1 leading-tight"&gt;
+    &lt;FormLabel className="text-base font-medium cursor-pointer"&gt;
+      Ik ga akkoord met de verwerking van mijn gegevens &lt;span className="text-red-500"&gt;*&lt;/span&gt;
+    &lt;/FormLabel&gt;
+    &lt;FormDescription className="text-xs sm:text-sm"&gt;
+      Je gegevens worden vertrouwelijk behandeld en alleen gebruikt voor het beheren van je lidmaatschap.
+    &lt;/FormDescription&gt;
+  &lt;/div&gt;
+&lt;/div&gt;</pre>
+    </div>
+
+    <h3>Gecorrigeerde code</h3>
+    <div class="code-block">
+<pre>&lt;div className="flex flex-row items-start space-x-4 p-4 sm:p-5"&gt;
+  &lt;FormControl&gt;
+    &lt;Checkbox
+      checked={field.value}
+      onCheckedChange={field.onChange}
+      className="mt-1 h-6 w-6 rounded-md data-[state=checked]:bg-[#963E56]"
+      <span class="highlight-green">id="privacy-consent-checkbox"</span>
+    /&gt;
+  &lt;/FormControl&gt;
+  &lt;div className="space-y-1 leading-tight"&gt;
+    &lt;FormLabel 
+      className="text-base font-medium cursor-pointer"
+      <span class="highlight-green">htmlFor="privacy-consent-checkbox"</span>
+      <span class="highlight-green">onClick={(e) => e.preventDefault()}</span>
+    &gt;
+      Ik ga akkoord met de verwerking van mijn gegevens &lt;span className="text-red-500"&gt;*&lt;/span&gt;
+    &lt;/FormLabel&gt;
+    &lt;FormDescription className="text-xs sm:text-sm"&gt;
+      Je gegevens worden vertrouwelijk behandeld en alleen gebruikt voor het beheren van je lidmaatschap.
+    &lt;/FormDescription&gt;
+  &lt;/div&gt;
+&lt;/div&gt;</pre>
+    </div>
+
+    <h2>Probleem 2: 405 Method Not Allowed Fix</h2>
+    
+    <div class="problem">
+        <h3>Het probleem</h3>
+        <p>In de Vercel productieomgeving ontbreekt het API endpoint voor lidmaatschapsaanvragen (/api/member-requests), waardoor gebruikers een 405 (Method Not Allowed) fout krijgen bij het versturen van het registratieformulier.</p>
+    </div>
+
+    <div class="solution">
+        <h3>De oplossing</h3>
+        <p>Voeg een nieuw API endpoint toe voor lidmaatschapsaanvragen en update de vercel.json configuratie om het endpoint correct te routeren.</p>
+    </div>
+
+    <div class="step">
+        <h3><span class="step-number">1</span> Voeg het nieuwe API endpoint bestand toe</h3>
+        <p>Maak een nieuw bestand genaamd <code>member-requests.js</code> in de <code>/api/</code> map van je Vercel project. Dit bestand bevat de code voor het verwerken van lidmaatschapsaanvragen.</p>
+    </div>
+
+    <div class="step">
+        <h3><span class="step-number">2</span> Update vercel.json</h3>
+        <p>Voeg de volgende route toe aan het vercel.json bestand tussen de bestaande routes:</p>
+        <div class="code-block">
+<pre>{
+  "src": "/api/member-requests(/.*)?",
+  "dest": "/api/member-requests.js"
+},</pre>
+        </div>
+    </div>
+
+    <div class="alert">
+        <h3>Belangrijk:</h3>
+        <p>Na het implementeren van bovenstaande wijzigingen, test beide functionaliteiten om te verifiëren dat de problemen zijn opgelost.</p>
+        <ol>
+            <li>Klik op de privacy checkbox - er mag geen leeg scherm verschijnen</li>
+            <li>Vul het registratieformulier volledig in en verstuur het - er zou een bevestiging moeten komen zonder 405 fout</li>
+        </ol>
+    </div>
+
+    <p style="margin-top: 40px; font-style: italic; text-align: center;">Voor gedetailleerde instructies over het implementeren van deze fixes in de productieomgeving, zie PRODUCTIE_FIX.md</p>
 </body>
 </html>

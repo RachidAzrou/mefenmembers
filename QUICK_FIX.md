@@ -1,61 +1,34 @@
-# Snelle fix voor privacy checkbox probleem
+# Snelle Fix Instructies voor Vercel Productie
 
-Het privacy checkbox probleem kan snel opgelost worden door deze stappen te volgen:
+## Probleem 1: Privacy checkbox → leeg scherm
+- Privacy checkbox veroorzaakt een leeg scherm bij klikken
 
-1. Open het bestand `client/src/pages/register-request.tsx` in je project
-2. Zoek naar het volgende stuk code (rond regel 920):
+## Probleem 2: 405 Method Not Allowed fout
+- Bij versturen van aanvraagformulier krijgt gebruiker een 405 fout
 
-```jsx
-<div 
-  className="flex flex-row items-start space-x-4 p-4 sm:p-5"
-  onClick={() => field.onChange(!field.value)}
->
+## Oplossing:
+
+### Stap 1: Voeg nieuw API endpoint toe
+1. Upload `vercel-deploy/api/member-requests.js` naar `/api/` in je Vercel project
+
+### Stap 2: Update vercel.json
+Voeg deze route toe tussen de bestaande routes:
+```json
+{
+  "src": "/api/member-requests(/.*)?",
+  "dest": "/api/member-requests.js"
+},
 ```
 
-3. Vervang dit door:
+### Stap 3: Controleer de privacy checkbox fix
+Zorg dat het bestand `register-request.tsx` de volgende eigenschappen heeft:
+- GEEN onClick handler op het div-element
+- `id="privacy-consent-checkbox"` op de Checkbox component
+- `htmlFor="privacy-consent-checkbox"` op het FormLabel
+- `onClick={(e) => e.preventDefault()}` op het FormLabel
 
-```jsx
-<div className="flex flex-row items-start space-x-4 p-4 sm:p-5">
-```
+## Testen na implementatie:
+1. Klik op de privacy checkbox - mag geen leeg scherm geven
+2. Vul formulier volledig in en verstuur - moet aanvraag indienen zonder 405 fout
 
-4. Zoek nu naar de Checkbox component (enkele regels later):
-
-```jsx
-<Checkbox
-  checked={field.value}
-  onCheckedChange={field.onChange}
-  className="mt-1 h-6 w-6 rounded-md data-[state=checked]:bg-[#963E56] data-[state=checked]:text-white"
-/>
-```
-
-5. Voeg het `id` attribuut toe:
-
-```jsx
-<Checkbox
-  checked={field.value}
-  onCheckedChange={field.onChange}
-  className="mt-1 h-6 w-6 rounded-md data-[state=checked]:bg-[#963E56] data-[state=checked]:text-white"
-  id="privacy-consent-checkbox"
-/>
-```
-
-6. Zoek naar de FormLabel component (enkele regels later):
-
-```jsx
-<FormLabel className="text-base font-medium cursor-pointer">
-```
-
-7. Voeg het `htmlFor` attribuut toe:
-
-```jsx
-<FormLabel 
-  htmlFor="privacy-consent-checkbox"
-  className="text-base font-medium cursor-pointer"
-  onClick={(e) => e.preventDefault()}
->
-```
-
-8. Sla het bestand op, commit en push naar je Git repository
-9. Vercel zal automatisch een nieuwe versie bouwen en deployen
-
-Na deze wijzigingen zal het privacy checkbox probleem opgelost zijn en zal er geen leeg scherm meer verschijnen wanneer gebruikers op de checkbox klikken.
+Voor uitgebreidere instructies, zie PRODUCTIE_FIX.md

@@ -25,7 +25,17 @@ De oplossing zit in het aanpassen van de `register-request.tsx` code. Dit bestan
 Wanneer een gebruiker het aanmeldformulier verstuurt, krijgt deze een 405 (Method Not Allowed) fout omdat het API-endpoint voor lidmaatschapsaanvragen ontbreekt in de productieomgeving.
 
 ### De oplossing
-Er is een nieuw bestand gemaakt genaamd `member-requests.js` in de `vercel-deploy/api/` map dat de API-endpoints voor lidmaatschapsaanvragen implementeert.
+Er zijn twee aanpassingen nodig:
+
+1. Er is een nieuw bestand gemaakt genaamd `member-requests.js` in de `vercel-deploy/api/` map dat de API-endpoints voor lidmaatschapsaanvragen implementeert.
+
+2. Het vercel.json bestand is bijgewerkt met een specifieke route voor het `/api/member-requests` endpoint:
+   ```json
+   {
+     "src": "/api/member-requests(/.*)?",
+     "dest": "/api/member-requests.js"
+   }
+   ```
 
 ## Implementatie in productie
 
@@ -38,7 +48,14 @@ Om deze fixes te implementeren in de productieomgeving, kunt u een van de volgen
 3. Ga naar het "Files" tabblad
 4. Navigeer naar `/api/` en upload het nieuwe bestand `member-requests.js`
    - Upload het bestand dat u vindt in deze repository onder `vercel-deploy/api/member-requests.js`
-5. Als de privacy checkbox fix nog niet is doorgevoerd, zoek dan het bestand `register-request.tsx` en pas het aan zoals beschreven in "Probleem 1"
+5. Bewerk het bestand `vercel.json` in de hoofdmap en voeg de volgende route toe tussen de bestaande routes:
+   ```json
+   {
+     "src": "/api/member-requests(/.*)?",
+     "dest": "/api/member-requests.js"
+   },
+   ```
+6. Als de privacy checkbox fix nog niet is doorgevoerd, zoek dan het bestand `register-request.tsx` en pas het aan zoals beschreven in "Probleem 1"
 
 ### Methode 2: Nieuwe Deployment
 

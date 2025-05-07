@@ -20,6 +20,10 @@
       "dest": "/api/members.js"
     },
     {
+      "src": "/api/member-requests(/.*)?",
+      "dest": "/api/member-requests.js"
+    },
+    {
       "src": "/api/(.*)",
       "dest": "/api/$1.js"
     },
