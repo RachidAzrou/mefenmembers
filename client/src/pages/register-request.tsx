@@ -915,19 +915,21 @@ export default function RegisterRequest() {
                         name="privacyConsent"
                         render={({ field }) => (
                           <FormItem className="border border-gray-200 rounded-lg shadow-sm">
-                            <div 
-                              className="flex flex-row items-start space-x-4 p-4 sm:p-5"
-                              onClick={() => field.onChange(!field.value)}
-                            >
+                            <div className="flex flex-row items-start space-x-4 p-4 sm:p-5">
                               <FormControl>
                                 <Checkbox
                                   checked={field.value}
                                   onCheckedChange={field.onChange}
                                   className="mt-1 h-6 w-6 rounded-md data-[state=checked]:bg-[#963E56] data-[state=checked]:text-white"
+                                  id="privacy-consent-checkbox"
                                 />
                               </FormControl>
                               <div className="space-y-1 leading-tight">
-                                <FormLabel className="text-base font-medium cursor-pointer">
+                                <FormLabel 
+                                  htmlFor="privacy-consent-checkbox"
+                                  className="text-base font-medium cursor-pointer"
+                                  onClick={(e) => e.preventDefault()}
+                                >
                                   Ik ga akkoord met de verwerking van mijn gegevens <span className="text-red-500">*</span>
                                 </FormLabel>
                                 <FormDescription className="text-xs sm:text-sm">

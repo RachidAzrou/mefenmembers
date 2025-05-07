@@ -191,7 +191,7 @@ export function Sidebar() {
                       })}
                       {/* Notificatie badge voor aanvragen */}
                       {item.href === "/member-requests" && pendingCount > 0 && (
-                        <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                        <span className="absolute -top-1 -right-1 bg-[#963E56] text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
                           {pendingCount > 9 ? '9+' : pendingCount}
                         </span>
                       )}
@@ -206,7 +206,7 @@ export function Sidebar() {
                         </span>
                         {/* Notificatie badge voor aanvragen (naast tekst bij expanded sidebar) */}
                         {item.href === "/member-requests" && pendingCount > 0 && (
-                          <span className="ml-2 bg-red-500 text-white text-xs rounded-full h-5 min-w-5 px-1 flex items-center justify-center">
+                          <span className="ml-2 bg-[#963E56] text-white text-xs rounded-full h-5 min-w-5 px-1 flex items-center justify-center">
                             {pendingCount > 99 ? '99+' : pendingCount}
                           </span>
                         )}
