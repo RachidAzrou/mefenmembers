@@ -33,6 +33,7 @@ import { format } from "date-fns";
 import { nl } from "date-fns/locale";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 import { useRole } from "@/hooks/use-role";
 
 // Type voor lidmaatschapsaanvragen
