@@ -7,7 +7,7 @@ import {
   LogOut, Menu, ChevronLeft, ChevronRight,
   User, UsersRound, Home,
   PlusCircle, FileSpreadsheet, Edit,
-  Inbox
+  Inbox, ChevronDown, ChevronUp
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { auth } from "@/lib/firebase";
@@ -66,11 +66,22 @@ export function Sidebar() {
     </svg>
   );
 
+  const [membersExpanded, setMembersExpanded] = useState(false);
+
   const menuItems = [
     { icon: Home, label: "Dashboard", href: "/dashboard" },
-    { icon: PersonWithListIcon, label: "Ledenlijst", href: "/members" },
-    { icon: PlusCircle, label: "Lid toevoegen", href: "/member-add" },
-    { icon: Edit, label: "Lid bewerken", href: "/member-edit" },
+    { 
+      icon: PersonWithListIcon, 
+      label: "Ledenlijst", 
+      href: "/members",
+      hasSubmenu: true,
+      expanded: membersExpanded,
+      toggleExpand: () => setMembersExpanded(!membersExpanded),
+      submenuItems: [
+        { icon: PlusCircle, label: "Lid toevoegen", href: "/member-add" },
+        { icon: Edit, label: "Lid bewerken", href: "/member-edit" },
+      ]
+    },
     { icon: Inbox, label: "Aanvragen", href: "/member-requests" },
     { icon: FileSpreadsheet, label: "Exporteren", href: "/export" },
   ];
@@ -161,38 +172,112 @@ export function Sidebar() {
         <ScrollArea className="flex-1">
           <div className="space-y-1 p-2">
             {menuItems.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                onClick={() => handleNavigation(item.href)}
-              >
-                <Button
-                  variant={location === item.href ? "secondary" : "ghost"}
-                  className={cn(
-                    "w-full h-14 md:h-12 relative transition-all duration-200",
-                    location === item.href
-                      ? "bg-primary/10 text-primary hover:bg-primary/15"
-                      : "hover:bg-primary/5 hover:text-primary",
-                    collapsed ? "justify-center" : "justify-start",
-                    isMobile && !collapsed && "text-base"
-                  )}
-                >
-                  {React.createElement(item.icon, {
-                    className: cn(
-                      "h-6 w-6 md:h-5 md:w-5 transition-colors duration-200",
-                      location === item.href ? "text-primary" : "text-gray-500"
-                    )
-                  })}
-                  {!collapsed && (
-                    <span className={cn(
-                      "ml-3 transition-opacity duration-200",
-                      isMobile && "text-base font-medium"
-                    )}>
-                      {item.label}
-                    </span>
-                  )}
-                </Button>
-              </Link>
+              <div key={item.href}>
+                {item.hasSubmenu ? (
+                  <div className="mb-1">
+                    <Button
+                      variant={location === item.href || (item.submenuItems && item.submenuItems.some(subItem => location === subItem.href)) ? "secondary" : "ghost"}
+                      className={cn(
+                        "w-full h-14 md:h-12 relative transition-all duration-200",
+                        (location === item.href || (item.submenuItems && item.submenuItems.some(subItem => location === subItem.href)))
+                          ? "bg-primary/10 text-primary hover:bg-primary/15"
+                          : "hover:bg-primary/5 hover:text-primary",
+                        collapsed ? "justify-center" : "justify-between",
+                        isMobile && !collapsed && "text-base"
+                      )}
+                      onClick={item.toggleExpand}
+                    >
+                      <div className="flex items-center">
+                        {React.createElement(item.icon, {
+                          className: cn(
+                            "h-6 w-6 md:h-5 md:w-5 transition-colors duration-200",
+                            (location === item.href || (item.submenuItems && item.submenuItems.some(subItem => location === subItem.href)))
+                              ? "text-primary" : "text-gray-500"
+                          )
+                        })}
+                        {!collapsed && (
+                          <span className={cn(
+                            "ml-3 transition-opacity duration-200",
+                            isMobile && "text-base font-medium"
+                          )}>
+                            {item.label}
+                          </span>
+                        )}
+                      </div>
+                      {!collapsed && (
+                        <div>
+                          {item.expanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                        </div>
+                      )}
+                    </Button>
+
+                    {item.submenuItems && item.expanded && !collapsed && (
+                      <div className="pl-4 space-y-1 my-1">
+                        {item.submenuItems.map((subItem) => (
+                          <Link
+                            key={subItem.href}
+                            href={subItem.href}
+                            onClick={() => handleNavigation(subItem.href)}
+                          >
+                            <Button
+                              variant={location === subItem.href ? "secondary" : "ghost"}
+                              className={cn(
+                                "w-full h-10 relative transition-all duration-200",
+                                location === subItem.href
+                                  ? "bg-primary/10 text-primary hover:bg-primary/15"
+                                  : "hover:bg-primary/5 hover:text-primary text-gray-600",
+                                "justify-start text-sm"
+                              )}
+                            >
+                              {React.createElement(subItem.icon, {
+                                className: cn(
+                                  "h-4 w-4 transition-colors duration-200",
+                                  location === subItem.href ? "text-primary" : "text-gray-500"
+                                )
+                              })}
+                              <span className="ml-2">
+                                {subItem.label}
+                              </span>
+                            </Button>
+                          </Link>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <Link
+                    href={item.href}
+                    onClick={() => handleNavigation(item.href)}
+                  >
+                    <Button
+                      variant={location === item.href ? "secondary" : "ghost"}
+                      className={cn(
+                        "w-full h-14 md:h-12 relative transition-all duration-200",
+                        location === item.href
+                          ? "bg-primary/10 text-primary hover:bg-primary/15"
+                          : "hover:bg-primary/5 hover:text-primary",
+                        collapsed ? "justify-center" : "justify-start",
+                        isMobile && !collapsed && "text-base"
+                      )}
+                    >
+                      {React.createElement(item.icon, {
+                        className: cn(
+                          "h-6 w-6 md:h-5 md:w-5 transition-colors duration-200",
+                          location === item.href ? "text-primary" : "text-gray-500"
+                        )
+                      })}
+                      {!collapsed && (
+                        <span className={cn(
+                          "ml-3 transition-opacity duration-200",
+                          isMobile && "text-base font-medium"
+                        )}>
+                          {item.label}
+                        </span>
+                      )}
+                    </Button>
+                  </Link>
+                )}
+              </div>
             ))}
           </div>
         </ScrollArea>
