@@ -173,9 +173,9 @@ export default function RegisterRequest() {
               </div>
               <div className="mt-4 md:mt-0">
                 <img 
-                  src="/attached_assets/6eacafa2-cbb2-41f3-be40-6548da0680c6.png" 
+                  src="./attached_assets/logo moskee.png" 
                   alt="MEFEN Moskee Logo" 
-                  className="h-16 w-auto"
+                  className="h-16 w-auto bg-white rounded-md p-1"
                 />
               </div>
             </div>
@@ -217,9 +217,9 @@ export default function RegisterRequest() {
                         name="lastName"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Achternaam <span className="text-red-500">*</span></FormLabel>
+                            <FormLabel>Naam <span className="text-red-500">*</span></FormLabel>
                             <FormControl>
-                              <Input placeholder="Achternaam" {...field} />
+                              <Input placeholder="Naam" {...field} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -233,7 +233,7 @@ export default function RegisterRequest() {
                         control={form.control}
                         name="gender"
                         render={({ field }) => (
-                          <FormItem className="h-full">
+                          <FormItem className="flex flex-col">
                             <FormLabel>Geslacht <span className="text-red-500">*</span></FormLabel>
                             <Select 
                               onValueChange={field.onChange} 
@@ -249,6 +249,9 @@ export default function RegisterRequest() {
                                 <SelectItem value="vrouw">Vrouw</SelectItem>
                               </SelectContent>
                             </Select>
+                            <FormDescription className="text-xs sm:text-sm">
+                              &nbsp;
+                            </FormDescription>
                             <FormMessage />
                           </FormItem>
                         )}
@@ -429,9 +432,7 @@ export default function RegisterRequest() {
                       }}
                     />
                     
-                    <div className="col-span-2 mb-2">
-                      <Label className="text-base font-medium">Adres</Label>
-                    </div>
+                    {/* Adres velden */}
                     
                     {/* Straat */}
                     <div className="col-span-2 md:col-span-1">
@@ -686,26 +687,19 @@ export default function RegisterRequest() {
                       control={form.control}
                       name="autoRenew"
                       render={({ field }) => (
-                        <FormItem className="col-span-2 bg-green-50 border border-green-200 rounded-md p-4">
-                          <div className="flex flex-row items-start space-x-4">
-                            <FormControl>
-                              <Checkbox
-                                checked={field.value}
-                                onCheckedChange={field.onChange}
-                                className="mt-1 border-green-500 data-[state=checked]:bg-green-500 data-[state=checked]:text-white"
-                              />
-                            </FormControl>
-                            <div>
-                              <FormLabel className="text-base font-medium text-green-800">
-                                Automatisch verlengen
-                              </FormLabel>
-                              <FormDescription className="text-green-700">
-                                Door deze optie aan te vinken, wordt uw lidmaatschap automatisch verlengd 
-                                bij het verstrijken van de betalingstermijn. U hoeft zich dan geen zorgen te maken 
-                                over verlopen van uw lidmaatschap.
-                              </FormDescription>
-                            </div>
+                        <FormItem className="col-span-2 flex flex-row items-center justify-between space-y-0 rounded-md border p-4">
+                          <div className="space-y-0.5">
+                            <FormLabel className="text-base">Automatisch verlengen</FormLabel>
+                            <FormDescription>
+                              Het lidmaatschap wordt automatisch verlengd
+                            </FormDescription>
                           </div>
+                          <FormControl>
+                            <Switch
+                              checked={field.value}
+                              onCheckedChange={field.onChange}
+                            />
+                          </FormControl>
                           <FormMessage />
                         </FormItem>
                       )}
