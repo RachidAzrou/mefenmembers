@@ -12,7 +12,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DatePicker } from "@/components/ui/date-picker";
 import { Label } from '@/components/ui/label';
 import { PDFDownloadLink, PDFViewer } from '@react-pdf/renderer';
-import { Loader2, Download, Calendar, ChevronDown, ChevronUp, Users, Wallet, CreditCard, Clock } from "lucide-react";
+import { Loader2, Download, Calendar, ChevronDown, ChevronUp, Users, Wallet, CreditCard, Clock, UserCheck, BarChart3 } from "lucide-react";
 import MyPdfDocument from '@/components/pdf/report-pdf';
 import { cn } from '@/lib/utils';
 import { format, subMonths, differenceInYears, differenceInMonths } from 'date-fns';
@@ -353,11 +353,16 @@ export default function Rapportage() {
 
   return (
     <div className="space-y-6 pb-8">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">Rapportage</h1>
-        <p className="text-muted-foreground">
-          Bekijk statistieken en rapporten over het ledenbeheer van de moskee.
-        </p>
+      {/* Header section met gradient achtergrond - consistente styling met dashboard */}
+      <div className="rounded-lg bg-gradient-to-r from-[#963E56]/80 to-[#963E56] p-6 shadow-md">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight text-white mb-1">Rapportage</h1>
+            <p className="text-white/80">
+              Bekijk statistieken en rapporten over het ledenbeheer van de moskee.
+            </p>
+          </div>
+        </div>
       </div>
 
       <Tabs defaultValue="overzicht" className="w-full" value={activeTab} onValueChange={setActiveTab}>
@@ -420,10 +425,11 @@ export default function Rapportage() {
         <TabsContent value="overzicht" className="space-y-4">
           {/* Overzichtskaarten sectie */}
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-            <Card>
+            <Card className="border-none shadow-md overflow-hidden">
+              <div className="bg-gradient-to-r from-blue-500/20 to-blue-600/20 h-2" />
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">Totaal leden</CardTitle>
-                <Users className="h-4 w-4 text-muted-foreground" />
+                <Users className="h-4 w-4 text-blue-600" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">{members?.length || 0}</div>
@@ -433,10 +439,11 @@ export default function Rapportage() {
               </CardContent>
             </Card>
             
-            <Card>
+            <Card className="border-none shadow-md overflow-hidden">
+              <div className="bg-gradient-to-r from-green-500/20 to-green-600/20 h-2" />
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">Gemiddelde leeftijd</CardTitle>
-                <Users className="h-4 w-4 text-muted-foreground" />
+                <UserCheck className="h-4 w-4 text-green-600" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">{averageAge} jaar</div>
@@ -446,10 +453,11 @@ export default function Rapportage() {
               </CardContent>
             </Card>
             
-            <Card>
+            <Card className="border-none shadow-md overflow-hidden">
+              <div className="bg-gradient-to-r from-amber-500/20 to-amber-600/20 h-2" />
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">Geschatte inkomsten</CardTitle>
-                <Wallet className="h-4 w-4 text-muted-foreground" />
+                <Wallet className="h-4 w-4 text-amber-600" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">€{Math.round(totalMonthlyRevenue)}/mnd</div>
@@ -459,10 +467,11 @@ export default function Rapportage() {
               </CardContent>
             </Card>
             
-            <Card>
+            <Card className="border-none shadow-md overflow-hidden">
+              <div className="bg-gradient-to-r from-[#963E56]/20 to-[#963E56] h-2" />
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">Betaalstatus</CardTitle>
-                <CreditCard className="h-4 w-4 text-muted-foreground" />
+                <CreditCard className="h-4 w-4 text-[#963E56]" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">{Math.round(membersByPaymentStatus[0]?.value / (members?.length || 1) * 100)}%</div>
@@ -475,9 +484,13 @@ export default function Rapportage() {
 
           {/* Grafieken sectie */}
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-2">
-            <Card className="col-span-1">
+            <Card className="col-span-1 border-none shadow-md overflow-hidden">
+              <div className="bg-gradient-to-r from-blue-500/20 to-blue-600/20 h-2" />
               <CardHeader>
-                <CardTitle>Leden per leeftijdsgroep</CardTitle>
+                <CardTitle className="flex items-center">
+                  <BarChart3 className="h-5 w-5 mr-2 text-blue-600" />
+                  Leden per leeftijdsgroep
+                </CardTitle>
               </CardHeader>
               <CardContent className="pl-2">
                 <div className="h-80 w-full">
@@ -504,9 +517,13 @@ export default function Rapportage() {
               </CardContent>
             </Card>
             
-            <Card className="col-span-1">
+            <Card className="col-span-1 border-none shadow-md overflow-hidden">
+              <div className="bg-gradient-to-r from-amber-500/20 to-amber-600/20 h-2" />
               <CardHeader>
-                <CardTitle>Verdeling per lidmaatschapstype</CardTitle>
+                <CardTitle className="flex items-center">
+                  <PieChart className="h-5 w-5 mr-2 text-amber-600" />
+                  Verdeling per lidmaatschapstype
+                </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="h-80 w-full">
@@ -556,9 +573,13 @@ export default function Rapportage() {
           </div>
 
           <div className="grid gap-4 md:grid-cols-2">
-            <Card className="col-span-1">
+            <Card className="col-span-1 border-none shadow-md overflow-hidden">
+              <div className="bg-gradient-to-r from-blue-500/20 to-blue-600/20 h-2" />
               <CardHeader>
-                <CardTitle>Geslachtsverdeling</CardTitle>
+                <CardTitle className="flex items-center">
+                  <Users className="h-5 w-5 mr-2 text-blue-600" />
+                  Geslachtsverdeling
+                </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="h-64 w-full">
@@ -592,9 +613,13 @@ export default function Rapportage() {
               </CardContent>
             </Card>
             
-            <Card className="col-span-1">
+            <Card className="col-span-1 border-none shadow-md overflow-hidden">
+              <div className="bg-gradient-to-r from-[#963E56]/20 to-[#963E56] h-2" />
               <CardHeader>
-                <CardTitle>Betaalstatus</CardTitle>
+                <CardTitle className="flex items-center">
+                  <CreditCard className="h-5 w-5 mr-2 text-[#963E56]" />
+                  Betaalstatus
+                </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="h-64 w-full">
