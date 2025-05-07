@@ -109,12 +109,12 @@ export default function MembersList() {
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
   const [location, navigate] = useLocation();
   
-  // Nieuwe filters toevoegen
-  const [votingFilter, setVotingFilter] = useState<"all" | "eligible" | "not-eligible">("all");
-  const [membershipTypeFilter, setMembershipTypeFilter] = useState<"all" | "standaard" | "student" | "senior">("all");
-  const [paymentTermFilter, setPaymentTermFilter] = useState<"all" | "maandelijks" | "jaarlijks">("all");
-  const [paymentMethodFilter, setPaymentMethodFilter] = useState<"all" | "automatisch" | "overschrijving" | "contant">("all");
-  const [genderFilter, setGenderFilter] = useState<"all" | "man" | "vrouw">("all");
+  // Nieuwe filters met mogelijkheid voor meerdere selecties
+  const [votingFilter, setVotingFilter] = useState<string[]>([]);
+  const [membershipTypeFilter, setMembershipTypeFilter] = useState<string[]>([]);
+  const [paymentTermFilter, setPaymentTermFilter] = useState<string[]>([]);
+  const [paymentMethodFilter, setPaymentMethodFilter] = useState<string[]>([]);
+  const [genderFilter, setGenderFilter] = useState<string[]>([]);
   const [showFilters, setShowFilters] = useState<boolean>(false);
   
   // Verwerk URL query parameters bij eerste laden
@@ -276,36 +276,37 @@ export default function MembersList() {
       matchesPaymentFilter = new Date(member.registrationDate) >= thirtyDaysAgo;
     }
     
-    // Filter op stemgerechtigdheid
+    // Filter op stemgerechtigdheid met ondersteuning voor meerdere selecties
     let matchesVotingFilter = true;
-    if (votingFilter === "eligible") {
-      matchesVotingFilter = isVotingEligible(member);
-    } else if (votingFilter === "not-eligible") {
-      matchesVotingFilter = !isVotingEligible(member);
+    if (votingFilter.length > 0) {
+      // Als geen selecties, dan geen filter (alles tonen)
+      // Als een of meer selecties, dan moet lid aan ten minste één voldoen
+      matchesVotingFilter = votingFilter.includes("eligible") && isVotingEligible(member) ||
+                           votingFilter.includes("not-eligible") && !isVotingEligible(member);
     }
     
-    // Filter op lidmaatschapstype
+    // Filter op lidmaatschapstype met ondersteuning voor meerdere selecties
     let matchesMembershipType = true;
-    if (membershipTypeFilter !== "all") {
-      matchesMembershipType = member.membershipType === membershipTypeFilter;
+    if (membershipTypeFilter.length > 0) {
+      matchesMembershipType = membershipTypeFilter.includes(member.membershipType);
     }
     
-    // Filter op betalingstermijn
+    // Filter op betalingstermijn met ondersteuning voor meerdere selecties
     let matchesPaymentTerm = true;
-    if (paymentTermFilter !== "all") {
-      matchesPaymentTerm = member.paymentTerm === paymentTermFilter;
+    if (paymentTermFilter.length > 0) {
+      matchesPaymentTerm = paymentTermFilter.includes(member.paymentTerm);
     }
     
-    // Filter op betaalmethode
+    // Filter op betaalmethode met ondersteuning voor meerdere selecties
     let matchesPaymentMethod = true;
-    if (paymentMethodFilter !== "all") {
-      matchesPaymentMethod = member.paymentMethod === paymentMethodFilter;
+    if (paymentMethodFilter.length > 0) {
+      matchesPaymentMethod = paymentMethodFilter.includes(member.paymentMethod);
     }
     
-    // Filter op geslacht
+    // Filter op geslacht met ondersteuning voor meerdere selecties
     let matchesGender = true;
-    if (genderFilter !== "all") {
-      matchesGender = member.gender === genderFilter;
+    if (genderFilter.length > 0) {
+      matchesGender = genderFilter.includes(member.gender);
     }
     
     // URL Parameters verwerken indien aanwezig
@@ -379,6 +380,17 @@ export default function MembersList() {
     } else {
       setSortField(field);
       setSortDirection("asc");
+    }
+  };
+
+  // Helper functie om filter waarden bij te werken
+  const toggleFilter = (filter: string[], value: string): string[] => {
+    if (filter.includes(value)) {
+      // Als de waarde al in de lijst staat, verwijder deze
+      return filter.filter(item => item !== value);
+    } else {
+      // Anders, voeg toe aan de lijst
+      return [...filter, value];
     }
   };
   
@@ -982,11 +994,11 @@ export default function MembersList() {
                   size="sm"
                   className="h-8 px-2 text-xs text-gray-500 hover:text-gray-700"
                   onClick={() => {
-                    setVotingFilter('all');
-                    setMembershipTypeFilter('all');
-                    setPaymentTermFilter('all');
-                    setPaymentMethodFilter('all');
-                    setGenderFilter('all');
+                    setVotingFilter([]);
+                    setMembershipTypeFilter([]);
+                    setPaymentTermFilter([]);
+                    setPaymentMethodFilter([]);
+                    setGenderFilter([]);
                   }}
                 >
                   <X className="h-3 w-3 mr-1" />
@@ -1005,24 +1017,16 @@ export default function MembersList() {
                     <Button
                       variant="outline"
                       size="sm"
-                      className={`text-xs h-7 px-2 ${votingFilter === 'all' ? 'bg-[#963E56]/10 text-[#963E56] border-[#963E56]/30' : ''}`}
-                      onClick={() => setVotingFilter('all')}
-                    >
-                      Alle
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className={`text-xs h-7 px-2 ${votingFilter === 'eligible' ? 'bg-[#963E56]/10 text-[#963E56] border-[#963E56]/30' : ''}`}
-                      onClick={() => setVotingFilter('eligible')}
+                      className={`text-xs h-7 px-2 ${votingFilter.includes('eligible') ? 'bg-[#963E56]/10 text-[#963E56] border-[#963E56]/30' : ''}`}
+                      onClick={() => setVotingFilter(toggleFilter(votingFilter, 'eligible'))}
                     >
                       Stemgerechtigd
                     </Button>
                     <Button
                       variant="outline"
                       size="sm"
-                      className={`text-xs h-7 px-2 ${votingFilter === 'not-eligible' ? 'bg-[#963E56]/10 text-[#963E56] border-[#963E56]/30' : ''}`}
-                      onClick={() => setVotingFilter('not-eligible')}
+                      className={`text-xs h-7 px-2 ${votingFilter.includes('not-eligible') ? 'bg-[#963E56]/10 text-[#963E56] border-[#963E56]/30' : ''}`}
+                      onClick={() => setVotingFilter(toggleFilter(votingFilter, 'not-eligible'))}
                     >
                       Niet stemgerechtigd
                     </Button>
@@ -1039,32 +1043,24 @@ export default function MembersList() {
                     <Button
                       variant="outline"
                       size="sm"
-                      className={`text-xs h-7 px-2 ${membershipTypeFilter === 'all' ? 'bg-[#963E56]/10 text-[#963E56] border-[#963E56]/30' : ''}`}
-                      onClick={() => setMembershipTypeFilter('all')}
-                    >
-                      Alle
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className={`text-xs h-7 px-2 ${membershipTypeFilter === 'standaard' ? 'bg-[#963E56]/10 text-[#963E56] border-[#963E56]/30' : ''}`}
-                      onClick={() => setMembershipTypeFilter('standaard')}
+                      className={`text-xs h-7 px-2 ${membershipTypeFilter.includes('standaard') ? 'bg-[#963E56]/10 text-[#963E56] border-[#963E56]/30' : ''}`}
+                      onClick={() => setMembershipTypeFilter(toggleFilter(membershipTypeFilter, 'standaard'))}
                     >
                       Standaard
                     </Button>
                     <Button
                       variant="outline"
                       size="sm"
-                      className={`text-xs h-7 px-2 ${membershipTypeFilter === 'student' ? 'bg-[#963E56]/10 text-[#963E56] border-[#963E56]/30' : ''}`}
-                      onClick={() => setMembershipTypeFilter('student')}
+                      className={`text-xs h-7 px-2 ${membershipTypeFilter.includes('student') ? 'bg-[#963E56]/10 text-[#963E56] border-[#963E56]/30' : ''}`}
+                      onClick={() => setMembershipTypeFilter(toggleFilter(membershipTypeFilter, 'student'))}
                     >
                       Student
                     </Button>
                     <Button
                       variant="outline"
                       size="sm"
-                      className={`text-xs h-7 px-2 ${membershipTypeFilter === 'senior' ? 'bg-[#963E56]/10 text-[#963E56] border-[#963E56]/30' : ''}`}
-                      onClick={() => setMembershipTypeFilter('senior')}
+                      className={`text-xs h-7 px-2 ${membershipTypeFilter.includes('senior') ? 'bg-[#963E56]/10 text-[#963E56] border-[#963E56]/30' : ''}`}
+                      onClick={() => setMembershipTypeFilter(toggleFilter(membershipTypeFilter, 'senior'))}
                     >
                       Senior
                     </Button>
@@ -1081,26 +1077,26 @@ export default function MembersList() {
                     <Button
                       variant="outline"
                       size="sm"
-                      className={`text-xs h-7 px-2 ${paymentTermFilter === 'all' ? 'bg-[#963E56]/10 text-[#963E56] border-[#963E56]/30' : ''}`}
-                      onClick={() => setPaymentTermFilter('all')}
-                    >
-                      Alle
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className={`text-xs h-7 px-2 ${paymentTermFilter === 'jaarlijks' ? 'bg-[#963E56]/10 text-[#963E56] border-[#963E56]/30' : ''}`}
-                      onClick={() => setPaymentTermFilter('jaarlijks')}
+                      className={`text-xs h-7 px-2 ${paymentTermFilter.includes('jaarlijks') ? 'bg-[#963E56]/10 text-[#963E56] border-[#963E56]/30' : ''}`}
+                      onClick={() => setPaymentTermFilter(toggleFilter(paymentTermFilter, 'jaarlijks'))}
                     >
                       Jaarlijks
                     </Button>
                     <Button
                       variant="outline"
                       size="sm"
-                      className={`text-xs h-7 px-2 ${paymentTermFilter === 'maandelijks' ? 'bg-[#963E56]/10 text-[#963E56] border-[#963E56]/30' : ''}`}
-                      onClick={() => setPaymentTermFilter('maandelijks')}
+                      className={`text-xs h-7 px-2 ${paymentTermFilter.includes('maandelijks') ? 'bg-[#963E56]/10 text-[#963E56] border-[#963E56]/30' : ''}`}
+                      onClick={() => setPaymentTermFilter(toggleFilter(paymentTermFilter, 'maandelijks'))}
                     >
                       Maandelijks
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className={`text-xs h-7 px-2 ${paymentTermFilter.includes('driemaandelijks') ? 'bg-[#963E56]/10 text-[#963E56] border-[#963E56]/30' : ''}`}
+                      onClick={() => setPaymentTermFilter(toggleFilter(paymentTermFilter, 'driemaandelijks'))}
+                    >
+                      Driemaandelijks
                     </Button>
                   </div>
                 </div>
@@ -1115,34 +1111,34 @@ export default function MembersList() {
                     <Button
                       variant="outline"
                       size="sm"
-                      className={`text-xs h-7 px-2 ${paymentMethodFilter === 'all' ? 'bg-[#963E56]/10 text-[#963E56] border-[#963E56]/30' : ''}`}
-                      onClick={() => setPaymentMethodFilter('all')}
-                    >
-                      Alle
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className={`text-xs h-7 px-2 ${paymentMethodFilter === 'automatisch' ? 'bg-[#963E56]/10 text-[#963E56] border-[#963E56]/30' : ''}`}
-                      onClick={() => setPaymentMethodFilter('automatisch')}
+                      className={`text-xs h-7 px-2 ${paymentMethodFilter.includes('automatisch') ? 'bg-[#963E56]/10 text-[#963E56] border-[#963E56]/30' : ''}`}
+                      onClick={() => setPaymentMethodFilter(toggleFilter(paymentMethodFilter, 'automatisch'))}
                     >
                       Automatisch
                     </Button>
                     <Button
                       variant="outline"
                       size="sm"
-                      className={`text-xs h-7 px-2 ${paymentMethodFilter === 'overschrijving' ? 'bg-[#963E56]/10 text-[#963E56] border-[#963E56]/30' : ''}`}
-                      onClick={() => setPaymentMethodFilter('overschrijving')}
+                      className={`text-xs h-7 px-2 ${paymentMethodFilter.includes('overschrijving') ? 'bg-[#963E56]/10 text-[#963E56] border-[#963E56]/30' : ''}`}
+                      onClick={() => setPaymentMethodFilter(toggleFilter(paymentMethodFilter, 'overschrijving'))}
                     >
                       Overschrijving
                     </Button>
                     <Button
                       variant="outline"
                       size="sm"
-                      className={`text-xs h-7 px-2 ${paymentMethodFilter === 'contant' ? 'bg-[#963E56]/10 text-[#963E56] border-[#963E56]/30' : ''}`}
-                      onClick={() => setPaymentMethodFilter('contant')}
+                      className={`text-xs h-7 px-2 ${paymentMethodFilter.includes('contant') ? 'bg-[#963E56]/10 text-[#963E56] border-[#963E56]/30' : ''}`}
+                      onClick={() => setPaymentMethodFilter(toggleFilter(paymentMethodFilter, 'contant'))}
                     >
                       Contant
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className={`text-xs h-7 px-2 ${paymentMethodFilter.includes('bancontact') ? 'bg-[#963E56]/10 text-[#963E56] border-[#963E56]/30' : ''}`}
+                      onClick={() => setPaymentMethodFilter(toggleFilter(paymentMethodFilter, 'bancontact'))}
+                    >
+                      Bancontact
                     </Button>
                   </div>
                 </div>
@@ -1157,26 +1153,26 @@ export default function MembersList() {
                     <Button
                       variant="outline"
                       size="sm"
-                      className={`text-xs h-7 px-2 ${genderFilter === 'all' ? 'bg-[#963E56]/10 text-[#963E56] border-[#963E56]/30' : ''}`}
-                      onClick={() => setGenderFilter('all')}
-                    >
-                      Alle
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className={`text-xs h-7 px-2 ${genderFilter === 'man' ? 'bg-[#963E56]/10 text-[#963E56] border-[#963E56]/30' : ''}`}
-                      onClick={() => setGenderFilter('man')}
+                      className={`text-xs h-7 px-2 ${genderFilter.includes('man') ? 'bg-[#963E56]/10 text-[#963E56] border-[#963E56]/30' : ''}`}
+                      onClick={() => setGenderFilter(toggleFilter(genderFilter, 'man'))}
                     >
                       Man
                     </Button>
                     <Button
                       variant="outline"
                       size="sm"
-                      className={`text-xs h-7 px-2 ${genderFilter === 'vrouw' ? 'bg-[#963E56]/10 text-[#963E56] border-[#963E56]/30' : ''}`}
-                      onClick={() => setGenderFilter('vrouw')}
+                      className={`text-xs h-7 px-2 ${genderFilter.includes('vrouw') ? 'bg-[#963E56]/10 text-[#963E56] border-[#963E56]/30' : ''}`}
+                      onClick={() => setGenderFilter(toggleFilter(genderFilter, 'vrouw'))}
                     >
                       Vrouw
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className={`text-xs h-7 px-2 ${genderFilter.includes('anders') ? 'bg-[#963E56]/10 text-[#963E56] border-[#963E56]/30' : ''}`}
+                      onClick={() => setGenderFilter(toggleFilter(genderFilter, 'anders'))}
+                    >
+                      Anders
                     </Button>
                   </div>
                 </div>
