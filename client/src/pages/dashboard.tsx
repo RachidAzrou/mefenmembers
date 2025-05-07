@@ -480,67 +480,150 @@ export default function Dashboard() {
         </Card>
       </div>
       
-      {/* 4. Geslacht statistieken */}
-      <Card className="border-none shadow-md overflow-hidden">
-        <div className="bg-gradient-to-r from-blue-500/20 to-blue-600/20 h-2" />
-        <CardHeader>
-          <CardTitle className="text-lg flex items-center">
-            <Users className="h-5 w-5 mr-2 text-blue-600" />
-            Geslacht
-          </CardTitle>
-          <CardDescription>
-            Verdeling van leden op basis van geslacht
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {isLoading ? (
-              <div className="space-y-3">
-                <Skeleton className="h-5 w-full" />
-                <Skeleton className="h-5 w-full" />
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {/* Mannen */}
-                <Link href="/members?gender=man">
-                  <div className="flex items-center gap-4 p-4 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors cursor-pointer">
+      {/* 4. Geslacht en leeftijd secties */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Geslacht statistieken - Linkerkant */}
+        <Card className="border-none shadow-md overflow-hidden">
+          <div className="bg-gradient-to-r from-blue-500/20 to-blue-600/20 h-2" />
+          <CardHeader>
+            <CardTitle className="text-lg flex items-center">
+              <Users className="h-5 w-5 mr-2 text-blue-600" />
+              Geslacht
+            </CardTitle>
+            <CardDescription>
+              Verdeling van leden op basis van geslacht
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {isLoading ? (
+                <div className="space-y-3">
+                  <Skeleton className="h-5 w-full" />
+                  <Skeleton className="h-5 w-full" />
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {/* Mannen */}
+                  <Link href="/members?gender=man">
+                    <div className="flex items-center gap-4 p-4 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors cursor-pointer">
+                      <div className="bg-blue-100 p-3 rounded-full">
+                        <User className="h-5 w-5 text-blue-600" />
+                      </div>
+                      <div>
+                        <div className="text-sm text-gray-500">Mannen</div>
+                        <div className="font-medium">
+                          {members.filter(m => 
+                            m.gender?.toLowerCase() === 'man' || 
+                            m.gender === 'Man'
+                          ).length} leden
+                        </div>
+                      </div>
+                    </div>
+                  </Link>
+                  
+                  {/* Vrouwen */}
+                  <Link href="/members?gender=vrouw">
+                    <div className="flex items-center gap-4 p-4 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors cursor-pointer">
+                      <div className="bg-pink-100 p-3 rounded-full">
+                        <CircleUser className="h-5 w-5 text-pink-600" />
+                      </div>
+                      <div>
+                        <div className="text-sm text-gray-500">Vrouwen</div>
+                        <div className="font-medium">
+                          {members.filter(m => 
+                            m.gender?.toLowerCase() === 'vrouw' || 
+                            m.gender === 'Vrouw'
+                          ).length} leden
+                        </div>
+                      </div>
+                    </div>
+                  </Link>
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+        
+        {/* Leeftijd statistieken - Rechterkant */}
+        <Card className="border-none shadow-md overflow-hidden">
+          <div className="bg-gradient-to-r from-green-500/20 to-green-600/20 h-2" />
+          <CardHeader>
+            <CardTitle className="text-lg flex items-center">
+              <CalendarDays className="h-5 w-5 mr-2 text-green-600" />
+              Leeftijd
+            </CardTitle>
+            <CardDescription>
+              Verdeling van leden op basis van leeftijdscategorie
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {isLoading ? (
+                <div className="space-y-3">
+                  <Skeleton className="h-5 w-full" />
+                  <Skeleton className="h-5 w-full" />
+                  <Skeleton className="h-5 w-full" />
+                  <Skeleton className="h-5 w-full" />
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {/* Tieners (13-17) */}
+                  <div className="flex items-center gap-4 p-4 rounded-lg bg-gray-50">
+                    <div className="bg-yellow-100 p-3 rounded-full">
+                      <Baby className="h-5 w-5 text-yellow-600" />
+                    </div>
+                    <div>
+                      <div className="text-sm text-gray-500">13-17 jaar</div>
+                      <div className="font-medium">
+                        {teenagers} leden
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Jongvolwassenen (18-24) */}
+                  <div className="flex items-center gap-4 p-4 rounded-lg bg-gray-50">
+                    <div className="bg-green-100 p-3 rounded-full">
+                      <Backpack className="h-5 w-5 text-green-600" />
+                    </div>
+                    <div>
+                      <div className="text-sm text-gray-500">18-24 jaar</div>
+                      <div className="font-medium">
+                        {youngAdults} leden
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Volwassenen (25-64) */}
+                  <div className="flex items-center gap-4 p-4 rounded-lg bg-gray-50">
                     <div className="bg-blue-100 p-3 rounded-full">
-                      <User className="h-5 w-5 text-blue-600" />
+                      <Briefcase className="h-5 w-5 text-blue-600" />
                     </div>
                     <div>
-                      <div className="text-sm text-gray-500">Mannen</div>
+                      <div className="text-sm text-gray-500">25-64 jaar</div>
                       <div className="font-medium">
-                        {members.filter(m => 
-                          m.gender?.toLowerCase() === 'man' || 
-                          m.gender === 'Man'
-                        ).length} leden
+                        {adults} leden
                       </div>
                     </div>
                   </div>
-                </Link>
-                
-                {/* Vrouwen */}
-                <Link href="/members?gender=vrouw">
-                  <div className="flex items-center gap-4 p-4 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors cursor-pointer">
-                    <div className="bg-pink-100 p-3 rounded-full">
-                      <CircleUser className="h-5 w-5 text-pink-600" />
+                  
+                  {/* Senioren (65+) */}
+                  <div className="flex items-center gap-4 p-4 rounded-lg bg-gray-50">
+                    <div className="bg-purple-100 p-3 rounded-full">
+                      <Glasses className="h-5 w-5 text-purple-600" />
                     </div>
                     <div>
-                      <div className="text-sm text-gray-500">Vrouwen</div>
+                      <div className="text-sm text-gray-500">65+ jaar</div>
                       <div className="font-medium">
-                        {members.filter(m => 
-                          m.gender?.toLowerCase() === 'vrouw' || 
-                          m.gender === 'Vrouw'
-                        ).length} leden
+                        {elderly} leden
                       </div>
                     </div>
                   </div>
-                </Link>
-              </div>
-            )}
-          </div>
-        </CardContent>
-      </Card>
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }
