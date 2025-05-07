@@ -714,7 +714,7 @@ export default function MemberRequests() {
       {/* Goedkeurings dialog */}
       <Dialog open={showApprovalDialog} onOpenChange={setShowApprovalDialog}>
         <DialogContent className="max-w-2xl p-0 overflow-hidden">
-          <div className="bg-gradient-to-r from-green-600/90 to-green-500 py-4 px-6 text-white">
+          <div className="bg-gradient-to-r from-[#963E56]/90 to-[#963E56] py-4 px-6 text-white">
             <DialogHeader className="text-white mb-0 p-0">
               <DialogTitle className="flex items-center gap-2 text-lg text-white">
                 <CheckIcon className="h-5 w-5" />
@@ -728,60 +728,55 @@ export default function MemberRequests() {
           </div>
 
           <div className="p-6">
-            <div className="bg-green-50 border border-green-200 rounded-md p-4 mb-6">
+            <div className="bg-[#963E56]/5 border border-[#963E56]/20 rounded-md p-4 mb-6">
               <div className="flex items-center gap-2 mb-3">
-                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-green-600">
-                  <path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-[#963E56]">
+                  <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+                  <circle cx="9" cy="7" r="4" />
+                  <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+                  <path d="M16 3.13a4 4 0 0 1 0 7.75" />
                 </svg>
-                <h3 className="font-semibold text-green-800">Lidmaatschapsgegevens</h3>
+                <h3 className="font-semibold text-[#963E56]">Lidmaatschapsgegevens</h3>
               </div>
-              <div className="flex items-center gap-2 bg-white rounded-md border border-green-200 p-3 mb-4">
-                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-green-600">
-                  <path d="M20.91 8.84 8.56 2.23a1.93 1.93 0 0 0-1.81 0L3.1 4.13a1.93 1.93 0 0 0-.97 1.68v4.8a2 2 0 0 0 1 1.73l7.84 4.4a1.93 1.93 0 0 0 1.81 0l3.8-2.12a1.93 1.93 0 0 0 .97-1.68v-3.2" />
-                  <path d="m8.9 10.12 6.7-4.29" />
-                  <path d="M9.72 13.4 5.82 11" />
-                  <path d="M13.71 13.5v3.3l2.29-1.99" />
+              <div className="flex items-center gap-2 bg-white rounded-md border border-[#963E56]/20 p-3 mb-4">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-[#963E56]">
+                  <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" />
+                  <rect width="8" height="6" x="8" y="2" rx="1" />
+                  <path d="M12 11h4" />
+                  <path d="M12 16h4" />
+                  <path d="M8 11h.01" />
+                  <path d="M8 16h.01" />
                 </svg>
                 <p className="text-sm text-gray-700">
-                  Lidnummer: <span className="font-bold text-green-700">{nextMemberNumber ? nextMemberNumber.toString().padStart(4, '0') : "..."}</span>
+                  Lidnummer: <span className="font-bold text-[#963E56]">{nextMemberNumber ? nextMemberNumber.toString().padStart(4, '0') : "..."}</span>
                 </p>
               </div>
               
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
-                <div className="bg-white p-3 rounded-md border border-green-100 shadow-sm">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="bg-white p-3 rounded-md border border-[#963E56]/10 shadow-sm">
                   <p className="text-xs font-medium text-gray-500">Naam</p>
                   <p className="font-medium truncate">{selectedRequest?.firstName} {selectedRequest?.lastName}</p>
                 </div>
                 
-                <div className="bg-white p-3 rounded-md border border-green-100 shadow-sm">
+                <div className="bg-white p-3 rounded-md border border-[#963E56]/10 shadow-sm">
                   <p className="text-xs font-medium text-gray-500">Type lidmaatschap</p>
                   <p className="capitalize truncate">{selectedRequest?.membershipType}</p>
                 </div>
                 
-                <div className="bg-white p-3 rounded-md border border-green-100 shadow-sm">
+                <div className="bg-white p-3 rounded-md border border-[#963E56]/10 shadow-sm">
                   <p className="text-xs font-medium text-gray-500">Betaalstatus</p>
                   <Badge variant="outline" className="bg-amber-50 text-amber-700 hover:bg-amber-50 border-amber-200">
                     Moet nog betalen
                   </Badge>
                 </div>
                 
-                <div className="bg-white p-3 rounded-md border border-green-100 shadow-sm">
-                  <p className="text-xs font-medium text-gray-500">E-mail</p>
-                  <p className="truncate">{selectedRequest?.email}</p>
-                </div>
-                
-                <div className="bg-white p-3 rounded-md border border-green-100 shadow-sm">
-                  <p className="text-xs font-medium text-gray-500">Telefoonnummer</p>
-                  <p className="truncate">{selectedRequest?.phoneNumber}</p>
-                </div>
-                
-                <div className="bg-white p-3 rounded-md border border-green-100 shadow-sm">
+                <div className="bg-white p-3 rounded-md border border-[#963E56]/10 shadow-sm">
                   <p className="text-xs font-medium text-gray-500">Betaaltermijn</p>
                   <p className="truncate">Jaarlijks</p>
                 </div>
               </div>
               
-              <div className="mt-4 p-3 bg-white rounded-md border border-green-100 shadow-sm">
+              <div className="mt-4 p-3 bg-white rounded-md border border-[#963E56]/10 shadow-sm">
                 <p className="text-sm text-gray-600 flex items-start gap-2">
                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-amber-500 mt-0.5 flex-shrink-0">
                     <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
@@ -801,7 +796,7 @@ export default function MemberRequests() {
                 Annuleren
               </Button>
               <Button 
-                className="bg-green-600 hover:bg-green-700 text-white px-6"
+                className="bg-[#963E56] hover:bg-[#7d3447] text-white px-6"
                 onClick={confirmApproval}
                 disabled={approveMutation.isPending}
               >
@@ -825,7 +820,7 @@ export default function MemberRequests() {
       {/* Afwijzings dialog */}
       <Dialog open={showRejectionDialog} onOpenChange={setShowRejectionDialog}>
         <DialogContent className="max-w-xl p-0 overflow-hidden">
-          <div className="bg-gradient-to-r from-red-600/90 to-red-500 py-4 px-6 text-white">
+          <div className="bg-gradient-to-r from-[#963E56]/90 to-[#963E56] py-4 px-6 text-white">
             <DialogHeader className="text-white mb-0 p-0">
               <DialogTitle className="flex items-center gap-2 text-lg text-white">
                 <XIcon className="h-5 w-5" />
@@ -838,55 +833,69 @@ export default function MemberRequests() {
           </div>
           
           <div className="p-6">
-            <div className="bg-red-50 border border-red-200 rounded-md p-4 mb-6">
+            <div className="bg-[#963E56]/5 border border-[#963E56]/20 rounded-md p-4 mb-6">
               <div className="flex items-center gap-2 mb-3">
-                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-red-600">
-                  <circle cx="12" cy="12" r="10"></circle>
-                  <line x1="15" y1="9" x2="9" y2="15"></line>
-                  <line x1="9" y1="9" x2="15" y2="15"></line>
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-[#963E56]">
+                  <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+                  <circle cx="9" cy="7" r="4" />
+                  <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+                  <path d="M16 3.13a4 4 0 0 1 0 7.75" />
                 </svg>
-                <h3 className="font-semibold text-red-800">Reden voor afwijzing</h3>
+                <h3 className="font-semibold text-[#963E56]">Lidmaatschapsgegevens</h3>
               </div>
               
-              <div className="bg-white p-3 rounded-md border border-red-100 shadow-sm mb-4">
-                <p className="text-sm text-gray-600 mb-2 flex items-start gap-2">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-amber-500 mt-0.5 flex-shrink-0">
-                    <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
-                    <line x1="12" y1="9" x2="12" y2="13"/>
-                    <line x1="12" y1="17" x2="12.01" y2="17"/>
-                  </svg>
-                  <span>
-                    Deze informatie is alleen voor intern gebruik en wordt niet automatisch gecommuniceerd naar de aanvrager.
-                  </span>
-                </p>
-                <Textarea 
-                  id="rejection-reason"
-                  value={rejectionReason}
-                  onChange={(e) => setRejectionReason(e.target.value)}
-                  placeholder="Beschrijf waarom deze aanvraag wordt afgewezen..."
-                  className="min-h-[100px] w-full border-red-100 focus:ring-red-500"
-                />
-              </div>
-              
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div className="bg-white p-3 rounded-md border border-red-100 shadow-sm">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
+                <div className="bg-white p-3 rounded-md border border-[#963E56]/10 shadow-sm">
                   <p className="text-xs font-medium text-gray-500">Naam</p>
                   <p className="font-medium truncate">{selectedRequest?.firstName} {selectedRequest?.lastName}</p>
                 </div>
                 
-                <div className="bg-white p-3 rounded-md border border-red-100 shadow-sm">
+                <div className="bg-white p-3 rounded-md border border-[#963E56]/10 shadow-sm">
                   <p className="text-xs font-medium text-gray-500">Type lidmaatschap</p>
                   <p className="capitalize truncate">{selectedRequest?.membershipType}</p>
                 </div>
                 
-                <div className="bg-white p-3 rounded-md border border-red-100 shadow-sm">
-                  <p className="text-xs font-medium text-gray-500">E-mail</p>
-                  <p className="truncate">{selectedRequest?.email}</p>
+                <div className="bg-white p-3 rounded-md border border-[#963E56]/10 shadow-sm">
+                  <p className="text-xs font-medium text-gray-500">Betaalstatus</p>
+                  <Badge variant="outline" className="bg-amber-50 text-amber-700 hover:bg-amber-50 border-amber-200">
+                    Moet nog betalen
+                  </Badge>
                 </div>
                 
-                <div className="bg-white p-3 rounded-md border border-red-100 shadow-sm">
+                <div className="bg-white p-3 rounded-md border border-[#963E56]/10 shadow-sm">
                   <p className="text-xs font-medium text-gray-500">Aanvraagdatum</p>
                   <p className="truncate">{selectedRequest?.requestDate ? formatDate(selectedRequest.requestDate) : 'N/A'}</p>
+                </div>
+              </div>
+              
+              <div className="mt-6">
+                <div className="flex items-center gap-2 mb-3">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-[#963E56]">
+                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                    <polyline points="16 17 21 12 16 7"></polyline>
+                    <line x1="21" y1="12" x2="9" y2="12"></line>
+                  </svg>
+                  <h3 className="font-semibold text-[#963E56]">Reden voor afwijzing</h3>
+                </div>
+                
+                <div className="bg-white p-3 rounded-md border border-[#963E56]/10 shadow-sm">
+                  <p className="text-sm text-gray-600 mb-2 flex items-start gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-amber-500 mt-0.5 flex-shrink-0">
+                      <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                      <line x1="12" y1="9" x2="12" y2="13"/>
+                      <line x1="12" y1="17" x2="12.01" y2="17"/>
+                    </svg>
+                    <span>
+                      Deze informatie is alleen voor intern gebruik en wordt niet automatisch gecommuniceerd naar de aanvrager.
+                    </span>
+                  </p>
+                  <Textarea 
+                    id="rejection-reason"
+                    value={rejectionReason}
+                    onChange={(e) => setRejectionReason(e.target.value)}
+                    placeholder="Beschrijf waarom deze aanvraag wordt afgewezen..."
+                    className="min-h-[100px] w-full border-[#963E56]/10 focus:ring-[#963E56]"
+                  />
                 </div>
               </div>
             </div>
@@ -896,7 +905,7 @@ export default function MemberRequests() {
                 Annuleren
               </Button>
               <Button 
-                className="bg-red-600 hover:bg-red-700 text-white px-6"
+                className="bg-[#963E56] hover:bg-[#7d3447] text-white px-6"
                 onClick={confirmRejection}
                 disabled={rejectMutation.isPending || !rejectionReason.trim()}
               >
