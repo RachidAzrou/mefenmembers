@@ -2,7 +2,12 @@ import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
-import { Member, insertMemberSchema } from "@shared/schema";
+import { Member as BaseMember, insertMemberSchema } from "@shared/schema";
+
+// Uitbreiding van Member met UI-specifieke velden
+interface Member extends BaseMember {
+  showDelete?: boolean;
+}
 import { format } from "date-fns";
 import { Input } from "@/components/ui/input";
 import { 
@@ -192,13 +197,21 @@ export default function MembersList() {
   });
   
   // Haal alle leden op
-  const { data: members = [], isLoading } = useQuery<Member[]>({
+  const { data: apiMembers = [], isLoading } = useQuery<Member[]>({
     queryKey: ["/api/members"],
     queryFn: async () => {
       const response = await apiRequest("GET", "/api/members");
       return response.json();
     }
   });
+  
+  // Lokale state voor leden met extra UI-eigenschappen
+  const [members, setMembers] = useState<(Member & { showDelete?: boolean })[]>([]);
+  
+  // Update lokale leden wanneer API data wijzigt
+  useEffect(() => {
+    setMembers(apiMembers.map(member => ({ ...member, showDelete: false })));
+  }, [apiMembers]);
   
   // Bereken leeftijd functie
   const calculateAge = (birthDate: string | null): number | null => {
@@ -1271,10 +1284,15 @@ export default function MembersList() {
                   </TableHead>
                   <TableHead className="text-right font-medium sm:font-semibold text-xs sm:text-sm text-gray-700">
                     <button 
-                      onClick={() => setShowDeleteIcons(!showDeleteIcons)} 
+                      onClick={() => {
+                        // Reset alle individuele delete iconen
+                        setMembers(members.map(m => ({ ...m, showDelete: false })));
+                        // Toggle globale delete modus
+                        setShowDeleteIcons(!showDeleteIcons);
+                      }} 
                       className="ml-auto flex items-center hover:text-[#963E56] transition-colors"
                     >
-                      Acties
+                      {showDeleteIcons ? "Normaal" : "Acties"}
                       {/* drie puntjes verwijderd op verzoek van de gebruiker */}
                     </button>
                   </TableHead>
@@ -1464,15 +1482,26 @@ export default function MembersList() {
                         <Button 
                           variant="ghost" 
                           size="icon" 
-                          className={`h-8 w-8 ml-auto ${showDeleteIcons ? "text-red-600 hover:text-red-800 hover:bg-red-50" : "text-gray-400 hover:text-gray-600 hover:bg-gray-50"}`}
-                          onClick={() => showDeleteIcons ? handleDeleteConfirm(member) : null}
+                          className={`h-8 w-8 ml-auto ${member.showDelete ? "text-red-600 hover:text-red-800 hover:bg-red-50" : "text-gray-400 hover:text-gray-600 hover:bg-gray-50"}`}
+                          onClick={() => {
+                            if (member.showDelete) {
+                              // Als de prullenbak wordt getoond, verwijder het lid
+                              handleDeleteConfirm(member);
+                            } else {
+                              // Anders, toon de prullenbak voor alleen dit lid
+                              setMembers(members.map(m => ({
+                                ...m,
+                                showDelete: m.id === member.id ? true : m.showDelete
+                              })));
+                            }
+                          }}
                         >
-                          {showDeleteIcons ? (
+                          {member.showDelete ? (
                             <Trash2 className="h-4 w-4" />
                           ) : (
                             <MoreHorizontal className="h-4 w-4" />
                           )}
-                          <span className="sr-only">{showDeleteIcons ? "Lid verwijderen" : "Meer acties"}</span>
+                          <span className="sr-only">{member.showDelete ? "Lid verwijderen" : "Meer acties"}</span>
                         </Button>
                       </TableCell>
                     </TableRow>
