@@ -411,7 +411,14 @@ export default function RegisterRequest() {
                         <FormItem>
                           <FormLabel>E-mail <span className="text-red-500">*</span></FormLabel>
                           <FormControl>
-                            <Input type="email" placeholder="voorbeeld@email.com" {...field} />
+                            <Input 
+                              type="email" 
+                              placeholder="voorbeeld@email.com" 
+                              {...field}
+                              className="text-sm" 
+                              inputMode="email"
+                              autoComplete="email"
+                            />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -461,9 +468,14 @@ export default function RegisterRequest() {
                         name="street"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Straat</FormLabel>
+                            <FormLabel className="text-sm sm:text-base">Straat</FormLabel>
                             <FormControl>
-                              <Input placeholder="Straatnaam" {...field} />
+                              <Input 
+                                placeholder="Straatnaam" 
+                                {...field} 
+                                className="text-sm"
+                                autoComplete="street-address"
+                              />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -472,15 +484,20 @@ export default function RegisterRequest() {
                     </div>
                     
                     {/* Huisnummer en Bus op één rij */}
-                    <div className="col-span-2 md:col-span-1 grid grid-cols-2 gap-4">
+                    <div className="col-span-2 md:col-span-1 grid grid-cols-2 gap-3 sm:gap-4">
                       <FormField
                         control={form.control}
                         name="houseNumber"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Huisnr.</FormLabel>
+                            <FormLabel className="text-sm sm:text-base">Huisnr.</FormLabel>
                             <FormControl>
-                              <Input placeholder="123" {...field} />
+                              <Input 
+                                placeholder="123" 
+                                {...field} 
+                                className="text-sm"
+                                inputMode="numeric"
+                              />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -492,9 +509,13 @@ export default function RegisterRequest() {
                         name="busNumber"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Bus</FormLabel>
+                            <FormLabel className="text-sm sm:text-base">Bus</FormLabel>
                             <FormControl>
-                              <Input placeholder="B1" {...field} />
+                              <Input 
+                                placeholder="B1" 
+                                {...field} 
+                                className="text-sm"
+                              />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -502,33 +523,41 @@ export default function RegisterRequest() {
                       />
                     </div>
                     
-                    {/* Postcode */}
-                    <div>
+                    {/* Postcode en Plaats naast elkaar op mobiel */}
+                    <div className="col-span-2 grid grid-cols-2 gap-3 sm:gap-4">
                       <FormField
                         control={form.control}
                         name="postalCode"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Postcode</FormLabel>
+                            <FormLabel className="text-sm sm:text-base">Postcode</FormLabel>
                             <FormControl>
-                              <Input placeholder="1234" {...field} />
+                              <Input 
+                                placeholder="1234" 
+                                {...field} 
+                                className="text-sm"
+                                inputMode="numeric"
+                                autoComplete="postal-code"
+                              />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
                         )}
                       />
-                    </div>
                     
-                    {/* Plaats */}
-                    <div>
                       <FormField
                         control={form.control}
                         name="city"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Plaats</FormLabel>
+                            <FormLabel className="text-sm sm:text-base">Plaats</FormLabel>
                             <FormControl>
-                              <Input placeholder="Gemeente" {...field} />
+                              <Input 
+                                placeholder="Gemeente" 
+                                {...field}
+                                className="text-sm"
+                                autoComplete="address-level2"
+                              />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -551,13 +580,13 @@ export default function RegisterRequest() {
                       name="membershipType"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Type lidmaatschap</FormLabel>
+                          <FormLabel className="text-sm sm:text-base">Type lidmaatschap</FormLabel>
                           <Select 
                             onValueChange={field.onChange} 
                             defaultValue={field.value}
                           >
                             <FormControl>
-                              <SelectTrigger>
+                              <SelectTrigger className="text-sm h-10">
                                 <SelectValue placeholder="Selecteer type" />
                               </SelectTrigger>
                             </FormControl>
@@ -577,13 +606,13 @@ export default function RegisterRequest() {
                       name="paymentTerm"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Betalingstermijn</FormLabel>
+                          <FormLabel className="text-sm sm:text-base">Betalingstermijn</FormLabel>
                           <Select 
                             onValueChange={field.onChange} 
                             defaultValue={field.value}
                           >
                             <FormControl>
-                              <SelectTrigger>
+                              <SelectTrigger className="text-sm h-10">
                                 <SelectValue placeholder="Selecteer betalingstermijn" />
                               </SelectTrigger>
                             </FormControl>
@@ -593,7 +622,7 @@ export default function RegisterRequest() {
                               <SelectItem value="maandelijks">Maandelijks</SelectItem>
                             </SelectContent>
                           </Select>
-                          <FormDescription>
+                          <FormDescription className="text-xs sm:text-sm">
                             Hoe vaak wil je je lidmaatschap betalen?
                           </FormDescription>
                           <FormMessage />
@@ -606,13 +635,13 @@ export default function RegisterRequest() {
                       name="paymentMethod"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Betalingswijze</FormLabel>
+                          <FormLabel className="text-sm sm:text-base">Betalingswijze</FormLabel>
                           <Select 
                             onValueChange={field.onChange} 
                             defaultValue={field.value}
                           >
                             <FormControl>
-                              <SelectTrigger>
+                              <SelectTrigger className="text-sm h-10">
                                 <SelectValue placeholder="Selecteer betalingswijze" />
                               </SelectTrigger>
                             </FormControl>
