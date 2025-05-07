@@ -955,7 +955,7 @@ export default function MemberRequests() {
                             {request.firstName} {request.lastName}
                           </TableCell>
                           <TableCell>{formatDate(request.requestDate)}</TableCell>
-                          <TableCell className="text-right space-x-1 whitespace-nowrap">
+                          <TableCell className="text-center space-x-1 whitespace-nowrap">
                             <Button 
                               variant="ghost" 
                               size="icon"
@@ -1006,14 +1006,6 @@ export default function MemberRequests() {
                                 <path d="M12 22a10 10 0 1 1 0-20 10 10 0 0 1 0 20zm0 0a9.99 9.99 0 0 1-8.94-5.5M12 8v4m0 4h.01"></path>
                               </svg>
                             </Button>
-                            <Button 
-                              variant="ghost" 
-                              size="icon"
-                              onClick={() => handleDelete(request)}
-                              className="text-gray-500 hover:text-gray-800"
-                            >
-                              <X className="h-4 w-4" />
-                            </Button>
                           </TableCell>
                         </TableRow>
                       ))}
@@ -1049,7 +1041,7 @@ export default function MemberRequests() {
                   <TableRow>
                     <TableHead>Naam</TableHead>
                     <TableHead>Datum</TableHead>
-                    <TableHead className="text-right">Acties</TableHead>
+                    <TableHead className="text-center">Acties</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -1059,7 +1051,7 @@ export default function MemberRequests() {
                         {request.firstName} {request.lastName}
                       </TableCell>
                       <TableCell>{formatDate(request.requestDate)}</TableCell>
-                      <TableCell className="text-right">
+                      <TableCell className="text-center">
                         <Button 
                           variant="ghost" 
                           size="icon"
@@ -1105,39 +1097,45 @@ export default function MemberRequests() {
             </DialogDescription>
           </DialogHeader>
           <div className="mt-2 space-y-4">
-            <div className="bg-gradient-to-r from-rose-50 to-white p-4 rounded-md space-y-3 border border-rose-100 mb-4">
-              <div>
-                <p className="text-sm font-medium text-rose-700">Naam</p>
-                <p className="font-medium">{selectedRequest?.firstName} {selectedRequest?.lastName}</p>
+            <div className="bg-gradient-to-r from-rose-50 to-white p-5 rounded-lg shadow-sm space-y-4 border border-rose-100 mb-4">
+              <div className="pb-3 border-b border-rose-100">
+                <p className="text-sm font-medium text-rose-700 uppercase tracking-wider mb-1">Persoonlijke gegevens</p>
+                <p className="text-xl font-semibold">{selectedRequest?.firstName} {selectedRequest?.lastName}</p>
               </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <p className="text-sm font-medium text-rose-700">Betaalwijze</p>
-                  <p>
-                    {selectedRequest?.paymentMethod === "cash" && "Cash"}
-                    {selectedRequest?.paymentMethod === "bancontact" && "Bancontact"}
-                    {selectedRequest?.paymentMethod === "overschrijving" && "Overschrijving"}
-                    {selectedRequest?.paymentMethod === "domiciliering" && "Domiciliëring"}
-                    {!selectedRequest?.paymentMethod && "Overschrijving (standaard)"}
-                  </p>
+              
+              <div className="pb-2">
+                <p className="text-sm font-medium text-rose-700 uppercase tracking-wider mb-2">Lidmaatschapsinformatie</p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="bg-white p-3 rounded-md border border-rose-50">
+                    <p className="text-xs text-rose-600 font-medium mb-1">Type lidmaatschap</p>
+                    <p className="font-medium">
+                      {selectedRequest?.membershipType === "standaard" && "Standaard"}
+                      {selectedRequest?.membershipType === "student" && "Student"}
+                      {selectedRequest?.membershipType === "senior" && "Senior"}
+                    </p>
+                  </div>
+                  
+                  <div className="bg-white p-3 rounded-md border border-rose-50">
+                    <p className="text-xs text-rose-600 font-medium mb-1">Betalingstermijn</p>
+                    <p className="font-medium">
+                      {selectedRequest?.paymentTerm === "maandelijks" && "Maandelijks"}
+                      {selectedRequest?.paymentTerm === "driemaandelijks" && "Driemaandelijks"}
+                      {selectedRequest?.paymentTerm === "jaarlijks" && "Jaarlijks"}
+                      {!selectedRequest?.paymentTerm && "Jaarlijks (standaard)"}
+                    </p>
+                  </div>
+                  
+                  <div className="bg-white p-3 rounded-md border border-rose-50">
+                    <p className="text-xs text-rose-600 font-medium mb-1">Betaalwijze</p>
+                    <p className="font-medium">
+                      {selectedRequest?.paymentMethod === "cash" && "Cash"}
+                      {selectedRequest?.paymentMethod === "bancontact" && "Bancontact"}
+                      {selectedRequest?.paymentMethod === "overschrijving" && "Overschrijving"}
+                      {selectedRequest?.paymentMethod === "domiciliering" && "Domiciliëring"}
+                      {!selectedRequest?.paymentMethod && "Overschrijving (standaard)"}
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-sm font-medium text-rose-700">Betalingstermijn</p>
-                  <p>
-                    {selectedRequest?.paymentTerm === "maandelijks" && "Maandelijks"}
-                    {selectedRequest?.paymentTerm === "driemaandelijks" && "Driemaandelijks"}
-                    {selectedRequest?.paymentTerm === "jaarlijks" && "Jaarlijks"}
-                    {!selectedRequest?.paymentTerm && "Jaarlijks (standaard)"}
-                  </p>
-                </div>
-              </div>
-              <div>
-                <p className="text-sm font-medium text-rose-700">Type lidmaatschap</p>
-                <p>
-                  {selectedRequest?.membershipType === "standaard" && "Standaard"}
-                  {selectedRequest?.membershipType === "student" && "Student"}
-                  {selectedRequest?.membershipType === "senior" && "Senior"}
-                </p>
               </div>
             </div>
             <div className="space-y-2">
@@ -1199,45 +1197,51 @@ export default function MemberRequests() {
             </DialogDescription>
           </DialogHeader>
           <div className="mt-2 space-y-4">
-            <div className="bg-gradient-to-r from-emerald-50 to-white p-4 rounded-md space-y-3 border border-emerald-100">
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <p className="text-sm font-medium text-emerald-700">Naam</p>
-                  <p className="font-medium">{selectedRequest?.firstName} {selectedRequest?.lastName}</p>
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-emerald-700">Toe te kennen lidnummer</p>
-                  <p className="font-mono font-medium">{nextMemberNumber || "Wordt toegekend"}</p>
-                </div>
+            <div className="bg-gradient-to-r from-emerald-50 to-white p-5 rounded-lg shadow-sm space-y-4 border border-emerald-100">
+              <div className="pb-3 border-b border-emerald-100">
+                <p className="text-sm font-medium text-emerald-700 uppercase tracking-wider mb-1">Persoonlijke gegevens</p>
+                <p className="text-xl font-semibold">{selectedRequest?.firstName} {selectedRequest?.lastName}</p>
               </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <p className="text-sm font-medium text-emerald-700">Betaalwijze</p>
-                  <p>
-                    {selectedRequest?.paymentMethod === "cash" && "Cash"}
-                    {selectedRequest?.paymentMethod === "bancontact" && "Bancontact"}
-                    {selectedRequest?.paymentMethod === "overschrijving" && "Overschrijving"}
-                    {selectedRequest?.paymentMethod === "domiciliering" && "Domiciliëring"}
-                    {!selectedRequest?.paymentMethod && "Overschrijving (standaard)"}
-                  </p>
+              
+              <div className="pb-2">
+                <div className="flex justify-between items-center mb-2">
+                  <p className="text-sm font-medium text-emerald-700 uppercase tracking-wider">Lidmaatschapsinformatie</p>
+                  <div className="bg-emerald-100 text-emerald-800 px-3 py-1 rounded-full text-xs font-bold">
+                    Lidnr: {nextMemberNumber || "Auto"}
+                  </div>
                 </div>
-                <div>
-                  <p className="text-sm font-medium text-emerald-700">Betalingstermijn</p>
-                  <p>
-                    {selectedRequest?.paymentTerm === "maandelijks" && "Maandelijks"}
-                    {selectedRequest?.paymentTerm === "driemaandelijks" && "Driemaandelijks"}
-                    {selectedRequest?.paymentTerm === "jaarlijks" && "Jaarlijks"}
-                    {!selectedRequest?.paymentTerm && "Jaarlijks (standaard)"}
-                  </p>
+                
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="bg-white p-3 rounded-md border border-emerald-50">
+                    <p className="text-xs text-emerald-600 font-medium mb-1">Type lidmaatschap</p>
+                    <p className="font-medium">
+                      {selectedRequest?.membershipType === "standaard" && "Standaard"}
+                      {selectedRequest?.membershipType === "student" && "Student"}
+                      {selectedRequest?.membershipType === "senior" && "Senior"}
+                    </p>
+                  </div>
+                  
+                  <div className="bg-white p-3 rounded-md border border-emerald-50">
+                    <p className="text-xs text-emerald-600 font-medium mb-1">Betalingstermijn</p>
+                    <p className="font-medium">
+                      {selectedRequest?.paymentTerm === "maandelijks" && "Maandelijks"}
+                      {selectedRequest?.paymentTerm === "driemaandelijks" && "Driemaandelijks"}
+                      {selectedRequest?.paymentTerm === "jaarlijks" && "Jaarlijks"}
+                      {!selectedRequest?.paymentTerm && "Jaarlijks (standaard)"}
+                    </p>
+                  </div>
+                  
+                  <div className="bg-white p-3 rounded-md border border-emerald-50">
+                    <p className="text-xs text-emerald-600 font-medium mb-1">Betaalwijze</p>
+                    <p className="font-medium">
+                      {selectedRequest?.paymentMethod === "cash" && "Cash"}
+                      {selectedRequest?.paymentMethod === "bancontact" && "Bancontact"}
+                      {selectedRequest?.paymentMethod === "overschrijving" && "Overschrijving"}
+                      {selectedRequest?.paymentMethod === "domiciliering" && "Domiciliëring"}
+                      {!selectedRequest?.paymentMethod && "Overschrijving (standaard)"}
+                    </p>
+                  </div>
                 </div>
-              </div>
-              <div>
-                <p className="text-sm font-medium text-emerald-700">Type lidmaatschap</p>
-                <p>
-                  {selectedRequest?.membershipType === "standaard" && "Standaard"}
-                  {selectedRequest?.membershipType === "student" && "Student"}
-                  {selectedRequest?.membershipType === "senior" && "Senior"}
-                </p>
               </div>
             </div>
           </div>
