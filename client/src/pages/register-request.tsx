@@ -173,7 +173,7 @@ export default function RegisterRequest() {
               </div>
               <div className="mt-4 md:mt-0">
                 <img 
-                  src="./attached_assets/logo moskee.png" 
+                  src="/attached_assets/logo moskee.png" 
                   alt="MEFEN Moskee Logo" 
                   className="h-16 w-auto bg-white rounded-md p-1"
                 />
@@ -687,17 +687,18 @@ export default function RegisterRequest() {
                       control={form.control}
                       name="autoRenew"
                       render={({ field }) => (
-                        <FormItem className="col-span-2 flex flex-row items-center justify-between space-y-0 rounded-md border p-4">
+                        <FormItem className="col-span-2 flex flex-row items-center justify-between space-y-0 rounded-md border border-[#963E56]/20 bg-[#963E56]/5 p-4">
                           <div className="space-y-0.5">
-                            <FormLabel className="text-base">Automatisch verlengen</FormLabel>
-                            <FormDescription>
-                              Het lidmaatschap wordt automatisch verlengd
+                            <FormLabel className="text-base text-[#963E56] font-medium">Automatisch verlengen</FormLabel>
+                            <FormDescription className="text-[#963E56]/80">
+                              Het lidmaatschap wordt automatisch verlengd bij het verstrijken van de termijn
                             </FormDescription>
                           </div>
                           <FormControl>
                             <Switch
                               checked={field.value}
                               onCheckedChange={field.onChange}
+                              className="data-[state=checked]:bg-[#963E56]"
                             />
                           </FormControl>
                           <FormMessage />

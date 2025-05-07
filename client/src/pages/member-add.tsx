@@ -1151,19 +1151,20 @@ export default function MemberAdd() {
                     control={form.control}
                     name="autoRenew"
                     render={({ field }) => (
-                      <FormItem className="bg-gray-50 p-4 rounded-md flex flex-row items-start space-x-3 space-y-0">
-                        <FormControl>
-                          <Checkbox
-                            checked={field.value}
-                            onCheckedChange={field.onChange}
-                          />
-                        </FormControl>
-                        <div className="space-y-1 leading-none">
-                          <FormLabel>Automatisch verlengen</FormLabel>
-                          <FormDescription>
-                            Het lidmaatschap wordt automatisch verlengd na afloop van de termijn.
+                      <FormItem className="flex flex-row items-center justify-between space-y-0 rounded-md border border-[#963E56]/20 bg-[#963E56]/5 p-4">
+                        <div className="space-y-0.5">
+                          <FormLabel className="text-base text-[#963E56] font-medium">Automatisch verlengen</FormLabel>
+                          <FormDescription className="text-[#963E56]/80">
+                            Het lidmaatschap wordt automatisch verlengd bij het verstrijken van de termijn
                           </FormDescription>
                         </div>
+                        <FormControl>
+                          <Switch
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                            className="data-[state=checked]:bg-[#963E56]"
+                          />
+                        </FormControl>
                       </FormItem>
                     )}
                   />
