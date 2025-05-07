@@ -31,7 +31,9 @@ import {
   CheckIcon, 
   Loader2, 
   ShieldAlertIcon, 
-  XIcon, 
+  XIcon,
+  X,
+  AlertCircle,
   Search, 
   ArrowLeft 
 } from "lucide-react";
@@ -41,6 +43,14 @@ import { nl } from "date-fns/locale";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { 
+  Select, 
+  SelectContent, 
+  SelectItem, 
+  SelectTrigger, 
+  SelectValue 
+} from "@/components/ui/select";
 import { useRole } from "@/hooks/use-role";
 
 // Type voor lidmaatschapsaanvragen
@@ -748,7 +758,7 @@ export default function MemberRequests() {
                   <path d="M8 16h.01" />
                 </svg>
                 <p className="text-sm text-gray-700">
-                  Lidnummer: <span className="font-bold text-[#963E56]">{nextMemberNumber ? nextMemberNumber.toString().padStart(4, '0') : "..."}</span>
+                  Toe te kennen lidnummer: <span className="font-bold text-[#963E56]">{nextMemberNumber ? nextMemberNumber.toString().padStart(4, '0') : "..."}</span>
                 </p>
               </div>
               
@@ -796,7 +806,7 @@ export default function MemberRequests() {
                 Annuleren
               </Button>
               <Button 
-                className="bg-[#963E56] hover:bg-[#7d3447] text-white px-6"
+                className="bg-green-600 hover:bg-green-700 text-white px-6"
                 onClick={confirmApproval}
                 disabled={approveMutation.isPending}
               >
@@ -808,7 +818,7 @@ export default function MemberRequests() {
                 ) : (
                   <>
                     <CheckIcon className="mr-2 h-4 w-4" />
-                    Goedkeuren en lid aanmaken
+                    Goedkeuren
                   </>
                 )}
               </Button>
@@ -823,7 +833,7 @@ export default function MemberRequests() {
           <div className="bg-gradient-to-r from-[#963E56]/90 to-[#963E56] py-4 px-6 text-white">
             <DialogHeader className="text-white mb-0 p-0">
               <DialogTitle className="flex items-center gap-2 text-lg text-white">
-                <XIcon className="h-5 w-5" />
+                <ShieldAlertIcon className="h-5 w-5" />
                 Lidmaatschapsaanvraag afwijzen
               </DialogTitle>
               <DialogDescription className="text-white/90">
@@ -870,11 +880,7 @@ export default function MemberRequests() {
               
               <div className="mt-6">
                 <div className="flex items-center gap-2 mb-3">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-[#963E56]">
-                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
-                    <polyline points="16 17 21 12 16 7"></polyline>
-                    <line x1="21" y1="12" x2="9" y2="12"></line>
-                  </svg>
+                  <AlertCircle className="text-[#963E56] h-5 w-5" />
                   <h3 className="font-semibold text-[#963E56]">Reden voor afwijzing</h3>
                 </div>
                 
@@ -1128,8 +1134,8 @@ export default function MemberRequests() {
                   <div>
                     <Label htmlFor="membershipType">Type lidmaatschap</Label>
                     <Select 
-                      value={editedRequest?.membershipType || selectedRequest.membershipType}
-                      onValueChange={(value) => setEditedRequest({...editedRequest || selectedRequest, membershipType: value})}
+                      value={(editedRequest?.membershipType || selectedRequest.membershipType) as "standaard" | "student" | "senior"}
+                      onValueChange={(value: "standaard" | "student" | "senior") => setEditedRequest({...editedRequest || selectedRequest, membershipType: value})}
                     >
                       <SelectTrigger id="membershipType" className="mt-1">
                         <SelectValue placeholder="Selecteer type" />
@@ -1146,11 +1152,7 @@ export default function MemberRequests() {
 
               <div className="p-4 border border-[#963E56]/20 bg-[#963E56]/5 rounded-md mb-6">
                 <h3 className="text-lg font-semibold text-[#963E56] mb-2 flex items-center gap-2">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
-                    <polyline points="16 17 21 12 16 7"></polyline>
-                    <line x1="21" y1="12" x2="9" y2="12"></line>
-                  </svg>
+                  <AlertCircle className="text-[#963E56] h-5 w-5" />
                   Reden voor afwijzing
                 </h3>
                 <p className="text-sm text-gray-600 mb-2">
