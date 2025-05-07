@@ -107,7 +107,7 @@ export default function MemberRequests() {
   const [showDetailView, setShowDetailView] = useState(false);
   const [editedRequest, setEditedRequest] = useState<Partial<EditableMemberRequest> | null>(null);
   const [nextMemberNumber, setNextMemberNumber] = useState<string | null>(null);
-  const [isEditMode, setIsEditMode] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
   const { isAdmin } = useRole();
 
   // Ophalen van alle aanvragen
@@ -206,7 +206,7 @@ export default function MemberRequests() {
         title: "Aanvraag bijgewerkt",
         description: "De aanvraag is succesvol bijgewerkt.",
       });
-      setIsEditMode(false);
+      setIsEditing(false);
     },
     onError: (error: Error) => {
       toast({
