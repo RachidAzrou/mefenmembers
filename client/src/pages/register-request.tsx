@@ -501,61 +501,63 @@ export default function RegisterRequest() {
                     </div>
                     
                     <div className="grid grid-cols-1 gap-5 sm:gap-6">
-                      {/* Email en telefoon onder elkaar op mobiel */}
-                      <FormField
-                        control={form.control}
-                        name="email"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel className="text-sm sm:text-base font-medium">E-mail <span className="text-red-500">*</span></FormLabel>
-                            <FormControl>
-                              <Input 
-                                type="email" 
-                                placeholder="voorbeeld@email.com" 
-                                {...field}
-                                className="h-12 sm:h-10 text-base sm:text-sm px-4 rounded-lg focus:border-[#963E56] focus:ring-[#963E56]/30" 
-                                inputMode="email"
-                                autoComplete="email"
-                              />
-                            </FormControl>
-                            <FormMessage className="font-medium text-sm" />
-                          </FormItem>
-                        )}
-                      />
-                      
-                      <FormField
-                        control={form.control}
-                        name="phoneNumber"
-                        render={({ field }) => {
-                          // Formatteren bij weergave, maar originele waarde behouden bij invoer
-                          const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-                            // Alleen cijfers opslaan in de waarde
-                            const cleaned = e.target.value.replace(/\D/g, '');
-                            field.onChange(cleaned);
-                          };
-                          
-                          return (
+                      {/* Email en telefoon altijd onder elkaar (ook op desktop) */}
+                      <div className="space-y-5 sm:space-y-6">
+                        <FormField
+                          control={form.control}
+                          name="email"
+                          render={({ field }) => (
                             <FormItem>
-                              <FormLabel className="text-sm sm:text-base font-medium">Telefoonnummer <span className="text-red-500">*</span></FormLabel>
+                              <FormLabel className="text-sm sm:text-base font-medium">E-mail <span className="text-red-500">*</span></FormLabel>
                               <FormControl>
                                 <Input 
-                                  placeholder="Bijv. 0493401411" 
-                                  value={field.value ? formatPhoneNumber(field.value) : ""}
-                                  onChange={handleInputChange}
-                                  className="h-12 sm:h-10 text-base sm:text-sm px-4 rounded-lg focus:border-[#963E56] focus:ring-[#963E56]/30"
-                                  inputMode="tel"
-                                  type="tel"
-                                  autoComplete="tel"
+                                  type="email" 
+                                  placeholder="voorbeeld@email.com" 
+                                  {...field}
+                                  className="h-12 sm:h-10 text-base sm:text-sm px-4 rounded-lg focus:border-[#963E56] focus:ring-[#963E56]/30" 
+                                  inputMode="email"
+                                  autoComplete="email"
                                 />
                               </FormControl>
-                              <FormDescription className="text-xs sm:text-sm mt-1.5">
-                                Streepjes worden automatisch toegevoegd
-                              </FormDescription>
                               <FormMessage className="font-medium text-sm" />
                             </FormItem>
-                          );
-                        }}
-                      />
+                          )}
+                        />
+                        
+                        <FormField
+                          control={form.control}
+                          name="phoneNumber"
+                          render={({ field }) => {
+                            // Formatteren bij weergave, maar originele waarde behouden bij invoer
+                            const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+                              // Alleen cijfers opslaan in de waarde
+                              const cleaned = e.target.value.replace(/\D/g, '');
+                              field.onChange(cleaned);
+                            };
+                            
+                            return (
+                              <FormItem>
+                                <FormLabel className="text-sm sm:text-base font-medium">Telefoonnummer <span className="text-red-500">*</span></FormLabel>
+                                <FormControl>
+                                  <Input 
+                                    placeholder="Bijv. 0493401411" 
+                                    value={field.value ? formatPhoneNumber(field.value) : ""}
+                                    onChange={handleInputChange}
+                                    className="h-12 sm:h-10 text-base sm:text-sm px-4 rounded-lg focus:border-[#963E56] focus:ring-[#963E56]/30"
+                                    inputMode="tel"
+                                    type="tel"
+                                    autoComplete="tel"
+                                  />
+                                </FormControl>
+                                <FormDescription className="text-xs sm:text-sm mt-1.5">
+                                  Streepjes worden automatisch toegevoegd
+                                </FormDescription>
+                                <FormMessage className="font-medium text-sm" />
+                              </FormItem>
+                            );
+                          }}
+                        />
+                      </div>
                       
                       {/* Adres velden */}
                       
@@ -675,91 +677,94 @@ export default function RegisterRequest() {
                     </div>
                     
                     <div className="grid grid-cols-1 gap-5 sm:gap-6">
-                      <FormField
-                        control={form.control}
-                        name="membershipType"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel className="text-sm sm:text-base font-medium">Type lidmaatschap <span className="text-red-500">*</span></FormLabel>
-                            <Select 
-                              onValueChange={(value) => {
-                                field.onChange(value);
-                                // Update membershipTypes array to contain only the selected value
-                                form.setValue('membershipTypes', [value]);
-                              }} 
-                              defaultValue={field.value || (form.getValues().membershipTypes?.[0] || "")}
-                            >
-                              <FormControl>
-                                <SelectTrigger className="h-12 sm:h-10 text-base sm:text-sm px-4 rounded-lg focus:border-[#963E56] focus:ring-[#963E56]/30">
-                                  <SelectValue placeholder="Selecteer type lidmaatschap" />
-                                </SelectTrigger>
-                              </FormControl>
-                              <SelectContent className="text-base sm:text-sm">
-                                <SelectItem value="standaard" className="py-3 sm:py-2">Standaard</SelectItem>
-                                <SelectItem value="student" className="py-3 sm:py-2">Student</SelectItem>
-                                <SelectItem value="senior" className="py-3 sm:py-2">Senior</SelectItem>
-                              </SelectContent>
-                            </Select>
-                            <FormMessage className="font-medium text-sm" />
-                          </FormItem>
-                        )}
-                      />
-                      
-                      <FormField
-                        control={form.control}
-                        name="paymentTerm"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel className="text-sm sm:text-base font-medium">Betalingstermijn</FormLabel>
-                            <Select 
-                              onValueChange={field.onChange} 
-                              defaultValue={field.value}
-                            >
-                              <FormControl>
-                                <SelectTrigger className="h-12 sm:h-10 text-base sm:text-sm px-4 rounded-lg focus:border-[#963E56] focus:ring-[#963E56]/30">
-                                  <SelectValue placeholder="Selecteer betalingstermijn" />
-                                </SelectTrigger>
-                              </FormControl>
-                              <SelectContent className="text-base sm:text-sm">
-                                <SelectItem value="jaarlijks" className="py-3 sm:py-2">Jaarlijks</SelectItem>
-                                <SelectItem value="driemaandelijks" className="py-3 sm:py-2">Driemaandelijks</SelectItem>
-                                <SelectItem value="maandelijks" className="py-3 sm:py-2">Maandelijks</SelectItem>
-                              </SelectContent>
-                            </Select>
-                            <FormDescription className="text-xs sm:text-sm mt-1.5">
-                              Hoe vaak wil je je lidmaatschap betalen?
-                            </FormDescription>
-                            <FormMessage className="font-medium text-sm" />
-                          </FormItem>
-                        )}
-                      />
-                      
-                      <FormField
-                        control={form.control}
-                        name="paymentMethod"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel className="text-sm sm:text-base font-medium">Betalingswijze</FormLabel>
-                            <Select 
-                              onValueChange={field.onChange} 
-                              defaultValue={field.value}
-                            >
-                              <FormControl>
-                                <SelectTrigger className="h-12 sm:h-10 text-base sm:text-sm px-4 rounded-lg focus:border-[#963E56] focus:ring-[#963E56]/30">
-                                  <SelectValue placeholder="Selecteer betalingswijze" />
-                                </SelectTrigger>
-                              </FormControl>
-                              <SelectContent className="text-base sm:text-sm">
-                                <SelectItem value="cash" className="py-3 sm:py-2">Cash</SelectItem>
-                                <SelectItem value="bancontact" className="py-3 sm:py-2">Bancontact</SelectItem>
-                                <SelectItem value="overschrijving" className="py-3 sm:py-2">Overschrijving</SelectItem>
-                                <SelectItem value="domiciliering" className="py-3 sm:py-2">Domiciliëring</SelectItem>
-                              </SelectContent>
-                            </Select>
-                            <FormMessage className="font-medium text-sm" />
-                          </FormItem>
-                        )}
-                      />
+                      {/* Lidmaatschapsvelden netjes geordend */}
+                      <div className="space-y-5 sm:space-y-6">
+                        <FormField
+                          control={form.control}
+                          name="membershipType"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel className="text-sm sm:text-base font-medium">Type lidmaatschap <span className="text-red-500">*</span></FormLabel>
+                              <Select 
+                                onValueChange={(value) => {
+                                  field.onChange(value);
+                                  // Update membershipTypes array to contain only the selected value
+                                  form.setValue('membershipTypes', [value]);
+                                }} 
+                                defaultValue={field.value || (form.getValues().membershipTypes?.[0] || "")}
+                              >
+                                <FormControl>
+                                  <SelectTrigger className="h-12 sm:h-10 text-base sm:text-sm px-4 rounded-lg focus:border-[#963E56] focus:ring-[#963E56]/30">
+                                    <SelectValue placeholder="Selecteer type lidmaatschap" />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent className="text-base sm:text-sm">
+                                  <SelectItem value="standaard" className="py-3 sm:py-2">Standaard</SelectItem>
+                                  <SelectItem value="student" className="py-3 sm:py-2">Student</SelectItem>
+                                  <SelectItem value="senior" className="py-3 sm:py-2">Senior</SelectItem>
+                                </SelectContent>
+                              </Select>
+                              <FormMessage className="font-medium text-sm" />
+                            </FormItem>
+                          )}
+                        />
+                        
+                        <FormField
+                          control={form.control}
+                          name="paymentTerm"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel className="text-sm sm:text-base font-medium">Betalingstermijn</FormLabel>
+                              <Select 
+                                onValueChange={field.onChange} 
+                                defaultValue={field.value}
+                              >
+                                <FormControl>
+                                  <SelectTrigger className="h-12 sm:h-10 text-base sm:text-sm px-4 rounded-lg focus:border-[#963E56] focus:ring-[#963E56]/30">
+                                    <SelectValue placeholder="Selecteer betalingstermijn" />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent className="text-base sm:text-sm">
+                                  <SelectItem value="jaarlijks" className="py-3 sm:py-2">Jaarlijks</SelectItem>
+                                  <SelectItem value="driemaandelijks" className="py-3 sm:py-2">Driemaandelijks</SelectItem>
+                                  <SelectItem value="maandelijks" className="py-3 sm:py-2">Maandelijks</SelectItem>
+                                </SelectContent>
+                              </Select>
+                              <FormDescription className="text-xs sm:text-sm mt-1.5">
+                                Hoe vaak wil je je lidmaatschap betalen?
+                              </FormDescription>
+                              <FormMessage className="font-medium text-sm" />
+                            </FormItem>
+                          )}
+                        />
+                        
+                        <FormField
+                          control={form.control}
+                          name="paymentMethod"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel className="text-sm sm:text-base font-medium">Betalingswijze</FormLabel>
+                              <Select 
+                                onValueChange={field.onChange} 
+                                defaultValue={field.value}
+                              >
+                                <FormControl>
+                                  <SelectTrigger className="h-12 sm:h-10 text-base sm:text-sm px-4 rounded-lg focus:border-[#963E56] focus:ring-[#963E56]/30">
+                                    <SelectValue placeholder="Selecteer betalingswijze" />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent className="text-base sm:text-sm">
+                                  <SelectItem value="cash" className="py-3 sm:py-2">Cash</SelectItem>
+                                  <SelectItem value="bancontact" className="py-3 sm:py-2">Bancontact</SelectItem>
+                                  <SelectItem value="overschrijving" className="py-3 sm:py-2">Overschrijving</SelectItem>
+                                  <SelectItem value="domiciliering" className="py-3 sm:py-2">Domiciliëring</SelectItem>
+                                </SelectContent>
+                              </Select>
+                              <FormMessage className="font-medium text-sm" />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
                       
                       {/* Conditionele berichten op basis van betalingsmethode */}
                       {form.watch("paymentMethod") === "cash" && (
@@ -894,25 +899,6 @@ export default function RegisterRequest() {
                     </div>
                     
                     <div className="grid grid-cols-1 gap-5 sm:gap-6">
-                      {/* Eventuele opmerkingen */}
-                      <FormField
-                        control={form.control}
-                        name="notes"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel className="text-sm sm:text-base font-medium">Opmerkingen</FormLabel>
-                            <FormControl>
-                              <Textarea 
-                                placeholder="Eventuele opmerkingen of aanvullende informatie" 
-                                {...field}
-                                className="min-h-[120px] text-base sm:text-sm px-4 py-3 rounded-lg focus:border-[#963E56] focus:ring-[#963E56]/30" 
-                              />
-                            </FormControl>
-                            <FormMessage className="font-medium text-sm" />
-                          </FormItem>
-                        )}
-                      />
-                      
                       {/* Privacy consent */}
                       <FormField
                         control={form.control}
