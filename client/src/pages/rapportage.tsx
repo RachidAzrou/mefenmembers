@@ -1,8 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useQuery } from "@tanstack/react-query";
 import { 
-  BarChart, Bar, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer, 
-  PieChart, Pie, Cell, LineChart, Line, CartesianGrid
+  BarChart, Bar, XAxis, YAxis, Tooltip as RechartsTooltip, Legend, ResponsiveContainer, 
+  PieChart, Pie, Cell, LineChart, Line, CartesianGrid,
+  RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar,
+  ScatterChart, Scatter, ZAxis, AreaChart, Area
 } from 'recharts';
 import { 
   Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle 
@@ -12,7 +14,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DatePicker } from "@/components/ui/date-picker";
 import { Label } from '@/components/ui/label';
 import { PDFDownloadLink, PDFViewer } from '@react-pdf/renderer';
-import { Loader2, Download, Calendar, ChevronDown, ChevronUp, Users, Wallet, CreditCard, Clock, UserCheck, BarChart3 } from "lucide-react";
+import { Loader2, Download, Calendar, ChevronDown, ChevronUp, Users, Wallet, CreditCard, Clock, UserCheck, BarChart3, 
+  MapPin, Map as MapIcon, Globe, LineChart as LineChartIcon, PieChart as PieChartIcon, Target, Zap, Activity } from "lucide-react";
 import MyPdfDocument from '@/components/pdf/report-pdf';
 import { cn } from '@/lib/utils';
 import { format, subMonths, differenceInYears, differenceInMonths } from 'date-fns';
@@ -200,6 +203,98 @@ function groupMembersByGender(members: Member[]): { name: string; count: number;
   ];
 }
 
+// Groepeer leden per woonplaats/stad
+function groupMembersByCity(members: Member[]): { name: string; count: number; color: string }[] {
+  // Verzamel alle unieke steden
+  const cities = [...new Set(members.map(m => m.city?.toLowerCase()).filter(Boolean))];
+  
+  // Genereer een array van kleuren voor de verschillende steden
+  const colors = [
+    "#3498DB", "#2ECC71", "#9B59B6", "#F1C40F", "#E67E22", "#E74C3C", 
+    "#1ABC9C", "#34495E", "#7F8C8D", "#8E44AD", "#27AE60", "#D35400"
+  ];
+
+  // Sorteer de resultaten en limiteer tot top 10 steden
+  return cities
+    .map(city => {
+      const count = members.filter(m => m.city?.toLowerCase() === city).length;
+      return {
+        name: city ? city.charAt(0).toUpperCase() + city.slice(1) : "Onbekend",
+        count,
+        color: "#3498DB" // Standaard kleur, wordt later bijgewerkt
+      };
+    })
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 10)
+    .map((city, index) => ({
+      ...city,
+      color: colors[index % colors.length]
+    }));
+}
+
+// Groepeer leden per postcode gebied
+function groupMembersByPostalArea(members: Member[]): { name: string; count: number; color: string }[] {
+  // Extracteer het eerste gedeelte van de postcode (bijv. "1000" van "1000AB")
+  const postalAreas = members
+    .map(m => m.postalCode?.substring(0, 2))
+    .filter(Boolean) as string[];
+  
+  // Tel leden per postcodegebied
+  const areaCounts: Record<string, number> = {};
+  postalAreas.forEach(area => {
+    areaCounts[area] = (areaCounts[area] || 0) + 1;
+  });
+
+  // Genereer een array van kleuren voor de verschillende postcodegebieden
+  const colors = [
+    "#3498DB", "#2ECC71", "#9B59B6", "#F1C40F", "#E67E22", "#E74C3C", 
+    "#1ABC9C", "#34495E", "#7F8C8D", "#8E44AD", "#27AE60", "#D35400"
+  ];
+
+  // Converteer naar de juiste format en sorteer
+  return Object.entries(areaCounts)
+    .map(([area, count]) => ({
+      name: `${area}xx gebied`,
+      count,
+      color: "#3498DB" // Standaard kleur, wordt later bijgewerkt
+    }))
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 8) // Beperk tot top 8
+    .map((item, index) => ({
+      ...item,
+      color: colors[index % colors.length]
+    }));
+}
+
+// Groepeer leden per nationaliteit
+function groupMembersByNationality(members: Member[]): { name: string; count: number; color: string }[] {
+  // Verzamel alle unieke nationaliteiten
+  const nationalities = [...new Set(members.map(m => m.nationality?.toLowerCase()).filter(Boolean))];
+  
+  // Genereer een array van kleuren voor de verschillende nationaliteiten
+  const colors = [
+    "#3498DB", "#2ECC71", "#9B59B6", "#F1C40F", "#E67E22", "#E74C3C", 
+    "#1ABC9C", "#34495E", "#7F8C8D", "#8E44AD", "#27AE60", "#D35400"
+  ];
+
+  // Sorteer de resultaten
+  return nationalities
+    .map(nationality => {
+      const count = members.filter(m => m.nationality?.toLowerCase() === nationality).length;
+      return {
+        name: nationality ? nationality.charAt(0).toUpperCase() + nationality.slice(1) : "Onbekend",
+        count,
+        color: "#3498DB" // Standaard kleur, wordt later bijgewerkt
+      };
+    })
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 10) // Beperk tot top 10
+    .map((nationality, index) => ({
+      ...nationality,
+      color: colors[index % colors.length]
+    }));
+}
+
 // Groepeer leden per betaalstatus
 function groupMembersByPaymentStatus(members: Member[]): { name: string; value: number; color: string }[] {
   return [
@@ -303,6 +398,11 @@ export default function Rapportage() {
   const membersByPaymentStatus = members ? groupMembersByPaymentStatus(members) : [];
   const membershipGrowth = members ? analyzeMembershipGrowth(members) : [];
   const monthlyRevenue = members ? calculateMonthlyRevenue(members) : [];
+  
+  // Demografische statistieken
+  const membersByCity = members ? groupMembersByCity(members) : [];
+  const membersByPostalArea = members ? groupMembersByPostalArea(members) : [];
+  const membersByNationality = members ? groupMembersByNationality(members) : [];
 
   // Bereken het aantal leden dat stemgerechtigd is (18+)
   const eligibleVoters = members ? members.filter(member => {
@@ -371,6 +471,8 @@ export default function Rapportage() {
             <TabsTrigger value="overzicht">Overzicht</TabsTrigger>
             <TabsTrigger value="financieel">Financieel</TabsTrigger>
             <TabsTrigger value="ledengroei">Ledengroei</TabsTrigger>
+            <TabsTrigger value="demografisch">Demografisch</TabsTrigger>
+            <TabsTrigger value="vergelijking">Vergelijking</TabsTrigger>
           </TabsList>
           
           <div className="flex items-center gap-2">
@@ -849,6 +951,409 @@ export default function Rapportage() {
               </div>
             </CardContent>
           </Card>
+        </TabsContent>
+        
+        <TabsContent value="demografisch" className="space-y-4">
+          <div className="flex justify-between items-center mb-4">
+            <div className="space-y-1">
+              <h3 className="text-xl font-semibold">Demografische gegevens</h3>
+              <p className="text-sm text-muted-foreground">
+                Bekijk geografische en demografische spreiding van leden
+              </p>
+            </div>
+          </div>
+
+          {/* Eerste rij: Woonplaats en postcode gebied */}
+          <div className="grid gap-4 md:grid-cols-2">
+            <Card className="border-none shadow-md overflow-hidden">
+              <div className="bg-gradient-to-r from-blue-500/20 to-blue-600/20 h-2" />
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <MapPin className="h-5 w-5 mr-2 text-blue-600" />
+                  Leden per woonplaats (Top 10)
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="pl-2">
+                <div className="h-80 w-full">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart
+                      layout="vertical"
+                      data={membersByCity}
+                      margin={{ top: 20, right: 30, left: 100, bottom: 5 }}
+                    >
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis type="number" />
+                      <YAxis type="category" dataKey="name" />
+                      <Tooltip 
+                        formatter={(value, name, props) => [`${value} leden`, 'Aantal']}
+                      />
+                      <Bar dataKey="count" name="Leden">
+                        {membersByCity.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={entry.color} />
+                        ))}
+                      </Bar>
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              </CardContent>
+            </Card>
+            
+            <Card className="border-none shadow-md overflow-hidden">
+              <div className="bg-gradient-to-r from-amber-500/20 to-amber-600/20 h-2" />
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <MapIcon className="h-5 w-5 mr-2 text-amber-600" />
+                  Spreiding per postcodegebied
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="h-80 w-full">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={membersByPostalArea}
+                        cx="50%"
+                        cy="50%"
+                        labelLine={false}
+                        outerRadius={80}
+                        fill="#8884d8"
+                        dataKey="count"
+                        nameKey="name"
+                        label={({ cx, cy, midAngle, innerRadius, outerRadius, percent, index }) => {
+                          const RADIAN = Math.PI / 180;
+                          const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
+                          const x = cx + radius * Math.cos(-midAngle * RADIAN);
+                          const y = cy + radius * Math.sin(-midAngle * RADIAN);
+
+                          return (
+                            <text
+                              x={x}
+                              y={y}
+                              fill="white"
+                              textAnchor={x > cx ? 'start' : 'end'}
+                              dominantBaseline="central"
+                              fontSize={12}
+                            >
+                              {`${membersByPostalArea[index].name.substring(0, 8)} (${Math.round(percent * 100)}%)`}
+                            </text>
+                          );
+                        }}
+                      >
+                        {membersByPostalArea.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={entry.color} />
+                        ))}
+                      </Pie>
+                      <Tooltip 
+                        formatter={(value, name, props) => [`${value} leden`, props.payload.name]}
+                      />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Tweede rij: Nationaliteiten en geslachtsverdeling */}
+          <div className="grid gap-4 md:grid-cols-2">
+            <Card className="border-none shadow-md overflow-hidden">
+              <div className="bg-gradient-to-r from-green-500/20 to-green-600/20 h-2" />
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <Globe className="h-5 w-5 mr-2 text-green-600" />
+                  Nationaliteiten (Top 10)
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="pl-2">
+                <div className="h-80 w-full">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart
+                      layout="vertical"
+                      data={membersByNationality}
+                      margin={{ top: 20, right: 30, left: 100, bottom: 5 }}
+                    >
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis type="number" />
+                      <YAxis type="category" dataKey="name" />
+                      <Tooltip 
+                        formatter={(value, name, props) => [`${value} leden`, 'Aantal']}
+                      />
+                      <Bar dataKey="count" name="Leden">
+                        {membersByNationality.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={entry.color} />
+                        ))}
+                      </Bar>
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              </CardContent>
+            </Card>
+            
+            <Card className="border-none shadow-md overflow-hidden">
+              <div className="bg-gradient-to-r from-[#963E56]/20 to-[#963E56] h-2" />
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <Users className="h-5 w-5 mr-2 text-[#963E56]" />
+                  Geslachtsverdeling
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="h-80 w-full">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={membersByGender}
+                        cx="50%"
+                        cy="50%"
+                        labelLine={false}
+                        outerRadius={80}
+                        fill="#8884d8"
+                        dataKey="count"
+                        nameKey="name"
+                      >
+                        {membersByGender.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={entry.color} />
+                        ))}
+                      </Pie>
+                      <Legend />
+                      <Tooltip
+                        formatter={(value, name, props) => [
+                          `${value} leden (${Math.round(value / (members?.length || 1) * 100)}%)`,
+                          name
+                        ]}
+                      />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+        
+        <TabsContent value="vergelijking" className="space-y-4">
+          <div className="flex justify-between items-center mb-4">
+            <div className="space-y-1">
+              <h3 className="text-xl font-semibold">Vergelijkende visualisaties</h3>
+              <p className="text-sm text-muted-foreground">
+                Bekijk verschillende typen visualisaties van ledendata
+              </p>
+            </div>
+          </div>
+
+          {/* Eerste rij: Radar chart en Area chart */}
+          <div className="grid gap-4 md:grid-cols-2">
+            <Card className="border-none shadow-md overflow-hidden">
+              <div className="bg-gradient-to-r from-purple-500/20 to-purple-600/20 h-2" />
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <Target className="h-5 w-5 mr-2 text-purple-600" />
+                  Radargrafiek - Leeftijdsgroepen
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="h-80 w-full">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <RadarChart outerRadius={90} data={membersByAgeRange}>
+                      <PolarGrid />
+                      <PolarAngleAxis dataKey="name" />
+                      <PolarRadiusAxis angle={30} domain={[0, 'auto']} />
+                      <Radar 
+                        name="Aantal leden" 
+                        dataKey="count" 
+                        stroke="#8884d8" 
+                        fill="#8884d8" 
+                        fillOpacity={0.6} 
+                      />
+                      <RechartsTooltip formatter={(value) => [`${value} leden`, 'Aantal']} />
+                    </RadarChart>
+                  </ResponsiveContainer>
+                </div>
+              </CardContent>
+            </Card>
+            
+            <Card className="border-none shadow-md overflow-hidden">
+              <div className="bg-gradient-to-r from-cyan-500/20 to-cyan-600/20 h-2" />
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <Activity className="h-5 w-5 mr-2 text-cyan-600" />
+                  Ledengroei (cumulatief)
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="h-80 w-full">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <AreaChart
+                      data={membershipGrowth.slice(-12).map((month, index, arr) => {
+                        // Bereken cumulatief aantal
+                        const cumulative = arr.slice(0, index + 1).reduce(
+                          (sum, m) => sum + m.nieuwe_leden, 
+                          0
+                        );
+                        return { ...month, cumulatief: cumulative };
+                      })}
+                      margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+                    >
+                      <defs>
+                        <linearGradient id="colorCumulative" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#8884d8" stopOpacity={0.8}/>
+                          <stop offset="95%" stopColor="#8884d8" stopOpacity={0.2}/>
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="maand" />
+                      <YAxis />
+                      <RechartsTooltip 
+                        formatter={(value, name) => [`${value} leden`, 'Cumulatief']}
+                        labelFormatter={(label) => `${membershipGrowth.find(m => m.maand === label)?.maand_jaar}`}
+                      />
+                      <Area 
+                        type="monotone" 
+                        dataKey="cumulatief" 
+                        name="Cumulatieve groei" 
+                        stroke="#8884d8"
+                        fillOpacity={1}
+                        fill="url(#colorCumulative)"
+                      />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Tweede rij: Scatterplot en Stacked Bar Chart */}
+          <div className="grid gap-4 md:grid-cols-2">
+            <Card className="border-none shadow-md overflow-hidden">
+              <div className="bg-gradient-to-r from-amber-500/20 to-amber-600/20 h-2" />
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <Zap className="h-5 w-5 mr-2 text-amber-600" />
+                  Betaalmethode per type lidmaatschap
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="h-80 w-full">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart
+                      data={membershipTypes.map(type => {
+                        const typeMembers = members?.filter(m => 
+                          m.membershipType?.toLowerCase() === type.name.toLowerCase()
+                        ) || [];
+                        
+                        // Tel betaalmethodes binnen dit type
+                        const autoIncasso = typeMembers.filter(m => 
+                          m.paymentMethod?.toLowerCase() === "automatische incasso"
+                        ).length;
+                        
+                        const overschrijving = typeMembers.filter(m => 
+                          m.paymentMethod?.toLowerCase() === "overschrijving"
+                        ).length;
+                        
+                        const contant = typeMembers.filter(m => 
+                          m.paymentMethod?.toLowerCase() === "contant"
+                        ).length;
+                        
+                        const anders = typeMembers.filter(m => 
+                          !m.paymentMethod || 
+                          !["automatische incasso", "overschrijving", "contant"].includes(
+                            m.paymentMethod.toLowerCase()
+                          )
+                        ).length;
+                        
+                        return {
+                          name: type.name,
+                          "Automatische incasso": autoIncasso,
+                          "Overschrijving": overschrijving,
+                          "Contant": contant,
+                          "Anders": anders,
+                          total: typeMembers.length
+                        };
+                      })}
+                      margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+                    >
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="name" />
+                      <YAxis />
+                      <RechartsTooltip />
+                      <Legend />
+                      <Bar dataKey="Automatische incasso" stackId="a" fill="#2ECC71" />
+                      <Bar dataKey="Overschrijving" stackId="a" fill="#3498DB" />
+                      <Bar dataKey="Contant" stackId="a" fill="#9B59B6" />
+                      <Bar dataKey="Anders" stackId="a" fill="#E67E22" />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              </CardContent>
+            </Card>
+            
+            <Card className="border-none shadow-md overflow-hidden">
+              <div className="bg-gradient-to-r from-blue-500/20 to-blue-600/20 h-2" />
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <PieChartIcon className="h-5 w-5 mr-2 text-blue-600" />
+                  Leeftijd en betaalstatus
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="h-80 w-full">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <ScatterChart
+                      margin={{
+                        top: 20,
+                        right: 20,
+                        bottom: 20,
+                        left: 20,
+                      }}
+                    >
+                      <CartesianGrid />
+                      <XAxis type="number" dataKey="age" name="Leeftijd" />
+                      <YAxis 
+                        type="number" 
+                        dataKey="revenue" 
+                        name="Maandelijkse bijdrage (€)" 
+                        domain={[0, 'dataMax + 2']}
+                      />
+                      <RechartsTooltip 
+                        formatter={(value, name) => 
+                          name === "Leeftijd" ? 
+                            [`${value} jaar`, name] : 
+                            [`€${value}`, "Maandelijkse bijdrage"]
+                        }
+                        cursor={{ strokeDasharray: '3 3' }}
+                      />
+                      <Scatter 
+                        name="Betalend" 
+                        data={
+                          members?.filter(m => typeof m.paymentStatus === 'string' && 
+                            m.paymentStatus.toLowerCase() === "betaald")
+                            .map(m => ({
+                              age: calculateAge(m.birthDate),
+                              revenue: calculateMemberRevenue(m),
+                              name: m.firstName
+                            })) || []
+                        }
+                        fill="#2ECC71"
+                      />
+                      <Scatter 
+                        name="Niet-betalend" 
+                        data={
+                          members?.filter(m => !m.paymentStatus || 
+                            (typeof m.paymentStatus === 'string' && 
+                              m.paymentStatus.toLowerCase() !== "betaald"))
+                            .map(m => ({
+                              age: calculateAge(m.birthDate),
+                              revenue: calculateMemberRevenue(m),
+                              name: m.firstName
+                            })) || []
+                        }
+                        fill="#E74C3C"
+                      />
+                      <Legend />
+                    </ScatterChart>
+                  </ResponsiveContainer>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
         </TabsContent>
       </Tabs>
     </div>
