@@ -960,10 +960,14 @@ export default function MemberRequests() {
                               variant="ghost" 
                               size="icon"
                               onClick={() => {
-                                // Navigeer naar detailpagina binnen de app
-                                setLocation(`/member-request-detail/${request.id}`);
+                                // Toon details in de pop-up view
+                                setSelectedRequest(request);
+                                setEditedRequest(null);
+                                setIsEditing(false);
+                                setShowDetailView(true);
                               }}
                               className="text-primary hover:text-primary/80"
+                              title="Bekijk details van deze aanvraag"
                             >
                               <Search className="h-4 w-4" />
                             </Button>
@@ -1068,10 +1072,14 @@ export default function MemberRequests() {
                           variant="ghost" 
                           size="icon"
                           onClick={() => {
-                            // Navigeer naar detailpagina binnen de app
-                            setLocation(`/member-request-detail/${request.id}`);
+                            // Toon details in de pop-up view
+                            setSelectedRequest(request);
+                            setEditedRequest(null);
+                            setIsEditing(false);
+                            setShowDetailView(true);
                           }}
                           className="text-primary hover:text-primary/80"
+                          title="Bekijk details van deze aanvraag"
                         >
                           <Search className="h-4 w-4" />
                         </Button>
