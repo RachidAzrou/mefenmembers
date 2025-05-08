@@ -160,11 +160,35 @@ export default function MemberRequests() {
 
   // Goedkeuren van een aanvraag
   const approveMutation = useMutation({
-    mutationFn: async (id: number) => {
-      console.log("Approving request with ID:", id);
+    mutationFn: async (request: MemberRequest) => {
+      console.log("Approving request with ID:", request.id);
       try {
-        const response = await apiRequest("POST", `/api/member-requests/approve?id=${id}`, {
-          processedBy: 1 // TODO: vervangen door echte gebruikers-ID
+        // Stuur de hele aanvraag mee voor het geval de API de volledige data nodig heeft
+        const response = await apiRequest("POST", `/api/member-requests/approve?id=${request.id}`, {
+          id: request.id,
+          processedBy: 1, // TODO: vervangen door echte gebruikers-ID
+          firstName: request.firstName,
+          lastName: request.lastName,
+          email: request.email,
+          phoneNumber: request.phoneNumber,
+          // Voeg alle andere velden toe om er zeker van te zijn dat ze beschikbaar zijn
+          gender: request.gender,
+          birthDate: request.birthDate,
+          nationality: request.nationality,
+          street: request.street,
+          houseNumber: request.houseNumber,
+          busNumber: request.busNumber,
+          postalCode: request.postalCode,
+          city: request.city,
+          membershipType: request.membershipType,
+          paymentMethod: request.paymentMethod,
+          paymentTerm: request.paymentTerm,
+          autoRenew: request.autoRenew,
+          accountNumber: request.accountNumber,
+          accountHolderName: request.accountHolderName,
+          bicSwift: request.bicSwift,
+          privacyConsent: request.privacyConsent,
+          notes: request.notes
         });
         const responseData = await response.json();
         console.log("Approve API response:", responseData);
@@ -375,7 +399,8 @@ export default function MemberRequests() {
 
   const confirmApproval = () => {
     if (selectedRequest) {
-      approveMutation.mutate(selectedRequest.id);
+      // Stuur de hele aanvraag door in plaats van alleen het ID
+      approveMutation.mutate(selectedRequest);
     }
   };
 
