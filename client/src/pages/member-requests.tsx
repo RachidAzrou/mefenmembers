@@ -201,16 +201,36 @@ export default function MemberRequests() {
     onSuccess: (data) => {
       // Bij goedkeuring ontvangen we memberId en memberNumber
       if (selectedRequest && data.memberId && data.memberNumber) {
-        // Eerst de queries invalideren om nieuwe data op te halen
+        // Update de cache direct met de nieuwe status
+        queryClient.setQueriesData(
+          { queryKey: ["/api/member-requests"] },
+          (oldData: MemberRequest[] | undefined) => {
+            if (!oldData) return [];
+            return oldData.map(req => {
+              if (req.id === selectedRequest.id) {
+                // Update request met approved status en andere gegevens
+                return {
+                  ...req,
+                  status: "approved" as "pending" | "approved" | "rejected",
+                  processedDate: new Date().toISOString(),
+                  memberId: data.memberId,
+                  memberNumber: data.memberNumber
+                };
+              }
+              return req;
+            });
+          }
+        );
+        
+        // Dan invalideren en opnieuw ophalen
         queryClient.invalidateQueries({ queryKey: ["/api/member-requests"] });
         queryClient.invalidateQueries({ queryKey: ["/api/members"] });
         
         // Even wachten om de cache tijd te geven om te verversen
         setTimeout(() => {
-          // Fris de pagina na een korte vertraging op om zeker te zijn dat de 
-          // gecachte data wordt bijgewerkt vanuit de database
-          queryClient.refetchQueries({ queryKey: ["/api/member-requests"] });
-        }, 500);
+          // Fris de pagina na een korte vertraging op
+          window.location.reload();
+        }, 1000);
       }
       
       toast({
@@ -242,7 +262,38 @@ export default function MemberRequests() {
       return await response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/member-requests"] });
+      // Update de cache direct met de nieuwe status
+      if (selectedRequest) {
+        queryClient.setQueriesData(
+          { queryKey: ["/api/member-requests"] },
+          (oldData: MemberRequest[] | undefined) => {
+            if (!oldData) return [];
+            return oldData.map(req => {
+              if (req.id === selectedRequest.id) {
+                // Update request met rejected status
+                return {
+                  ...req,
+                  status: "rejected" as "pending" | "approved" | "rejected",
+                  processedDate: new Date().toISOString(),
+                  rejectionReason: rejectionReason,
+                  notes: rejectionReason
+                };
+              }
+              return req;
+            });
+          }
+        );
+        
+        // Dan invalideren en opnieuw ophalen
+        queryClient.invalidateQueries({ queryKey: ["/api/member-requests"] });
+        
+        // Even wachten om de cache tijd te geven om te verversen
+        setTimeout(() => {
+          // Fris de pagina na een korte vertraging op
+          window.location.reload();
+        }, 1000);
+      }
+      
       toast({
         title: "Aanvraag afgewezen",
         description: "De aanvraag is succesvol afgewezen.",
