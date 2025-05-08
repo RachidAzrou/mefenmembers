@@ -477,8 +477,21 @@ export class DatabaseStorage implements IStorage {
     // Maak een nieuw lid aan op basis van het verzoek
     const member = await this.createMember(memberData);
 
-    // Update de status van het verzoek naar 'approved'
-    await this.updateMemberRequestStatus(id, 'approved', processedBy);
+    // Update the status van het verzoek naar 'approved' en bewaar ook de member gegevens
+    console.log(`Nieuw lidnummer toegewezen: ${member.memberNumber}`);
+    
+    // Update het verzoek met de memberNumber en memberId
+    const [updated] = await db
+      .update(memberRequests)
+      .set({
+        status: 'approved',
+        processedDate: new Date(),
+        processedBy: processedBy,
+        memberId: member.id,
+        memberNumber: member.memberNumber
+      })
+      .where(eq(memberRequests.id, id))
+      .returning();
 
     return member;
   }
