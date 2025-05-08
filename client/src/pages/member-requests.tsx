@@ -57,6 +57,15 @@ import {
   SelectValue 
 } from "@/components/ui/select";
 import { useRole } from "@/hooks/use-role";
+import { 
+  MembershipCard, 
+  LocationCard, 
+  PaymentDetailsCard,
+  formatMembershipTypeLabel,
+  formatPaymentMethodLabel,
+  formatPaymentTermLabel,
+  formatAutoRenewLabel
+} from "@/components/RequestDetailViewCards";
 
 // Type voor lidmaatschapsaanvragen
 interface MemberRequest {
