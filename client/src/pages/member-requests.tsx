@@ -201,36 +201,18 @@ export default function MemberRequests() {
     onSuccess: (data) => {
       // Bij goedkeuring ontvangen we memberId en memberNumber
       if (selectedRequest && data.memberId && data.memberNumber) {
-        // Update de cache direct met de nieuwe status
-        queryClient.setQueriesData(
-          { queryKey: ["/api/member-requests"] },
-          (oldData: MemberRequest[] | undefined) => {
-            if (!oldData) return [];
-            return oldData.map(req => {
-              if (req.id === selectedRequest.id) {
-                // Update request met approved status en andere gegevens
-                return {
-                  ...req,
-                  status: "approved" as "pending" | "approved" | "rejected",
-                  processedDate: new Date().toISOString(),
-                  memberId: data.memberId,
-                  memberNumber: data.memberNumber
-                };
-              }
-              return req;
-            });
-          }
-        );
-        
-        // Dan invalideren en opnieuw ophalen
+        // Invalideer de queries direct
         queryClient.invalidateQueries({ queryKey: ["/api/member-requests"] });
         queryClient.invalidateQueries({ queryKey: ["/api/members"] });
         
-        // Even wachten om de cache tijd te geven om te verversen
-        setTimeout(() => {
-          // Fris de pagina na een korte vertraging op
-          window.location.reload();
-        }, 1000);
+        // Wacht tot de queries opnieuw zijn opgehaald
+        queryClient.refetchQueries({ queryKey: ["/api/member-requests"] })
+          .then(() => {
+            console.log("Member requests refetched after approval");
+          })
+          .catch((error) => {
+            console.error("Error refetching member requests:", error);
+          });
       }
       
       toast({
@@ -262,36 +244,19 @@ export default function MemberRequests() {
       return await response.json();
     },
     onSuccess: () => {
-      // Update de cache direct met de nieuwe status
+      // Invalideer de query en refetch
       if (selectedRequest) {
-        queryClient.setQueriesData(
-          { queryKey: ["/api/member-requests"] },
-          (oldData: MemberRequest[] | undefined) => {
-            if (!oldData) return [];
-            return oldData.map(req => {
-              if (req.id === selectedRequest.id) {
-                // Update request met rejected status
-                return {
-                  ...req,
-                  status: "rejected" as "pending" | "approved" | "rejected",
-                  processedDate: new Date().toISOString(),
-                  rejectionReason: rejectionReason,
-                  notes: rejectionReason
-                };
-              }
-              return req;
-            });
-          }
-        );
-        
-        // Dan invalideren en opnieuw ophalen
+        // Invalideer de queries direct
         queryClient.invalidateQueries({ queryKey: ["/api/member-requests"] });
         
-        // Even wachten om de cache tijd te geven om te verversen
-        setTimeout(() => {
-          // Fris de pagina na een korte vertraging op
-          window.location.reload();
-        }, 1000);
+        // Wacht tot de queries opnieuw zijn opgehaald
+        queryClient.refetchQueries({ queryKey: ["/api/member-requests"] })
+          .then(() => {
+            console.log("Member requests refetched after rejection");
+          })
+          .catch((error) => {
+            console.error("Error refetching member requests:", error);
+          });
       }
       
       toast({
@@ -397,10 +362,12 @@ export default function MemberRequests() {
   };
 
   // Ophalen van het eerstvolgende beschikbare lidnummer
-  const { data: generatedNumber } = useQuery<{ memberNumber: string }>({
+  const { data: generatedNumber, refetch: refetchMemberNumber } = useQuery<{ memberNumber: string }>({
     queryKey: ["/api/members/generate-number"],
     queryFn: getQueryFn({ on401: "throw" }),
     enabled: false, // We roepen deze query handmatig aan
+    staleTime: 0, // Altijd opnieuw ophalen
+    gcTime: 0  // Niet cachen (in TanStack Query v5 is cacheTime hernoemd naar gcTime)
   });
 
   const handleApprove = async (request: MemberRequest) => {
@@ -409,16 +376,17 @@ export default function MemberRequests() {
     try {
       console.log("Ophalen lidnummer gestart voor aanvraag ID:", request.id);
       
-      // Eerst het volgende beschikbare lidnummer ophalen via apiRequest
-      const response = await apiRequest("GET", '/api/members/generate-number');
-      const data = await response.json();
-      console.log("Ontvangen lidnummer data:", data);
+      // Het volgende beschikbare lidnummer ophalen via de refetch functie
+      const result = await refetchMemberNumber();
       
-      if (data && data.memberNumber) {
-        setNextMemberNumber(data.memberNumber);
-        console.log("Lidnummer ingesteld op:", data.memberNumber);
+      // Type casting om TypeScript tevreden te stellen
+      const memberData = result.data as { memberNumber: string } | undefined;
+      
+      if (memberData && memberData.memberNumber) {
+        setNextMemberNumber(memberData.memberNumber);
+        console.log("Lidnummer ingesteld op:", memberData.memberNumber);
       } else {
-        console.error('Ontvangen lidnummer data heeft geen memberNumber:', data);
+        console.error('Ontvangen lidnummer data heeft geen memberNumber:', memberData);
         throw new Error('Ongeldig formaat lidnummer ontvangen');
       }
     } catch (error) {
