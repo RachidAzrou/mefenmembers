@@ -329,8 +329,12 @@ export default function MemberRequests() {
             
             // FORCEER AANVRAAG UIT PENDING LIJST MET EXTRA SET
             // Dit zorgt ervoor dat de UI onmiddellijk wordt bijgewerkt, ongeacht de server-respons
-            approvedIds.add(selectedRequest.id);
-            console.log(`Lokaal gemarkeerd als goedgekeurd: ${selectedRequest.id}`);
+            setLocallyApprovedIds(prev => {
+              const newSet = new Set(prev);
+              newSet.add(selectedRequest.id);
+              console.log(`Lokaal gemarkeerd als goedgekeurd: ${selectedRequest.id}`);
+              return newSet;
+            });
           }
         })
         .catch((error) => {
