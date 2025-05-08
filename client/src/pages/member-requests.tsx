@@ -494,7 +494,7 @@ export default function MemberRequests() {
                               setShowDetailDialog(true);
                             }}
                           >
-                            <Search className="h-4 w-4" />
+                            <Eye className="h-4 w-4" />
                             <span className="sr-only">Bekijken</span>
                           </Button>
                           <Button
@@ -819,7 +819,7 @@ export default function MemberRequests() {
               variant="outline" 
               type="button" 
               onClick={() => setShowDetailDialog(false)}
-              className="w-auto ml-auto"
+              className="ml-auto"
             >
               Sluiten
             </Button>
@@ -832,7 +832,9 @@ export default function MemberRequests() {
         <DialogContent className="max-w-md" hideCloseButton>
           <DialogHeader className="bg-gradient-to-r from-[#963E56] to-[#7a3246] p-5 text-white rounded-t-xl -mt-4 -mx-4 shadow-md">
             <div className="flex items-center mb-1">
-              <CheckIcon className="h-6 w-6 bg-green-600 text-white p-1 rounded-full mr-2" />
+              <div className="bg-green-600 h-7 w-7 rounded-full flex items-center justify-center mr-2 shadow-sm">
+                <CheckIcon className="h-5 w-5 text-white" />
+              </div>
               <DialogTitle className="text-xl font-bold text-white">Aanvraag goedkeuren</DialogTitle>
             </div>
             <DialogDescription className="text-white/90 mt-1">
@@ -958,7 +960,9 @@ export default function MemberRequests() {
         <DialogContent className="max-w-md" hideCloseButton>
           <DialogHeader className="bg-gradient-to-r from-[#963E56] to-[#7a3246] p-5 text-white rounded-t-xl -mt-4 -mx-4 shadow-md">
             <div className="flex items-center mb-1">
-              <XIcon className="h-6 w-6 bg-red-600 text-white p-1 rounded-full mr-2" />
+              <div className="bg-red-600 h-7 w-7 rounded-full flex items-center justify-center mr-2 shadow-sm">
+                <XIcon className="h-5 w-5 text-white" />
+              </div>
               <DialogTitle className="text-xl font-bold text-white">Aanvraag afwijzen</DialogTitle>
             </div>
             <DialogDescription className="text-white/90 mt-1">
