@@ -1000,8 +1000,10 @@ export default function MemberRequests() {
                         
                         // Als dat niet lukt, probeer via lidnummer te zoeken
                         if (!matchingMember && selectedRequest.memberNumber) {
-                          matchingMember = members.find(m => m.memberNumber === selectedRequest.memberNumber || 
-                                                            m.memberNumber === selectedRequest.memberNumber.toString());
+                          // Veilig converteren van lidnummer naar string
+                          const memberNumberString = String(selectedRequest.memberNumber);
+                          matchingMember = members.find(m => 
+                              m.memberNumber === memberNumberString);
                         }
                       }
                       
@@ -1011,7 +1013,7 @@ export default function MemberRequests() {
                         // Als het lid niet gevonden wordt, toon een waarschuwing
                         toast({
                           title: "Lid niet gevonden",
-                          description: `Het bijbehorende lid met nummer ${selectedRequest.memberNumber} kon niet worden gevonden in de huidige ledenlijst. Probeer eerst de ledenlijst te vernieuwen.`,
+                          description: `Het bijbehorende lid met nummer ${selectedRequest.memberNumber || 'onbekend'} kon niet worden gevonden in de huidige ledenlijst. Probeer eerst de ledenlijst te vernieuwen.`,
                           variant: "destructive",
                         });
                         
@@ -1021,7 +1023,7 @@ export default function MemberRequests() {
                     }}
                     className="bg-white/30 hover:bg-white/40 transition-colors text-white px-2 py-1 rounded text-sm font-semibold flex items-center"
                   >
-                    {selectedRequest.memberNumber}
+                    {selectedRequest.memberNumber || 'Onbekend'}
                     <ArrowLeft className="ml-1 h-3.5 w-3.5 -rotate-45" />
                   </button>
                 </div>
