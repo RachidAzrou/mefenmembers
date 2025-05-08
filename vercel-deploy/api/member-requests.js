@@ -481,16 +481,37 @@ export default async function handler(req, res) {
           memberNumber: nextMemberNumber
         };
         
-        // Update de aanvraag in Firebase
-        await firebaseRequest('PUT', `member-requests/${id}`, updatedRequest);
-        
-        console.log(`POST /api/member-requests/approve: Aanvraag ${id} succesvol goedgekeurd en lid aangemaakt met ID ${memberId}`);
-        
-        return res.status(201).json({
-          message: "Aanvraag goedgekeurd en lid aangemaakt",
-          memberId: memberId,
-          memberNumber: nextMemberNumber
-        });
+        try {
+          // Update de aanvraag in Firebase
+          const updateResult = await firebaseRequest('PUT', `member-requests/${id}`, updatedRequest);
+          console.log(`POST /api/member-requests/approve: Aanvraag ${id} bijgewerkt naar 'approved' status:`, updateResult ? "Success" : "Geen data");
+          
+          // Double-check of de aanvraag correct is bijgewerkt
+          const verifyRequest = await firebaseRequest('GET', `member-requests/${id}`);
+          if (verifyRequest && verifyRequest.status === 'approved') {
+            console.log(`POST /api/member-requests/approve: Verificatie succesvol, aanvraag status is nu: ${verifyRequest.status}`);
+          } else {
+            console.warn(`POST /api/member-requests/approve: Verificatie waarschuwing, aanvraag status is: ${verifyRequest?.status}`);
+          }
+          
+          console.log(`POST /api/member-requests/approve: Aanvraag ${id} succesvol goedgekeurd en lid aangemaakt met ID ${memberId}`);
+          
+          return res.status(201).json({
+            message: "Aanvraag goedgekeurd en lid aangemaakt",
+            memberId: memberId,
+            memberNumber: nextMemberNumber
+          });
+        } catch (updateError) {
+          console.error(`POST /api/member-requests/approve: Fout bij updaten aanvraag status:`, updateError.message);
+          
+          // Stuur nog steeds een succesvolle response omdat het lid al is aangemaakt
+          return res.status(201).json({
+            message: "Let op: Lid aangemaakt, maar kon aanvraagstatus niet bijwerken",
+            memberId: memberId,
+            memberNumber: nextMemberNumber,
+            warning: "Aanvraagstatus kon niet worden bijgewerkt naar 'approved'"
+          });
+        }
       } catch (error) {
         console.error(`POST /api/member-requests/approve FOUT:`, error.message, error.stack);
         return res.status(500).json({ 
