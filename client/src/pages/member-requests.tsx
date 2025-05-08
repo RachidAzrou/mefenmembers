@@ -714,7 +714,7 @@ export default function MemberRequests() {
                 <div className="mt-2 flex items-center">
                   <div className="bg-red-700/70 text-white px-3 py-1.5 rounded text-sm font-medium flex items-center">
                     <XCircle className="h-4 w-4 mr-1.5" />
-                    <span>Reden: {selectedRequest.notes || "Geen reden opgegeven"}</span>
+                    <span>Afgewezen</span>
                   </div>
                 </div>
               )}
