@@ -176,11 +176,7 @@ export default function RegisterRequest() {
       return await res.json();
     },
     onSuccess: () => {
-      toast({
-        title: "Aanvraag ingediend",
-        description: "Je lidmaatschapsaanvraag is succesvol ingediend.",
-        variant: "success",
-      });
+      // Geen toast melding meer tonen, direct naar de successpagina
       form.reset();
       setSuccess(true);
     },
