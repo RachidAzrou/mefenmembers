@@ -1211,10 +1211,10 @@ export default function Rapportage() {
           {/* Eerste rij: Woonplaats en postcode gebied */}
           <div className="grid gap-4 md:grid-cols-2">
             <Card className="border-none shadow-md overflow-hidden">
-              <div className="bg-gradient-to-r from-blue-500/20 to-blue-600/20 h-2" />
+              <div className="bg-gradient-to-r from-[#6BB85C]/20 to-[#6BB85C] h-2" />
               <CardHeader>
                 <CardTitle className="flex items-center">
-                  <MapPin className="h-5 w-5 mr-2 text-blue-600" />
+                  <MapPin className="h-5 w-5 mr-2 text-[#6BB85C]" />
                   Leden per woonplaats (Top 10)
                 </CardTitle>
               </CardHeader>
@@ -1244,10 +1244,10 @@ export default function Rapportage() {
             </Card>
             
             <Card className="border-none shadow-md overflow-hidden">
-              <div className="bg-gradient-to-r from-amber-500/20 to-amber-600/20 h-2" />
+              <div className="bg-gradient-to-r from-[#D9A347]/20 to-[#D9A347] h-2" />
               <CardHeader>
                 <CardTitle className="flex items-center">
-                  <MapIcon className="h-5 w-5 mr-2 text-amber-600" />
+                  <MapIcon className="h-5 w-5 mr-2 text-[#D9A347]" />
                   Spreiding per postcodegebied
                 </CardTitle>
               </CardHeader>
@@ -1301,10 +1301,10 @@ export default function Rapportage() {
           {/* Tweede rij: Nationaliteiten en geslachtsverdeling */}
           <div className="grid gap-4 md:grid-cols-2">
             <Card className="border-none shadow-md overflow-hidden">
-              <div className="bg-gradient-to-r from-green-500/20 to-green-600/20 h-2" />
+              <div className="bg-gradient-to-r from-[#6BB85C]/20 to-[#6BB85C] h-2" />
               <CardHeader>
                 <CardTitle className="flex items-center">
-                  <Globe className="h-5 w-5 mr-2 text-green-600" />
+                  <Globe className="h-5 w-5 mr-2 text-[#6BB85C]" />
                   Nationaliteiten (Top 10)
                 </CardTitle>
               </CardHeader>
@@ -1387,10 +1387,10 @@ export default function Rapportage() {
           {/* Eerste rij: Radar chart en Area chart */}
           <div className="grid gap-4 md:grid-cols-2">
             <Card className="border-none shadow-md overflow-hidden">
-              <div className="bg-gradient-to-r from-[#007833]/20 to-[#007833] h-2" />
+              <div className="bg-gradient-to-r from-[#6BB85C]/20 to-[#6BB85C] h-2" />
               <CardHeader className="flex flex-row items-center justify-between pb-2">
                 <CardTitle className="flex items-center">
-                  <BarChart3 className="h-5 w-5 mr-2 text-[#007833]" />
+                  <BarChart3 className="h-5 w-5 mr-2 text-[#6BB85C]" />
                   Leeftijdsgroepen verdeling
                 </CardTitle>
                 <Button 
@@ -1517,10 +1517,10 @@ export default function Rapportage() {
           {/* Tweede rij: Scatterplot en Stacked Bar Chart */}
           <div className="grid gap-4 md:grid-cols-2">
             <Card className="border-none shadow-md overflow-hidden">
-              <div className="bg-gradient-to-r from-[#D3A400]/20 to-[#D3A400] h-2" />
+              <div className="bg-gradient-to-r from-[#D9A347]/20 to-[#D9A347] h-2" />
               <CardHeader className="flex flex-row items-center justify-between pb-2">
                 <CardTitle className="flex items-center">
-                  <Zap className="h-5 w-5 mr-2 text-[#D3A400]" />
+                  <Zap className="h-5 w-5 mr-2 text-[#D9A347]" />
                   Betaalmethode per type lidmaatschap
                 </CardTitle>
                 <Button 
