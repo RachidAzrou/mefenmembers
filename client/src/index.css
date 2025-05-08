@@ -84,4 +84,9 @@
   .switch.switch-on.nok {
     background-color: #f44336;
   }
+  
+  /* Dialog customizations */
+  .dialog-no-close-button [data-radix-dialog-close] {
+    display: none !important;
+  }
 }

@@ -591,7 +591,7 @@ export default function MemberRequests() {
 
       {/* Detail dialog */}
       <Dialog open={showDetailDialog} onOpenChange={setShowDetailDialog}>
-        <DialogContent className="w-full max-w-xl" hideCloseButton={true}>
+        <DialogContent className="w-full max-w-xl">
           <DialogHeader className="bg-gradient-to-r from-[#963E56] to-[#83354A] p-5 sm:p-6 text-white rounded-t-xl -mt-4 -mx-4 shadow-md">
             <div className="flex justify-between items-center">
               <DialogTitle className="text-xl font-bold text-white">
@@ -802,7 +802,7 @@ export default function MemberRequests() {
               variant="outline" 
               type="button" 
               onClick={() => setShowDetailDialog(false)}
-              className="w-auto"
+              className="w-auto ml-auto"
             >
               Sluiten
             </Button>
@@ -937,7 +937,7 @@ export default function MemberRequests() {
       </Dialog>
       
       {/* Afwijzen dialog */}
-      <Dialog open={showRejectionDialog} onOpenChange={setShowRejectionDialog}>
+      <Dialog open={showRejectionDialog} onOpenChange={setShowRejectionDialog} className="dialog-no-close-button">
         <DialogContent className="max-w-md">
           <DialogHeader className="bg-gradient-to-r from-[#963E56] to-[#7a3246] p-5 text-white rounded-t-xl -mt-4 -mx-4 shadow-md">
             <div className="flex items-center mb-1">
