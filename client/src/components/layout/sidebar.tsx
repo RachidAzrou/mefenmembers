@@ -59,7 +59,7 @@ export function Sidebar() {
 
   // Custom icon voor de ledenlijst (gebruikers met ID badge)
   const MembersIcon = () => (
-    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-500">
       <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
       <circle cx="9" cy="7" r="4" />
       <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
@@ -254,7 +254,7 @@ export function Sidebar() {
           <Button
             variant="ghost"
             className={cn(
-              "w-full h-14 md:h-12 text-red-600 hover:text-red-700 hover:bg-red-50 transition-all duration-200",
+              "w-full h-14 md:h-12 text-[#963E56] hover:text-[#75303E] hover:bg-[#963E56]/10 transition-all duration-200",
               collapsed ? "justify-center" : "justify-start"
             )}
             onClick={handleLogout}
