@@ -452,22 +452,63 @@ export default function MemberRequests() {
     return Array.from(seen.values());
   }
   
-  // Haal eerst alle pending aanvragen op met strikte filtering
+  // Forceer het filteren van aanvragen met goedgekeurde status uit de 'In behandeling' lijst
+  // BELANGRIJKE FIX: gebruik een lokale array om de huidige status goed te bepalen
+  // Voorkeur: verwijder alle aanvragen waarvan we weten dat ze zijn goedgekeurd lokaal in de cache
+  const approvedIds = new Set<number>();
+  if (selectedRequest && approveMutation.isSuccess) {
+    approvedIds.add(selectedRequest.id);
+    console.log(`Lokaal markeren van aanvraag #${selectedRequest.id} als goedgekeurd`);
+  }
+  
+  // Haal eerst alle pending aanvragen op met zeer strikte filtering
+  // inclusief uitsluiting van bekende goedgekeurde aanvragen
   const allPendingRequests = requests?.filter(req => {
-    // Controleer expliciet of status exact "pending" is, niet null, undefined of iets anders
-    if (req.status !== "pending") return false;
+    // Controleer of we deze ID lokaal als goedgekeurd hebben gemarkeerd
+    if (approvedIds.has(req.id)) {
+      console.log(`Aanvraag #${req.id} lokaal gemarkeerd als goedgekeurd, uit 'In behandeling' lijst verwijderen`);
+      return false;
+    }
     
-    // Extra controle om te zorgen dat verwerkte aanvragen (met processedDate) niet in pending terechtkomen
-    if (req.processedDate) return false;
+    // Controleer ALLE mogelijke condities die aangeven dat een aanvraag NIET 'pending' is
     
-    // Extra controle om er zeker van te zijn dat aanvragen met memberNumber niet in pending terechtkomen
-    if (req.memberNumber) return false;
+    // 1. Controleer expliciet of status exact "pending" is, niet null, undefined of iets anders
+    if (req.status !== "pending") {
+      return false;
+    }
+    
+    // 2. Extra controle om te zorgen dat verwerkte aanvragen (met processedDate) niet in pending terechtkomen
+    if (req.processedDate) {
+      return false;
+    }
+    
+    // 3. Extra controle om er zeker van te zijn dat aanvragen met memberNumber niet in pending terechtkomen
+    if (req.memberNumber) {
+      return false;
+    }
+    
+    // 4. Extra controle om er zeker van te zijn dat aanvragen met memberId niet in pending terechtkomen
+    if (req.memberId) {
+      return false;
+    }
     
     return true;
   }) || [];
   
   // Verwijder dan dubbele aanvragen
   const pendingRequests = removeDuplicates(allPendingRequests);
+  
+  // Log voor debugging
+  console.log(`Totaal: ${requests?.length || 0} aanvragen, waarvan ${pendingRequests.length} in behandeling`);
+  if (pendingRequests.length > 0) {
+    console.log("Eerste 3 aanvragen 'In behandeling':", pendingRequests.slice(0, 3).map(r => ({
+      id: r.id,
+      name: `${r.firstName} ${r.lastName}`,
+      status: r.status,
+      processedDate: r.processedDate,
+      memberNumber: r.memberNumber
+    })));
+  }
   
   // Filter verwerkte aanvragen op datum (alleen van de afgelopen 7 dagen)
   const processedRequests = requests?.filter(req => {
