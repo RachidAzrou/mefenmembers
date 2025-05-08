@@ -308,6 +308,144 @@ export default async function handler(req, res) {
       }
     }
     
+    // POST verzoek: goedkeuren van lidmaatschapsaanvraag en omzetten naar lid
+    if (req.method === 'POST' && req.url.includes('/api/member-requests/approve')) {
+      try {
+        // Haal id uit query parameters of request body
+        let id = null;
+        
+        // Check URL query parameters
+        const url = new URL(req.url, `https://${req.headers.host}`);
+        const urlId = url.searchParams.get('id');
+        
+        // Als id niet in URL staat, gebruik dan uit body
+        if (urlId) {
+          id = urlId;
+        } else if (req.body && req.body.id) {
+          id = req.body.id;
+        }
+        
+        if (!id) {
+          console.error("POST /api/member-requests/approve: Ontbrekend request ID");
+          return res.status(400).json({ 
+            error: 'Ongeldig of ontbrekend ID', 
+            required: ['id'],
+            received: JSON.stringify(req.body)
+          });
+        }
+        
+        console.log(`POST /api/member-requests/approve: Goedkeuren aanvraag ${id} gestart`);
+        
+        // Controleer of de request bestaat
+        const request = await firebaseRequest('GET', `member-requests/${id}`);
+        
+        if (!request) {
+          console.error(`POST /api/member-requests/approve: Aanvraag ${id} niet gevonden`);
+          return res.status(404).json({ error: 'Lidmaatschapsaanvraag niet gevonden' });
+        }
+        
+        // Haal het volgende beschikbare lidnummer op
+        const nextMemberNumber = await generateNextMemberNumber();
+        
+        if (!nextMemberNumber) {
+          console.error("POST /api/member-requests/approve: Kon geen lidnummer genereren");
+          return res.status(500).json({ error: 'Kon geen lidnummer genereren' });
+        }
+        
+        // Converteer aanvraag naar lid
+        const member = {
+          memberNumber: nextMemberNumber,
+          firstName: request.firstName,
+          lastName: request.lastName,
+          email: request.email,
+          phoneNumber: request.phoneNumber,
+          street: request.street,
+          houseNumber: request.houseNumber,
+          busNumber: request.busNumber,
+          postalCode: request.postalCode,
+          city: request.city,
+          birthDate: request.birthDate,
+          gender: request.gender,
+          nationality: request.nationality,
+          membershipType: request.membershipType || 'standaard',
+          joinDate: new Date().toISOString(),
+          paymentMethod: request.paymentMethod || 'overschrijving',
+          paymentStatus: 'unpaid',
+          paymentTerm: request.paymentTerm || 'jaarlijks',
+          autoRenew: request.autoRenew !== undefined ? request.autoRenew : true,
+          accountNumber: request.accountNumber,
+          accountHolderName: request.accountHolderName,
+          bicSwift: request.bicSwift,
+          notes: request.notes || '',
+          isActive: true
+        };
+        
+        // Sla het nieuwe lid op
+        const result = await firebaseRequest('POST', 'members', member);
+        
+        if (!result || !result.name) {
+          throw new Error('Geen geldige ID ontvangen van Firebase voor het nieuwe lid');
+        }
+        
+        const memberId = result.name;
+        
+        // Update de aanvraag status
+        const updatedRequest = {
+          ...request,
+          status: 'approved',
+          processedDate: new Date().toISOString(),
+          processedBy: req.body.processedBy || null,
+          memberId: memberId,
+          memberNumber: nextMemberNumber
+        };
+        
+        // Update de aanvraag in Firebase
+        await firebaseRequest('PUT', `member-requests/${id}`, updatedRequest);
+        
+        console.log(`POST /api/member-requests/approve: Aanvraag ${id} succesvol goedgekeurd en lid aangemaakt met ID ${memberId}`);
+        
+        return res.status(201).json({
+          message: "Aanvraag goedgekeurd en lid aangemaakt",
+          memberId: memberId,
+          memberNumber: nextMemberNumber
+        });
+      } catch (error) {
+        console.error(`POST /api/member-requests/approve FOUT:`, error.message, error.stack);
+        return res.status(500).json({ 
+          error: 'Fout bij goedkeuren lidmaatschapsaanvraag', 
+          details: error.message
+        });
+      }
+    }
+    
+    // Helper functie voor het genereren van het volgende lidnummer
+    async function generateNextMemberNumber() {
+      try {
+        // Haal alle leden op
+        const members = await firebaseRequest('GET', 'members');
+        
+        // Vind het hoogste bestaande lidnummer
+        let highestNumber = 0;
+        if (members) {
+          Object.values(members).forEach(member => {
+            const memberNumber = parseInt(member.memberNumber);
+            if (!isNaN(memberNumber) && memberNumber > highestNumber) {
+              highestNumber = memberNumber;
+            }
+          });
+        }
+        
+        // Het volgende nummer is één hoger dan het hoogste
+        const nextNumber = highestNumber + 1;
+        
+        // Zet om naar een string met voorloopnullen (4-cijferig)
+        return nextNumber.toString().padStart(4, '0');
+      } catch (error) {
+        console.error("Fout bij genereren lidnummer:", error);
+        throw error;
+      }
+    }
+
     // Niet-ondersteunde methode
     return res.status(405).json({ error: 'Methode niet toegestaan' });
   } catch (error) {
