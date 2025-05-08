@@ -137,6 +137,8 @@ export default function MemberRequests() {
   const [editedRequest, setEditedRequest] = useState<Partial<EditableMemberRequest> | null>(null);
   const [nextMemberNumber, setNextMemberNumber] = useState<string | null>(null);
   const [isEditing, setIsEditing] = useState(false);
+  const [locallyApprovedIds, setLocallyApprovedIds] = useState<Set<number>>(new Set());
+  const [locallyRejectedIds, setLocallyRejectedIds] = useState<Set<number>>(new Set());
   const { isAdmin } = useRole();
 
   // Ophalen van alle aanvragen met verbeterde validatie en foutafhandeling
@@ -515,8 +517,7 @@ export default function MemberRequests() {
   }
   
   // VOLLEDIG HERSCHREVEN: Management van lokale status tracking voor goedgekeurde aanvragen
-  // We gebruiken React state om goedgekeurde aanvragen bij te houden over renders heen
-  const [locallyApprovedIds, setLocallyApprovedIds] = useState<Set<number>>(new Set());
+  // Deze staat wordt al eerder aangemaakt, dus we verwijderen de dubbele declaratie
   
   // Effect om de locallyApprovedIds set bij te werken wanneer een aanvraag wordt goedgekeurd
   useEffect(() => {
@@ -566,11 +567,15 @@ export default function MemberRequests() {
     
     // 2.5 Extra controle voor Vercel productie-omgeving: check of 'id' als string of number wordt opgeslagen
     // Sommige Firebase implementaties slaan IDs op als string in plaats van number
-    if (typeof request.id === 'string' && request.id.includes('-')) {
-      // Als het een Firebase-stijl ID is, check nog een keer
-      if ((request as any).memberId || (request as any).memberNumber) {
-        console.log(`Aanvraag #${request.id} heeft memberId/memberNumber als niet-standaard veld en is dus goedgekeurd`);
-        return false;
+    if (typeof request.id === 'string') {
+      // Voorzichtig checken of het een string is die '-' bevat
+      const idStr = String(request.id);
+      if (idStr.indexOf('-') !== -1) {
+        // Als het een Firebase-stijl ID is, check nog een keer
+        if ((request as any).memberId || (request as any).memberNumber) {
+          console.log(`Aanvraag #${request.id} heeft memberId/memberNumber als niet-standaard veld en is dus goedgekeurd`);
+          return false;
+        }
       }
     }
     
