@@ -176,11 +176,7 @@ export default function RegisterRequest() {
       return await res.json();
     },
     onSuccess: () => {
-      toast({
-        title: "Aanvraag ingediend",
-        description: "Je lidmaatschapsaanvraag is succesvol ingediend.",
-        variant: "success",
-      });
+      // We don't need a toast notification here as we'll show a success page
       form.reset();
       setSuccess(true);
     },
@@ -213,8 +209,8 @@ export default function RegisterRequest() {
           </div>
           
           <div className="p-6 sm:p-8 md:p-10 flex flex-col items-center text-center space-y-4 sm:space-y-6">
-            <div className="rounded-full bg-[#963E56]/10 p-3 sm:p-4 w-16 sm:w-20 h-16 sm:h-20 flex items-center justify-center">
-              <CheckIcon className="h-8 w-8 sm:h-10 sm:w-10 text-[#963E56]" />
+            <div className="rounded-full bg-green-500 p-3 sm:p-4 w-16 sm:w-20 h-16 sm:h-20 flex items-center justify-center">
+              <CheckIcon className="h-8 w-8 sm:h-10 sm:w-10 text-white" />
             </div>
             <h2 className="text-xl sm:text-2xl font-bold text-gray-800">Aanvraag Succesvol Ingediend!</h2>
             <p className="text-gray-600 max-w-md text-sm sm:text-base md:text-lg">
