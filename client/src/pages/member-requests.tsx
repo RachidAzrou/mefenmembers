@@ -44,7 +44,9 @@ import {
   CreditCard as CreditCardIcon,
   User as UserIcon,
   Mail as MailIcon,
-  UserPlus as UserPlusIcon
+  UserPlus as UserPlusIcon,
+  Eye,
+  Trash2
 } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -528,25 +530,38 @@ export default function MemberRequests() {
             <Table className="w-full">
               <TableHeader>
                 <TableRow>
-                  <TableHead className="w-[160px] text-center">Naam</TableHead>
-                  <TableHead className="w-[100px] text-center">Datum</TableHead>
-                  <TableHead className="text-center w-[120px]">Acties</TableHead>
+                  <TableHead className="w-[200px] text-center font-semibold">Naam</TableHead>
+                  <TableHead className="w-[120px] text-center font-semibold">Status</TableHead>
+                  <TableHead className="w-[120px] text-center font-semibold">Verwerkt op</TableHead>
+                  <TableHead className="text-center w-[120px] font-semibold">Acties</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {processedRequests.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={3} className="text-center py-8 text-gray-500">
+                    <TableCell colSpan={4} className="text-center py-8 text-gray-500">
                       Geen verwerkte aanvragen in de afgelopen 7 dagen
                     </TableCell>
                   </TableRow>
                 ) : (
                   processedRequests.map((request) => (
                     <TableRow key={request.id}>
-                      <TableCell className="font-medium">
+                      <TableCell className="font-medium text-center">
                         {request.firstName} {request.lastName}
                       </TableCell>
-                      <TableCell>
+                      <TableCell className="text-center">
+                        {request.status === "approved" && (
+                          <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+                            Goedgekeurd
+                          </Badge>
+                        )}
+                        {request.status === "rejected" && (
+                          <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200">
+                            Afgewezen
+                          </Badge>
+                        )}
+                      </TableCell>
+                      <TableCell className="text-center">
                         {formatDate(request.processedDate || request.requestDate)}
                       </TableCell>
                       <TableCell className="text-center">
@@ -560,21 +575,17 @@ export default function MemberRequests() {
                               setShowDetailDialog(true);
                             }}
                           >
-                            <Search className="h-4 w-4" />
+                            <Eye className="h-4 w-4" />
                             <span className="sr-only">Bekijken</span>
                           </Button>
-                          {isAdmin && (
+                          {isAdmin && request.status === "rejected" && (
                             <Button
                               variant="ghost"
                               size="icon"
                               className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50"
                               onClick={() => handleDelete(request)}
                             >
-                              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                <path d="M3 6h18"></path>
-                                <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path>
-                                <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path>
-                              </svg>
+                              <Trash2 className="h-4 w-4" />
                               <span className="sr-only">Verwijderen</span>
                             </Button>
                           )}
@@ -789,10 +800,16 @@ export default function MemberRequests() {
             </div>
             
             {/* Afwijzingsreden tonen indien afgewezen */}
-            {selectedRequest?.status === "rejected" && selectedRequest?.notes && (
-              <div className="bg-red-50 p-4 rounded-md border border-red-200">
-                <h3 className="text-red-700 font-semibold pb-2 mb-1">Reden voor afwijzing</h3>
-                <p className="text-gray-800">{selectedRequest.notes}</p>
+            {selectedRequest?.status === "rejected" && (
+              <div className="mb-6">
+                <h3 className="text-[#963E56] font-semibold text-lg border-b border-[#963E56]/20 pb-2 mb-3 flex items-center">
+                  <AlertCircle className="h-5 w-5 mr-2 text-[#963E56]/70" />
+                  Reden voor afwijzing
+                </h3>
+                
+                <div className="bg-red-50 p-4 rounded-md border border-red-200 shadow-sm">
+                  <p className="text-gray-800">{selectedRequest.notes || "Geen reden opgegeven."}</p>
+                </div>
               </div>
             )}
           </div>
