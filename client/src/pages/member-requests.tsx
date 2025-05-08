@@ -935,7 +935,40 @@ export default function MemberRequests() {
                 <div className="mt-2 flex items-center">
                   <span className="bg-white/20 text-white px-2 py-1 rounded text-sm font-medium mr-2">Lidnummer:</span>
                   <button 
-                    onClick={() => setLocation(`/member-detail?id=${selectedRequest.memberId}`)}
+                    onClick={() => {
+                      console.log("Navigeren naar lid detail. memberId:", selectedRequest.memberId, "memberNumber:", selectedRequest.memberNumber);
+                      // Haal eerst de lijst van leden op om het juiste lid te vinden op basis van lidnummer
+                      const members = queryClient.getQueryData<any[]>(["/api/members"]);
+                      
+                      // Zoek naar het lid op basis van lidnummer en memberId
+                      let matchingMember = null;
+                      if (members && members.length > 0) {
+                        // Probeer eerst via memberId te zoeken (meest betrouwbaar)
+                        if (selectedRequest.memberId) {
+                          matchingMember = members.find(m => m.id === selectedRequest.memberId);
+                        }
+                        
+                        // Als dat niet lukt, probeer via lidnummer te zoeken
+                        if (!matchingMember && selectedRequest.memberNumber) {
+                          matchingMember = members.find(m => m.memberNumber === selectedRequest.memberNumber || 
+                                                            m.memberNumber === selectedRequest.memberNumber.toString());
+                        }
+                      }
+                      
+                      if (matchingMember) {
+                        setLocation(`/member-detail?id=${matchingMember.id}`);
+                      } else {
+                        // Als het lid niet gevonden wordt, toon een waarschuwing
+                        toast({
+                          title: "Lid niet gevonden",
+                          description: `Het bijbehorende lid met nummer ${selectedRequest.memberNumber} kon niet worden gevonden in de huidige ledenlijst. Probeer eerst de ledenlijst te vernieuwen.`,
+                          variant: "destructive",
+                        });
+                        
+                        // Ververs de ledenlijst automatisch
+                        queryClient.invalidateQueries({ queryKey: ["/api/members"] });
+                      }
+                    }}
                     className="bg-white/30 hover:bg-white/40 transition-colors text-white px-2 py-1 rounded text-sm font-semibold flex items-center"
                   >
                     {selectedRequest.memberNumber}
