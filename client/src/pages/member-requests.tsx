@@ -183,9 +183,23 @@ export default function MemberRequests() {
   // Goedkeuren van een aanvraag
   const approveMutation = useMutation({
     mutationFn: async (requestId: number | string) => {
+      // Vind de volledige aanvraag gegevens om mee te sturen
+      const currentRequests = queryClient.getQueryData<MemberRequest[]>(["/api/member-requests"]);
+      const requestData = currentRequests?.find(req => String(req.id) === String(requestId));
+      
+      if (!requestData) {
+        throw new Error("Aanvraaggegevens niet gevonden in cache");
+      }
+      
+      console.log("Volledige aanvraaggegevens voor goedkeuring:", requestData);
+      
+      // Stuur alle benodigde gegevens mee
       const response = await apiRequest("POST", `/api/member-requests/approve?id=${requestId}`, {
-        id: requestId
+        ...requestData,  // Stuur alle data mee
+        id: requestId,   // Zorg ervoor dat ID niet overschreven wordt
+        processedBy: 1   // Standaard beheerder ID
       });
+      
       return await response.json();
     },
     onSuccess: (data) => {
@@ -221,12 +235,27 @@ export default function MemberRequests() {
   // Afwijzen van een aanvraag
   const rejectMutation = useMutation({
     mutationFn: async ({ id, reason }: { id: number | string; reason: string }) => {
+      // Vind de volledige aanvraag gegevens om mee te sturen
+      const currentRequests = queryClient.getQueryData<MemberRequest[]>(["/api/member-requests"]);
+      const requestData = currentRequests?.find(req => String(req.id) === String(id));
+      
+      if (!requestData) {
+        throw new Error("Aanvraaggegevens niet gevonden in cache");
+      }
+      
+      console.log("Volledige aanvraaggegevens voor afwijzing:", requestData);
+      
+      // Stuur de volledige data mee met de afwijzingsreden
       const response = await apiRequest("PUT", `/api/member-requests/status?id=${id}`, {
+        ...requestData,
         id: id,
         status: "rejected",
         notes: reason,
-        rejectionReason: reason
+        rejectionReason: reason,
+        processedBy: 1,
+        processedDate: new Date().toISOString()
       });
+      
       return await response.json();
     },
     onSuccess: () => {
