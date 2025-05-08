@@ -249,10 +249,13 @@ export default async function handler(req, res) {
     // PUT verzoek: status van een lidmaatschapsaanvraag bijwerken
     if (req.method === 'PUT' && req.url.includes('/api/member-requests/status')) {
       try {
-        // Haal ID, status en processedBy uit de request body
-        const { id, status, processedBy } = req.body;
+        // Haal ID, status, processedBy en notes (rejectionReason) uit de request body
+        const { id, status, processedBy, notes, rejectionReason } = req.body;
+        
+        console.log("Request body voor status update:", JSON.stringify(req.body));
         
         if (!id || !status || !['pending', 'approved', 'rejected'].includes(status)) {
+          console.error(`PUT /api/member-requests/status VALIDATIE FOUT: id=${id}, status=${status}`);
           return res.status(400).json({ 
             error: 'Ongeldige request parameters',
             required: { 
@@ -281,8 +284,10 @@ export default async function handler(req, res) {
         };
         
         // Als status 'rejected' is, voeg eventueel een reden toe
-        if (status === 'rejected' && req.body.rejectionReason) {
-          updatedRequest.rejectionReason = req.body.rejectionReason;
+        // Accepteer zowel notes als rejectionReason voor compatibiliteit
+        if (status === 'rejected') {
+          // Prioriteer rejectionReason, val terug op notes als geen rejectionReason aanwezig is
+          updatedRequest.rejectionReason = rejectionReason || notes || "Geen reden opgegeven";
         }
         
         // Update de aanvraag in Firebase

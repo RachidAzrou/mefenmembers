@@ -10,23 +10,59 @@ const FIREBASE_API_KEY = process.env.FIREBASE_API_KEY || "AIzaSyCw3uxCv7SdAa4xtm
 // Helper functie om direct met de Firebase REST API te communiceren
 async function firebaseRequest(method, path, data = null) {
   try {
+    // Valideer dat Firebase Database URL en API key beschikbaar zijn
+    if (!FIREBASE_DB_URL) {
+      console.error("FIREBASE_DATABASE_URL niet geconfigureerd of leeg!");
+      throw new Error("Firebase Database URL ontbreekt - controleer environment variables");
+    }
+    
+    if (!FIREBASE_API_KEY) {
+      console.error("FIREBASE_API_KEY niet geconfigureerd of leeg!");
+      throw new Error("Firebase API Key ontbreekt - controleer environment variables");
+    }
+    
     const url = `${FIREBASE_DB_URL}/${path}.json?auth=${FIREBASE_API_KEY}`;
-    console.log(`Firebase REST API ${method} request naar: ${url}`);
+    console.log(`Firebase REST API ${method} request naar: ${FIREBASE_DB_URL}/${path}.json`);
     
     const config = {
       method,
       url,
-      headers: { 'Content-Type': 'application/json' }
+      headers: { 
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      },
+      timeout: 10000 // 10 seconden timeout om hangende requests te voorkomen
     };
     
     if (data && (method === 'POST' || method === 'PUT' || method === 'PATCH')) {
       config.data = JSON.stringify(data);
     }
     
-    const response = await axios(config);
-    return response.data;
+    try {
+      const response = await axios(config);
+      console.log(`Firebase REST API ${method} succesvol, status:`, response.status);
+      return response.data;
+    } catch (axiosError) {
+      // Verbeterde foutafhandeling voor Axios errors
+      if (axiosError.response) {
+        // Server antwoordde met een status buiten het 2xx bereik
+        console.error(`Firebase REST API server fout (${method} ${path}):`, {
+          status: axiosError.response.status,
+          data: axiosError.response.data
+        });
+        throw new Error(`Firebase API fout: ${axiosError.response.status} - ${JSON.stringify(axiosError.response.data)}`);
+      } else if (axiosError.request) {
+        // Request gemaakt maar geen antwoord ontvangen
+        console.error(`Firebase REST API timeout/geen antwoord (${method} ${path}):`, axiosError.message);
+        throw new Error(`Firebase API timeout: Controleer je internet verbinding en Firebase project status`);
+      } else {
+        // Iets ging mis bij het maken van de request
+        console.error(`Firebase REST API request configuratie fout (${method} ${path}):`, axiosError.message);
+        throw new Error(`Firebase API request fout: ${axiosError.message}`);
+      }
+    }
   } catch (error) {
-    console.error(`Firebase REST API fout (${method} ${path}):`, error.message);
+    console.error(`Firebase REST API algemene fout (${method} ${path}):`, error.message, error.stack);
     throw new Error(`Firebase API fout: ${error.message}`);
   }
 }
@@ -100,6 +136,14 @@ async function getNextMemberNumber() {
 
 // Vercel serverless functie
 export default async function handler(req, res) {
+  // Log omgeving info voor debug doeleinden
+  console.log("Vercel Serverless Function Environment:", {
+    NODE_ENV: process.env.NODE_ENV,
+    VERCEL_ENV: process.env.VERCEL_ENV,
+    DATABASE_URL: process.env.DATABASE_URL ? "Aanwezig" : "Ontbreekt",
+    FIREBASE_DATABASE_URL: process.env.FIREBASE_DATABASE_URL ? "Aanwezig" : "Ontbreekt",
+    FIREBASE_API_KEY: process.env.FIREBASE_API_KEY ? "Aanwezig" : "Ontbreekt"
+  });
   try {
     // CORS headers
     res.setHeader('Access-Control-Allow-Origin', '*');
@@ -113,16 +157,13 @@ export default async function handler(req, res) {
     
     // GET verzoek: specifieke endpoints of alle leden
     if (req.method === 'GET') {
-      // Controleer op verschillende manieren of het het generate-number endpoint is
-      // Dit maakt ons compatibel met verschillende URL-formaten die Vercel zou kunnen gebruiken
-      if (req.url.includes('/generate-number') || req.url === '/api/members/generate-number' || req.query.action === 'generate-number') {
+      // Als het een specifiek endpoint is
+      if (req.url.includes('/api/members/generate-number')) {
         try {
           console.log("GET /api/members/generate-number: Volgend lidnummer genereren");
           const nextNumber = await getNextMemberNumber();
           console.log(`GET /api/members/generate-number: Volgend lidnummer is ${nextNumber}`);
-          // Formatteren naar hetzelfde formaat dat server/routes.ts gebruikt
-          const memberNumber = nextNumber.toString().padStart(4, '0');
-          return res.status(200).json({ memberNumber });
+          return res.status(200).json({ number: nextNumber });
         } catch (error) {
           console.error("GET /api/members/generate-number FOUT:", error.message);
           return res.status(500).json({ 
@@ -212,8 +253,16 @@ export default async function handler(req, res) {
         // Log de request body voor diagnose
         console.log("POST /api/members: Request body:", JSON.stringify(req.body));
         
+        // Haal data uit request body
+        const { 
+          firstName, lastName, phoneNumber, email, birthDate, accountNumber, paymentStatus, notes,
+          gender, nationality, street, houseNumber, busNumber, postalCode, city,
+          membershipType, startDate, endDate, autoRenew, paymentTerm, paymentMethod,
+          bicSwift, accountHolderName, privacyConsent
+        } = req.body;
+        
         // Controleer verplichte velden
-        if (!req.body.firstName || !req.body.lastName || !req.body.phoneNumber) {
+        if (!firstName || !lastName || !phoneNumber) {
           console.log("POST /api/members: Ontbrekende verplichte velden");
           return res.status(400).json({ 
             error: 'Ontbrekende verplichte velden',
@@ -226,18 +275,44 @@ export default async function handler(req, res) {
         const memberNumber = await getNextMemberNumber();
         console.log("POST /api/members: Nieuw lidnummer gegenereerd:", memberNumber);
         
-        // Maak nieuwe lid data - neem alle velden over van de request body
+        // Maak nieuwe lid data - SLA ALLE VELDEN OP
         const newMember = {
           memberNumber,
-          ...req.body,
-          registrationDate: new Date().toISOString()
+          // Persoonsgegevens
+          firstName,
+          lastName,
+          gender: gender || null,
+          birthDate: birthDate || null,
+          nationality: nationality || null,
+          
+          // Contactgegevens
+          phoneNumber,
+          email: email || '',
+          street: street || null,
+          houseNumber: houseNumber || null,
+          busNumber: busNumber || null, 
+          postalCode: postalCode || null,
+          city: city || null,
+          
+          // Lidmaatschap
+          membershipType: membershipType || 'standaard',
+          startDate: startDate || new Date().toISOString(),
+          endDate: endDate || null,
+          autoRenew: autoRenew !== undefined ? autoRenew : true,
+          paymentTerm: paymentTerm || 'jaarlijks',
+          paymentMethod: paymentMethod || 'cash',
+          
+          // Bankgegevens
+          accountNumber: accountNumber || '',
+          bicSwift: bicSwift || null,
+          accountHolderName: accountHolderName || null,
+          
+          // Overig
+          paymentStatus: paymentStatus || false,
+          registrationDate: new Date().toISOString(),
+          privacyConsent: privacyConsent || false,
+          notes: notes || ''
         };
-        
-        // Zorg ervoor dat deze velden altijd een waarde hebben, zelfs als null
-        if (newMember.email === undefined) newMember.email = '';
-        if (newMember.gender === undefined) newMember.gender = '';
-        if (newMember.membershipType === undefined) newMember.membershipType = 'standaard';
-        if (newMember.paymentStatus === undefined) newMember.paymentStatus = false;
         
         console.log("POST /api/members: Lid data voorbereid:", JSON.stringify(newMember));
         
@@ -293,32 +368,54 @@ export default async function handler(req, res) {
           return res.status(400).json({ error: 'Ongeldige request body' });
         }
         
-        // Log de request body voor diagnose
-        console.log(`PUT /api/members/${id}: Request body:`, JSON.stringify(req.body));
+        // Haal data uit request body
+        const { 
+          firstName, lastName, phoneNumber, email, birthDate, accountNumber, paymentStatus, notes,
+          gender, nationality, street, houseNumber, busNumber, postalCode, city,
+          membershipType, startDate, endDate, autoRenew, paymentTerm, paymentMethod,
+          bicSwift, accountHolderName, privacyConsent
+        } = req.body;
         
-        // Haal eerst het bestaande lid op
+        // Haal eerst het bestaande lid op om de huidige data te behouden
         const existingMember = await firebaseRequest('GET', `members/${id}`);
-        if (!existingMember) {
-          return res.status(404).json({ error: 'Lid niet gevonden' });
-        }
         
-        // Bewaar het lidnummer van het bestaande lid
-        const { memberNumber } = existingMember;
-        
-        // Bouw update object - behoud alle velden uit de request
+        // Bouw update object met ALLE velden
         const updateData = {
-          ...existingMember,  // Behoud bestaande data als fallback
-          ...req.body,        // Update met nieuwe data
-          memberNumber        // Behoud altijd het originele lidnummer
+          // Persoonsgegevens
+          firstName,
+          lastName,
+          gender: gender ?? existingMember?.gender ?? null,
+          birthDate: birthDate ?? existingMember?.birthDate ?? null,
+          nationality: nationality ?? existingMember?.nationality ?? null,
+          
+          // Contactgegevens
+          phoneNumber,
+          email: email || existingMember?.email || '',
+          street: street ?? existingMember?.street ?? null,
+          houseNumber: houseNumber ?? existingMember?.houseNumber ?? null,
+          busNumber: busNumber ?? existingMember?.busNumber ?? null, 
+          postalCode: postalCode ?? existingMember?.postalCode ?? null,
+          city: city ?? existingMember?.city ?? null,
+          
+          // Lidmaatschap
+          membershipType: membershipType ?? existingMember?.membershipType ?? 'standaard',
+          startDate: startDate ?? existingMember?.startDate ?? null,
+          endDate: endDate ?? existingMember?.endDate ?? null,
+          autoRenew: autoRenew !== undefined ? autoRenew : existingMember?.autoRenew !== undefined ? existingMember.autoRenew : true,
+          paymentTerm: paymentTerm ?? existingMember?.paymentTerm ?? 'jaarlijks',
+          paymentMethod: paymentMethod ?? existingMember?.paymentMethod ?? 'cash',
+          
+          // Bankgegevens
+          accountNumber: accountNumber ?? existingMember?.accountNumber ?? '',
+          bicSwift: bicSwift ?? existingMember?.bicSwift ?? null,
+          accountHolderName: accountHolderName ?? existingMember?.accountHolderName ?? null,
+          
+          // Overig
+          paymentStatus: paymentStatus !== undefined ? paymentStatus : existingMember?.paymentStatus !== undefined ? existingMember.paymentStatus : false,
+          registrationDate: existingMember?.registrationDate || new Date().toISOString(),
+          privacyConsent: privacyConsent !== undefined ? privacyConsent : existingMember?.privacyConsent !== undefined ? existingMember.privacyConsent : false,
+          notes: notes ?? existingMember?.notes ?? ''
         };
-        
-        // Zorg ervoor dat deze velden altijd een waarde hebben
-        if (updateData.email === undefined) updateData.email = '';
-        if (updateData.gender === undefined) updateData.gender = existingMember.gender || '';
-        if (updateData.membershipType === undefined) updateData.membershipType = existingMember.membershipType || 'standaard';
-        if (updateData.paymentStatus === undefined) updateData.paymentStatus = false;
-        
-        console.log(`PUT /api/members/${id}: Update data:`, JSON.stringify(updateData));
         
         // Update via REST API
         await firebaseRequest('PUT', `members/${id}`, updateData);
@@ -332,6 +429,30 @@ export default async function handler(req, res) {
         console.error("PUT /api/members FOUT:", error.message);
         return res.status(500).json({ 
           error: 'Fout bij bijwerken lid', 
+          details: error.message 
+        });
+      }
+    }
+    
+    // Voor het lokaal testen van Firebase variabelen
+    if (req.method === 'GET' && req.url.includes('/api/members/test-firebase')) {
+      try {
+        console.log("GET /api/members/test-firebase: Firebase connectie testen");
+        
+        return res.status(200).json({
+          status: "success",
+          message: "Firebase test endpoint beschikbaar",
+          config: {
+            firebase_db_url_set: !!process.env.FIREBASE_DATABASE_URL,
+            firebase_api_key_set: !!process.env.FIREBASE_API_KEY,
+            firebase_db_url_default: FIREBASE_DB_URL.includes("mefen-leden"),
+            firebase_api_key_valid: FIREBASE_API_KEY && FIREBASE_API_KEY.length > 20
+          }
+        });
+      } catch (error) {
+        console.error("GET /api/members/test-firebase FOUT:", error.message);
+        return res.status(500).json({ 
+          error: 'Fout bij testen Firebase connectie', 
           details: error.message 
         });
       }
