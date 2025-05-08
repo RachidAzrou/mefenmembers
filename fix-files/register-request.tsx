@@ -85,14 +85,23 @@ const registrationSchema = z.object({
   // Eventuele opmerkingen
   notes: z.string().optional(),
 }).refine((data) => {
-  // Validatie: Bij domiciliëring is een rekeningnummer verplicht
-  if (data.paymentMethod === 'domiciliering') {
+  // Validatie: Bij domiciliëring of overschrijving is een rekeningnummer verplicht
+  if (data.paymentMethod === 'domiciliering' || data.paymentMethod === 'overschrijving') {
     return !!data.accountNumber;
   }
   return true;
 }, {
-  message: "Rekeningnummer is verplicht bij domiciliëring",
+  message: "Rekeningnummer (IBAN) is verplicht bij domiciliëring of overschrijving",
   path: ["accountNumber"],
+}).refine((data) => {
+  // Validatie: Bij domiciliëring of overschrijving is naam rekeninghouder verplicht
+  if (data.paymentMethod === 'domiciliering' || data.paymentMethod === 'overschrijving') {
+    return !!data.accountHolderName;
+  }
+  return true;
+}, {
+  message: "Naam rekeninghouder is verplicht bij domiciliëring of overschrijving",
+  path: ["accountHolderName"],
 });
 
 type FormData = z.infer<typeof registrationSchema>;
@@ -130,7 +139,8 @@ export default function RegisterRequest() {
         form.formState.errors.membershipType || 
         form.formState.errors.paymentTerm || 
         form.formState.errors.paymentMethod || 
-        (form.watch('paymentMethod') === 'domiciliering' && form.formState.errors.accountNumber)
+        ((form.watch('paymentMethod') === 'domiciliering' || form.watch('paymentMethod') === 'overschrijving') && 
+         (form.formState.errors.accountNumber || form.formState.errors.accountHolderName))
       ) {
         return;
       }
@@ -811,7 +821,7 @@ export default function RegisterRequest() {
                             name="accountNumber"
                             render={({ field }) => (
                               <FormItem>
-                                <FormLabel className="text-sm sm:text-base font-medium">IBAN{form.watch("paymentMethod") === "domiciliering" && <span className="text-red-500">*</span>}</FormLabel>
+                                <FormLabel className="text-sm sm:text-base font-medium">IBAN <span className="text-red-500">*</span></FormLabel>
                                 <FormControl>
                                   <Input 
                                     placeholder="IBAN (BE68539007547034)" 
@@ -833,7 +843,7 @@ export default function RegisterRequest() {
                             name="accountHolderName"
                             render={({ field }) => (
                               <FormItem>
-                                <FormLabel className="text-sm sm:text-base font-medium">Naam rekeninghouder</FormLabel>
+                                <FormLabel className="text-sm sm:text-base font-medium">Naam rekeninghouder <span className="text-red-500">*</span></FormLabel>
                                 <FormControl>
                                   <Input 
                                     placeholder="Naam rekeninghouder" 

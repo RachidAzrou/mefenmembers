@@ -57,20 +57,21 @@ export function Sidebar() {
     }
   };
 
-  // Custom icon voor de ledenlijst (persoon met lijst)
-  const PersonWithListIcon = () => (
-    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-list">
+  // Custom icon voor de ledenlijst (gebruikers met ID badge)
+  const MembersIcon = () => (
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
       <circle cx="9" cy="7" r="4" />
-      <path d="M14 10h7" />
-      <path d="M14 14h7" />
-      <path d="M14 18h7" />
-      <path d="M3 18a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4" />
+      <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+      <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+      <rect x="14" y="14" width="8" height="6" rx="1" />
+      <path d="M18 14v-1a2 2 0 0 0-2-2h-1" />
     </svg>
   );
 
   const menuItems = [
     { icon: Home, label: "Dashboard", href: "/dashboard" },
-    { icon: PersonWithListIcon, label: "Ledenlijst", href: "/members", 
+    { icon: MembersIcon, label: "Ledenlijst", href: "/members", 
       subItems: [
         { icon: PlusCircle, label: "Lid toevoegen", href: "/member-add" },
         { icon: Edit, label: "Lid bewerken", href: "/member-edit" },
