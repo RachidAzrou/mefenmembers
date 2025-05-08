@@ -623,15 +623,17 @@ export default function MemberRequests() {
           <div className="overflow-y-auto max-h-[calc(100vh-240px)] pr-2 mt-4">
             {/* Persoonlijke gegevens sectie */}
             <div className="mb-6">
-              <h3 className="text-[#963E56] font-semibold text-lg border-b border-[#963E56]/20 pb-2 mb-3">
+              <h3 className="text-[#963E56] font-semibold text-lg border-b border-[#963E56]/20 pb-2 mb-3 flex items-center">
+                <UserIcon className="h-5 w-5 mr-2 text-[#963E56]/70" />
                 Persoonlijke gegevens
               </h3>
               
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="bg-white p-4 rounded-md border border-[#963E56]/20 shadow-sm">
-                  <h4 className="font-semibold text-gray-800 mb-3">{selectedRequest?.firstName} {selectedRequest?.lastName}</h4>
+                <div className="bg-white p-4 rounded-md border border-[#963E56]/20 shadow-sm relative overflow-hidden">
+                  <div className="absolute inset-0 bg-pattern opacity-5"></div>
+                  <h4 className="font-semibold text-gray-800 mb-3 relative z-10">{selectedRequest?.firstName} {selectedRequest?.lastName}</h4>
                   
-                  <div className="space-y-2">
+                  <div className="space-y-2 relative z-10">
                     <div className="flex items-start">
                       <span className="text-gray-600 w-32">Geslacht:</span>
                       <span className="font-medium">
@@ -838,8 +840,11 @@ export default function MemberRequests() {
       {/* Goedkeuren dialog */}
       <Dialog open={showApprovalDialog} onOpenChange={setShowApprovalDialog}>
         <DialogContent className="max-w-md">
-          <DialogHeader className="bg-gradient-to-r from-[#4CAF50] to-[#388E3C] p-5 text-white rounded-t-xl -mt-4 -mx-4 shadow-md">
-            <DialogTitle className="text-xl font-bold">Aanvraag goedkeuren</DialogTitle>
+          <DialogHeader className="bg-gradient-to-r from-[#963E56] to-[#7a3246] p-5 text-white rounded-t-xl -mt-4 -mx-4 shadow-md">
+            <div className="flex items-center mb-1">
+              <CheckIcon className="h-6 w-6 bg-white text-[#963E56] p-1 rounded-full mr-2" />
+              <DialogTitle className="text-xl font-bold">Aanvraag goedkeuren</DialogTitle>
+            </div>
             <DialogDescription className="text-white/90 mt-1">
               Bevestig om deze aanvraag goed te keuren en een nieuw lid aan te maken.
             </DialogDescription>
@@ -847,13 +852,14 @@ export default function MemberRequests() {
 
           <div className="my-4">
             {nextMemberNumber && (
-              <div className="mb-4 bg-gradient-to-br from-green-50 to-green-100 p-4 border border-green-200 rounded-md text-center shadow-sm">
-                <p className="text-sm text-green-700 font-medium uppercase tracking-wide">Nieuw lidnummer</p>
-                <div className="flex items-center justify-center mt-1">
-                  <CheckIcon className="h-5 w-5 text-green-600 mr-1.5" />
-                  <p className="text-2xl font-bold text-green-800">{nextMemberNumber}</p>
+              <div className="mb-4 bg-gradient-to-br from-[#963E56]/10 to-[#7a3246]/10 p-4 border border-[#963E56]/20 rounded-md text-center shadow-sm relative overflow-hidden">
+                <div className="absolute inset-0 bg-pattern opacity-5"></div>
+                <p className="text-sm text-[#963E56] font-medium uppercase tracking-wide relative z-10">Nieuw lidnummer</p>
+                <div className="flex items-center justify-center mt-1 relative z-10">
+                  <CheckIcon className="h-5 w-5 text-[#963E56] mr-1.5" />
+                  <p className="text-2xl font-bold text-[#963E56]">{nextMemberNumber}</p>
                 </div>
-                <p className="text-xs text-green-600 mt-1">Deze aanvraag zal worden omgezet naar een lidmaatschap</p>
+                <p className="text-xs text-[#963E56]/80 mt-1 relative z-10">Deze aanvraag zal worden omgezet naar een lidmaatschap</p>
               </div>
             )}
 
@@ -943,7 +949,7 @@ export default function MemberRequests() {
             </Button>
             <Button 
               onClick={confirmApproval}
-              className="w-full sm:w-auto bg-green-600 hover:bg-green-700 text-white shadow-sm"
+              className="w-full sm:w-auto bg-[#963E56] hover:bg-[#7a3246] text-white shadow-sm"
               disabled={approveMutation.isPending}
             >
               {approveMutation.isPending ? (
@@ -960,8 +966,11 @@ export default function MemberRequests() {
       {/* Afwijzen dialog */}
       <Dialog open={showRejectionDialog} onOpenChange={setShowRejectionDialog}>
         <DialogContent className="max-w-md">
-          <DialogHeader className="bg-gradient-to-r from-[#E53935] to-[#C62828] p-5 text-white rounded-t-xl -mt-4 -mx-4 shadow-md">
-            <DialogTitle className="text-xl font-bold">Aanvraag afwijzen</DialogTitle>
+          <DialogHeader className="bg-gradient-to-r from-[#963E56] to-[#7a3246] p-5 text-white rounded-t-xl -mt-4 -mx-4 shadow-md">
+            <div className="flex items-center mb-1">
+              <XIcon className="h-6 w-6 bg-white text-[#963E56] p-1 rounded-full mr-2" />
+              <DialogTitle className="text-xl font-bold">Aanvraag afwijzen</DialogTitle>
+            </div>
             <DialogDescription className="text-white/90 mt-1">
               Geef een reden op voor de afwijzing van deze aanvraag.
             </DialogDescription>
@@ -1044,25 +1053,28 @@ export default function MemberRequests() {
             </div>
           </div>
           
-          <div className="bg-red-50 p-4 rounded-md border border-red-200 mb-4">
-            <div className="flex items-start mb-2">
-              <AlertCircle className="text-red-600 h-5 w-5 mr-2 mt-0.5" />
-              <p className="text-sm text-red-700">
-                Deze actie kan niet ongedaan worden gemaakt. Geef een duidelijke reden op.
-              </p>
+          <div className="bg-[#963E56]/10 p-4 rounded-md border border-[#963E56]/20 mb-4 relative overflow-hidden">
+            <div className="absolute inset-0 bg-pattern opacity-5"></div>
+            <div className="relative z-10">
+              <div className="flex items-start mb-2">
+                <AlertCircle className="text-[#963E56] h-5 w-5 mr-2 mt-0.5" />
+                <p className="text-sm text-[#963E56]">
+                  Deze actie kan niet ongedaan worden gemaakt. Geef een duidelijke reden op.
+                </p>
+              </div>
+              
+              <Label htmlFor="rejection-reason" className="text-gray-700 font-medium">
+                Reden voor afwijzing <span className="text-[#963E56]">*</span>
+              </Label>
+              <Textarea
+                id="rejection-reason"
+                placeholder="Geef een reden voor de afwijzing..."
+                className="mt-1 border-[#963E56]/20 focus:border-[#963E56] focus:ring-[#963E56]/30"
+                value={rejectionReason}
+                onChange={(e) => setRejectionReason(e.target.value)}
+                rows={4}
+              />
             </div>
-            
-            <Label htmlFor="rejection-reason" className="text-gray-700 font-medium">
-              Reden voor afwijzing <span className="text-red-600">*</span>
-            </Label>
-            <Textarea
-              id="rejection-reason"
-              placeholder="Geef een reden voor de afwijzing..."
-              className="mt-1 border-red-200 focus:border-red-400 focus:ring-red-400"
-              value={rejectionReason}
-              onChange={(e) => setRejectionReason(e.target.value)}
-              rows={4}
-            />
           </div>
           
           <DialogFooter className="flex flex-col sm:flex-row gap-2 sm:justify-between pt-4 border-t border-gray-200">
@@ -1077,9 +1089,8 @@ export default function MemberRequests() {
               Annuleren
             </Button>
             <Button 
-              variant="destructive" 
               onClick={confirmRejection}
-              className="w-full sm:w-auto shadow-sm"
+              className="w-full sm:w-auto bg-[#963E56] hover:bg-[#7a3246] text-white shadow-sm"
               disabled={rejectMutation.isPending || !rejectionReason.trim()}
             >
               {rejectMutation.isPending ? (
