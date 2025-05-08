@@ -518,12 +518,20 @@ export default async function handler(req, res) {
         } catch (updateError) {
           console.error(`POST /api/member-requests/approve: Fout bij updaten aanvraag status:`, updateError.message);
           
-          // Stuur nog steeds een succesvolle response omdat het lid al is aangemaakt
-          return res.status(201).json({
-            message: "Let op: Lid aangemaakt, maar kon aanvraagstatus niet bijwerken",
-            memberId: memberId,
-            memberNumber: nextMemberNumber,
-            warning: "Aanvraagstatus kon niet worden bijgewerkt naar 'approved'"
+          // KRITIEK: Stop en verwijder het lid als de aanvraagstatus niet kan worden bijgewerkt
+          // Verwijder het aangemaakte lid om inconsistente status te voorkomen
+          try {
+            console.log(`POST /api/member-requests/approve: Verwijderen van lid ${memberId} vanwege fout in statusupdate`);
+            await firebaseRequest('DELETE', `members/${memberId}`);
+            console.log(`POST /api/member-requests/approve: Lid ${memberId} succesvol verwijderd`);
+          } catch (deleteError) {
+            console.error(`POST /api/member-requests/approve: Kon lid ${memberId} niet verwijderen:`, deleteError.message);
+          }
+          
+          return res.status(500).json({
+            error: 'Kritieke fout: Kon aanvraagstatus niet bijwerken naar approved',
+            details: updateError.message,
+            resolution: 'Het lid is verwijderd om inconsistente data te voorkomen, probeer het opnieuw'
           });
         }
       } catch (error) {
