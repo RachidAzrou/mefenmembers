@@ -201,18 +201,25 @@ export default function MemberRequests() {
     onSuccess: (data) => {
       // Bij goedkeuring ontvangen we memberId en memberNumber
       if (selectedRequest && data.memberId && data.memberNumber) {
-        // Invalideer de queries direct
+        console.log("Goedkeuring succesvol: Lid aangemaakt met nummer", data.memberNumber);
+        
+        // Invalideer eerst beide queries
         queryClient.invalidateQueries({ queryKey: ["/api/member-requests"] });
         queryClient.invalidateQueries({ queryKey: ["/api/members"] });
         
-        // Wacht tot de queries opnieuw zijn opgehaald
-        queryClient.refetchQueries({ queryKey: ["/api/member-requests"] })
-          .then(() => {
-            console.log("Member requests refetched after approval");
-          })
-          .catch((error) => {
-            console.error("Error refetching member requests:", error);
-          });
+        // Wacht tot beide queries zijn ververst
+        Promise.all([
+          queryClient.refetchQueries({ queryKey: ["/api/member-requests"] }),
+          queryClient.refetchQueries({ queryKey: ["/api/members"] })
+        ])
+        .then(() => {
+          console.log("Alle data is ververst na goedkeuring");
+        })
+        .catch((error) => {
+          console.error("Fout bij het verversen van data na goedkeuring:", error);
+        });
+      } else {
+        console.warn("Onvolledige data ontvangen na goedkeuring:", data);
       }
       
       toast({
