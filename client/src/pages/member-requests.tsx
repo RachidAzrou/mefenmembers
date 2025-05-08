@@ -390,7 +390,7 @@ export default function MemberRequests() {
       case "pending":
         return <Badge variant="outline">In behandeling</Badge>;
       case "approved":
-        return <Badge variant="default" className="bg-green-500">Goedgekeurd</Badge>;
+        return <Badge variant="default" className="bg-[#963E56]">Goedgekeurd</Badge>;
       case "rejected":
         return <Badge variant="destructive">Afgewezen</Badge>;
       default:
@@ -596,7 +596,7 @@ export default function MemberRequests() {
                       </TableCell>
                       <TableCell className="text-center">
                         {request.status === "approved" && (
-                          <Badge variant="outline" className="bg-green-600 text-white border-green-700 shadow-sm px-3 py-1">
+                          <Badge variant="outline" className="bg-[#963E56] text-white border-[#7a3246] shadow-sm px-3 py-1">
                             <div className="flex items-center gap-1.5">
                               <CheckIcon className="h-3.5 w-3.5" />
                               <span>Goedgekeurd</span>
@@ -604,7 +604,7 @@ export default function MemberRequests() {
                           </Badge>
                         )}
                         {request.status === "rejected" && (
-                          <Badge variant="outline" className="bg-red-600 text-white border-red-700 shadow-sm px-3 py-1">
+                          <Badge variant="outline" className="bg-[#963E56] text-white border-[#7a3246] shadow-sm px-3 py-1">
                             <div className="flex items-center gap-1.5">
                               <XIcon className="h-3.5 w-3.5" />
                               <span>Afgewezen</span>
@@ -679,7 +679,7 @@ export default function MemberRequests() {
                   </Badge>
                 )}
                 {selectedRequest?.status === "approved" && (
-                  <Badge variant="outline" className="bg-green-600 text-white border-green-700 shadow-sm px-3 py-1">
+                  <Badge variant="outline" className="bg-[#963E56] text-white border-[#7a3246] shadow-sm px-3 py-1">
                     <div className="flex items-center gap-1.5">
                       <CheckIcon className="h-3.5 w-3.5" />
                       <span>Goedgekeurd</span>
@@ -687,7 +687,7 @@ export default function MemberRequests() {
                   </Badge>
                 )}
                 {selectedRequest?.status === "rejected" && (
-                  <Badge variant="outline" className="bg-red-600 text-white border-red-700 shadow-sm px-3 py-1">
+                  <Badge variant="outline" className="bg-[#963E56] text-white border-[#7a3246] shadow-sm px-3 py-1">
                     <div className="flex items-center gap-1.5">
                       <XIcon className="h-3.5 w-3.5" />
                       <span>Afgewezen</span>
@@ -712,7 +712,7 @@ export default function MemberRequests() {
               )}
               {selectedRequest?.status === "rejected" && (
                 <div className="mt-2 flex items-center">
-                  <div className="bg-red-700/70 text-white px-3 py-1.5 rounded text-sm font-medium flex items-center">
+                  <div className="bg-[#963E56]/70 text-white px-3 py-1.5 rounded text-sm font-medium flex items-center">
                     <XCircle className="h-4 w-4 mr-1.5" />
                     <span>Reden: {selectedRequest.notes || "Geen reden opgegeven"}</span>
                   </div>
@@ -730,7 +730,7 @@ export default function MemberRequests() {
                   Reden voor afwijzing
                 </h3>
                 
-                <div className="bg-red-50 p-4 rounded-md border border-red-200 shadow-sm">
+                <div className="bg-[#963E56]/5 p-4 rounded-md border border-[#963E56]/20 shadow-sm">
                   <p className="text-gray-800">{selectedRequest.notes || "Geen reden opgegeven"}</p>
                 </div>
               </div>
