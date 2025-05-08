@@ -36,7 +36,7 @@ export function formatMembershipTypeLabel(membershipType: string | undefined | n
     case "standaard": return "Standaard";
     case "student": return "Student";
     case "senior": return "Senior";
-    default: return "";
+    default: return "Standaard"; // Standaardwaarde voor oude records
   }
 }
 
@@ -46,7 +46,7 @@ export function formatPaymentMethodLabel(paymentMethod: string | undefined | nul
     case "bancontact": return "Bancontact";
     case "overschrijving": return "Overschrijving";
     case "domiciliering": return "Domiciliëring";
-    default: return "";
+    default: return "Cash"; // Standaardwaarde voor oude records
   }
 }
 
@@ -55,7 +55,7 @@ export function formatPaymentTermLabel(paymentTerm: string | undefined | null): 
     case "maandelijks": return "Maandelijks";
     case "driemaandelijks": return "Driemaandelijks";
     case "jaarlijks": return "Jaarlijks";
-    default: return "";
+    default: return "Jaarlijks"; // Standaardwaarde voor oude records
   }
 }
 
