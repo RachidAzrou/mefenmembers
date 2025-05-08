@@ -105,6 +105,9 @@ interface MemberRequest {
   accountHolderName?: string | null;
   bicSwift?: string | null;
   rejectionReason?: string | null;
+  // Velden voor goedgekeurde aanvragen
+  memberId?: number | null;
+  memberNumber?: string | null;
 }
 
 export default function MemberRequests() {
@@ -148,7 +151,29 @@ export default function MemberRequests() {
       });
       return await response.json();
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      // Bij goedkeuring ontvangen we memberId en memberNumber
+      if (selectedRequest && data.memberId && data.memberNumber) {
+        // Sync aanvraag bij met lidgegevens
+        const updatedRequest: MemberRequest = {
+          ...selectedRequest,
+          status: "approved",
+          memberId: data.memberId,
+          memberNumber: data.memberNumber
+        };
+        
+        // We moeten handmatig de cache bijwerken omdat de server niet automatisch memberNumber teruggeeft bij ophalen
+        queryClient.setQueriesData(
+          { queryKey: ["/api/member-requests"] },
+          (oldData: MemberRequest[] | undefined) => {
+            if (!oldData) return [];
+            return oldData.map(req => 
+              req.id === updatedRequest.id ? updatedRequest : req
+            );
+          }
+        );
+      }
+      
       queryClient.invalidateQueries({ queryKey: ["/api/member-requests"] });
       queryClient.invalidateQueries({ queryKey: ["/api/members"] });
       toast({
@@ -645,6 +670,18 @@ export default function MemberRequests() {
             </div>
             <DialogDescription className="text-white/90 mt-1">
               Aanvraag ingediend op {selectedRequest && formatDate(selectedRequest.requestDate)}
+              {selectedRequest?.status === "approved" && selectedRequest?.memberNumber && (
+                <div className="mt-2 flex items-center">
+                  <span className="bg-white/20 text-white px-2 py-1 rounded text-sm font-medium mr-2">Lidnummer:</span>
+                  <button 
+                    onClick={() => setLocation(`/members/${selectedRequest.memberId}`)}
+                    className="bg-white/30 hover:bg-white/40 transition-colors text-white px-2 py-1 rounded text-sm font-semibold flex items-center"
+                  >
+                    {selectedRequest.memberNumber}
+                    <ExternalLink className="ml-1 h-3.5 w-3.5" />
+                  </button>
+                </div>
+              )}
             </DialogDescription>
           </DialogHeader>
           
