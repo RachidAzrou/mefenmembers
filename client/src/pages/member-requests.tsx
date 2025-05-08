@@ -1231,72 +1231,65 @@ export default function MemberRequests() {
             <DialogDescription>
               Wil je deze lidmaatschapsaanvraag goedkeuren? Dit lid wordt dan toegevoegd aan het ledenbestand.
             </DialogDescription>
+            
+            {/* Lidnummer prominent bovenaan */}
+            <div className="mt-2 bg-[#963E56] text-white px-4 py-2 rounded-md w-full text-center">
+              <p className="text-sm font-medium mb-1">Toe te kennen lidnummer</p>
+              <p className="text-xl font-bold">{nextMemberNumber || "Automatisch"}</p>
+            </div>
           </DialogHeader>
+          
           <div className="mt-2 space-y-4">
             <div className="bg-gradient-to-r from-[#963E56]/10 to-white p-5 rounded-lg shadow-sm space-y-4 border border-[#963E56]/20">
               <div className="pb-3 border-b border-[#963E56]/20">
                 <p className="text-sm font-medium text-[#963E56] uppercase tracking-wider mb-1">Persoonlijke gegevens</p>
                 <p className="text-xl font-semibold">{selectedRequest?.firstName} {selectedRequest?.lastName}</p>
+                
+                {/* Leeftijd berekenen en tonen */}
+                {selectedRequest?.birthDate && (
+                  <p className="text-sm text-gray-600 mt-1">
+                    Leeftijd: {calculateAge(new Date(selectedRequest.birthDate))} jaar
+                  </p>
+                )}
               </div>
               
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-3">
                 <div>
-                  <p className="text-sm font-medium text-[#963E56] mb-2">Contact</p>
+                  <p className="text-sm font-medium text-[#963E56] mb-2">Locatie</p>
                   <div className="bg-white p-3 rounded-md border border-[#963E56]/20">
-                    <p className="text-xs text-gray-600 font-medium mb-1">E-mail</p>
-                    <p className="font-medium">{selectedRequest?.email}</p>
+                    <p className="text-xs text-gray-600 font-medium mb-1">Gemeente</p>
+                    <p className="font-medium">{selectedRequest?.city || "Niet opgegeven"}</p>
                   </div>
                   <div className="bg-white p-3 rounded-md border border-[#963E56]/20 mt-2">
-                    <p className="text-xs text-gray-600 font-medium mb-1">Telefoon</p>
-                    <p className="font-medium">{selectedRequest?.phoneNumber}</p>
+                    <p className="text-xs text-gray-600 font-medium mb-1">Adres</p>
+                    <p className="font-medium">
+                      {selectedRequest?.street} {selectedRequest?.houseNumber}
+                      {selectedRequest?.busNumber && `, bus ${selectedRequest.busNumber}`}
+                    </p>
                   </div>
                 </div>
 
                 <div>
-                  <div className="flex justify-between items-center mb-2">
-                    <p className="text-sm font-medium text-[#963E56]">Lidmaatschap</p>
-                    <div className="bg-[#963E56] text-white px-3 py-1 rounded-full text-xs font-bold">
-                      Lidnr: {nextMemberNumber || "Auto"}
-                    </div>
-                  </div>
+                  <p className="text-sm font-medium text-[#963E56] mb-2">Lidmaatschap</p>
                   <div className="bg-white p-3 rounded-md border border-[#963E56]/20">
                     <p className="text-xs text-gray-600 font-medium mb-1">Type</p>
                     <p className="font-medium">
-                      {selectedRequest?.membershipType === "standaard" && "Standaard"}
-                      {selectedRequest?.membershipType === "student" && "Student"}
-                      {selectedRequest?.membershipType === "senior" && "Senior"}
+                      {selectedRequest?.membershipType === "standaard" ? "Standaard" : 
+                       selectedRequest?.membershipType === "student" ? "Student" : 
+                       selectedRequest?.membershipType === "senior" ? "Senior" : "Standaard"}
                     </p>
                   </div>
                   <div className="bg-white p-3 rounded-md border border-[#963E56]/20 mt-2">
-                    <p className="text-xs text-gray-600 font-medium mb-1">Betaling</p>
+                    <p className="text-xs text-gray-600 font-medium mb-1">Betaalwijze</p>
                     <p className="font-medium">
                       {selectedRequest?.paymentMethod === "cash" ? "Cash" : 
                       selectedRequest?.paymentMethod === "bancontact" ? "Bancontact" : 
                       selectedRequest?.paymentMethod === "overschrijving" ? "Overschrijving" : 
-                      selectedRequest?.paymentMethod === "domiciliering" ? "Domiciliëring" : "Onbekend"} 
-                      - {selectedRequest?.paymentTerm === "maandelijks" ? "Maandelijks" : 
-                      selectedRequest?.paymentTerm === "driemaandelijks" ? "Driemaandelijks" : 
-                      selectedRequest?.paymentTerm === "jaarlijks" ? "Jaarlijks" : "Onbekend"}
+                      selectedRequest?.paymentMethod === "domiciliering" ? "Domiciliëring" : "Overschrijving"}
                     </p>
                   </div>
                 </div>
               </div>
-              
-              {selectedRequest?.accountNumber && (
-                <div className="mt-3 p-3 bg-white rounded-md border border-[#963E56]/20">
-                  <p className="text-sm font-medium text-[#963E56] mb-2">Bankgegevens</p>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                      <p className="text-xs text-gray-600 font-medium mb-1">Rekeninghouder</p>
-                      <p className="font-medium">{selectedRequest?.accountHolderName}</p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-gray-600 font-medium mb-1">Rekeningnummer</p>
-                      <p className="font-medium">{selectedRequest?.accountNumber}</p>
-                    </div>
-                  </div>
-                </div>
-              )}
             </div>
           </div>
           <DialogFooter className="mt-4">
@@ -1457,14 +1450,13 @@ export default function MemberRequests() {
                       <p className="font-medium">
                         {selectedRequest?.membershipType === "standaard" ? "Standaard" :
                         selectedRequest?.membershipType === "student" ? "Student" :
-                        selectedRequest?.membershipType === "senior" ? "Senior" : "Niet opgegeven"}
+                        selectedRequest?.membershipType === "senior" ? "Senior" : "Standaard"}
                       </p>
                     </div>
                     <div className="bg-white p-3 rounded-md border">
                       <p className="text-xs text-gray-500">Automatische verlenging</p>
                       <p className="font-medium">
-                        {selectedRequest?.autoRenew === true ? "Ja" :
-                         selectedRequest?.autoRenew === false ? "Nee" : "Niet opgegeven"}
+                        {selectedRequest?.autoRenew === true ? "Ja" : "Nee"}
                       </p>
                     </div>
                   </div>
@@ -1486,7 +1478,7 @@ export default function MemberRequests() {
                         {selectedRequest?.paymentMethod === "cash" ? "Contant" :
                         selectedRequest?.paymentMethod === "domiciliering" ? "Domiciliëring" :
                         selectedRequest?.paymentMethod === "overschrijving" ? "Overschrijving" :
-                        selectedRequest?.paymentMethod === "bancontact" ? "Bancontact" : "Niet opgegeven"}
+                        selectedRequest?.paymentMethod === "bancontact" ? "Bancontact" : "Overschrijving"}
                       </p>
                     </div>
                     <div className="bg-white p-3 rounded-md border">
@@ -1494,7 +1486,7 @@ export default function MemberRequests() {
                       <p className="font-medium">
                         {selectedRequest?.paymentTerm === "jaarlijks" ? "Jaarlijks" :
                         selectedRequest?.paymentTerm === "maandelijks" ? "Maandelijks" :
-                        selectedRequest?.paymentTerm === "driemaandelijks" ? "Driemaandelijks" : "Niet opgegeven"}
+                        selectedRequest?.paymentTerm === "driemaandelijks" ? "Driemaandelijks" : "Jaarlijks"}
                       </p>
                     </div>
                   </div>
