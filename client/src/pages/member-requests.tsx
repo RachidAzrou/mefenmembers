@@ -110,6 +110,7 @@ export default function MemberRequests() {
   const [showRejectionDialog, setShowRejectionDialog] = useState(false);
   const [showApprovalDialog, setShowApprovalDialog] = useState(false);
   const [showDetailView, setShowDetailView] = useState(false);
+  const [showDetailDialog, setShowDetailDialog] = useState(false);
   const [editedRequest, setEditedRequest] = useState<Partial<EditableMemberRequest> | null>(null);
   const [nextMemberNumber, setNextMemberNumber] = useState<string | null>(null);
   const [isEditing, setIsEditing] = useState(false);
@@ -960,11 +961,11 @@ export default function MemberRequests() {
                               variant="ghost" 
                               size="icon"
                               onClick={() => {
-                                // Toon details in de pop-up view
+                                // Toon details in de dialoog
                                 setSelectedRequest(request);
                                 setEditedRequest(null);
                                 setIsEditing(false);
-                                setShowDetailView(true);
+                                setShowDetailDialog(true);
                               }}
                               className="text-primary hover:text-primary/80"
                               title="Bekijk details van deze aanvraag"
