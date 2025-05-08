@@ -546,8 +546,8 @@ export default function Rapportage() {
 
   return (
     <div className="space-y-6 pb-8">
-      {/* Header section met gradient achtergrond - consistente styling met dashboard */}
-      <div className="rounded-lg bg-gradient-to-r from-[#963E56]/80 to-[#963E56] p-6 shadow-md">
+      {/* Header section met gradient achtergrond - consistente styling met dashboard, bordeaux in plaats van roze */}
+      <div className="rounded-lg bg-gradient-to-r from-[#7B001C]/80 to-[#7B001C] p-6 shadow-md">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <h1 className="text-2xl font-bold tracking-tight text-white mb-1">Rapportage</h1>
@@ -637,10 +637,10 @@ export default function Rapportage() {
             </Card>
             
             <Card className="border-none shadow-md overflow-hidden">
-              <div className="bg-gradient-to-r from-[#963E56]/20 to-[#963E56] h-2" />
+              <div className="bg-gradient-to-r from-[#7B001C]/20 to-[#7B001C] h-2" />
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">Betaalstatus</CardTitle>
-                <CreditCard className="h-4 w-4 text-[#963E56]" />
+                <CreditCard className="h-4 w-4 text-[#7B001C]" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">{Math.round(membersByPaymentStatus[0]?.value / (members?.length || 1) * 100)}%</div>
@@ -828,10 +828,10 @@ export default function Rapportage() {
             </Card>
             
             <Card className="col-span-1 border-none shadow-md overflow-hidden">
-              <div className="bg-gradient-to-r from-[#963E56]/20 to-[#963E56] h-2" />
+              <div className="bg-gradient-to-r from-[#7B001C]/20 to-[#7B001C] h-2" />
               <CardHeader className="flex flex-row items-center justify-between pb-2">
                 <CardTitle className="flex items-center">
-                  <CreditCard className="h-5 w-5 mr-2 text-[#963E56]" />
+                  <CreditCard className="h-5 w-5 mr-2 text-[#7B001C]" />
                   Betaalstatus
                 </CardTitle>
                 <Button 
@@ -889,10 +889,10 @@ export default function Rapportage() {
         <TabsContent value="financieel" className="space-y-4">
           {/* Contributie-instellingen */}
           <Card className="border-none shadow-md overflow-hidden">
-            <div className="bg-gradient-to-r from-[#963E56]/20 to-[#963E56] h-2" />
+            <div className="bg-gradient-to-r from-[#7B001C]/20 to-[#7B001C] h-2" />
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="flex items-center">
-                <Settings className="h-5 w-5 mr-2 text-[#963E56]" />
+                <Settings className="h-5 w-5 mr-2 text-[#7B001C]" />
                 Contributie instellingen
               </CardTitle>
               <Button 
@@ -956,10 +956,10 @@ export default function Rapportage() {
           
           <div className="grid gap-4 md:grid-cols-2">
             <Card className="col-span-1 border-none shadow-md overflow-hidden">
-              <div className="bg-gradient-to-r from-green-500/20 to-green-600/20 h-2" />
+              <div className="bg-gradient-to-r from-[#007833]/20 to-[#007833] h-2" />
               <CardHeader className="flex flex-row items-center justify-between pb-2">
                 <CardTitle className="flex items-center">
-                  <CreditCard className="h-5 w-5 mr-2 text-green-600" />
+                  <CreditCard className="h-5 w-5 mr-2 text-[#007833]" />
                   Betalingsmethodes
                 </CardTitle>
                 <Button 
@@ -1010,10 +1010,10 @@ export default function Rapportage() {
             </Card>
             
             <Card className="col-span-1 border-none shadow-md overflow-hidden">
-              <div className="bg-gradient-to-r from-purple-500/20 to-purple-600/20 h-2" />
+              <div className="bg-gradient-to-r from-[#D3A400]/20 to-[#D3A400] h-2" />
               <CardHeader className="flex flex-row items-center justify-between pb-2">
                 <CardTitle className="flex items-center">
-                  <Clock className="h-5 w-5 mr-2 text-purple-600" />
+                  <Clock className="h-5 w-5 mr-2 text-[#D3A400]" />
                   Betalingstermijnen
                 </CardTitle>
                 <Button 
@@ -1102,10 +1102,10 @@ export default function Rapportage() {
           </div>
 
           <Card className="border-none shadow-md overflow-hidden">
-            <div className="bg-gradient-to-r from-blue-500/20 to-blue-600/20 h-2" />
+            <div className="bg-gradient-to-r from-[#007833]/20 to-[#007833] h-2" />
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="flex items-center">
-                <BarChart3 className="h-5 w-5 mr-2 text-blue-600" />
+                <BarChart3 className="h-5 w-5 mr-2 text-[#007833]" />
                 Nieuwe leden per maand
               </CardTitle>
               <Button 
@@ -1146,7 +1146,7 @@ export default function Rapportage() {
                       labelFormatter={(label) => `${membershipGrowth.find(m => m.maand === label)?.maand_jaar}`}
                     />
                     <Legend verticalAlign="top" height={36} />
-                    <Bar dataKey="nieuwe_leden" name="Nieuwe leden" fill="#3F37C9" />
+                    <Bar dataKey="nieuwe_leden" name="Nieuwe leden" fill="#007833" />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
@@ -1154,10 +1154,10 @@ export default function Rapportage() {
           </Card>
 
           <Card className="border-none shadow-md overflow-hidden">
-            <div className="bg-gradient-to-r from-purple-500/20 to-purple-600/20 h-2" />
+            <div className="bg-gradient-to-r from-[#7B001C]/20 to-[#7B001C] h-2" />
             <CardHeader>
               <CardTitle className="flex items-center">
-                <LineChart className="h-5 w-5 mr-2 text-purple-600" />
+                <LineChart className="h-5 w-5 mr-2 text-[#7B001C]" />
                 Cumulatieve ledengroei
               </CardTitle>
             </CardHeader>
@@ -1186,7 +1186,7 @@ export default function Rapportage() {
                       type="monotone" 
                       dataKey="cumulatief" 
                       name="Cumulatieve groei" 
-                      stroke="#8884d8" 
+                      stroke="#7B001C" 
                       strokeWidth={2}
                       dot={{ r: 4 }}
                       activeDot={{ r: 6 }}
