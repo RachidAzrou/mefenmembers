@@ -628,9 +628,35 @@ export default function MemberRequests() {
   
   // Eerst filteren we alle goedgekeurde en afgewezen aanvragen uit de schone dataset
   const rawPendingRequests = cleanedRequests.filter(req => {
-    // Expliciet controleren of aanvraag niet in een van de volgende categorieën valt:
-    // 1. Aanvraag niet lokaal goedgekeurd of afgewezen
+    const idString = String(req.id);
+    
+    // Extra check voor localStorage IDs
+    const localStorageApprovedIds = localStorage.getItem('locallyApprovedIds');
+    const localStorageRejectedIds = localStorage.getItem('locallyRejectedIds');
+    
+    let parsedApprovedIds: any[] = [];
+    let parsedRejectedIds: any[] = [];
+    
+    try {
+      if (localStorageApprovedIds) parsedApprovedIds = JSON.parse(localStorageApprovedIds);
+      if (localStorageRejectedIds) parsedRejectedIds = JSON.parse(localStorageRejectedIds);
+    } catch (err) {
+      console.error("Error parsing localStorage:", err);
+    }
+    
+    // Check localStorage arrays voor string match van ID
+    const idInLocalApproved = parsedApprovedIds.some(id => String(id) === idString);
+    const idInLocalRejected = parsedRejectedIds.some(id => String(id) === idString);
+    
+    // SUPER STRICT FILTERING:
+    
+    // 1. Drie verschillende checks voor locale afwijzing of goedkeuring:
+    //    a. In de React state Set
+    //    b. In localStorage parsed arrays
+    //    c. De ID string voorkomt letterlijk in de localStorage raw string (fallback)
     if (locallyApprovedIds.has(req.id) || locallyRejectedIds.has(req.id)) return false;
+    if (idInLocalApproved || idInLocalRejected) return false;
+    if (localStorageApprovedIds?.includes(idString) || localStorageRejectedIds?.includes(idString)) return false;
     
     // 2. Aanvraag moet status "pending" hebben
     if (req.status !== "pending") return false;
@@ -641,7 +667,10 @@ export default function MemberRequests() {
     // 4. Aanvraag mag geen lidnummer of memberId hebben
     if (req.memberNumber || req.memberId) return false;
     
-    // Alle voorwaarden gepasseerd, aanvraag is echt "pending"
+    // 5. Extra check voor lege/null waarden als de aanvraag wel goed is
+    if (!req.firstName || !req.lastName || !req.email) return false;
+    
+    // Alle voorwaarden gepasseerd, aanvraag is ECHT "pending"
     return true;
   });
   
@@ -752,6 +781,36 @@ export default function MemberRequests() {
         return newSet;
       });
       
+      // Direct op localStorage opslaan voor onmiddellijke persistentie
+      try {
+        const existingIds = JSON.parse(localStorage.getItem('locallyApprovedIds') || '[]');
+        if (!existingIds.includes(selectedRequest.id)) {
+          const updatedIds = [...existingIds, selectedRequest.id];
+          localStorage.setItem('locallyApprovedIds', JSON.stringify(updatedIds));
+          console.log(`DIRECT: localStorage bijgewerkt met goedgekeurde ID ${selectedRequest.id}`);
+        }
+      } catch (err) {
+        console.error("Kon goedgekeurde ID niet direct opslaan in localStorage:", err);
+      }
+      
+      // Handmatig updates op de UI forceren door bewerking van de cache
+      // Dit is een drastische maar effectieve methode om dubbele items in de UI te voorkomen
+      const currentRequests = queryClient.getQueryData<MemberRequest[]>(["/api/member-requests"]);
+      if (currentRequests) {
+        const updatedRequests = currentRequests.map(req => {
+          if (String(req.id) === String(selectedRequest.id)) {
+            return {
+              ...req,
+              status: "approved",
+              processedDate: new Date().toISOString()
+            };
+          }
+          return req;
+        });
+        queryClient.setQueryData(["/api/member-requests"], updatedRequests);
+        console.log("DIRECT: Query cache bijgewerkt voor immediate UI update");
+      }
+      
       // Stuur alleen het ID - de nieuwe versie van de mutatie gebruikt alleen het ID
       approveMutation.mutate(selectedRequest.id);
     }
@@ -777,6 +836,37 @@ export default function MemberRequests() {
         console.log(`PREVENTIEF: Aanvraag #${selectedRequest.id} lokaal gemarkeerd als afgewezen`);
         return newSet;
       });
+      
+      // Direct op localStorage opslaan voor onmiddellijke persistentie
+      try {
+        const existingIds = JSON.parse(localStorage.getItem('locallyRejectedIds') || '[]');
+        if (!existingIds.includes(selectedRequest.id)) {
+          const updatedIds = [...existingIds, selectedRequest.id];
+          localStorage.setItem('locallyRejectedIds', JSON.stringify(updatedIds));
+          console.log(`DIRECT: localStorage bijgewerkt met afgewezen ID ${selectedRequest.id}`);
+        }
+      } catch (err) {
+        console.error("Kon afgewezen ID niet direct opslaan in localStorage:", err);
+      }
+      
+      // Handmatig updates op de UI forceren door bewerking van de cache
+      const currentRequests = queryClient.getQueryData<MemberRequest[]>(["/api/member-requests"]);
+      if (currentRequests) {
+        const updatedRequests = currentRequests.map(req => {
+          if (String(req.id) === String(selectedRequest.id)) {
+            return {
+              ...req,
+              status: "rejected",
+              processedDate: new Date().toISOString(),
+              rejectionReason: rejectionReason,
+              notes: rejectionReason
+            };
+          }
+          return req;
+        });
+        queryClient.setQueryData(["/api/member-requests"], updatedRequests);
+        console.log("DIRECT: Query cache bijgewerkt voor immediate UI update");
+      }
       
       rejectMutation.mutate({
         id: selectedRequest.id,
