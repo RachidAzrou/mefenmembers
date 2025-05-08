@@ -43,7 +43,7 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
-import { format } from "date-fns";
+import { format, parseISO } from "date-fns";
 import { nl } from "date-fns/locale";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
@@ -245,6 +245,19 @@ export default function MemberRequests() {
   const formatDate = (dateString: string | null | undefined) => {
     if (!dateString) return "N/A";
     return format(new Date(dateString), "dd/MM/yyyy", { locale: nl });
+  };
+  
+  // Functie om leeftijd te berekenen op basis van geboortedatum
+  const calculateAge = (birthDate: Date): number => {
+    const today = new Date();
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const monthDiff = today.getMonth() - birthDate.getMonth();
+    
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+      age--;
+    }
+    
+    return age;
   };
 
   // Ophalen van het eerstvolgende beschikbare lidnummer
@@ -1132,18 +1145,28 @@ export default function MemberRequests() {
               <div className="pb-3 border-b border-[#963E56]/20">
                 <p className="text-sm font-medium text-[#963E56] uppercase tracking-wider mb-1">Persoonlijke gegevens</p>
                 <p className="text-xl font-semibold">{selectedRequest?.firstName} {selectedRequest?.lastName}</p>
+                
+                {/* Leeftijd berekenen en tonen */}
+                {selectedRequest?.birthDate && (
+                  <p className="text-sm text-gray-600 mt-1">
+                    Leeftijd: {calculateAge(new Date(selectedRequest.birthDate))} jaar
+                  </p>
+                )}
               </div>
               
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-3">
                 <div>
-                  <p className="text-sm font-medium text-[#963E56] mb-2">Contact</p>
+                  <p className="text-sm font-medium text-[#963E56] mb-2">Locatie</p>
                   <div className="bg-white p-3 rounded-md border border-[#963E56]/20">
-                    <p className="text-xs text-gray-600 font-medium mb-1">E-mail</p>
-                    <p className="font-medium">{selectedRequest?.email}</p>
+                    <p className="text-xs text-gray-600 font-medium mb-1">Gemeente</p>
+                    <p className="font-medium">{selectedRequest?.city || "Niet opgegeven"}</p>
                   </div>
                   <div className="bg-white p-3 rounded-md border border-[#963E56]/20 mt-2">
-                    <p className="text-xs text-gray-600 font-medium mb-1">Telefoon</p>
-                    <p className="font-medium">{selectedRequest?.phoneNumber}</p>
+                    <p className="text-xs text-gray-600 font-medium mb-1">Adres</p>
+                    <p className="font-medium">
+                      {selectedRequest?.street} {selectedRequest?.houseNumber}
+                      {selectedRequest?.busNumber && `, bus ${selectedRequest.busNumber}`}
+                    </p>
                   </div>
                 </div>
 
@@ -1152,21 +1175,18 @@ export default function MemberRequests() {
                   <div className="bg-white p-3 rounded-md border border-[#963E56]/20">
                     <p className="text-xs text-gray-600 font-medium mb-1">Type</p>
                     <p className="font-medium">
-                      {selectedRequest?.membershipType === "standaard" && "Standaard"}
-                      {selectedRequest?.membershipType === "student" && "Student"}
-                      {selectedRequest?.membershipType === "senior" && "Senior"}
+                      {selectedRequest?.membershipType === "standaard" ? "Standaard" : 
+                       selectedRequest?.membershipType === "student" ? "Student" : 
+                       selectedRequest?.membershipType === "senior" ? "Senior" : "Standaard"}
                     </p>
                   </div>
                   <div className="bg-white p-3 rounded-md border border-[#963E56]/20 mt-2">
-                    <p className="text-xs text-gray-600 font-medium mb-1">Betaling</p>
+                    <p className="text-xs text-gray-600 font-medium mb-1">Betaalwijze</p>
                     <p className="font-medium">
                       {selectedRequest?.paymentMethod === "cash" ? "Cash" : 
                       selectedRequest?.paymentMethod === "bancontact" ? "Bancontact" : 
                       selectedRequest?.paymentMethod === "overschrijving" ? "Overschrijving" : 
-                      selectedRequest?.paymentMethod === "domiciliering" ? "Domiciliëring" : "Onbekend"} 
-                      - {selectedRequest?.paymentTerm === "maandelijks" ? "Maandelijks" : 
-                      selectedRequest?.paymentTerm === "driemaandelijks" ? "Driemaandelijks" : 
-                      selectedRequest?.paymentTerm === "jaarlijks" ? "Jaarlijks" : "Onbekend"}
+                      selectedRequest?.paymentMethod === "domiciliering" ? "Domiciliëring" : "Overschrijving"}
                     </p>
                   </div>
                 </div>
