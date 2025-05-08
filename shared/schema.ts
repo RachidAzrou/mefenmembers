@@ -88,6 +88,10 @@ export const memberRequests = pgTable("member_requests", {
   notes: text("notes"),
   privacyConsent: boolean("privacy_consent").default(false),
   ipAddress: text("ip_address"), // IP-adres van de aanvrager voor veiligheid
+  
+  // Verwijzing naar lid bij goedkeuring
+  memberId: integer("member_id"), // ID van het aangemaakte lid bij goedkeuring
+  memberNumber: text("member_number"), // Lidnummer van het aangemaakte lid bij goedkeuring
 });
 
 // Tabel voor het bijhouden van vrijgekomen lidnummers

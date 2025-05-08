@@ -140,7 +140,20 @@ export default function MemberRequests() {
   // Ophalen van alle aanvragen
   const { data: requests, isLoading } = useQuery<MemberRequest[]>({
     queryKey: ["/api/member-requests"],
-    queryFn: getQueryFn({ on401: "throw" }),
+    queryFn: async () => {
+      const response = await fetch('/api/member-requests');
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+      const data = await response.json();
+      // Debug log om te zien wat we krijgen van de server
+      console.log("API response data:", data);
+      if (data.length > 0) {
+        console.log("First request in response:", data[0]);
+        console.log("Approved requests:", data.filter(r => r.status === "approved"));
+      }
+      return data;
+    },
   });
 
   // Goedkeuren van een aanvraag
