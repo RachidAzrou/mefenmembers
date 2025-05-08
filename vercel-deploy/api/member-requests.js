@@ -249,10 +249,49 @@ export default async function handler(req, res) {
     // PUT verzoek: status van een lidmaatschapsaanvraag bijwerken
     if (req.method === 'PUT' && req.url.includes('/api/member-requests/status')) {
       try {
-        // Haal ID, status, processedBy en notes (rejectionReason) uit de request body
-        const { id, status, processedBy, notes, rejectionReason } = req.body;
+        console.log("PUT /api/member-requests/status: Volledige URL:", req.url);
+        console.log("PUT /api/member-requests/status: Request body:", JSON.stringify(req.body));
+        console.log("PUT /api/member-requests/status: Query params:", req.query);
         
-        console.log("Request body voor status update:", JSON.stringify(req.body));
+        // Haal id uit query parameters of request body
+        let id = null;
+        
+        // Probeer ID uit query string te halen (via req.query als dat beschikbaar is)
+        if (req.query && req.query.id) {
+          id = req.query.id;
+          console.log("PUT /api/member-requests/status: ID gevonden in req.query:", id);
+        } 
+        // Anders probeer de URL te parsen
+        else {
+          try {
+            const url = new URL(req.url, `https://${req.headers.host || 'localhost'}`);
+            const urlId = url.searchParams.get('id');
+            if (urlId) {
+              id = urlId;
+              console.log("PUT /api/member-requests/status: ID gevonden in URL params:", id);
+            }
+          } catch (e) {
+            console.error("PUT /api/member-requests/status: Fout bij parsen URL:", e.message);
+          }
+        }
+        
+        // Als laatste optie, check body
+        if (!id && req.body && req.body.id) {
+          id = req.body.id;
+          console.log("PUT /api/member-requests/status: ID gevonden in body:", id);
+        }
+        
+        console.log("PUT /api/member-requests/status: Uiteindelijk gebruikte ID:", id);
+        
+        // Haal andere parameters uit body
+        const { status, processedBy } = req.body;
+        
+        // Ondersteun zowel rejectionReason als notes voor compatibiliteit
+        let notes = req.body.notes;
+        if (!notes && req.body.rejectionReason) {
+          notes = req.body.rejectionReason;
+          console.log("PUT /api/member-requests/status: Gebruikt rejectionReason als notes:", notes);
+        }
         
         if (!id || !status || !['pending', 'approved', 'rejected'].includes(status)) {
           console.error(`PUT /api/member-requests/status VALIDATIE FOUT: id=${id}, status=${status}`);
@@ -311,26 +350,48 @@ export default async function handler(req, res) {
     // POST verzoek: goedkeuren van lidmaatschapsaanvraag en omzetten naar lid
     if (req.method === 'POST' && req.url.includes('/api/member-requests/approve')) {
       try {
+        console.log("POST /api/member-requests/approve: Volledige URL:", req.url);
+        console.log("POST /api/member-requests/approve: Request body:", JSON.stringify(req.body));
+        console.log("POST /api/member-requests/approve: Query params:", req.query);
+        
         // Haal id uit query parameters of request body
         let id = null;
         
-        // Check URL query parameters
-        const url = new URL(req.url, `https://${req.headers.host}`);
-        const urlId = url.searchParams.get('id');
-        
-        // Als id niet in URL staat, gebruik dan uit body
-        if (urlId) {
-          id = urlId;
-        } else if (req.body && req.body.id) {
-          id = req.body.id;
+        // Probeer ID uit query string te halen (via req.query als dat beschikbaar is)
+        if (req.query && req.query.id) {
+          id = req.query.id;
+          console.log("POST /api/member-requests/approve: ID gevonden in req.query:", id);
+        } 
+        // Anders probeer de URL te parsen
+        else {
+          try {
+            const url = new URL(req.url, `https://${req.headers.host || 'localhost'}`);
+            const urlId = url.searchParams.get('id');
+            if (urlId) {
+              id = urlId;
+              console.log("POST /api/member-requests/approve: ID gevonden in URL params:", id);
+            }
+          } catch (e) {
+            console.error("POST /api/member-requests/approve: Fout bij parsen URL:", e.message);
+          }
         }
+        
+        // Als laatste optie, check body
+        if (!id && req.body && req.body.id) {
+          id = req.body.id;
+          console.log("POST /api/member-requests/approve: ID gevonden in body:", id);
+        }
+        
+        console.log("POST /api/member-requests/approve: Uiteindelijk gebruikte ID:", id);
         
         if (!id) {
           console.error("POST /api/member-requests/approve: Ontbrekend request ID");
           return res.status(400).json({ 
             error: 'Ongeldig of ontbrekend ID', 
             required: ['id'],
-            received: JSON.stringify(req.body)
+            received: JSON.stringify(req.body),
+            url: req.url,
+            query: req.query
           });
         }
         

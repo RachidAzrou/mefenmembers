@@ -1,0 +1,113 @@
+index-BtBBMIg1.js:40 
+            
+            
+           POST https://mefenmembers-p96vrwc5w-rachid-as-projects.vercel.app/api/member-requests/approve?id=-OPgWios5917NqUislCN 400 (Bad Request)
+ja @ index-BtBBMIg1.js:40
+mutationFn @ index-BtBBMIg1.js:3490
+fn @ index-BtBBMIg1.js:40
+v @ index-BtBBMIg1.js:40
+start @ index-BtBBMIg1.js:40
+execute @ index-BtBBMIg1.js:40
+await in execute
+mutate @ index-BtBBMIg1.js:40
+(anonymous) @ index-BtBBMIg1.js:40
+M @ index-BtBBMIg1.js:3490
+fve @ index-BtBBMIg1.js:37
+hve @ index-BtBBMIg1.js:37
+gve @ index-BtBBMIg1.js:37
+AL @ index-BtBBMIg1.js:37
+tee @ index-BtBBMIg1.js:37
+(anonymous) @ index-BtBBMIg1.js:37
+tR @ index-BtBBMIg1.js:40
+IZ @ index-BtBBMIg1.js:37
+vD @ index-BtBBMIg1.js:37
+SF @ index-BtBBMIg1.js:37
+Tve @ index-BtBBMIg1.js:37Understand this errorAI
+index-BtBBMIg1.js:2133 WebSocket connection to 'wss://s-euw1b-nss-210.europe-west1.firebasedatabase.app/.ws?v=5&s=owtJ7wiKGYUAbIDpky6w7GH1f1fmTsvq&p=1:780110083561:web:63785c6534c79a46850778&ns=mefen-leden-default-rtdb' failed: WebSocket is closed before the connection is established.
+shutdown_ @ index-BtBBMIg1.js:2133
+close @ index-BtBBMIg1.js:2133
+closeConnections_ @ index-BtBBMIg1.js:2163
+close @ index-BtBBMIg1.js:2163
+l @ index-BtBBMIg1.js:2254
+onAuthRevoked_ @ index-BtBBMIg1.js:2254
+(anonymous) @ index-BtBBMIg1.js:2253
+onDataMessage_ @ index-BtBBMIg1.js:2253
+onDataMessage_ @ index-BtBBMIg1.js:2163
+onPrimaryMessageReceived_ @ index-BtBBMIg1.js:2163
+(anonymous) @ index-BtBBMIg1.js:2163
+(anonymous) @ index-BtBBMIg1.js:2103
+Ux @ index-BtBBMIg1.js:1998
+handleResponse @ index-BtBBMIg1.js:2103
+(anonymous) @ index-BtBBMIg1.js:2118
+pRTLPCB @ VM94 .lp:6
+(anonymous) @ VM96 .lp:1Understand this warningAI
+index-BtBBMIg1.js:648 [2025-05-08T10:51:19.695Z]  @firebase/database: FIREBASE WARNING: Provided authentication credentials for the app named "[DEFAULT]" are invalid. This usually indicates your app was not initialized correctly. Make sure the "apiKey" and "databaseURL" properties provided to initializeApp() match the values provided for your app at https://console.firebase.google.com/. 
+BCe @ index-BtBBMIg1.js:648
+warn @ index-BtBBMIg1.js:648
+T0 @ index-BtBBMIg1.js:1998
+notifyForInvalidToken @ index-BtBBMIg1.js:2028
+onAuthRevoked_ @ index-BtBBMIg1.js:2254
+(anonymous) @ index-BtBBMIg1.js:2253
+onDataMessage_ @ index-BtBBMIg1.js:2253
+onDataMessage_ @ index-BtBBMIg1.js:2163
+onPrimaryMessageReceived_ @ index-BtBBMIg1.js:2163
+(anonymous) @ index-BtBBMIg1.js:2163
+(anonymous) @ index-BtBBMIg1.js:2103
+Ux @ index-BtBBMIg1.js:1998
+handleResponse @ index-BtBBMIg1.js:2103
+(anonymous) @ index-BtBBMIg1.js:2118
+pRTLPCB @ VM94 .lp:6
+(anonymous) @ VM96 .lp:1Understand this warningAI
+index-BtBBMIg1.js:648 [2025-05-08T10:51:20.614Z]  @firebase/database: FIREBASE WARNING: Provided authentication credentials for the app named "[DEFAULT]" are invalid. This usually indicates your app was not initialized correctly. Make sure the "apiKey" and "databaseURL" properties provided to initializeApp() match the values provided for your app at https://console.firebase.google.com/. 
+BCe @ index-BtBBMIg1.js:648
+warn @ index-BtBBMIg1.js:648
+T0 @ index-BtBBMIg1.js:1998
+notifyForInvalidToken @ index-BtBBMIg1.js:2028
+onAuthRevoked_ @ index-BtBBMIg1.js:2254
+(anonymous) @ index-BtBBMIg1.js:2253
+onDataMessage_ @ index-BtBBMIg1.js:2253
+onDataMessage_ @ index-BtBBMIg1.js:2163
+onPrimaryMessageReceived_ @ index-BtBBMIg1.js:2163
+(anonymous) @ index-BtBBMIg1.js:2163
+(anonymous) @ index-BtBBMIg1.js:2103
+Ux @ index-BtBBMIg1.js:1998
+handleResponse @ index-BtBBMIg1.js:2103
+(anonymous) @ index-BtBBMIg1.js:2118
+pRTLPCB @ VM107 .lp:6
+(anonymous) @ VM109 .lp:1Understand this warningAI
+index-BtBBMIg1.js:2133 WebSocket connection to 'wss://s-euw1b-nss-210.europe-west1.firebasedatabase.app/.ws?v=5&s=5imKuunF2JGiG1sYcYsNcVuBqvpTXJOR&p=1:780110083561:web:63785c6534c79a46850778&ns=mefen-leden-default-rtdb' failed: WebSocket is closed before the connection is established.
+shutdown_ @ index-BtBBMIg1.js:2133
+close @ index-BtBBMIg1.js:2133
+closeConnections_ @ index-BtBBMIg1.js:2163
+close @ index-BtBBMIg1.js:2163
+l @ index-BtBBMIg1.js:2254
+onAuthRevoked_ @ index-BtBBMIg1.js:2254
+(anonymous) @ index-BtBBMIg1.js:2253
+onDataMessage_ @ index-BtBBMIg1.js:2253
+onDataMessage_ @ index-BtBBMIg1.js:2163
+onPrimaryMessageReceived_ @ index-BtBBMIg1.js:2163
+(anonymous) @ index-BtBBMIg1.js:2163
+(anonymous) @ index-BtBBMIg1.js:2103
+Ux @ index-BtBBMIg1.js:1998
+handleResponse @ index-BtBBMIg1.js:2103
+(anonymous) @ index-BtBBMIg1.js:2118
+pRTLPCB @ VM120 .lp:6
+(anonymous) @ VM121 .lp:1Understand this warningAI
+index-BtBBMIg1.js:648 [2025-05-08T10:51:22.846Z]  @firebase/database: FIREBASE WARNING: Provided authentication credentials for the app named "[DEFAULT]" are invalid. This usually indicates your app was not initialized correctly. Make sure the "apiKey" and "databaseURL" properties provided to initializeApp() match the values provided for your app at https://console.firebase.google.com/. 
+BCe @ index-BtBBMIg1.js:648
+warn @ index-BtBBMIg1.js:648
+T0 @ index-BtBBMIg1.js:1998
+notifyForInvalidToken @ index-BtBBMIg1.js:2028
+onAuthRevoked_ @ index-BtBBMIg1.js:2254
+(anonymous) @ index-BtBBMIg1.js:2253
+onDataMessage_ @ index-BtBBMIg1.js:2253
+onDataMessage_ @ index-BtBBMIg1.js:2163
+onPrimaryMessageReceived_ @ index-BtBBMIg1.js:2163
+(anonymous) @ index-BtBBMIg1.js:2163
+(anonymous) @ index-BtBBMIg1.js:2103
+Ux @ index-BtBBMIg1.js:1998
+handleResponse @ index-BtBBMIg1.js:2103
+(anonymous) @ index-BtBBMIg1.js:2118
+pRTLPCB @ VM120 .lp:6
+(anonymous) @ VM121 .lp:1Understand this warningAI
+index-BtBBMIg1.js:648 [2025-05-08T10:51:24.860Z]  @firebase/database: FIREBASE WARNING: Provided authentication credentials for the app named "[DEFAULT]" are invalid. This usually indicates your app was not initialized correctly. Make sure the "apiKey" and "databaseURL" properties provided to initializeApp() match the values provided for your app at https://console.firebase.google.com/. 
