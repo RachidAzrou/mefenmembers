@@ -413,7 +413,7 @@ export class DatabaseStorage implements IStorage {
     console.log(`===== START APPROVEMEMBERREQUEST voor aanvraag ID ${id} =====`);
     
     try {
-      // Stap 1: Controleer of de aanvraag bestaat en nog niet is verwerkt
+      // Stap 1: Controleer of de aanvraag bestaat
       console.log(`Ophalen aanvraag met ID ${id}`);
       const request = await this.getMemberRequest(id);
       
@@ -426,7 +426,7 @@ export class DatabaseStorage implements IStorage {
       
       // Stap 2: Check of de aanvraag al is verwerkt
       if (request.status === "approved") {
-        console.log(`Aanvraag ${id} is al goedgekeurd`);
+        console.log(`Aanvraag ${id} is al gemarkeerd als goedgekeurd`);
         
         // Als de aanvraag al is goedgekeurd EN we hebben een memberId, dan kunnen we dat lid opzoeken
         if (request.memberId) {
@@ -437,12 +437,35 @@ export class DatabaseStorage implements IStorage {
             console.log(`Bestaand lid gevonden voor aanvraag ${id}: ${existingMember.firstName} ${existingMember.lastName}`);
             return existingMember;
           } else {
-            console.error(`FOUT: Aanvraag ${id} verwijst naar niet-bestaand lid ${request.memberId}`);
-            throw new Error(`Inconsistente data: lid bestaat niet maar aanvraag is goedgekeurd`);
+            console.warn(`WAARSCHUWING: Aanvraag ${id} verwijst naar niet-bestaand lid ${request.memberId}`);
+            console.log(`We gaan het probleem herstellen door de aanvraag opnieuw te verwerken`);
+            
+            // Reset de status en memberId
+            await db
+              .update(memberRequests)
+              .set({ 
+                status: 'pending' as const,
+                memberId: null,
+                memberNumber: null
+              })
+              .where(eq(memberRequests.id, id));
+              
+            console.log(`De aanvraag is teruggezet naar 'pending' en zal opnieuw worden verwerkt`);
+            // Haal de aanvraag opnieuw op met bijgewerkte status
+            const updatedRequest = await this.getMemberRequest(id);
+            if (!updatedRequest) {
+              throw new Error(`Kan bijgewerkte aanvraag niet vinden na status reset`);
+            }
+            
+            // Ga verder met de bijgewerkte aanvraag
+            request.status = 'pending';
+            request.memberId = null;
+            request.memberNumber = null;
           }
         } else {
-          console.error(`FOUT: Aanvraag ${id} is gemarkeerd als goedgekeurd maar heeft geen memberId`);
-          throw new Error(`Inconsistente data: aanvraag is goedgekeurd maar mist lid referentie`);
+          console.warn(`WAARSCHUWING: Aanvraag ${id} is gemarkeerd als goedgekeurd maar heeft geen memberId`);
+          console.log(`We gaan het probleem herstellen door de aanvraag alsnog te verwerken`);
+          // Ga door met verwerken zonder fouten te geven
         }
       }
       

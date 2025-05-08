@@ -367,6 +367,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Zorg ervoor dat velden het juiste type hebben
         if (typeof requestData.id !== 'number') requestData.id = id;
         
+        // NIEUW: Controleer de status van de aanvraag om inconsistente toestanden te voorkomen
+        if (existingRequest.status === "approved" && !existingRequest.memberId) {
+          console.log(`WAARSCHUWING: Aanvraag ${id} is in een inconsistente staat: status=approved maar geen memberId`);
+          console.log(`We herstellen dit eerst door de aanvraag te resetten naar 'pending' voordat we verdergaan`);
+          
+          // Reset eerst de aanvraag status voordat we deze opnieuw verwerken
+          await storage.updateMemberRequestStatus(id, 'pending');
+          console.log(`Aanvraag ${id} is gereset naar 'pending', we gaan nu door met verwerken`);
+        }
+        
         console.log("Aanroepen approveMemberRequest met gecombineerde data");
         const member = await storage.approveMemberRequest(id, processedBy);
         
