@@ -179,6 +179,7 @@ export default function RegisterRequest() {
       toast({
         title: "Aanvraag ingediend",
         description: "Je lidmaatschapsaanvraag is succesvol ingediend.",
+        variant: "success",
       });
       form.reset();
       setSuccess(true);
