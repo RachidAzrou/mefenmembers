@@ -95,10 +95,19 @@ export default function MemberRequests() {
   // Ophalen van alle lidmaatschapsaanvragen
   const { data: requests, isLoading } = useQuery<MemberRequest[]>({
     queryKey: ["/api/member-requests"],
+    refetchOnWindowFocus: true, // Haal data opnieuw op bij focus
+    refetchOnMount: true,       // Haal data opnieuw op bij component mount
+    staleTime: 1000,            // Beschouw data als verouderd na 1 seconde
     queryFn: async () => {
       // Voorkom caching problemen met cachebuster parameter
       const timestamp = new Date().getTime();
-      const response = await fetch(`/api/member-requests?_=${timestamp}`);
+      const response = await fetch(`/api/member-requests?_=${timestamp}`, {
+        headers: {
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0'
+        }
+      });
       
       if (!response.ok) {
         throw new Error(`API fout: ${response.status} ${response.statusText}`);
@@ -125,17 +134,23 @@ export default function MemberRequests() {
     }
   });
 
-  // Filter aanvragen voor "In behandeling" lijst
+  // Filter aanvragen voor "In behandeling" lijst - nu met extra validatie
   const pendingRequests = requests
-    ? requests.filter(req => req.status === "pending")
+    ? requests.filter(req => {
+        // Alleen aanvragen die expliciet de status "pending" hebben en geen verwerkingsdatum
+        return req.status === "pending" && !req.processedDate;
+      })
     : [];
 
-  // Filter aanvragen voor "Verwerkt" lijst 
+  // Filter aanvragen voor "Verwerkt" lijst - verbeterde controles
   const processedRequests = requests
-    ? requests.filter(req => 
-        (req.status === "approved" || req.status === "rejected") && 
-        req.processedDate !== null
-      )
+    ? requests.filter(req => {
+        // Expliciet controleren op goedgekeurde/afgewezen aanvragen
+        const isProcessed = req.status === "approved" || req.status === "rejected";
+        // Extra controle op verwerkingsdatum en memberId (bij goedkeuring)
+        return isProcessed && req.processedDate !== null && 
+               (req.status !== "approved" || (req.status === "approved" && req.memberId));
+      })
     : [];
     
   // Helper functie om de lokale React Query cache direct te updaten
@@ -147,11 +162,14 @@ export default function MemberRequests() {
       
       if (currentRequests) {
         // Maak een kopie van het verzoek en markeer als goedgekeurd
+        // Zorg ervoor dat we een dummy memberId toevoegen om filterproblemen te voorkomen
         const updatedRequest: MemberRequest = {
           ...request,
           status: "approved",
           processedDate: new Date().toISOString(),
-          processedBy: 1
+          processedBy: 1,
+          memberId: request.memberId || -1,  // Tijdelijke waarde die later wordt overschreven door de server
+          memberNumber: request.memberNumber || "temp"  // Tijdelijke waarde voor betere UI weergave
         };
         
         // Vervang de oude versie met de bijgewerkte versie
