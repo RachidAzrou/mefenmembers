@@ -214,7 +214,8 @@ export default function MemberRequests() {
       const response = await apiRequest("PUT", `/api/member-requests/status?id=${id}`, {
         status: "rejected",
         processedBy: 1, // TODO: vervangen door echte gebruikers-ID
-        notes: reason
+        notes: reason,
+        rejectionReason: reason // Toevoegen van beide parameters voor compatibiliteit
       });
       return await response.json();
     },

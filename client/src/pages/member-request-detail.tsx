@@ -95,6 +95,7 @@ export default function MemberRequestDetail() {
         id: Number(id),
         status: "rejected",
         rejectionReason,
+        notes: rejectionReason, // Toevoegen voor compatibiliteit
         processedBy: 1 // Hard-coded user ID
       });
       return await res.json();
