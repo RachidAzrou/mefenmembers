@@ -461,7 +461,7 @@ export default function MemberRequests() {
               <TableHeader>
                 <TableRow>
                   <TableHead className="w-[200px] text-left font-semibold">Naam</TableHead>
-                  <TableHead className="w-[120px] text-center font-semibold">Datum</TableHead>
+                  <TableHead className="w-[120px] text-left font-semibold">Datum</TableHead>
                   <TableHead className="text-center w-[120px] font-semibold">Acties</TableHead>
                 </TableRow>
               </TableHeader>
@@ -480,7 +480,7 @@ export default function MemberRequests() {
                           {request.firstName} {request.lastName}
                         </div>
                       </TableCell>
-                      <TableCell>
+                      <TableCell className="text-left">
                         {formatDate(request.requestDate)}
                       </TableCell>
                       <TableCell className="text-center">
@@ -532,7 +532,7 @@ export default function MemberRequests() {
                 <TableRow>
                   <TableHead className="w-[200px] text-left font-semibold">Naam</TableHead>
                   <TableHead className="w-[120px] text-center font-semibold">Status</TableHead>
-                  <TableHead className="w-[120px] text-center font-semibold">Verwerkt op</TableHead>
+                  <TableHead className="w-[120px] text-left font-semibold">Verwerkt op</TableHead>
                   <TableHead className="text-center w-[120px] font-semibold">Acties</TableHead>
                 </TableRow>
               </TableHeader>
@@ -569,7 +569,7 @@ export default function MemberRequests() {
                           </Badge>
                         )}
                       </TableCell>
-                      <TableCell className="text-center">
+                      <TableCell className="text-left">
                         {formatDate(request.processedDate || request.requestDate)}
                       </TableCell>
                       <TableCell className="text-center">
