@@ -194,7 +194,7 @@ export default function MemberRequests() {
     refetchOnWindowFocus: true,
   });
 
-  // VOLLEDIG NIEUWE IMPLEMENTATIE: Goedkeuren van een aanvraag
+  // VERBETERDE IMPLEMENTATIE: Goedkeuren van een aanvraag - compatibel met zowel lokaal als Vercel
   const approveMutation = useMutation({
     mutationFn: async (requestId: number) => {
       if (!requestId || isNaN(requestId)) {
@@ -203,8 +203,21 @@ export default function MemberRequests() {
       
       console.log(`Versturen goedkeuringsverzoek voor aanvraag #${requestId}`);
       
-      // Verzoek met alleen essentiële gegevens
+      // Zoek de volledige aanvraagdata op voor Vercel Firebase compatibiliteit
+      const currentRequests = queryClient.getQueryData<MemberRequest[]>(["/api/member-requests"]);
+      const requestData = currentRequests?.find(req => req.id === requestId);
+      
+      if (!requestData) {
+        console.error(`Geen aanvraaggegevens gevonden voor ID: ${requestId}`);
+      }
+      
+      // Verzoek met volledige gegevens voor Vercel compatibiliteit
+      // maar ID ook in query string voor lokale server
       const response = await apiRequest("POST", `/api/member-requests/approve?id=${requestId}`, {
+        // Stuur de volledige aanvraag mee voor Vercel compatibiliteit
+        ...(requestData || {}),
+        // Plus belangrijke velden expliciet
+        id: requestId, 
         processedBy: 1 // TODO: vervangen door echte gebruikers-ID
       });
       
@@ -259,10 +272,22 @@ export default function MemberRequests() {
     },
   });
 
-  // Afwijzen van een aanvraag - eenvoudige implementatie
+  // Verbeterde implementatie: Afwijzen van een aanvraag - compatibel met zowel lokaal als Vercel
   const rejectMutation = useMutation({
     mutationFn: async ({ id, reason }: { id: number; reason: string }) => {
+      // Zoek de volledige aanvraagdata op voor Vercel Firebase compatibiliteit
+      const currentRequests = queryClient.getQueryData<MemberRequest[]>(["/api/member-requests"]);
+      const requestData = currentRequests?.find(req => req.id === id);
+      
+      if (!requestData) {
+        console.error(`Geen aanvraaggegevens gevonden voor ID: ${id}`);
+      }
+      
       const response = await apiRequest("PUT", `/api/member-requests/status?id=${id}`, {
+        // Stuur de volledige aanvraag mee voor Vercel compatibiliteit
+        ...(requestData || {}),
+        // Plus belangrijke velden expliciet
+        id: id, 
         status: "rejected",
         processedBy: 1, // TODO: vervangen door echte gebruikers-ID
         notes: reason,
