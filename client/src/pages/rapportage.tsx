@@ -1146,7 +1146,7 @@ export default function Rapportage() {
                       labelFormatter={(label) => `${membershipGrowth.find(m => m.maand === label)?.maand_jaar}`}
                     />
                     <Legend verticalAlign="top" height={36} />
-                    <Bar dataKey="nieuwe_leden" name="Nieuwe leden" fill="#007833" />
+                    <Bar dataKey="nieuwe_leden" name="Nieuwe leden" fill="#6BB85C" />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
@@ -1154,10 +1154,10 @@ export default function Rapportage() {
           </Card>
 
           <Card className="border-none shadow-md overflow-hidden">
-            <div className="bg-gradient-to-r from-[#7B001C]/20 to-[#7B001C] h-2" />
+            <div className="bg-gradient-to-r from-[#963E56]/20 to-[#963E56] h-2" />
             <CardHeader>
               <CardTitle className="flex items-center">
-                <LineChart className="h-5 w-5 mr-2 text-[#7B001C]" />
+                <LineChart className="h-5 w-5 mr-2 text-[#963E56]" />
                 Cumulatieve ledengroei
               </CardTitle>
             </CardHeader>
@@ -1186,7 +1186,7 @@ export default function Rapportage() {
                       type="monotone" 
                       dataKey="cumulatief" 
                       name="Cumulatieve groei" 
-                      stroke="#7B001C" 
+                      stroke="#963E56" 
                       strokeWidth={2}
                       dot={{ r: 4 }}
                       activeDot={{ r: 6 }}
@@ -1334,10 +1334,10 @@ export default function Rapportage() {
             </Card>
             
             <Card className="border-none shadow-md overflow-hidden">
-              <div className="bg-gradient-to-r from-[#7B001C]/20 to-[#7B001C] h-2" />
+              <div className="bg-gradient-to-r from-[#963E56]/20 to-[#963E56] h-2" />
               <CardHeader>
                 <CardTitle className="flex items-center">
-                  <Users className="h-5 w-5 mr-2 text-[#7B001C]" />
+                  <Users className="h-5 w-5 mr-2 text-[#963E56]" />
                   Geslachtsverdeling
                 </CardTitle>
               </CardHeader>
@@ -1443,10 +1443,10 @@ export default function Rapportage() {
             </Card>
             
             <Card className="border-none shadow-md overflow-hidden">
-              <div className="bg-gradient-to-r from-[#7B001C]/20 to-[#7B001C] h-2" />
+              <div className="bg-gradient-to-r from-[#963E56]/20 to-[#963E56] h-2" />
               <CardHeader className="flex flex-row items-center justify-between pb-2">
                 <CardTitle className="flex items-center">
-                  <Activity className="h-5 w-5 mr-2 text-[#7B001C]" />
+                  <Activity className="h-5 w-5 mr-2 text-[#963E56]" />
                   Ledengroei (cumulatief)
                 </CardTitle>
                 <Button 
@@ -1475,8 +1475,8 @@ export default function Rapportage() {
                     >
                       <defs>
                         <linearGradient id="colorCumulative" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor="#7B001C" stopOpacity={0.8}/>
-                          <stop offset="95%" stopColor="#7B001C" stopOpacity={0.2}/>
+                          <stop offset="5%" stopColor="#963E56" stopOpacity={0.8}/>
+                          <stop offset="95%" stopColor="#963E56" stopOpacity={0.2}/>
                         </linearGradient>
                       </defs>
                       <CartesianGrid strokeDasharray="3 3" />
@@ -1503,7 +1503,7 @@ export default function Rapportage() {
                         type="monotone" 
                         dataKey="cumulatief" 
                         name="Cumulatieve groei" 
-                        stroke="#7B001C"
+                        stroke="#963E56"
                         fillOpacity={1}
                         fill="url(#colorCumulative)"
                       />
@@ -1591,9 +1591,9 @@ export default function Rapportage() {
                       />
                       <RechartsTooltip />
                       <Legend wrapperStyle={{ paddingTop: 10 }} />
-                      <Bar dataKey="Automatische incasso" stackId="a" fill="#007833" />
-                      <Bar dataKey="Overschrijving" stackId="a" fill="#7B001C" />
-                      <Bar dataKey="Contant" stackId="a" fill="#D3A400" />
+                      <Bar dataKey="Automatische incasso" stackId="a" fill="#6BB85C" />
+                      <Bar dataKey="Overschrijving" stackId="a" fill="#963E56" />
+                      <Bar dataKey="Contant" stackId="a" fill="#D9A347" />
                       <Bar dataKey="Anders" stackId="a" fill="#666666" />
                     </BarChart>
                   </ResponsiveContainer>
@@ -1602,10 +1602,10 @@ export default function Rapportage() {
             </Card>
             
             <Card className="border-none shadow-md overflow-hidden">
-              <div className="bg-gradient-to-r from-[#007833]/20 to-[#007833] h-2" />
+              <div className="bg-gradient-to-r from-[#6BB85C]/20 to-[#6BB85C] h-2" />
               <CardHeader className="flex flex-row items-center justify-between pb-2">
                 <CardTitle className="flex items-center">
-                  <PieChartIcon className="h-5 w-5 mr-2 text-[#007833]" />
+                  <PieChartIcon className="h-5 w-5 mr-2 text-[#6BB85C]" />
                   Betaalstatus verdeling
                 </CardTitle>
                 <Button 
