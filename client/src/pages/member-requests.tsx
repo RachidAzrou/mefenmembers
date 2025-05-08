@@ -117,6 +117,35 @@ export default function MemberRequests() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [, setLocation] = useLocation();
+  
+  // Effect om eerder goedgekeurde en afgewezen aanvragen te laden uit localStorage
+  useEffect(() => {
+    try {
+      // Laad goedgekeurde aanvragen
+      const savedApprovedIds = localStorage.getItem('locallyApprovedIds');
+      if (savedApprovedIds) {
+        const idArray = JSON.parse(savedApprovedIds);
+        console.log("Eerder goedgekeurde aanvragen geladen uit localStorage:", idArray);
+        
+        const newApprovedSet = new Set<number | string>();
+        idArray.forEach((id: number | string) => newApprovedSet.add(id));
+        setLocallyApprovedIds(newApprovedSet);
+      }
+      
+      // Laad afgewezen aanvragen
+      const savedRejectedIds = localStorage.getItem('locallyRejectedIds');
+      if (savedRejectedIds) {
+        const idArray = JSON.parse(savedRejectedIds);
+        console.log("Eerder afgewezen aanvragen geladen uit localStorage:", idArray);
+        
+        const newRejectedSet = new Set<number | string>();
+        idArray.forEach((id: number | string) => newRejectedSet.add(id));
+        setLocallyRejectedIds(newRejectedSet);
+      }
+    } catch (err) {
+      console.error("Fout bij laden van aanvragen uit localStorage:", err);
+    }
+  }, []);
   // Om TypeScript fouten te voorkomen, maken we een volledig type voor een bewerkte aanvraag
   type EditableMemberRequest = {
     [K in keyof MemberRequest]: MemberRequest[K];
@@ -254,13 +283,25 @@ export default function MemberRequests() {
         variant: "success",
       });
       
-      // Expliciet lokaal goedgekeurde aanvragen bijhouden
+      // Expliciet lokaal goedgekeurde aanvragen bijhouden - dit is cruciaal om dubbele entries te voorkomen
       if (selectedRequest) {
+        console.log(`Markeer aanvraag #${selectedRequest.id} permanent als goedgekeurd in lokale status`);
         setLocallyApprovedIds(prev => {
           const newSet = new Set(prev);
           newSet.add(selectedRequest.id);
           return newSet;
         });
+        
+        // Sla de goedgekeurde ID's op in localStorage voor persistentie tussen refreshes
+        // Dit helpt om dubbele aanvragen te voorkomen als firebase updates niet direct zichtbaar zijn
+        try {
+          const existingIds = JSON.parse(localStorage.getItem('locallyApprovedIds') || '[]');
+          const updatedIds = [...existingIds, selectedRequest.id];
+          localStorage.setItem('locallyApprovedIds', JSON.stringify(updatedIds));
+          console.log(`Permanente lokale opslag bijgewerkt met aanvraag ID ${selectedRequest.id}`);
+        } catch (err) {
+          console.error("Kon goedgekeurde ID niet opslaan in localStorage:", err);
+        }
       }
       
       // Forceer volledige data refresh
@@ -273,9 +314,17 @@ export default function MemberRequests() {
       
       // Extra verversing met vertraging om te zorgen dat server updates verwerkt zijn
       setTimeout(() => {
-        console.log("Extra verversing van aanvragen data");
+        console.log("Eerste extra verversing van aanvragen data");
         queryClient.refetchQueries({ queryKey: ["/api/member-requests"] });
       }, 1000);
+      
+      // Tweede extra verversing voor het geval de eerste niet voldoende was
+      // Dit kan helpen met Firebase synchronisatieproblemen
+      setTimeout(() => {
+        console.log("Tweede extra verversing van aanvragen data");
+        queryClient.refetchQueries({ queryKey: ["/api/member-requests"] });
+        queryClient.refetchQueries({ queryKey: ["/api/members"] });
+      }, 3000);
     },
     onError: (error: Error) => {
       console.error("Fout bij goedkeuren:", error);
@@ -330,6 +379,28 @@ export default function MemberRequests() {
       return await response.json();
     },
     onSuccess: () => {
+      console.log("Afwijzing succesvol verwerkt");
+      
+      // Lokaal afgewezen aanvragen bijhouden
+      if (selectedRequest) {
+        console.log(`Markeer aanvraag #${selectedRequest.id} permanent als afgewezen in lokale status`);
+        setLocallyRejectedIds(prev => {
+          const newSet = new Set(prev);
+          newSet.add(selectedRequest.id);
+          return newSet;
+        });
+        
+        // Sla de afgewezen ID's op in localStorage voor persistentie tussen refreshes
+        try {
+          const existingIds = JSON.parse(localStorage.getItem('locallyRejectedIds') || '[]');
+          const updatedIds = [...existingIds, selectedRequest.id];
+          localStorage.setItem('locallyRejectedIds', JSON.stringify(updatedIds));
+          console.log(`Permanente lokale opslag bijgewerkt met afgewezen ID ${selectedRequest.id}`);
+        } catch (err) {
+          console.error("Kon afgewezen ID niet opslaan in localStorage:", err);
+        }
+      }
+      
       // Ververs data
       queryClient.invalidateQueries({ queryKey: ["/api/member-requests"] });
       
@@ -344,6 +415,12 @@ export default function MemberRequests() {
       setSelectedRequest(null);
       setShowRejectionDialog(false);
       setRejectionReason("");
+      
+      // Extra verversing met vertraging om te zorgen dat server updates verwerkt zijn
+      setTimeout(() => {
+        console.log("Extra verversing na afwijzing");
+        queryClient.refetchQueries({ queryKey: ["/api/member-requests"] });
+      }, 1000);
     },
     onError: (error: Error) => {
       toast({
@@ -472,9 +549,8 @@ export default function MemberRequests() {
   
   // Basis functie om te controleren of een aanvraag pending is
   function shouldShowAsPending(request: MemberRequest): boolean {
-    // Als lokaal goedgekeurd, nooit tonen als pending
-    // Converteer naar string om zowel nummer als string IDs te ondersteunen
-    if (locallyApprovedIds.has(request.id)) {
+    // Als lokaal goedgekeurd of afgewezen, nooit tonen als pending
+    if (locallyApprovedIds.has(request.id) || locallyRejectedIds.has(request.id)) {
       return false;
     }
     
@@ -511,6 +587,12 @@ export default function MemberRequests() {
       reqCopy.processedDate = reqCopy.processedDate || new Date().toISOString();
     }
     
+    // Als een aanvraag lokaal is afgewezen, forceer de juiste status
+    if (locallyRejectedIds.has(reqCopy.id)) {
+      reqCopy.status = "rejected";
+      reqCopy.processedDate = reqCopy.processedDate || new Date().toISOString();
+    }
+    
     return reqCopy;
   }) || [];
   
@@ -522,8 +604,8 @@ export default function MemberRequests() {
   
   // Filter aanvragen voor "Verwerkt" lijst 
   const processedRequests = cleanedRequests.filter(req => {
-    // Lokaal goedgekeurde aanvragen altijd tonen in verwerkte lijst
-    if (locallyApprovedIds.has(req.id)) {
+    // Lokaal goedgekeurde of afgewezen aanvragen altijd tonen in verwerkte lijst
+    if (locallyApprovedIds.has(req.id) || locallyRejectedIds.has(req.id)) {
       return true;
     }
     
@@ -633,6 +715,15 @@ export default function MemberRequests() {
         });
         return;
       }
+      
+      // PREVENTIEF: markeer de aanvraag direct als lokaal afgewezen voordat we de server-call doen
+      // Dit zorgt ervoor dat de UI onmiddellijk reageert, zelfs als de server-call lang duurt
+      setLocallyRejectedIds(prev => {
+        const newSet = new Set(prev);
+        newSet.add(selectedRequest.id);
+        console.log(`PREVENTIEF: Aanvraag #${selectedRequest.id} lokaal gemarkeerd als afgewezen`);
+        return newSet;
+      });
       
       rejectMutation.mutate({
         id: selectedRequest.id,
