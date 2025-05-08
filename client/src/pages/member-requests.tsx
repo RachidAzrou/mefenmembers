@@ -266,15 +266,37 @@ export default function MemberRequests() {
       return await response.json();
     },
     onSuccess: (data) => {
-      // Haal lidnummer uit response
-      const memberNumber = data.memberNumber || data.member?.memberNumber;
+      console.log("Server response na goedkeuring:", data);
       
-      // Toon succesmelding
+      // Haal lidnummer en lidID uit response
+      const memberNumber = data.memberNumber || data.member?.memberNumber;
+      const memberId = data.memberId || data.member?.id;
+      
+      // KRITIEKE CONTROLE: Gaan na of er daadwerkelijk een memberNumber en memberId zijn toegewezen
+      if (!memberNumber || !memberId) {
+        console.error("Waarschuwing: Goedkeuring response mist memberId of memberNumber", { data });
+        
+        // Toon een waarschuwing, maar laat de gebruiker weten dat er mogelijk een probleem is
+        toast({
+          title: "Deels geslaagd",
+          description: "De aanvraag is gemarkeerd als goedgekeurd, maar er kon geen lidnummer worden toegewezen. Dit kan een tijdelijk probleem zijn. Ververs de pagina en controleer of de aanvraag correct is verwerkt.",
+          variant: "destructive"
+        });
+        
+        // Ververs data om de huidige status te zien
+        queryClient.invalidateQueries({ queryKey: ["/api/member-requests"] });
+        queryClient.invalidateQueries({ queryKey: ["/api/members"] });
+        
+        // Reset UI state
+        setSelectedRequest(null);
+        setShowApprovalDialog(false);
+        return;
+      }
+      
+      // Als alles goed is gegaan, toon succesmelding
       toast({
         title: "Aanvraag goedgekeurd",
-        description: memberNumber 
-          ? `De aanvraag is succesvol goedgekeurd. Lidnummer: ${memberNumber}.`
-          : `De aanvraag is succesvol goedgekeurd. Het lidnummer wordt toegewezen in het systeem.`,
+        description: `De aanvraag is succesvol goedgekeurd. Lidnummer: ${memberNumber}.`,
         variant: "success",
       });
       

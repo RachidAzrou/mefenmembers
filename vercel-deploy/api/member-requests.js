@@ -500,12 +500,32 @@ export default async function handler(req, res) {
           const updateResult = await firebaseRequest('PUT', `member-requests/${id}`, updatedRequest);
           console.log(`POST /api/member-requests/approve: Aanvraag ${id} bijgewerkt naar 'approved' status:`, updateResult ? "Success" : "Geen data");
           
-          // Double-check of de aanvraag correct is bijgewerkt
+          // Grondige verificatie dat de aanvraag correct is bijgewerkt
           const verifyRequest = await firebaseRequest('GET', `member-requests/${id}`);
-          if (verifyRequest && verifyRequest.status === 'approved') {
-            console.log(`POST /api/member-requests/approve: Verificatie succesvol, aanvraag status is nu: ${verifyRequest.status}`);
+          
+          // Check of alle verplichte velden correct zijn ingesteld
+          const isVerified = verifyRequest && 
+                            verifyRequest.status === 'approved' && 
+                            verifyRequest.memberId === memberId &&
+                            verifyRequest.memberNumber === nextMemberNumber;
+          
+          if (isVerified) {
+            console.log(`POST /api/member-requests/approve: Verificatie succesvol, aanvraag is volledig correct bijgewerkt`);
           } else {
-            console.warn(`POST /api/member-requests/approve: Verificatie waarschuwing, aanvraag status is: ${verifyRequest?.status}`);
+            console.error(`POST /api/member-requests/approve: KRITIEKE VERIFICATIE FOUT:`, {
+              status: verifyRequest?.status,
+              memberId: verifyRequest?.memberId,
+              memberNumber: verifyRequest?.memberNumber,
+              expected: {
+                status: 'approved',
+                memberId,
+                memberNumber: nextMemberNumber
+              }
+            });
+            
+            // Als verificatie mislukt, gooi een fout om in de catch-block terecht te komen
+            // waar het aangemaakte lid wordt verwijderd om inconsistente data te voorkomen
+            throw new Error('Verificatie mislukt: Aanvraagstatus niet correct bijgewerkt met juiste memberId en memberNumber');
           }
           
           console.log(`POST /api/member-requests/approve: Aanvraag ${id} succesvol goedgekeurd en lid aangemaakt met ID ${memberId}`);
