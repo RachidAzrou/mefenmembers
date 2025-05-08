@@ -492,6 +492,15 @@ export default function MemberRequests() {
         <h1 className="text-2xl md:text-3xl font-bold">Aanvragen</h1>
         <p className="mt-1 opacity-90">Beheer nieuwe aanvragen en bekijk verwerkte aanvragen</p>
       </div>
+
+      <div className="flex justify-end mb-4">
+        <Button
+          className="bg-primary hover:bg-primary/90"
+          onClick={() => window.open('/register-request', '_blank')}
+        >
+          Aanmeldformulier openen
+        </Button>
+      </div>
       
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
         <Card className="bg-white border shadow-sm hover:shadow transition-shadow duration-200">
