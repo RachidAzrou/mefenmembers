@@ -390,7 +390,7 @@ export default function MemberRequests() {
       case "pending":
         return <Badge variant="outline">In behandeling</Badge>;
       case "approved":
-        return <Badge variant="default" className="bg-[#963E56]">Goedgekeurd</Badge>;
+        return <Badge variant="default" className="bg-green-500">Goedgekeurd</Badge>;
       case "rejected":
         return <Badge variant="destructive">Afgewezen</Badge>;
       default:
@@ -463,7 +463,7 @@ export default function MemberRequests() {
         <Card className="bg-white border shadow-sm hover:shadow transition-shadow duration-200">
           <CardHeader className="pb-2">
             <CardTitle className="text-lg flex items-center gap-2">
-              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-[#963E56]">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-green-600">
                 <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
                 <polyline points="22 4 12 14.01 9 11.01"></polyline>
               </svg>
@@ -471,7 +471,7 @@ export default function MemberRequests() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-3xl font-bold text-[#963E56]">{processedRequests.length}</p>
+            <p className="text-3xl font-bold text-green-600">{processedRequests.length}</p>
           </CardContent>
         </Card>
       </div>
@@ -543,7 +543,7 @@ export default function MemberRequests() {
                           <Button
                             variant="ghost"
                             size="icon"
-                            className="h-8 w-8 text-[#963E56] hover:text-[#7a3246] hover:bg-[#963E56]/10"
+                            className="h-8 w-8 text-green-600 hover:text-green-700 hover:bg-green-50"
                             onClick={() => handleApprove(request)}
                           >
                             <CheckIcon className="h-4 w-4" />
@@ -552,7 +552,7 @@ export default function MemberRequests() {
                           <Button
                             variant="ghost"
                             size="icon"
-                            className="h-8 w-8 text-[#963E56] hover:text-[#7a3246] hover:bg-[#963E56]/10"
+                            className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50"
                             onClick={() => handleReject(request)}
                           >
                             <XIcon className="h-4 w-4" />
@@ -596,7 +596,7 @@ export default function MemberRequests() {
                       </TableCell>
                       <TableCell className="text-center">
                         {request.status === "approved" && (
-                          <Badge variant="outline" className="bg-[#963E56] text-white border-[#7a3246] shadow-sm px-3 py-1">
+                          <Badge variant="outline" className="bg-green-600 text-white border-green-700 shadow-sm px-3 py-1">
                             <div className="flex items-center gap-1.5">
                               <CheckIcon className="h-3.5 w-3.5" />
                               <span>Goedgekeurd</span>
@@ -604,7 +604,7 @@ export default function MemberRequests() {
                           </Badge>
                         )}
                         {request.status === "rejected" && (
-                          <Badge variant="outline" className="bg-[#963E56] text-white border-[#7a3246] shadow-sm px-3 py-1">
+                          <Badge variant="outline" className="bg-red-600 text-white border-red-700 shadow-sm px-3 py-1">
                             <div className="flex items-center gap-1.5">
                               <XIcon className="h-3.5 w-3.5" />
                               <span>Afgewezen</span>
@@ -633,7 +633,7 @@ export default function MemberRequests() {
                             <Button
                               variant="ghost"
                               size="icon"
-                              className="h-8 w-8 text-[#963E56] hover:text-[#7a3246] hover:bg-[#963E56]/10"
+                              className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50"
                               onClick={() => handleDelete(request)}
                             >
                               <Trash2 className="h-4 w-4" />
@@ -679,7 +679,7 @@ export default function MemberRequests() {
                   </Badge>
                 )}
                 {selectedRequest?.status === "approved" && (
-                  <Badge variant="outline" className="bg-[#963E56] text-white border-[#7a3246] shadow-sm px-3 py-1">
+                  <Badge variant="outline" className="bg-green-600 text-white border-green-700 shadow-sm px-3 py-1">
                     <div className="flex items-center gap-1.5">
                       <CheckIcon className="h-3.5 w-3.5" />
                       <span>Goedgekeurd</span>
@@ -687,7 +687,7 @@ export default function MemberRequests() {
                   </Badge>
                 )}
                 {selectedRequest?.status === "rejected" && (
-                  <Badge variant="outline" className="bg-[#963E56] text-white border-[#7a3246] shadow-sm px-3 py-1">
+                  <Badge variant="outline" className="bg-red-600 text-white border-red-700 shadow-sm px-3 py-1">
                     <div className="flex items-center gap-1.5">
                       <XIcon className="h-3.5 w-3.5" />
                       <span>Afgewezen</span>
@@ -712,7 +712,7 @@ export default function MemberRequests() {
               )}
               {selectedRequest?.status === "rejected" && (
                 <div className="mt-2 flex items-center">
-                  <div className="bg-[#963E56]/70 text-white px-3 py-1.5 rounded text-sm font-medium flex items-center">
+                  <div className="bg-red-700/70 text-white px-3 py-1.5 rounded text-sm font-medium flex items-center">
                     <XCircle className="h-4 w-4 mr-1.5" />
                     <span>Reden: {selectedRequest.notes || "Geen reden opgegeven"}</span>
                   </div>
@@ -730,7 +730,7 @@ export default function MemberRequests() {
                   Reden voor afwijzing
                 </h3>
                 
-                <div className="bg-[#963E56]/5 p-4 rounded-md border border-[#963E56]/20 shadow-sm">
+                <div className="bg-red-50 p-4 rounded-md border border-red-200 shadow-sm">
                   <p className="text-gray-800">{selectedRequest.notes || "Geen reden opgegeven"}</p>
                 </div>
               </div>
@@ -928,7 +928,7 @@ export default function MemberRequests() {
         <DialogContent className="max-w-md" hideCloseButton>
           <DialogHeader className="bg-gradient-to-r from-[#963E56] to-[#7a3246] p-5 text-white rounded-t-xl -mt-4 -mx-4 shadow-md">
             <div className="flex items-center mb-1">
-              <div className="bg-[#963E56] h-7 w-7 rounded-full flex items-center justify-center mr-2 shadow-sm">
+              <div className="bg-green-600 h-7 w-7 rounded-full flex items-center justify-center mr-2 shadow-sm">
                 <CheckIcon className="h-5 w-5 text-white" />
               </div>
               <DialogTitle className="text-xl font-bold text-white">Aanvraag goedkeuren</DialogTitle>
@@ -1037,7 +1037,7 @@ export default function MemberRequests() {
             </Button>
             <Button 
               onClick={confirmApproval}
-              className="w-full sm:w-auto bg-[#963E56] hover:bg-[#7a3246] text-white shadow-sm"
+              className="w-full sm:w-auto bg-green-600 hover:bg-green-700 text-white shadow-sm"
               disabled={approveMutation.isPending}
             >
               {approveMutation.isPending ? (
@@ -1056,7 +1056,7 @@ export default function MemberRequests() {
         <DialogContent className="max-w-md" hideCloseButton>
           <DialogHeader className="bg-gradient-to-r from-[#963E56] to-[#7a3246] p-5 text-white rounded-t-xl -mt-4 -mx-4 shadow-md">
             <div className="flex items-center mb-1">
-              <div className="bg-[#963E56] h-7 w-7 rounded-full flex items-center justify-center mr-2 shadow-sm">
+              <div className="bg-red-600 h-7 w-7 rounded-full flex items-center justify-center mr-2 shadow-sm">
                 <XIcon className="h-5 w-5 text-white" />
               </div>
               <DialogTitle className="text-xl font-bold text-white">Aanvraag afwijzen</DialogTitle>
