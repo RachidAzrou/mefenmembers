@@ -602,17 +602,17 @@ export default function MemberRequests() {
       {/* Detail dialog */}
       <Dialog open={showDetailDialog} onOpenChange={setShowDetailDialog}>
         <DialogContent className="w-full max-w-3xl">
-          <DialogHeader className="bg-[#963E56] p-5 sm:p-6 text-white rounded-t-xl -mt-4 -mx-4">
+          <DialogHeader className="bg-gradient-to-r from-[#963E56] to-[#83354A] p-5 sm:p-6 text-white rounded-t-xl -mt-4 -mx-4 shadow-md">
             <DialogTitle className="text-xl font-bold flex items-center gap-2">
               <span>Aanvraagdetails</span>
               {selectedRequest?.status === "pending" && (
-                <Badge variant="outline" className="bg-white text-[#963E56] border-white">In behandeling</Badge>
+                <Badge variant="outline" className="bg-white text-[#963E56] border-white shadow-sm">In behandeling</Badge>
               )}
               {selectedRequest?.status === "approved" && (
-                <Badge variant="outline" className="bg-white text-green-600 border-white">Goedgekeurd</Badge>
+                <Badge variant="outline" className="bg-white text-green-600 border-white shadow-sm">Goedgekeurd</Badge>
               )}
               {selectedRequest?.status === "rejected" && (
-                <Badge variant="outline" className="bg-white text-red-600 border-white">Afgewezen</Badge>
+                <Badge variant="outline" className="bg-white text-red-600 border-white shadow-sm">Afgewezen</Badge>
               )}
             </DialogTitle>
             <DialogDescription className="text-white/90 mt-1">
@@ -838,7 +838,7 @@ export default function MemberRequests() {
       {/* Goedkeuren dialog */}
       <Dialog open={showApprovalDialog} onOpenChange={setShowApprovalDialog}>
         <DialogContent className="max-w-md">
-          <DialogHeader className="bg-[#963E56] p-5 text-white rounded-t-xl -mt-4 -mx-4">
+          <DialogHeader className="bg-gradient-to-r from-[#4CAF50] to-[#388E3C] p-5 text-white rounded-t-xl -mt-4 -mx-4 shadow-md">
             <DialogTitle className="text-xl font-bold">Aanvraag goedkeuren</DialogTitle>
             <DialogDescription className="text-white/90 mt-1">
               Bevestig om deze aanvraag goed te keuren en een nieuw lid aan te maken.
@@ -847,9 +847,13 @@ export default function MemberRequests() {
 
           <div className="my-4">
             {nextMemberNumber && (
-              <div className="mb-4 bg-green-50 p-3 border border-green-200 rounded-md text-center shadow-sm">
-                <p className="text-sm text-green-700 font-medium">Nieuw lidnummer</p>
-                <p className="text-2xl font-bold text-green-800">{nextMemberNumber}</p>
+              <div className="mb-4 bg-gradient-to-br from-green-50 to-green-100 p-4 border border-green-200 rounded-md text-center shadow-sm">
+                <p className="text-sm text-green-700 font-medium uppercase tracking-wide">Nieuw lidnummer</p>
+                <div className="flex items-center justify-center mt-1">
+                  <CheckIcon className="h-5 w-5 text-green-600 mr-1.5" />
+                  <p className="text-2xl font-bold text-green-800">{nextMemberNumber}</p>
+                </div>
+                <p className="text-xs text-green-600 mt-1">Deze aanvraag zal worden omgezet naar een lidmaatschap</p>
               </div>
             )}
 
@@ -939,10 +943,14 @@ export default function MemberRequests() {
             </Button>
             <Button 
               onClick={confirmApproval}
-              className="w-full sm:w-auto bg-[#963E56] hover:bg-[#7a3246]"
+              className="w-full sm:w-auto bg-green-600 hover:bg-green-700 text-white shadow-sm"
               disabled={approveMutation.isPending}
             >
-              {approveMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {approveMutation.isPending ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <CheckIcon className="mr-2 h-4 w-4" />
+              )}
               Bevestig goedkeuring
             </Button>
           </DialogFooter>
@@ -952,7 +960,7 @@ export default function MemberRequests() {
       {/* Afwijzen dialog */}
       <Dialog open={showRejectionDialog} onOpenChange={setShowRejectionDialog}>
         <DialogContent className="max-w-md">
-          <DialogHeader className="bg-red-600 p-5 text-white rounded-t-xl -mt-4 -mx-4">
+          <DialogHeader className="bg-gradient-to-r from-[#E53935] to-[#C62828] p-5 text-white rounded-t-xl -mt-4 -mx-4 shadow-md">
             <DialogTitle className="text-xl font-bold">Aanvraag afwijzen</DialogTitle>
             <DialogDescription className="text-white/90 mt-1">
               Geef een reden op voor de afwijzing van deze aanvraag.
@@ -997,7 +1005,41 @@ export default function MemberRequests() {
                       {formatPaymentMethodLabel(selectedRequest?.paymentMethod)}
                     </p>
                   </div>
+                  
+                  <div>
+                    <p className="text-xs font-medium text-gray-500 mb-1">Betalingstermijn</p>
+                    <p className="font-medium text-gray-800">
+                      {formatPaymentTermLabel(selectedRequest?.paymentTerm)}
+                    </p>
+                  </div>
+                  
+                  <div>
+                    <p className="text-xs font-medium text-gray-500 mb-1">Automatische verlenging</p>
+                    <p className="font-medium text-gray-800">
+                      {formatAutoRenewLabel(selectedRequest?.autoRenew)}
+                    </p>
+                  </div>
                 </div>
+                
+                {(selectedRequest?.paymentMethod === "domiciliering" || selectedRequest?.accountNumber) && (
+                  <div className="mt-4 pt-4 border-t border-gray-100">
+                    <p className="text-xs font-medium text-gray-500 mb-2">Bankgegevens</p>
+                    
+                    {selectedRequest?.accountNumber && (
+                      <div className="flex items-center gap-2 mb-1">
+                        <CreditCardIcon className="h-3.5 w-3.5 text-gray-400" />
+                        <p className="text-sm">{selectedRequest.accountNumber}</p>
+                      </div>
+                    )}
+                    
+                    {selectedRequest?.accountHolderName && (
+                      <div className="flex items-center gap-2">
+                        <UserIcon className="h-3.5 w-3.5 text-gray-400" />
+                        <p className="text-sm">{selectedRequest.accountHolderName}</p>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -1037,10 +1079,14 @@ export default function MemberRequests() {
             <Button 
               variant="destructive" 
               onClick={confirmRejection}
-              className="w-full sm:w-auto"
+              className="w-full sm:w-auto shadow-sm"
               disabled={rejectMutation.isPending || !rejectionReason.trim()}
             >
-              {rejectMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {rejectMutation.isPending ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <XIcon className="mr-2 h-4 w-4" />
+              )}
               {!rejectionReason.trim() ? "Reden vereist" : "Bevestig afwijzing"}
             </Button>
           </DialogFooter>
