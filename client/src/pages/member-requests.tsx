@@ -146,7 +146,10 @@ export default function MemberRequests() {
     queryKey: ["/api/member-requests"],
     queryFn: async () => {
       console.log("Ophalen van lidmaatschapsaanvragen gestart...");
-      const response = await fetch('/api/member-requests');
+      // Gebruik noCache URL parameter om caching problemen te voorkomen
+      // Dit zorgt ervoor dat we altijd verse data krijgen van de server
+      const noCache = new Date().getTime();
+      const response = await fetch(`/api/member-requests?noCache=${noCache}`);
       
       if (!response.ok) {
         console.error("API fout bij ophalen aanvragen:", response.status, response.statusText);
@@ -615,19 +618,28 @@ export default function MemberRequests() {
     }
   });
   
+  // NIEUW: Maak een lokale KOPIE van de data om te voorkomen dat we caching problemen krijgen
+  // Dit is een fundamentele oplossing voor het probleem met duplicatie
+  const safeDataCopy = requests ? [...requests] : [];
+  
   // STAP 2: Forceer ACTIEVE cache opschoning voor "In behandeling" lijst
-  const cleanedRequests = requests?.filter(req => {
-    // Als een aanvraag al lokaal gemarkeerd is als goedgekeurd, verwijder deze volledig uit de pending lijst
-    if (locallyApprovedIds.has(req.id)) {
-      console.log(`FILTER: Aanvraag #${req.id} verwijderd uit 'In behandeling' lijst vanwege lokale goedkeuring`);
-      // Zet ook EXPLICIET de status op approved voor het geval de server dit niet heeft gedaan
-      req.status = "approved";
-      req.processedDate = req.processedDate || new Date().toISOString();
-      // Niet volledig verwijderen uit de dataset, maar wel uit de pending lijst
-      return true; 
-    }
-    return true;
-  }) || [];
+  const cleanedRequests = safeDataCopy
+    .map(req => {
+      // CRUCIALE FIX: Maak diepe kopieën van alle objecten om referentieproblemen te voorkomen
+      // Dit zorgt ervoor dat updates aan deze objecten niet doorsijpelen naar andere plekken in de cache
+      const reqCopy = { ...req };
+      
+      // Als een aanvraag al lokaal gemarkeerd is als goedgekeurd, forceer de juiste status
+      if (locallyApprovedIds.has(reqCopy.id)) {
+        console.log(`FILTER: Forceer status voor aanvraag #${reqCopy.id} naar 'approved'`);
+        reqCopy.status = "approved";
+        reqCopy.processedDate = reqCopy.processedDate || new Date().toISOString();
+      }
+      
+      return reqCopy;
+    })
+    // Geen filter hier, we houden alle items maar met de juiste status
+    || [];
   
   // Filter alle aanvragen die echt pending zijn
   const allPendingRequests = cleanedRequests.filter(shouldShowAsPending) || [];
