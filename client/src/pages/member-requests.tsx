@@ -242,7 +242,7 @@ export default function MemberRequests() {
     return requestDate >= sevenDaysAgo;
   }) || [];
   
-  const formatDate = (dateString: string | null) => {
+  const formatDate = (dateString: string | null | undefined) => {
     if (!dateString) return "N/A";
     return format(new Date(dateString), "dd/MM/yyyy", { locale: nl });
   };
@@ -288,6 +288,16 @@ export default function MemberRequests() {
 
   const confirmRejection = () => {
     if (selectedRequest) {
+      // Controleer of er een afwijzingsreden is ingevuld
+      if (!rejectionReason.trim()) {
+        toast({
+          title: "Reden verplicht",
+          description: "Geef een reden op voor de afwijzing.",
+          variant: "destructive",
+        });
+        return;
+      }
+      
       rejectMutation.mutate({
         id: selectedRequest.id,
         reason: rejectionReason
@@ -1073,11 +1083,11 @@ export default function MemberRequests() {
                           variant="ghost" 
                           size="icon"
                           onClick={() => {
-                            // Toon details in de pop-up view
+                            // Toon details in de dialoog
                             setSelectedRequest(request);
                             setEditedRequest(null);
                             setIsEditing(false);
-                            setShowDetailView(true);
+                            setShowDetailDialog(true);
                           }}
                           className="text-primary hover:text-primary/80"
                           title="Bekijk details van deze aanvraag"
@@ -1288,6 +1298,238 @@ export default function MemberRequests() {
               ) : (
                 "Goedkeuren"
               )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Detail Dialog */}
+      <Dialog open={showDetailDialog} onOpenChange={setShowDetailDialog}>
+        <DialogContent className="max-w-4xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-xl">
+              <svg 
+                xmlns="http://www.w3.org/2000/svg" 
+                width="20" 
+                height="20" 
+                viewBox="0 0 24 24" 
+                fill="none" 
+                stroke="currentColor" 
+                strokeWidth="2" 
+                strokeLinecap="round" 
+                strokeLinejoin="round" 
+                className="text-primary"
+              >
+                <circle cx="11" cy="11" r="8"></circle>
+                <path d="m21 21-4.3-4.3"></path>
+              </svg>
+              Details aanvraag
+            </DialogTitle>
+            <DialogDescription>
+              Bekijk de volledige informatie over deze lidmaatschapsaanvraag.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="mt-2 space-y-4 max-h-[65vh] overflow-y-auto pr-2">
+            <div className="bg-gradient-to-r from-[#963E56]/10 to-white p-5 rounded-lg shadow-sm space-y-4 border border-[#963E56]/20">
+              {/* Status badge */}
+              <div className="flex justify-between items-start">
+                <div className="pb-3 border-b border-[#963E56]/20 w-full">
+                  <p className="text-sm font-medium text-[#963E56] uppercase tracking-wider mb-1">Aanvraagstatus</p>
+                  <div className="flex items-center">
+                    <p className="text-xl font-semibold">{selectedRequest?.firstName} {selectedRequest?.lastName}</p>
+                    <div className="ml-3">
+                      {selectedRequest?.status === "pending" && (
+                        <Badge variant="outline" className="ml-2 border-amber-500 text-amber-700">In behandeling</Badge>
+                      )}
+                      {selectedRequest?.status === "approved" && (
+                        <Badge variant="default" className="ml-2 bg-green-500">Goedgekeurd</Badge>
+                      )}
+                      {selectedRequest?.status === "rejected" && (
+                        <Badge variant="destructive" className="ml-2">Afgewezen</Badge>
+                      )}
+                    </div>
+                  </div>
+                  <p className="text-sm text-gray-500 mt-1">Aanvraag ontvangen op {formatDate(selectedRequest?.requestDate || null)}</p>
+                </div>
+              </div>
+
+              {/* Grid layout voor details */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Persoonlijke gegevens */}
+                <div>
+                  <h3 className="text-md font-semibold text-[#963E56] mb-3 flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                      <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path>
+                      <circle cx="12" cy="7" r="4"></circle>
+                    </svg>
+                    Persoonlijke gegevens
+                  </h3>
+                  <div className="space-y-2">
+                    <div className="bg-white p-3 rounded-md border">
+                      <p className="text-xs text-gray-500">Naam</p>
+                      <p className="font-medium">{selectedRequest?.firstName} {selectedRequest?.lastName}</p>
+                    </div>
+                    <div className="bg-white p-3 rounded-md border">
+                      <p className="text-xs text-gray-500">Geboortedatum</p>
+                      <p className="font-medium">{formatDate(selectedRequest?.birthDate || null)}</p>
+                    </div>
+                    <div className="bg-white p-3 rounded-md border">
+                      <p className="text-xs text-gray-500">Geslacht</p>
+                      <p className="font-medium">
+                        {selectedRequest?.gender === "man" ? "Man" : 
+                         selectedRequest?.gender === "vrouw" ? "Vrouw" : "Niet opgegeven"}
+                      </p>
+                    </div>
+                    <div className="bg-white p-3 rounded-md border">
+                      <p className="text-xs text-gray-500">Nationaliteit</p>
+                      <p className="font-medium">{selectedRequest?.nationality || "Niet opgegeven"}</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Contactgegevens */}
+                <div>
+                  <h3 className="text-md font-semibold text-[#963E56] mb-3 flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                      <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
+                    </svg>
+                    Contactgegevens
+                  </h3>
+                  <div className="space-y-2">
+                    <div className="bg-white p-3 rounded-md border">
+                      <p className="text-xs text-gray-500">Telefoon</p>
+                      <p className="font-medium">{selectedRequest?.phoneNumber}</p>
+                    </div>
+                    <div className="bg-white p-3 rounded-md border">
+                      <p className="text-xs text-gray-500">E-mail</p>
+                      <p className="font-medium">{selectedRequest?.email}</p>
+                    </div>
+                    <div className="bg-white p-3 rounded-md border">
+                      <p className="text-xs text-gray-500">Adres</p>
+                      <p className="font-medium">
+                        {selectedRequest?.street} {selectedRequest?.houseNumber} {selectedRequest?.busNumber && `(bus ${selectedRequest.busNumber})`}<br />
+                        {selectedRequest?.postalCode} {selectedRequest?.city}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Tweede rij - Lidmaatschaps- en betalingsgegevens */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+                {/* Lidmaatschapsgegevens */}
+                <div>
+                  <h3 className="text-md font-semibold text-[#963E56] mb-3 flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                      <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                      <circle cx="8.5" cy="7" r="4"></circle>
+                      <polyline points="17 11 19 13 23 9"></polyline>
+                    </svg>
+                    Lidmaatschapsgegevens
+                  </h3>
+                  <div className="space-y-2">
+                    <div className="bg-white p-3 rounded-md border">
+                      <p className="text-xs text-gray-500">Type lidmaatschap</p>
+                      <p className="font-medium">
+                        {selectedRequest?.membershipType === "standaard" ? "Standaard" :
+                        selectedRequest?.membershipType === "student" ? "Student" :
+                        selectedRequest?.membershipType === "senior" ? "Senior" : "Niet opgegeven"}
+                      </p>
+                    </div>
+                    {selectedRequest?.autoRenew !== undefined && (
+                      <div className="bg-white p-3 rounded-md border">
+                        <p className="text-xs text-gray-500">Automatische verlenging</p>
+                        <p className="font-medium">
+                          {selectedRequest.autoRenew ? "Ja" : "Nee"}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Betalingsgegevens */}
+                <div>
+                  <h3 className="text-md font-semibold text-[#963E56] mb-3 flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                      <rect x="2" y="5" width="20" height="14" rx="2"></rect>
+                      <line x1="2" y1="10" x2="22" y2="10"></line>
+                    </svg>
+                    Betalingsgegevens
+                  </h3>
+                  <div className="space-y-2">
+                    <div className="bg-white p-3 rounded-md border">
+                      <p className="text-xs text-gray-500">Betalingsmethode</p>
+                      <p className="font-medium">
+                        {selectedRequest?.paymentMethod === "cash" ? "Contant" :
+                        selectedRequest?.paymentMethod === "domiciliering" ? "Domiciliëring" :
+                        selectedRequest?.paymentMethod === "overschrijving" ? "Overschrijving" :
+                        selectedRequest?.paymentMethod === "bancontact" ? "Bancontact" : "Niet opgegeven"}
+                      </p>
+                    </div>
+                    <div className="bg-white p-3 rounded-md border">
+                      <p className="text-xs text-gray-500">Betalingstermijn</p>
+                      <p className="font-medium">
+                        {selectedRequest?.paymentTerm === "jaarlijks" ? "Jaarlijks" :
+                        selectedRequest?.paymentTerm === "maandelijks" ? "Maandelijks" :
+                        selectedRequest?.paymentTerm === "driemaandelijks" ? "Driemaandelijks" : "Niet opgegeven"}
+                      </p>
+                    </div>
+                    {selectedRequest?.accountNumber && (
+                      <div className="bg-white p-3 rounded-md border">
+                        <p className="text-xs text-gray-500">Rekeningnummer</p>
+                        <p className="font-medium">{selectedRequest.accountNumber}</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Afwijzingsreden tonen als de aanvraag is afgewezen */}
+              {selectedRequest?.status === "rejected" && selectedRequest?.notes && (
+                <div className="mt-6">
+                  <h3 className="text-md font-semibold text-[#963E56] mb-3 flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                      <circle cx="12" cy="12" r="10"></circle>
+                      <line x1="12" y1="8" x2="12" y2="12"></line>
+                      <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                    </svg>
+                    Reden voor afwijzing
+                  </h3>
+                  <div className="bg-rose-50 p-4 rounded-md border border-rose-200">
+                    <p className="text-gray-700">{selectedRequest.notes}</p>
+                  </div>
+                </div>
+              )}
+
+              {/* Notities veld (indien aanwezig) */}
+              {selectedRequest?.notes && selectedRequest?.status !== "rejected" && (
+                <div className="mt-6">
+                  <h3 className="text-md font-semibold text-[#963E56] mb-3 flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                      <path d="M14 3v4a1 1 0 0 0 1 1h4"></path>
+                      <path d="M17 21H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7l5 5v11a2 2 0 0 1-2 2z"></path>
+                      <line x1="9" y1="9" x2="10" y2="9"></line>
+                      <line x1="9" y1="13" x2="15" y2="13"></line>
+                      <line x1="9" y1="17" x2="15" y2="17"></line>
+                    </svg>
+                    Notities
+                  </h3>
+                  <div className="bg-white p-4 rounded-md border">
+                    <p className="text-gray-700">{selectedRequest.notes}</p>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+
+          <DialogFooter className="mt-4">
+            <Button
+              variant="outline"
+              onClick={() => setShowDetailDialog(false)}
+              className="border-[#963E56]/30 text-[#963E56] hover:bg-[#963E56]/5"
+            >
+              Sluiten
             </Button>
           </DialogFooter>
         </DialogContent>
