@@ -18,8 +18,6 @@ import {
 import {
   Card,
   CardContent,
-  CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -31,55 +29,25 @@ import { useLocation } from "wouter";
 import { 
   CheckIcon, 
   Loader2, 
-  ShieldAlertIcon, 
   XIcon,
-  X,
-  AlertCircle,
-  XCircle,
-  Search, 
-  ArrowLeft,
-  PencilIcon,
-  Save,
-  MapPin as MapPinIcon,
+  Eye,
+  Clock,
+  User as UserIcon,
   Calendar as CalendarIcon,
   CreditCard as CreditCardIcon,
-  User as UserIcon,
-  Mail as MailIcon,
-  UserPlus as UserPlusIcon,
-  Eye,
-  Trash2,
-  Clock
+  MapPin as MapPinIcon,
+  AlertCircle
 } from "lucide-react";
-import { Switch } from "@/components/ui/switch";
-import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
-import { format, parseISO } from "date-fns";
+import { format } from "date-fns";
 import { nl } from "date-fns/locale";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
-import { 
-  Select, 
-  SelectContent, 
-  SelectItem, 
-  SelectTrigger, 
-  SelectValue 
-} from "@/components/ui/select";
 import { useRole } from "@/hooks/use-role";
-import { 
-  MembershipCard, 
-  LocationCard, 
-  PaymentDetailsCard,
-  formatMembershipTypeLabel,
-  formatPaymentMethodLabel,
-  formatPaymentTermLabel,
-  formatAutoRenewLabel
-} from "@/components/RequestDetailViewCards";
 
 // Type voor lidmaatschapsaanvragen
 interface MemberRequest {
-  // ID kan ofwel een nummer zijn (PostgreSQL) of een string (Firebase)
   id: number | string;
   status: "pending" | "approved" | "rejected";
   firstName: string;
@@ -100,7 +68,6 @@ interface MemberRequest {
   processedBy: number | null;
   notes: string | null;
   privacyConsent: boolean;
-  // Uitgebreide velden voor betaling en bankgegevens
   paymentMethod?: "cash" | "domiciliering" | "overschrijving" | "bancontact";
   paymentTerm?: "maandelijks" | "driemaandelijks" | "jaarlijks";
   autoRenew?: boolean;
@@ -108,7 +75,6 @@ interface MemberRequest {
   accountHolderName?: string | null;
   bicSwift?: string | null;
   rejectionReason?: string | null;
-  // Velden voor goedgekeurde aanvragen
   memberId?: number | string | null;
   memberNumber?: string | null;
 }
@@ -117,61 +83,16 @@ export default function MemberRequests() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [, setLocation] = useLocation();
+  const { isAdmin } = useRole();
   
-  // Effect om eerder goedgekeurde en afgewezen aanvragen te laden uit localStorage
-  useEffect(() => {
-    try {
-      // Laad goedgekeurde aanvragen
-      const savedApprovedIds = localStorage.getItem('locallyApprovedIds');
-      if (savedApprovedIds) {
-        const idArray = JSON.parse(savedApprovedIds);
-        console.log("Eerder goedgekeurde aanvragen geladen uit localStorage:", idArray);
-        
-        const newApprovedSet = new Set<number | string>();
-        idArray.forEach((id: number | string) => newApprovedSet.add(id));
-        setLocallyApprovedIds(newApprovedSet);
-      }
-      
-      // Laad afgewezen aanvragen
-      const savedRejectedIds = localStorage.getItem('locallyRejectedIds');
-      if (savedRejectedIds) {
-        const idArray = JSON.parse(savedRejectedIds);
-        console.log("Eerder afgewezen aanvragen geladen uit localStorage:", idArray);
-        
-        const newRejectedSet = new Set<number | string>();
-        idArray.forEach((id: number | string) => newRejectedSet.add(id));
-        setLocallyRejectedIds(newRejectedSet);
-      }
-    } catch (err) {
-      console.error("Fout bij laden van aanvragen uit localStorage:", err);
-    }
-  }, []);
-  // Om TypeScript fouten te voorkomen, maken we een volledig type voor een bewerkte aanvraag
-  type EditableMemberRequest = {
-    [K in keyof MemberRequest]: MemberRequest[K];
-  } & {
-    paymentMethod: "cash" | "domiciliering" | "overschrijving" | "bancontact";
-    paymentTerm: "maandelijks" | "driemaandelijks" | "jaarlijks";
-    autoRenew: boolean;
-    accountNumber: string | null;
-    accountHolderName: string | null;
-    bicSwift: string | null;
-  };
-  
+  // UI states
   const [selectedRequest, setSelectedRequest] = useState<MemberRequest | null>(null);
   const [rejectionReason, setRejectionReason] = useState("");
   const [showRejectionDialog, setShowRejectionDialog] = useState(false);
   const [showApprovalDialog, setShowApprovalDialog] = useState(false);
-  const [showDetailView, setShowDetailView] = useState(false);
   const [showDetailDialog, setShowDetailDialog] = useState(false);
-  const [editedRequest, setEditedRequest] = useState<Partial<EditableMemberRequest> | null>(null);
-  const [nextMemberNumber, setNextMemberNumber] = useState<string | null>(null);
-  const [isEditing, setIsEditing] = useState(false);
-  const [locallyApprovedIds, setLocallyApprovedIds] = useState<Set<number | string>>(new Set());
-  const [locallyRejectedIds, setLocallyRejectedIds] = useState<Set<number | string>>(new Set());
-  const { isAdmin } = useRole();
 
-  // Ophalen van alle aanvragen op een nette, efficiënte manier
+  // Ophalen van alle lidmaatschapsaanvragen
   const { data: requests, isLoading } = useQuery<MemberRequest[]>({
     queryKey: ["/api/member-requests"],
     queryFn: async () => {
@@ -185,119 +106,90 @@ export default function MemberRequests() {
       
       const data = await response.json();
       
-      // Valideer data formaat
       if (!Array.isArray(data)) {
         throw new Error("Ongeldig API antwoord formaat: geen array");
       }
       
-      console.log(`API antwoord: ${data.length} aanvragen ontvangen`);
-      
-      // Stap 1: Simpele ID-deduplicatie op de API response
-      const seenIds = new Set<string>();
-      const uniqueItems: any[] = [];
-      
-      for (const item of data) {
-        if (!item || !item.id) continue; // Skip invalid items
-        
-        const idString = String(item.id);
-        if (!seenIds.has(idString)) {
-          seenIds.add(idString);
-          uniqueItems.push(item);
-        } else {
-          console.log(`API Response duplicaat ID: ${idString}`);
-        }
-      }
-      
-      if (data.length !== uniqueItems.length) {
-        console.log(`API Response bevatte ${data.length - uniqueItems.length} duplicaten op basis van ID`);
-        data.length = 0; // Leeg de originele array
-        data.push(...uniqueItems); // Vul met unieke items
-      }
-      
-      // Normaliseer en valideer elke aanvraag
+      // Normaliseer en valideer elk item
       return data.map(item => {
         // Maak kopie om onbedoelde referentieproblemen te vermijden
         const cleanItem = { ...item };
         
-        // 1. Valideer status veld
+        // Valideer status veld
         if (!cleanItem.status || !["pending", "approved", "rejected"].includes(cleanItem.status)) {
           cleanItem.status = "pending";
         }
         
-        // 2. Voeg processedDate toe indien nodig
-        if ((cleanItem.status === "approved" || cleanItem.status === "rejected") && !cleanItem.processedDate) {
-          cleanItem.processedDate = new Date().toISOString();
-        }
-        
-        // 3. Zorg dat aanvragen met lid-ID/nummer altijd approved status hebben
-        if ((cleanItem.memberId || cleanItem.memberNumber) && cleanItem.status !== "approved") {
-          cleanItem.status = "approved";
-          cleanItem.processedDate = cleanItem.processedDate || new Date().toISOString();
-        }
-        
-        // 4. Pas lokaal gemarkeerde aanvragen aan
-        if (locallyApprovedIds.has(cleanItem.id) && cleanItem.status !== "approved") {
-          cleanItem.status = "approved";
-          cleanItem.processedDate = cleanItem.processedDate || new Date().toISOString();
-        }
-        
         return cleanItem;
       });
-    },
-    staleTime: 30000,
-    refetchOnWindowFocus: true,
+    }
   });
 
-  // VERBETERDE IMPLEMENTATIE: Goedkeuren van een aanvraag - compatibel met zowel lokaal als Vercel
+  // Filter aanvragen voor "In behandeling" lijst
+  const pendingRequests = requests
+    ? requests.filter(req => req.status === "pending")
+    : [];
+
+  // Filter aanvragen voor "Verwerkt" lijst 
+  const processedRequests = requests
+    ? requests.filter(req => 
+        (req.status === "approved" || req.status === "rejected") && 
+        req.processedDate !== null
+      )
+    : [];
+
+  // Functies voor het formatteren van de datum
+  const formatDate = (dateString: string | null | undefined) => {
+    if (!dateString) return "N/A";
+    return format(new Date(dateString), "dd/MM/yyyy", { locale: nl });
+  };
+  
+  // Helper functies voor formatteren van lidmaatschapsgegevens
+  const formatMembershipTypeLabel = (type: string | null | undefined) => {
+    if (!type) return "Onbekend";
+    switch (type) {
+      case "standaard": return "Standaard";
+      case "student": return "Student";
+      case "senior": return "Senior";
+      default: return type;
+    }
+  };
+  
+  const formatPaymentMethodLabel = (method: string | null | undefined) => {
+    if (!method) return "Onbekend";
+    switch (method) {
+      case "cash": return "Contant";
+      case "domiciliering": return "Domiciliëring";
+      case "overschrijving": return "Overschrijving";
+      case "bancontact": return "Bancontact";
+      default: return method;
+    }
+  };
+  
+  const formatPaymentTermLabel = (term: string | null | undefined) => {
+    if (!term) return "Onbekend";
+    switch (term) {
+      case "maandelijks": return "Maandelijks";
+      case "driemaandelijks": return "Driemaandelijks";
+      case "jaarlijks": return "Jaarlijks";
+      default: return term;
+    }
+  };
+  
+  const formatAutoRenewLabel = (autoRenew: boolean | null | undefined) => {
+    return autoRenew ? "Ja" : "Nee";
+  };
+
+  // Goedkeuren van een aanvraag
   const approveMutation = useMutation({
     mutationFn: async (requestId: number | string) => {
-      if (!requestId) {
-        throw new Error("Ongeldige aanvraag: geen ID gevonden");
-      }
-      
-      console.log(`Versturen goedkeuringsverzoek voor aanvraag #${requestId}`);
-      
-      // Zoek de volledige aanvraagdata op voor Vercel Firebase compatibiliteit
-      const currentRequests = queryClient.getQueryData<MemberRequest[]>(["/api/member-requests"]);
-      
-      // Compatibiliteit met zowel numerieke als string IDs (Firebase gebruikt string IDs)
-      const requestData = currentRequests?.find(req => {
-        if (typeof requestId === 'number' && typeof req.id === 'number') {
-          return req.id === requestId;
-        } else if (typeof requestId === 'string' && typeof req.id === 'string') {
-          return req.id === requestId;
-        } else {
-          // Probeer string conversie als types niet overeenkomen
-          return String(req.id) === String(requestId);
-        }
-      });
-      
-      if (!requestData) {
-        console.error(`Geen aanvraaggegevens gevonden voor ID: ${requestId}`);
-      } else {
-        console.log("Goedkeuring bevestigd voor aanvraag:", requestId);
-        console.log("PREVENTIEF: Aanvraag #" + requestId + " lokaal gemarkeerd als goedgekeurd");
-      }
-      
-      // Verzoek met volledige gegevens voor Vercel compatibiliteit
-      // maar ID ook in query string voor lokale server
       const response = await apiRequest("POST", `/api/member-requests/approve?id=${requestId}`, {
-        // Stuur de volledige aanvraag mee voor Vercel compatibiliteit
-        ...(requestData || {}),
-        // Plus belangrijke velden expliciet
-        id: requestId, 
-        processedBy: 1 // TODO: vervangen door echte gebruikers-ID
+        id: requestId
       });
-      
-      const responseData = await response.json();
-      console.log("Server response:", responseData);
-      
-      return responseData;
+      return await response.json();
     },
     onSuccess: (data) => {
-      console.log("Goedkeuring succesvol verwerkt", data);
-      
-      // Haal benodigde gegevens uit de response
+      // Haal lidnummer uit response
       const memberNumber = data.memberNumber || data.member?.memberNumber;
       
       // Toon succesmelding
@@ -309,51 +201,15 @@ export default function MemberRequests() {
         variant: "success",
       });
       
-      // Expliciet lokaal goedgekeurde aanvragen bijhouden - dit is cruciaal om dubbele entries te voorkomen
-      if (selectedRequest) {
-        console.log(`Markeer aanvraag #${selectedRequest.id} permanent als goedgekeurd in lokale status`);
-        setLocallyApprovedIds(prev => {
-          const newSet = new Set(prev);
-          newSet.add(selectedRequest.id);
-          return newSet;
-        });
-        
-        // Sla de goedgekeurde ID's op in localStorage voor persistentie tussen refreshes
-        // Dit helpt om dubbele aanvragen te voorkomen als firebase updates niet direct zichtbaar zijn
-        try {
-          const existingIds = JSON.parse(localStorage.getItem('locallyApprovedIds') || '[]');
-          const updatedIds = [...existingIds, selectedRequest.id];
-          localStorage.setItem('locallyApprovedIds', JSON.stringify(updatedIds));
-          console.log(`Permanente lokale opslag bijgewerkt met aanvraag ID ${selectedRequest.id}`);
-        } catch (err) {
-          console.error("Kon goedgekeurde ID niet opslaan in localStorage:", err);
-        }
-      }
-      
-      // Forceer volledige data refresh
+      // Ververs data
       queryClient.invalidateQueries({ queryKey: ["/api/member-requests"] });
       queryClient.invalidateQueries({ queryKey: ["/api/members"] });
       
-      // Reset UI
+      // Reset UI state
       setSelectedRequest(null);
       setShowApprovalDialog(false);
-      
-      // Extra verversing met vertraging om te zorgen dat server updates verwerkt zijn
-      setTimeout(() => {
-        console.log("Eerste extra verversing van aanvragen data");
-        queryClient.refetchQueries({ queryKey: ["/api/member-requests"] });
-      }, 1000);
-      
-      // Tweede extra verversing voor het geval de eerste niet voldoende was
-      // Dit kan helpen met Firebase synchronisatieproblemen
-      setTimeout(() => {
-        console.log("Tweede extra verversing van aanvragen data");
-        queryClient.refetchQueries({ queryKey: ["/api/member-requests"] });
-        queryClient.refetchQueries({ queryKey: ["/api/members"] });
-      }, 3000);
     },
     onError: (error: Error) => {
-      console.error("Fout bij goedkeuren:", error);
       toast({
         title: "Fout bij goedkeuren",
         description: error.message,
@@ -362,91 +218,32 @@ export default function MemberRequests() {
     },
   });
 
-  // Verbeterde implementatie: Afwijzen van een aanvraag - compatibel met zowel lokaal als Vercel
+  // Afwijzen van een aanvraag
   const rejectMutation = useMutation({
     mutationFn: async ({ id, reason }: { id: number | string; reason: string }) => {
-      if (!id) {
-        throw new Error("Ongeldige aanvraag: geen ID gevonden");
-      }
-      
-      console.log(`Versturen afwijzingsverzoek voor aanvraag #${id}`);
-      
-      // Zoek de volledige aanvraagdata op voor Vercel Firebase compatibiliteit
-      const currentRequests = queryClient.getQueryData<MemberRequest[]>(["/api/member-requests"]);
-      
-      // Compatibiliteit met zowel numerieke als string IDs (Firebase gebruikt string IDs)
-      const requestData = currentRequests?.find(req => {
-        if (typeof id === 'number' && typeof req.id === 'number') {
-          return req.id === id;
-        } else if (typeof id === 'string' && typeof req.id === 'string') {
-          return req.id === id;
-        } else {
-          // Probeer string conversie als types niet overeenkomen
-          return String(req.id) === String(id);
-        }
-      });
-      
-      if (!requestData) {
-        console.error(`Geen aanvraaggegevens gevonden voor ID: ${id}`);
-      } else {
-        console.log("Afwijzing bevestigd voor aanvraag:", id);
-      }
-      
       const response = await apiRequest("PUT", `/api/member-requests/status?id=${id}`, {
-        // Stuur de volledige aanvraag mee voor Vercel compatibiliteit
-        ...(requestData || {}),
-        // Plus belangrijke velden expliciet
-        id: id, 
+        id: id,
         status: "rejected",
-        processedBy: 1, // TODO: vervangen door echte gebruikers-ID
         notes: reason,
-        rejectionReason: reason // Beide parameters voor compatibiliteit
+        rejectionReason: reason
       });
       return await response.json();
     },
     onSuccess: () => {
-      console.log("Afwijzing succesvol verwerkt");
-      
-      // Lokaal afgewezen aanvragen bijhouden
-      if (selectedRequest) {
-        console.log(`Markeer aanvraag #${selectedRequest.id} permanent als afgewezen in lokale status`);
-        setLocallyRejectedIds(prev => {
-          const newSet = new Set(prev);
-          newSet.add(selectedRequest.id);
-          return newSet;
-        });
-        
-        // Sla de afgewezen ID's op in localStorage voor persistentie tussen refreshes
-        try {
-          const existingIds = JSON.parse(localStorage.getItem('locallyRejectedIds') || '[]');
-          const updatedIds = [...existingIds, selectedRequest.id];
-          localStorage.setItem('locallyRejectedIds', JSON.stringify(updatedIds));
-          console.log(`Permanente lokale opslag bijgewerkt met afgewezen ID ${selectedRequest.id}`);
-        } catch (err) {
-          console.error("Kon afgewezen ID niet opslaan in localStorage:", err);
-        }
-      }
-      
-      // Ververs data
-      queryClient.invalidateQueries({ queryKey: ["/api/member-requests"] });
-      
-      // Toon succes bericht
+      // Toon succesmelding
       toast({
         title: "Aanvraag afgewezen",
         description: "De aanvraag is succesvol afgewezen.",
         variant: "destructive",
       });
       
-      // Reset UI
+      // Ververs data
+      queryClient.invalidateQueries({ queryKey: ["/api/member-requests"] });
+      
+      // Reset UI state
       setSelectedRequest(null);
       setShowRejectionDialog(false);
       setRejectionReason("");
-      
-      // Extra verversing met vertraging om te zorgen dat server updates verwerkt zijn
-      setTimeout(() => {
-        console.log("Extra verversing na afwijzing");
-        queryClient.refetchQueries({ queryKey: ["/api/member-requests"] });
-      }, 1000);
     },
     onError: (error: Error) => {
       toast({
@@ -457,430 +254,48 @@ export default function MemberRequests() {
     },
   });
 
-  // Verwijderen van een aanvraag
-  const deleteMutation = useMutation({
-    mutationFn: async (id: number | string) => {
-      await apiRequest("DELETE", `/api/member-requests?id=${id}`);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/member-requests"] });
-      toast({
-        title: "Aanvraag verwijderd",
-        description: "De aanvraag is succesvol verwijderd.",
-        variant: "success",
-      });
-      setSelectedRequest(null);
-    },
-    onError: (error: Error) => {
-      toast({
-        title: "Fout bij verwijderen",
-        description: error.message,
-        variant: "destructive",
-      });
-    },
-  });
-  
-  // Bijwerken van een aanvraag
-  const updateMutation = useMutation({
-    mutationFn: async (request: Partial<EditableMemberRequest>) => {
-      if (!request.id) {
-        throw new Error("ID is vereist voor het bijwerken van een aanvraag");
-      }
-      const response = await apiRequest("PUT", `/api/member-requests?id=${request.id}`, request as MemberRequest);
-      return await response.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/member-requests"] });
-      toast({
-        title: "Aanvraag bijgewerkt",
-        description: "De aanvraag is succesvol bijgewerkt.",
-        variant: "success",
-      });
-      setIsEditing(false);
-    },
-    onError: (error: Error) => {
-      toast({
-        title: "Fout bij bijwerken",
-        description: error.message,
-        variant: "destructive",
-      });
-    },
-  });
-
-  // Helper functies voor aanvragen
-  // Clean, efficiënte functie om dubbele aanvragen te verwijderen
-  function removeDuplicates(requests: MemberRequest[]): MemberRequest[] {
-    console.log(`Deduplicatie: start met ${requests.length} aanvragen`);
-    
-    // Stap 1: ID-gebaseerde deduplicatie (compatibel met zowel string als number IDs)
-    const seenIds = new Set<string>();
-    const uniqueById: MemberRequest[] = [];
-    
-    for (const req of requests) {
-      // Converteer ID naar string om zowel string als number IDs te ondersteunen
-      const idString = String(req.id);
-      if (!seenIds.has(idString)) {
-        seenIds.add(idString);
-        uniqueById.push(req);
-      } else {
-        console.log(`Duplicaat ID gevonden: ${idString}`);
-      }
-    }
-    
-    console.log(`Deduplicatie: na ID filtering ${uniqueById.length} aanvragen`);
-    
-    // Stap 2: Naam+datum deduplicatie (voor verschillende ID's maar zelfde persoon)
-    const seenKeys = new Map<string, MemberRequest>();
-    const result: MemberRequest[] = [];
-    
-    for (const req of uniqueById) {
-      const key = `${req.firstName}_${req.lastName}_${req.requestDate}`;
-      
-      if (seenKeys.has(key)) {
-        // Behoud de meest recente versie - voor string IDs of gemengde IDs moeten we
-        // een andere vergelijkingsmethode gebruiken
-        const existing = seenKeys.get(key)!;
-        
-        // Bepaal welke aanvraag recenter is - voor Firebase string ID's gebruiken we
-        // de requestDate als beslissende factor
-        const existingDate = new Date(existing.requestDate).getTime();
-        const currentDate = new Date(req.requestDate).getTime();
-        
-        // Bij gelijke datums kiezen we voor de aanvraag met het hoogste ID (indien numeriek)
-        const useCurrentRequest = 
-          currentDate > existingDate || 
-          (currentDate === existingDate && 
-            (typeof req.id === 'number' && typeof existing.id === 'number' && req.id > existing.id));
-        
-        if (useCurrentRequest) {
-          // Verwijder oudere versie
-          const indexToRemove = result.findIndex(r => String(r.id) === String(existing.id));
-          if (indexToRemove !== -1) {
-            result.splice(indexToRemove, 1);
-            console.log(`Duplicaat naam/datum: vervang ${existing.id} door ${req.id}`);
-          }
-          
-          // Voeg nieuwe versie toe
-          result.push(req);
-          seenKeys.set(key, req);
-        }
-      } else {
-        seenKeys.set(key, req);
-        result.push(req);
-      }
-    }
-    
-    console.log(`Deduplicatie: na naam/datum deduplicatie ${result.length} aanvragen`);
-    return result;
-  }
-  
-  // Dit effect is niet meer nodig omdat we de locallyApprovedIds nu direct in de onSuccess 
-  // van de approveMutation bijwerken en daar ook de queries verversen
-  
-  // Basis functie om te controleren of een aanvraag pending is
-  function shouldShowAsPending(request: MemberRequest): boolean {
-    // Als lokaal goedgekeurd of afgewezen, nooit tonen als pending
-    if (locallyApprovedIds.has(request.id) || locallyRejectedIds.has(request.id)) {
-      return false;
-    }
-    
-    // Als status niet "pending" is, niet tonen
-    if (request.status !== "pending") {
-      return false;
-    }
-    
-    // Als aanvraag al verwerkt is (heeft processedDate), niet tonen
-    if (request.processedDate) {
-      return false;
-    }
-    
-    // Als aanvraag een lidnummer of lid-ID heeft, is het al goedgekeurd
-    if (request.memberNumber || request.memberId) {
-      return false;
-    }
-    
-    // Toon alle overige aanvragen met status "pending"
-    return true;
-  }
-  
-  // Data verwerking voor weergave
-  // Maak een kopie van de originele data om te voorkomen dat we de originele data wijzigen
-  const safeDataCopy = requests ? [...requests] : [];
-  
-  // Verwerk de data en pas goedgekeurde aanvragen aan
-  const cleanedRequests = safeDataCopy.map(req => {
-    const reqCopy = { ...req };
-    
-    // Als een aanvraag lokaal is goedgekeurd, forceer de juiste status
-    if (locallyApprovedIds.has(reqCopy.id)) {
-      reqCopy.status = "approved";
-      reqCopy.processedDate = reqCopy.processedDate || new Date().toISOString();
-    }
-    
-    // Als een aanvraag lokaal is afgewezen, forceer de juiste status
-    if (locallyRejectedIds.has(reqCopy.id)) {
-      reqCopy.status = "rejected";
-      reqCopy.processedDate = reqCopy.processedDate || new Date().toISOString();
-    }
-    
-    return reqCopy;
-  }) || [];
-  
-  // Eerst filteren we alle goedgekeurde en afgewezen aanvragen uit de schone dataset
-  const rawPendingRequests = cleanedRequests.filter(req => {
-    const idString = String(req.id);
-    
-    // Extra check voor localStorage IDs
-    const localStorageApprovedIds = localStorage.getItem('locallyApprovedIds');
-    const localStorageRejectedIds = localStorage.getItem('locallyRejectedIds');
-    
-    let parsedApprovedIds: any[] = [];
-    let parsedRejectedIds: any[] = [];
-    
-    try {
-      if (localStorageApprovedIds) parsedApprovedIds = JSON.parse(localStorageApprovedIds);
-      if (localStorageRejectedIds) parsedRejectedIds = JSON.parse(localStorageRejectedIds);
-    } catch (err) {
-      console.error("Error parsing localStorage:", err);
-    }
-    
-    // Check localStorage arrays voor string match van ID
-    const idInLocalApproved = parsedApprovedIds.some(id => String(id) === idString);
-    const idInLocalRejected = parsedRejectedIds.some(id => String(id) === idString);
-    
-    // SUPER STRICT FILTERING:
-    
-    // 1. Drie verschillende checks voor locale afwijzing of goedkeuring:
-    //    a. In de React state Set
-    //    b. In localStorage parsed arrays
-    //    c. De ID string voorkomt letterlijk in de localStorage raw string (fallback)
-    if (locallyApprovedIds.has(req.id) || locallyRejectedIds.has(req.id)) return false;
-    if (idInLocalApproved || idInLocalRejected) return false;
-    if (localStorageApprovedIds?.includes(idString) || localStorageRejectedIds?.includes(idString)) return false;
-    
-    // 2. Aanvraag moet status "pending" hebben
-    if (req.status !== "pending") return false;
-    
-    // 3. Aanvraag mag niet al verwerkt zijn
-    if (req.processedDate) return false;
-    
-    // 4. Aanvraag mag geen lidnummer of memberId hebben
-    if (req.memberNumber || req.memberId) return false;
-    
-    // 5. Extra check voor lege/null waarden als de aanvraag wel goed is
-    if (!req.firstName || !req.lastName || !req.email) return false;
-    
-    // Alle voorwaarden gepasseerd, aanvraag is ECHT "pending"
-    return true;
-  });
-  
-  console.log(`Na eerste filtering: ${rawPendingRequests.length} aanvragen met status "pending"`);
-  
-  // Filter aanvragen voor "In behandeling" lijst
-  const allPendingRequests = rawPendingRequests || [];
-  
-  // Verwijder dubbele aanvragen
-  const pendingRequests = removeDuplicates(allPendingRequests);
-  
-  console.log(`Na deduplicatie: ${pendingRequests.length} unieke aanvragen in behandeling`);
-  
-  // Filter aanvragen voor "Verwerkt" lijst 
-  const processedRequests = cleanedRequests.filter(req => {
-    // Lokaal goedgekeurde of afgewezen aanvragen altijd tonen in verwerkte lijst
-    if (locallyApprovedIds.has(req.id) || locallyRejectedIds.has(req.id)) {
-      return true;
-    }
-    
-    // Alleen aanvragen met status "approved" of "rejected"
-    if (req.status !== "approved" && req.status !== "rejected") return false;
-    
-    // Moet een verwerkingsdatum hebben
-    if (!req.processedDate) return false;
-    
-    // Alleen aanvragen van de laatste 7 dagen
-    const requestDate = new Date(req.processedDate);
-    const sevenDaysAgo = new Date();
-    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-    
-    return requestDate >= sevenDaysAgo;
-  }) || [];
-  
-  const formatDate = (dateString: string | null | undefined) => {
-    if (!dateString) return "N/A";
-    return format(new Date(dateString), "dd/MM/yyyy", { locale: nl });
-  };
-  
-  // Functie om leeftijd te berekenen op basis van geboortedatum
-  const calculateAge = (birthDate: Date): number => {
-    const today = new Date();
-    let age = today.getFullYear() - birthDate.getFullYear();
-    const monthDiff = today.getMonth() - birthDate.getMonth();
-    
-    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
-      age--;
-    }
-    
-    return age;
-  };
-
-  // Ophalen van het eerstvolgende beschikbare lidnummer
-  const { data: generatedNumber, refetch: refetchMemberNumber } = useQuery<{ memberNumber: string }>({
-    queryKey: ["/api/members/generate-number"],
-    queryFn: getQueryFn({ on401: "throw" }),
-    enabled: false, // We roepen deze query handmatig aan
-    staleTime: 0, // Altijd opnieuw ophalen
-    gcTime: 0  // Niet cachen (in TanStack Query v5 is cacheTime hernoemd naar gcTime)
-  });
-
-  const handleApprove = async (request: MemberRequest) => {
+  // Aanvraag details bekijken
+  const handleViewDetails = (request: MemberRequest) => {
     setSelectedRequest(request);
-    
-    try {
-      console.log("Ophalen lidnummer gestart voor aanvraag ID:", request.id);
-      
-      // Het volgende beschikbare lidnummer ophalen via de refetch functie
-      const result = await refetchMemberNumber();
-      
-      // Type casting om TypeScript tevreden te stellen
-      const memberData = result.data as { memberNumber: string } | undefined;
-      
-      if (memberData && memberData.memberNumber) {
-        setNextMemberNumber(memberData.memberNumber);
-        console.log("Lidnummer ingesteld op:", memberData.memberNumber);
-      } else {
-        console.error('Ontvangen lidnummer data heeft geen memberNumber:', memberData);
-        throw new Error('Ongeldig formaat lidnummer ontvangen');
-      }
-    } catch (error) {
-      console.error('Fout bij het ophalen van lidnummer:', error);
-      toast({
-        title: "Waarschuwing",
-        description: "Kon geen lidnummer ophalen. Ga toch door met goedkeuring.",
-        variant: "destructive",
-      });
-    }
-    
+    setShowDetailDialog(true);
+  };
+
+  // Aanvraag goedkeuren
+  const handleApprove = (request: MemberRequest) => {
+    setSelectedRequest(request);
     setShowApprovalDialog(true);
   };
 
+  // Aanvraag afwijzen
   const handleReject = (request: MemberRequest) => {
     setSelectedRequest(request);
     setShowRejectionDialog(true);
   };
 
+  // Goedkeuring bevestigen
   const confirmApproval = () => {
     if (selectedRequest) {
-      console.log("Goedkeuring bevestigd voor aanvraag:", selectedRequest.id);
-      
-      // PREVENTIEF: markeer de aanvraag direct als lokaal goedgekeurd voordat we de server-call doen
-      // Dit zorgt ervoor dat de UI onmiddellijk reageert, zelfs als de server-call lang duurt
-      setLocallyApprovedIds(prev => {
-        const newSet = new Set(prev);
-        newSet.add(selectedRequest.id);
-        console.log(`PREVENTIEF: Aanvraag #${selectedRequest.id} lokaal gemarkeerd als goedgekeurd`);
-        return newSet;
-      });
-      
-      // Direct op localStorage opslaan voor onmiddellijke persistentie
-      try {
-        const existingIds = JSON.parse(localStorage.getItem('locallyApprovedIds') || '[]');
-        if (!existingIds.includes(selectedRequest.id)) {
-          const updatedIds = [...existingIds, selectedRequest.id];
-          localStorage.setItem('locallyApprovedIds', JSON.stringify(updatedIds));
-          console.log(`DIRECT: localStorage bijgewerkt met goedgekeurde ID ${selectedRequest.id}`);
-        }
-      } catch (err) {
-        console.error("Kon goedgekeurde ID niet direct opslaan in localStorage:", err);
-      }
-      
-      // Handmatig updates op de UI forceren door bewerking van de cache
-      // Dit is een drastische maar effectieve methode om dubbele items in de UI te voorkomen
-      const currentRequests = queryClient.getQueryData<MemberRequest[]>(["/api/member-requests"]);
-      if (currentRequests) {
-        const updatedRequests = currentRequests.map(req => {
-          if (String(req.id) === String(selectedRequest.id)) {
-            return {
-              ...req,
-              status: "approved",
-              processedDate: new Date().toISOString()
-            };
-          }
-          return req;
-        });
-        queryClient.setQueryData(["/api/member-requests"], updatedRequests);
-        console.log("DIRECT: Query cache bijgewerkt voor immediate UI update");
-      }
-      
-      // Stuur alleen het ID - de nieuwe versie van de mutatie gebruikt alleen het ID
       approveMutation.mutate(selectedRequest.id);
     }
   };
 
+  // Afwijzing bevestigen
   const confirmRejection = () => {
-    if (selectedRequest) {
-      // Controleer of er een afwijzingsreden is ingevuld
-      if (!rejectionReason.trim()) {
-        toast({
-          title: "Reden verplicht",
-          description: "Geef een reden op voor de afwijzing.",
-          variant: "destructive",
-        });
-        return;
-      }
-      
-      // PREVENTIEF: markeer de aanvraag direct als lokaal afgewezen voordat we de server-call doen
-      // Dit zorgt ervoor dat de UI onmiddellijk reageert, zelfs als de server-call lang duurt
-      setLocallyRejectedIds(prev => {
-        const newSet = new Set(prev);
-        newSet.add(selectedRequest.id);
-        console.log(`PREVENTIEF: Aanvraag #${selectedRequest.id} lokaal gemarkeerd als afgewezen`);
-        return newSet;
-      });
-      
-      // Direct op localStorage opslaan voor onmiddellijke persistentie
-      try {
-        const existingIds = JSON.parse(localStorage.getItem('locallyRejectedIds') || '[]');
-        if (!existingIds.includes(selectedRequest.id)) {
-          const updatedIds = [...existingIds, selectedRequest.id];
-          localStorage.setItem('locallyRejectedIds', JSON.stringify(updatedIds));
-          console.log(`DIRECT: localStorage bijgewerkt met afgewezen ID ${selectedRequest.id}`);
-        }
-      } catch (err) {
-        console.error("Kon afgewezen ID niet direct opslaan in localStorage:", err);
-      }
-      
-      // Handmatig updates op de UI forceren door bewerking van de cache
-      const currentRequests = queryClient.getQueryData<MemberRequest[]>(["/api/member-requests"]);
-      if (currentRequests) {
-        const updatedRequests = currentRequests.map(req => {
-          if (String(req.id) === String(selectedRequest.id)) {
-            return {
-              ...req,
-              status: "rejected",
-              processedDate: new Date().toISOString(),
-              rejectionReason: rejectionReason,
-              notes: rejectionReason
-            };
-          }
-          return req;
-        });
-        queryClient.setQueryData(["/api/member-requests"], updatedRequests);
-        console.log("DIRECT: Query cache bijgewerkt voor immediate UI update");
-      }
-      
+    if (selectedRequest && rejectionReason.trim()) {
       rejectMutation.mutate({
         id: selectedRequest.id,
         reason: rejectionReason
       });
+    } else {
+      toast({
+        title: "Reden verplicht",
+        description: "Geef een reden op voor de afwijzing.",
+        variant: "destructive",
+      });
     }
   };
 
-  const handleDelete = (request: MemberRequest) => {
-    if (window.confirm("Weet je zeker dat je deze aanvraag wilt verwijderen?")) {
-      deleteMutation.mutate(request.id);
-    }
-  };
-  
+  // Status badges
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "pending":
@@ -915,6 +330,7 @@ export default function MemberRequests() {
     }
   };
 
+  // Laadstatus weergeven
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-screen">
@@ -930,26 +346,7 @@ export default function MemberRequests() {
         <p className="mt-1 opacity-90">Beheer nieuwe aanvragen en bekijk verwerkte aanvragen</p>
       </div>
       
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
-        <div className="flex gap-2">
-          <Button 
-            onClick={() => window.open('/register-request', '_blank')}
-            variant="outline"
-            className="flex items-center gap-2 border-[#963E56] text-[#963E56] hover:bg-[#963E56]/5"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z" />
-              <polyline points="14 2 14 8 20 8" />
-              <line x1="16" y1="13" x2="8" y2="13" />
-              <line x1="16" y1="17" x2="8" y2="17" />
-              <line x1="10" y1="9" x2="8" y2="9" />
-            </svg>
-            Aanmeldformulier
-          </Button>
-        </div>
-      </div>
-
-      <div className="stats grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
         <Card className="bg-white border shadow-sm hover:shadow transition-shadow duration-200">
           <CardHeader className="pb-2">
             <CardTitle className="text-lg flex items-center gap-2">
@@ -961,17 +358,9 @@ export default function MemberRequests() {
           </CardHeader>
           <CardContent>
             <p className="text-3xl font-bold text-primary">{requests?.length || 0}</p>
-            <div className="text-xs mt-1 text-gray-500">
-              {requests && (
-                <div className="space-y-1">
-                  <div>Status pending: {requests.filter(r => r.status === "pending").length}</div>
-                  <div>Status approved: {requests.filter(r => r.status === "approved").length}</div>
-                  <div>Status rejected: {requests.filter(r => r.status === "rejected").length}</div>
-                </div>
-              )}
-            </div>
           </CardContent>
         </Card>
+        
         <Card className="bg-white border shadow-sm hover:shadow transition-shadow duration-200">
           <CardHeader className="pb-2">
             <CardTitle className="text-lg flex items-center gap-2">
@@ -984,11 +373,9 @@ export default function MemberRequests() {
           </CardHeader>
           <CardContent>
             <p className="text-3xl font-bold text-amber-500">{pendingRequests.length}</p>
-            <div className="text-xs mt-1 text-gray-500">
-              Gefilterd uit {allPendingRequests.length} aanvragen met status "pending"
-            </div>
           </CardContent>
         </Card>
+        
         <Card className="bg-white border shadow-sm hover:shadow transition-shadow duration-200">
           <CardHeader className="pb-2">
             <CardTitle className="text-lg flex items-center gap-2">
@@ -1001,36 +388,6 @@ export default function MemberRequests() {
           </CardHeader>
           <CardContent>
             <p className="text-3xl font-bold text-green-600">{processedRequests.length}</p>
-            <div className="text-xs mt-1 text-gray-500">
-              <div className="space-y-1">
-                <div>Goedgekeurd: {processedRequests.filter(r => r.status === "approved").length}</div>
-                <div>Afgewezen: {processedRequests.filter(r => r.status === "rejected").length}</div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="bg-white border shadow-sm hover:shadow transition-shadow duration-200">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-lg flex items-center gap-2">
-              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-600">
-                <path d="M2 20h.01M6 20h.01M10 20h.01M14 20h.01M18 20h.01M22 20h.01"></path>
-                <path d="M2 12h20"></path>
-                <path d="M10 2v10"></path>
-                <path d="M14 2v10"></path>
-              </svg>
-              Lokaal verwerkt
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-3xl font-bold text-gray-600">
-              {locallyApprovedIds.size + locallyRejectedIds.size}
-            </p>
-            <div className="text-xs mt-1 text-gray-500">
-              <div className="space-y-1">
-                <div>Goedgekeurd: {locallyApprovedIds.size}</div>
-                <div>Afgewezen: {locallyRejectedIds.size}</div>
-              </div>
-            </div>
           </CardContent>
         </Card>
       </div>
@@ -1057,6 +414,7 @@ export default function MemberRequests() {
           </TabsTrigger>
         </TabsList>
         
+        {/* In behandeling tab */}
         <TabsContent value="pending" className="space-y-4">
           <div className="rounded-md border">
             <Table className="w-full">
@@ -1091,10 +449,7 @@ export default function MemberRequests() {
                             variant="ghost"
                             size="icon"
                             className="h-8 w-8"
-                            onClick={() => {
-                              setSelectedRequest(request);
-                              setShowDetailDialog(true);
-                            }}
+                            onClick={() => handleViewDetails(request)}
                           >
                             <Eye className="h-4 w-4" />
                             <span className="sr-only">Bekijken</span>
@@ -1127,6 +482,7 @@ export default function MemberRequests() {
           </div>
         </TabsContent>
         
+        {/* Verwerkt tab */}
         <TabsContent value="processed" className="space-y-4">
           <div className="rounded-md border">
             <Table className="w-full">
@@ -1135,14 +491,14 @@ export default function MemberRequests() {
                   <TableHead className="w-[200px] text-left font-semibold">Naam</TableHead>
                   <TableHead className="w-[120px] text-center font-semibold">Status</TableHead>
                   <TableHead className="w-[120px] text-left font-semibold">Verwerkt op</TableHead>
-                  <TableHead className="text-center w-[120px] font-semibold">Acties</TableHead>
+                  <TableHead className="text-center w-[100px] font-semibold">Details</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {processedRequests.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={4} className="text-center py-8 text-gray-500">
-                      Geen verwerkte aanvragen in de afgelopen 7 dagen
+                      Geen verwerkte aanvragen
                     </TableCell>
                   </TableRow>
                 ) : (
@@ -1154,52 +510,21 @@ export default function MemberRequests() {
                         </div>
                       </TableCell>
                       <TableCell className="text-center">
-                        {request.status === "approved" && (
-                          <Badge variant="outline" className="bg-green-600 text-white border-green-700 shadow-sm px-2 py-0.5 min-w-[120px] text-center">
-                            <div className="flex items-center gap-1.5 justify-center">
-                              <CheckIcon className="h-3 w-3" />
-                              <span>Goedgekeurd</span>
-                            </div>
-                          </Badge>
-                        )}
-                        {request.status === "rejected" && (
-                          <Badge variant="outline" className="bg-red-600 text-white border-red-700 shadow-sm px-2 py-0.5 min-w-[120px] text-center">
-                            <div className="flex items-center gap-1.5 justify-center">
-                              <XIcon className="h-3 w-3" />
-                              <span>Afgewezen</span>
-                            </div>
-                          </Badge>
-                        )}
+                        {getStatusBadge(request.status)}
                       </TableCell>
                       <TableCell className="text-left">
-                        {formatDate(request.processedDate || request.requestDate)}
+                        {formatDate(request.processedDate)}
                       </TableCell>
                       <TableCell className="text-center">
-                        <div className="flex justify-center">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8"
-                            onClick={() => {
-                              setSelectedRequest(request);
-                              setShowDetailDialog(true);
-                            }}
-                          >
-                            <Eye className="h-4 w-4" />
-                            <span className="sr-only">Bekijken</span>
-                          </Button>
-                          {isAdmin && request.status === "rejected" && (
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50"
-                              onClick={() => handleDelete(request)}
-                            >
-                              <Trash2 className="h-4 w-4" />
-                              <span className="sr-only">Verwijderen</span>
-                            </Button>
-                          )}
-                        </div>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8"
+                          onClick={() => handleViewDetails(request)}
+                        >
+                          <Eye className="h-4 w-4" />
+                          <span className="sr-only">Bekijken</span>
+                        </Button>
                       </TableCell>
                     </TableRow>
                   ))
@@ -1211,571 +536,146 @@ export default function MemberRequests() {
       </Tabs>
 
       {/* Detail dialog */}
-      <Dialog 
-        open={showDetailDialog} 
-        onOpenChange={(isOpen) => {
-          if (isOpen && selectedRequest) {
-            console.log("DetailDialog geopend met:", selectedRequest);
-            console.log("Status:", selectedRequest.status);
-            console.log("memberNumber:", selectedRequest.memberNumber);
-            console.log("memberId:", selectedRequest.memberId);
-          }
-          setShowDetailDialog(isOpen);
-        }}>
-        <DialogContent className="w-full max-w-xl" hideCloseButton>
-          <DialogHeader className="bg-gradient-to-r from-[#963E56] to-[#83354A] p-5 sm:p-6 text-white rounded-t-xl -mt-4 -mx-4 shadow-md">
-            <div className="flex justify-between items-center">
-              <DialogTitle className="text-xl font-bold text-white">
-                {selectedRequest?.firstName} {selectedRequest?.lastName}
-              </DialogTitle>
-              <div>
-                {selectedRequest?.status === "pending" && (
-                  <Badge variant="outline" className="bg-amber-500 text-white border-amber-600 shadow-sm px-3 py-1 min-w-[130px] text-center">
-                    <div className="flex items-center gap-1.5 justify-center">
-                      <Clock className="h-3.5 w-3.5" />
-                      <span>In behandeling</span>
-                    </div>
-                  </Badge>
-                )}
-                {selectedRequest?.status === "approved" && (
-                  <Badge variant="outline" className="bg-green-600 text-white border-green-700 shadow-sm px-3 py-1 min-w-[130px] text-center">
-                    <div className="flex items-center gap-1.5 justify-center">
-                      <CheckIcon className="h-3.5 w-3.5" />
-                      <span>Goedgekeurd</span>
-                    </div>
-                  </Badge>
-                )}
-                {selectedRequest?.status === "rejected" && (
-                  <Badge variant="outline" className="bg-red-600 text-white border-red-700 shadow-sm px-3 py-1 min-w-[130px] text-center">
-                    <div className="flex items-center gap-1.5 justify-center">
-                      <XIcon className="h-3.5 w-3.5" />
-                      <span>Afgewezen</span>
-                    </div>
-                  </Badge>
-                )}
-              </div>
-            </div>
-            <DialogDescription className="text-white/90 mt-1">
-              Aanvraag ingediend op {selectedRequest && formatDate(selectedRequest.requestDate)}
-              {selectedRequest?.status === "approved" && selectedRequest?.memberNumber && (
-                <div className="mt-2 flex items-center">
-                  <span className="bg-white/20 text-white px-2 py-1 rounded text-sm font-medium mr-2">Lidnummer:</span>
-                  <button 
-                    onClick={() => {
-                      console.log("Navigeren naar lid detail. memberId:", selectedRequest.memberId, "memberNumber:", selectedRequest.memberNumber);
-                      // Haal eerst de lijst van leden op om het juiste lid te vinden op basis van lidnummer
-                      const members = queryClient.getQueryData<any[]>(["/api/members"]);
-                      
-                      // Zoek naar het lid op basis van lidnummer en memberId
-                      let matchingMember = null;
-                      if (members && members.length > 0) {
-                        // Probeer eerst via memberId te zoeken (meest betrouwbaar)
-                        if (selectedRequest.memberId) {
-                          matchingMember = members.find(m => m.id === selectedRequest.memberId);
-                        }
-                        
-                        // Als dat niet lukt, probeer via lidnummer te zoeken
-                        if (!matchingMember && selectedRequest.memberNumber) {
-                          // Veilig converteren van lidnummer naar string
-                          const memberNumberString = String(selectedRequest.memberNumber);
-                          matchingMember = members.find(m => 
-                              m.memberNumber === memberNumberString);
-                        }
-                      }
-                      
-                      if (matchingMember) {
-                        setLocation(`/member-detail?id=${matchingMember.id}`);
-                      } else {
-                        // Als het lid niet gevonden wordt, toon een waarschuwing
-                        toast({
-                          title: "Lid niet gevonden",
-                          description: `Het bijbehorende lid met nummer ${selectedRequest.memberNumber || 'onbekend'} kon niet worden gevonden in de huidige ledenlijst. Probeer eerst de ledenlijst te vernieuwen.`,
-                          variant: "destructive",
-                        });
-                        
-                        // Ververs de ledenlijst automatisch
-                        queryClient.invalidateQueries({ queryKey: ["/api/members"] });
-                      }
-                    }}
-                    className="bg-white/30 hover:bg-white/40 transition-colors text-white px-2 py-1 rounded text-sm font-semibold flex items-center"
-                  >
-                    {selectedRequest.memberNumber || 'Onbekend'}
-                    <ArrowLeft className="ml-1 h-3.5 w-3.5 -rotate-45" />
-                  </button>
-                </div>
-              )}
-
+      <Dialog open={showDetailDialog} onOpenChange={setShowDetailDialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Aanvraag details</DialogTitle>
+            <DialogDescription>
+              Details van de lidmaatschapsaanvraag
             </DialogDescription>
           </DialogHeader>
-          
-          <div className="overflow-y-auto max-h-[calc(100vh-280px)] pr-2 mt-4">
-            {/* Afwijzingsreden tonen indien afgewezen */}
-            {selectedRequest?.status === "rejected" && (
-              <div className="mb-6">
-                <h3 className="text-[#963E56] font-semibold text-lg border-b border-[#963E56]/20 pb-2 mb-3 flex items-center">
-                  <AlertCircle className="h-5 w-5 mr-2 text-[#963E56]/70" />
-                  Reden voor afwijzing
-                </h3>
-                
-                <div className="bg-red-50 p-4 rounded-md border border-red-200 shadow-sm">
-                  <p className="text-gray-800">{selectedRequest.rejectionReason || selectedRequest.notes || "Geen reden opgegeven"}</p>
-                </div>
+          {selectedRequest && (
+            <div className="space-y-4">
+              <div>
+                <h3 className="font-semibold mb-1">Persoonlijke informatie</h3>
+                <p><span className="font-semibold">Naam:</span> {selectedRequest.firstName} {selectedRequest.lastName}</p>
+                <p><span className="font-semibold">E-mail:</span> {selectedRequest.email}</p>
+                <p><span className="font-semibold">Telefoonnummer:</span> {selectedRequest.phoneNumber}</p>
+                {selectedRequest.gender && <p><span className="font-semibold">Geslacht:</span> {selectedRequest.gender}</p>}
+                {selectedRequest.birthDate && <p><span className="font-semibold">Geboortedatum:</span> {formatDate(selectedRequest.birthDate)}</p>}
               </div>
-            )}
-            
-            {/* Persoonlijke gegevens sectie */}
-            <div className="mb-6">
-              <h3 className="text-[#963E56] font-semibold text-lg border-b border-[#963E56]/20 pb-2 mb-3 flex items-center">
-                <UserIcon className="h-5 w-5 mr-2 text-[#963E56]/70" />
-                Persoonlijke gegevens
-              </h3>
               
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="bg-white p-4 rounded-md border border-[#963E56]/20 shadow-sm relative overflow-hidden">
-                  <div className="absolute inset-0 bg-pattern opacity-5"></div>
-                  <h4 className="font-semibold text-gray-800 mb-3 relative z-10">{selectedRequest?.firstName} {selectedRequest?.lastName}</h4>
-                  
-                  <div className="space-y-2 relative z-10">
-                    <div className="flex items-start">
-                      <span className="text-gray-600 w-32">Geslacht:</span>
-                      <span className="font-medium">
-                        {selectedRequest?.gender === "man" ? "Man" : 
-                         selectedRequest?.gender === "vrouw" ? "Vrouw" : ""}
-                      </span>
-                    </div>
-                    
-                    <div className="flex items-start">
-                      <span className="text-gray-600 w-32">Geboortedatum:</span>
-                      <span className="font-medium">
-                        {selectedRequest?.birthDate ? formatDate(selectedRequest.birthDate) : ""}
-                      </span>
-                    </div>
-                    
-                    <div className="flex items-start">
-                      <span className="text-gray-600 w-32">Leeftijd:</span>
-                      <span className="font-medium">
-                        {selectedRequest?.birthDate ? calculateAge(new Date(selectedRequest.birthDate)) : ""} jaar
-                      </span>
-                    </div>
-                    
-                    <div className="flex items-start">
-                      <span className="text-gray-600 w-32">Nationaliteit:</span>
-                      <span className="font-medium">{selectedRequest?.nationality || "-"}</span>
-                    </div>
-                  </div>
-                </div>
-                
-                <div className="bg-white p-4 rounded-md border border-[#963E56]/20 shadow-sm relative overflow-hidden">
-                  <div className="absolute inset-0 bg-pattern opacity-5"></div>
-                  <h4 className="font-semibold text-gray-800 mb-3 relative z-10">Adresgegevens</h4>
-                  
-                  <div className="space-y-2 relative z-10">
-                    <div className="flex items-start">
-                      <span className="text-gray-600 w-32">Straat + nr:</span>
-                      <span className="font-medium">
-                        {selectedRequest?.street} {selectedRequest?.houseNumber}
-                        {selectedRequest?.busNumber && `, bus ${selectedRequest.busNumber}`}
-                      </span>
-                    </div>
-                    
-                    <div className="flex items-start">
-                      <span className="text-gray-600 w-32">Postcode:</span>
-                      <span className="font-medium">{selectedRequest?.postalCode || "-"}</span>
-                    </div>
-                    
-                    <div className="flex items-start">
-                      <span className="text-gray-600 w-32">Gemeente:</span>
-                      <span className="font-medium">{selectedRequest?.city || "-"}</span>
-                    </div>
-                  </div>
-                </div>
+              <div>
+                <h3 className="font-semibold mb-1">Adres</h3>
+                <p>
+                  {selectedRequest.street} {selectedRequest.houseNumber}
+                  {selectedRequest.busNumber && `, bus ${selectedRequest.busNumber}`}
+                </p>
+                <p>{selectedRequest.postalCode} {selectedRequest.city}</p>
               </div>
-            </div>
-            
-            {/* Contactgegevens sectie */}
-            <div className="mb-6">
-              <h3 className="text-[#963E56] font-semibold text-lg border-b border-[#963E56]/20 pb-2 mb-3 flex items-center">
-                <MailIcon className="h-5 w-5 mr-2 text-[#963E56]/70" />
-                Contactgegevens
-              </h3>
               
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="bg-white p-4 rounded-md border border-[#963E56]/20 shadow-sm relative overflow-hidden">
-                  <div className="absolute inset-0 bg-pattern opacity-5"></div>
-                  <div className="space-y-2 relative z-10">
-                    <div className="flex items-start">
-                      <span className="text-gray-600 w-32">Email:</span>
-                      <span className="font-medium">{selectedRequest?.email}</span>
-                    </div>
-                    
-                    <div className="flex items-start">
-                      <span className="text-gray-600 w-32">Telefoon:</span>
-                      <span className="font-medium">{selectedRequest?.phoneNumber}</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-            
-            {/* Lidmaatschap sectie */}
-            <div className="mb-6">
-              <h3 className="text-[#963E56] font-semibold text-lg border-b border-[#963E56]/20 pb-2 mb-3 flex items-center">
-                <UserPlusIcon className="h-5 w-5 mr-2 text-[#963E56]/70" />
-                Lidmaatschap
-              </h3>
-              
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="bg-white p-4 rounded-md border border-[#963E56]/20 shadow-sm relative overflow-hidden">
-                  <div className="absolute inset-0 bg-pattern opacity-5"></div>
-                  <h4 className="font-semibold text-gray-800 mb-3 relative z-10">Details</h4>
-                  
-                  <div className="space-y-2 relative z-10">
-                    <div className="flex items-start">
-                      <span className="text-gray-600 w-32">Type:</span>
-                      <span className="font-medium">
-                        {formatMembershipTypeLabel(selectedRequest?.membershipType)}
-                      </span>
-                    </div>
-                  </div>
-                </div>
+              <div>
+                <h3 className="font-semibold mb-1">Lidmaatschap</h3>
+                <p><span className="font-semibold">Type:</span> {selectedRequest.membershipType}</p>
+                <p><span className="font-semibold">Datum aanvraag:</span> {formatDate(selectedRequest.requestDate)}</p>
                 
-                <div className="bg-white p-4 rounded-md border border-[#963E56]/20 shadow-sm relative overflow-hidden">
-                  <div className="absolute inset-0 bg-pattern opacity-5"></div>
-                  <h4 className="font-semibold text-gray-800 mb-3 relative z-10">Betalingsgegevens</h4>
-                  
-                  <div className="space-y-2 relative z-10">
-                    <div className="flex items-start">
-                      <span className="text-gray-600 w-32">Betaalwijze:</span>
-                      <span className="font-medium">
-                        {formatPaymentMethodLabel(selectedRequest?.paymentMethod)}
-                      </span>
-                    </div>
-                    
-                    <div className="flex items-start">
-                      <span className="text-gray-600 w-32">Betaaltermijn:</span>
-                      <span className="font-medium">
-                        {formatPaymentTermLabel(selectedRequest?.paymentTerm)}
-                      </span>
-                    </div>
-                    
-                    <div className="flex items-start">
-                      <span className="text-gray-600 w-32">Auto. verlenging:</span>
-                      <span className="font-medium">
-                        {formatAutoRenewLabel(selectedRequest?.autoRenew)}
-                      </span>
-                    </div>
-                  </div>
-                </div>
+                {selectedRequest.status === "approved" && (
+                  <p><span className="font-semibold">Lidnummer:</span> {selectedRequest.memberNumber || "Wordt toegewezen"}</p>
+                )}
                 
-                {/* Bankgegevens tonen indien aanwezig of domiciliëring gekozen */}
-                {(selectedRequest?.paymentMethod === "domiciliering" || selectedRequest?.accountNumber) && (
-                  <div className="bg-white p-4 rounded-md border border-[#963E56]/20 shadow-sm sm:col-span-2 relative overflow-hidden">
-                    <div className="absolute inset-0 bg-pattern opacity-5"></div>
-                    <h4 className="font-semibold text-gray-800 mb-3 relative z-10">Bankgegevens</h4>
-                    
-                    <div className="space-y-2 relative z-10">
-                      <div className="flex items-start">
-                        <span className="text-gray-600 w-32">Rekeningnr:</span>
-                        <span className="font-medium">{selectedRequest?.accountNumber || "-"}</span>
-                      </div>
-                      
-                      <div className="flex items-start">
-                        <span className="text-gray-600 w-32">Rekeninghouder:</span>
-                        <span className="font-medium">{selectedRequest?.accountHolderName || "-"}</span>
-                      </div>
-                      
-                      {selectedRequest?.bicSwift && (
-                        <div className="flex items-start">
-                          <span className="text-gray-600 w-32">BIC/SWIFT:</span>
-                          <span className="font-medium">{selectedRequest?.bicSwift}</span>
-                        </div>
-                      )}
-                    </div>
+                {selectedRequest.status === "rejected" && selectedRequest.rejectionReason && (
+                  <div>
+                    <h3 className="font-semibold mb-1 text-red-600">Reden afwijzing</h3>
+                    <p>{selectedRequest.rejectionReason}</p>
                   </div>
                 )}
               </div>
             </div>
-          </div>
-          
-          <DialogFooter className="flex justify-end pt-4 border-t border-gray-200">
-            <Button 
-              variant="outline" 
-              type="button" 
-              onClick={() => setShowDetailDialog(false)}
-              className="ml-auto"
-            >
-              Sluiten
-            </Button>
-          </DialogFooter>
+          )}
         </DialogContent>
       </Dialog>
-      
-      {/* Goedkeuren dialog */}
+
+      {/* Approval dialog */}
       <Dialog open={showApprovalDialog} onOpenChange={setShowApprovalDialog}>
-        <DialogContent className="max-w-md" hideCloseButton>
-          <DialogHeader className="bg-gradient-to-r from-[#963E56] to-[#7a3246] p-5 text-white rounded-t-xl -mt-4 -mx-4 shadow-md">
-            <div className="flex items-center mb-1">
-              <div className="bg-green-600 h-7 w-7 rounded-full flex items-center justify-center mr-2 shadow-sm">
-                <CheckIcon className="h-5 w-5 text-white" />
-              </div>
-              <DialogTitle className="text-xl font-bold text-white">Aanvraag goedkeuren</DialogTitle>
-            </div>
-            <DialogDescription className="text-white/90 mt-1">
-              Bevestig om deze aanvraag goed te keuren en een nieuw lid aan te maken.
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Aanvraag goedkeuren</DialogTitle>
+            <DialogDescription>
+              U staat op het punt om deze lidmaatschapsaanvraag goed te keuren.
             </DialogDescription>
           </DialogHeader>
-
-          <div className="my-4">
-            {nextMemberNumber && (
-              <div className="mb-4 bg-gradient-to-br from-[#963E56]/10 to-[#7a3246]/10 p-4 border border-[#963E56]/20 rounded-md text-center shadow-sm relative overflow-hidden">
-                <div className="absolute inset-0 bg-pattern opacity-5"></div>
-                <p className="text-sm text-[#963E56] font-medium uppercase tracking-wide relative z-10">Nieuw lidnummer</p>
-                <div className="flex items-center justify-center mt-1 relative z-10">
-                  <CheckIcon className="h-5 w-5 text-[#963E56] mr-1.5" />
-                  <p className="text-2xl font-bold text-[#963E56]">{nextMemberNumber}</p>
-                </div>
-                <p className="text-xs text-[#963E56]/80 mt-1 relative z-10">Deze aanvraag zal worden omgezet naar een lidmaatschap</p>
-              </div>
-            )}
-
-            <div className="bg-white rounded-md border border-gray-200 overflow-hidden shadow-sm">
-              <div className="p-4 border-b border-gray-100 bg-gray-50">
-                <h3 className="font-semibold text-gray-800 text-lg">
-                  {selectedRequest?.firstName} {selectedRequest?.lastName}
-                </h3>
-                <div className="flex flex-wrap gap-2 mt-1">
-                  {selectedRequest?.birthDate && (
-                    <span className="inline-flex items-center text-xs bg-gray-100 text-gray-800 rounded-full px-2 py-1">
-                      <CalendarIcon className="mr-1 h-3 w-3" />
-                      {calculateAge(new Date(selectedRequest.birthDate))} jaar
-                    </span>
-                  )}
-                  
-                  {selectedRequest?.city && (
-                    <span className="inline-flex items-center text-xs bg-gray-100 text-gray-800 rounded-full px-2 py-1">
-                      <MapPinIcon className="mr-1 h-3 w-3" />
-                      {selectedRequest.city}
-                    </span>
-                  )}
-                </div>
-              </div>
-              
-              <div className="p-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <p className="text-xs font-medium text-gray-500 mb-1">Type lidmaatschap</p>
-                    <p className="font-medium text-gray-800">
-                      {formatMembershipTypeLabel(selectedRequest?.membershipType)}
-                    </p>
-                  </div>
-                  
-                  <div>
-                    <p className="text-xs font-medium text-gray-500 mb-1">Betalingsmethode</p>
-                    <p className="font-medium text-gray-800">
-                      {formatPaymentMethodLabel(selectedRequest?.paymentMethod)}
-                    </p>
-                  </div>
-                  
-                  <div>
-                    <p className="text-xs font-medium text-gray-500 mb-1">Betalingstermijn</p>
-                    <p className="font-medium text-gray-800">
-                      {formatPaymentTermLabel(selectedRequest?.paymentTerm)}
-                    </p>
-                  </div>
-                  
-                  <div>
-                    <p className="text-xs font-medium text-gray-500 mb-1">Automatische verlenging</p>
-                    <p className="font-medium text-gray-800">
-                      {formatAutoRenewLabel(selectedRequest?.autoRenew)}
-                    </p>
-                  </div>
-                </div>
-                
-                {(selectedRequest?.paymentMethod === "domiciliering" || selectedRequest?.accountNumber) && (
-                  <div className="mt-4 pt-4 border-t border-gray-100">
-                    <p className="text-xs font-medium text-gray-500 mb-2">Bankgegevens</p>
-                    
-                    {selectedRequest?.accountNumber && (
-                      <div className="flex items-center gap-2 mb-1">
-                        <CreditCardIcon className="h-3.5 w-3.5 text-gray-400" />
-                        <p className="text-sm">{selectedRequest.accountNumber}</p>
-                      </div>
-                    )}
-                    
-                    {selectedRequest?.accountHolderName && (
-                      <div className="flex items-center gap-2">
-                        <UserIcon className="h-3.5 w-3.5 text-gray-400" />
-                        <p className="text-sm">{selectedRequest.accountHolderName}</p>
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
           
-          <DialogFooter className="flex flex-col sm:flex-row gap-2 sm:justify-between pt-4 border-t border-gray-200">
-            <Button 
-              variant="outline"
-              onClick={() => setShowApprovalDialog(false)}
-              className="w-full sm:w-auto"
-            >
+          {selectedRequest && (
+            <div className="py-2">
+              <p className="mb-4">
+                Weet u zeker dat u de aanvraag van <span className="font-semibold">{selectedRequest.firstName} {selectedRequest.lastName}</span> wilt goedkeuren?
+              </p>
+              <p className="mb-2">
+                Na goedkeuring:
+              </p>
+              <ul className="list-disc list-inside space-y-1 text-sm">
+                <li>Wordt de aanvrager lid van de moskee</li>
+                <li>Krijgt de aanvrager een lidnummer toegewezen</li>
+                <li>Verschijnt de aanvraag in de lijst "Verwerkt"</li>
+              </ul>
+            </div>
+          )}
+          
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowApprovalDialog(false)}>
               Annuleren
             </Button>
             <Button 
               onClick={confirmApproval}
-              className="w-full sm:w-auto bg-green-600 hover:bg-green-700 text-white shadow-sm"
               disabled={approveMutation.isPending}
+              className="bg-green-600 hover:bg-green-700"
             >
               {approveMutation.isPending ? (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              ) : (
-                <CheckIcon className="mr-2 h-4 w-4" />
-              )}
-              Bevestig goedkeuring
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Bezig...
+                </>
+              ) : "Goedkeuren"}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
-      
-      {/* Afwijzen dialog */}
+
+      {/* Rejection dialog */}
       <Dialog open={showRejectionDialog} onOpenChange={setShowRejectionDialog}>
-        <DialogContent className="max-w-md" hideCloseButton>
-          <DialogHeader className="bg-gradient-to-r from-[#963E56] to-[#7a3246] p-5 text-white rounded-t-xl -mt-4 -mx-4 shadow-md">
-            <div className="flex items-center mb-1">
-              <div className="bg-red-600 h-7 w-7 rounded-full flex items-center justify-center mr-2 shadow-sm">
-                <XIcon className="h-5 w-5 text-white" />
-              </div>
-              <DialogTitle className="text-xl font-bold text-white">Aanvraag afwijzen</DialogTitle>
-            </div>
-            <DialogDescription className="text-white/90 mt-1">
-              Reden voor afwijzing van deze aanvraag
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Aanvraag afwijzen</DialogTitle>
+            <DialogDescription>
+              U staat op het punt om deze lidmaatschapsaanvraag af te wijzen.
             </DialogDescription>
           </DialogHeader>
           
-          <div className="my-4">
-            <div className="bg-white rounded-md border border-gray-200 overflow-hidden shadow-sm">
-              <div className="p-4 border-b border-gray-100 bg-gray-50">
-                <h3 className="font-semibold text-gray-800 text-lg">
-                  {selectedRequest?.firstName} {selectedRequest?.lastName}
-                </h3>
-                <div className="flex flex-wrap gap-2 mt-1">
-                  {selectedRequest?.birthDate && (
-                    <span className="inline-flex items-center text-xs bg-gray-100 text-gray-800 rounded-full px-2 py-1">
-                      <CalendarIcon className="mr-1 h-3 w-3" />
-                      {calculateAge(new Date(selectedRequest.birthDate))} jaar
-                    </span>
-                  )}
-                  
-                  {selectedRequest?.city && (
-                    <span className="inline-flex items-center text-xs bg-gray-100 text-gray-800 rounded-full px-2 py-1">
-                      <MapPinIcon className="mr-1 h-3 w-3" />
-                      {selectedRequest.city}
-                    </span>
-                  )}
-                </div>
-              </div>
+          {selectedRequest && (
+            <div className="py-2">
+              <p className="mb-4">
+                Wilt u de aanvraag van <span className="font-semibold">{selectedRequest.firstName} {selectedRequest.lastName}</span> afwijzen?
+              </p>
               
-              <div className="p-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <p className="text-xs font-medium text-gray-500 mb-1">Type lidmaatschap</p>
-                    <p className="font-medium text-gray-800">
-                      {formatMembershipTypeLabel(selectedRequest?.membershipType)}
-                    </p>
-                  </div>
-                  
-                  <div>
-                    <p className="text-xs font-medium text-gray-500 mb-1">Betalingsmethode</p>
-                    <p className="font-medium text-gray-800">
-                      {formatPaymentMethodLabel(selectedRequest?.paymentMethod)}
-                    </p>
-                  </div>
-                  
-                  <div>
-                    <p className="text-xs font-medium text-gray-500 mb-1">Betalingstermijn</p>
-                    <p className="font-medium text-gray-800">
-                      {formatPaymentTermLabel(selectedRequest?.paymentTerm)}
-                    </p>
-                  </div>
-                  
-                  <div>
-                    <p className="text-xs font-medium text-gray-500 mb-1">Automatische verlenging</p>
-                    <p className="font-medium text-gray-800">
-                      {formatAutoRenewLabel(selectedRequest?.autoRenew)}
-                    </p>
-                  </div>
-                </div>
-                
-                {(selectedRequest?.paymentMethod === "domiciliering" || selectedRequest?.accountNumber) && (
-                  <div className="mt-4 pt-4 border-t border-gray-100">
-                    <p className="text-xs font-medium text-gray-500 mb-2">Bankgegevens</p>
-                    
-                    {selectedRequest?.accountNumber && (
-                      <div className="flex items-center gap-2 mb-1">
-                        <CreditCardIcon className="h-3.5 w-3.5 text-gray-400" />
-                        <p className="text-sm">{selectedRequest.accountNumber}</p>
-                      </div>
-                    )}
-                    
-                    {selectedRequest?.accountHolderName && (
-                      <div className="flex items-center gap-2">
-                        <UserIcon className="h-3.5 w-3.5 text-gray-400" />
-                        <p className="text-sm">{selectedRequest.accountHolderName}</p>
-                      </div>
-                    )}
-                  </div>
-                )}
+              <div className="space-y-2">
+                <Label htmlFor="reason">Reden voor afwijzing (verplicht)</Label>
+                <Textarea
+                  id="reason"
+                  placeholder="Geef een reden waarom deze aanvraag wordt afgewezen..."
+                  value={rejectionReason}
+                  onChange={(e) => setRejectionReason(e.target.value)}
+                  rows={4}
+                  className="w-full"
+                />
               </div>
             </div>
-          </div>
+          )}
           
-          <div className="bg-[#963E56]/10 p-4 rounded-md border border-[#963E56]/20 mb-4 relative overflow-hidden">
-            <div className="absolute inset-0 bg-pattern opacity-5"></div>
-            <div className="relative z-10">
-              <div className="flex items-start mb-2">
-                <AlertCircle className="text-[#963E56] h-5 w-5 mr-2 mt-0.5" />
-                <p className="text-sm text-[#963E56]">
-                  Deze actie kan niet ongedaan worden gemaakt.
-                </p>
-              </div>
-              
-              <Label htmlFor="rejection-reason" className="text-gray-700 font-medium">
-                Reden voor afwijzing <span className="text-[#963E56]">*</span>
-              </Label>
-              <Textarea
-                id="rejection-reason"
-                placeholder="Geef een reden voor de afwijzing..."
-                className="mt-1 border-[#963E56]/20 focus:border-[#963E56] focus:ring-[#963E56]/30"
-                value={rejectionReason}
-                onChange={(e) => setRejectionReason(e.target.value)}
-                rows={4}
-              />
-            </div>
-          </div>
-          
-          <DialogFooter className="flex flex-col sm:flex-row gap-2 sm:justify-between pt-4 border-t border-gray-200">
-            <Button 
-              variant="outline" 
-              onClick={() => {
-                setShowRejectionDialog(false);
-                setRejectionReason("");
-              }}
-              className="w-full sm:w-auto"
-            >
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowRejectionDialog(false)}>
               Annuleren
             </Button>
             <Button 
               onClick={confirmRejection}
-              className="w-full sm:w-auto bg-[#963E56] hover:bg-[#7a3246] text-white shadow-sm"
               disabled={rejectMutation.isPending || !rejectionReason.trim()}
+              className="bg-red-600 hover:bg-red-700"
             >
               {rejectMutation.isPending ? (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              ) : (
-                <XIcon className="mr-2 h-4 w-4" />
-              )}
-Afwijzen
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Bezig...
+                </>
+              ) : "Afwijzen"}
             </Button>
           </DialogFooter>
         </DialogContent>
