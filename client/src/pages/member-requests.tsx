@@ -274,12 +274,14 @@ export default function MemberRequests() {
       console.log("Goedkeuring succesvol verwerkt", data);
       
       // Haal benodigde gegevens uit de response
-      const memberNumber = data.memberNumber || data.member?.memberNumber || "onbekend";
+      const memberNumber = data.memberNumber || data.member?.memberNumber;
       
       // Toon succesmelding
       toast({
         title: "Aanvraag goedgekeurd",
-        description: `De aanvraag is succesvol goedgekeurd. Lidnummer: ${memberNumber}.`,
+        description: memberNumber 
+          ? `De aanvraag is succesvol goedgekeurd. Lidnummer: ${memberNumber}.`
+          : `De aanvraag is succesvol goedgekeurd. Het lidnummer wordt toegewezen in het systeem.`,
         variant: "success",
       });
       
@@ -484,14 +486,22 @@ export default function MemberRequests() {
   // Helper functies voor aanvragen
   // Clean, efficiënte functie om dubbele aanvragen te verwijderen
   function removeDuplicates(requests: MemberRequest[]): MemberRequest[] {
-    // Stap 1: Filter lokaal goedgekeurde aanvragen
-    const filteredRequests = requests.filter(req => !locallyApprovedIds.has(req.id));
+    // Stap 1: Filter lokaal goedgekeurde en afgewezen aanvragen
+    const filteredRequests = requests.filter(req => {
+      // Verwijder lokaal goedgekeurde en afgewezen aanvragen
+      return !locallyApprovedIds.has(req.id) && !locallyRejectedIds.has(req.id);
+    });
     
-    // Stap 2: ID-gebaseerde deduplicatie (compatibel met zowel string als number IDs)
+    // Stap 2: Filter op status - alleen pending-aanvragen in de lijst 'In behandeling'
+    const pendingRequests = filteredRequests.filter(req => {
+      return req.status === "pending" && !req.processedDate && !req.memberNumber && !req.memberId;
+    });
+    
+    // Stap 3: ID-gebaseerde deduplicatie (compatibel met zowel string als number IDs)
     const seenIds = new Set<string>();
     const uniqueById: MemberRequest[] = [];
     
-    for (const req of filteredRequests) {
+    for (const req of pendingRequests) {
       // Converteer ID naar string om zowel string als number IDs te ondersteunen
       const idString = String(req.id);
       if (!seenIds.has(idString)) {
@@ -500,7 +510,7 @@ export default function MemberRequests() {
       }
     }
     
-    // Stap 3: Naam+datum deduplicatie (voor verschillende ID's maar zelfde persoon)
+    // Stap 4: Naam+datum deduplicatie (voor verschillende ID's maar zelfde persoon)
     const seenKeys = new Map<string, MemberRequest>();
     const result: MemberRequest[] = [];
     
@@ -540,8 +550,7 @@ export default function MemberRequests() {
       }
     }
     
-    // Stap 4: Alleen aanvragen met status "pending" behouden
-    return result.filter(req => req.status === "pending");
+    return result;
   }
   
   // Dit effect is niet meer nodig omdat we de locallyApprovedIds nu direct in de onSuccess 
