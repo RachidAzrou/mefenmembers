@@ -543,7 +543,7 @@ export default function MemberRequests() {
                           <Button
                             variant="ghost"
                             size="icon"
-                            className="h-8 w-8 text-green-600 hover:text-green-700 hover:bg-green-50"
+                            className="h-8 w-8 text-[#963E56] hover:text-[#7a3246] hover:bg-[#963E56]/10"
                             onClick={() => handleApprove(request)}
                           >
                             <CheckIcon className="h-4 w-4" />
@@ -552,7 +552,7 @@ export default function MemberRequests() {
                           <Button
                             variant="ghost"
                             size="icon"
-                            className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50"
+                            className="h-8 w-8 text-[#963E56] hover:text-[#7a3246] hover:bg-[#963E56]/10"
                             onClick={() => handleReject(request)}
                           >
                             <XIcon className="h-4 w-4" />
@@ -633,7 +633,7 @@ export default function MemberRequests() {
                             <Button
                               variant="ghost"
                               size="icon"
-                              className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50"
+                              className="h-8 w-8 text-[#963E56] hover:text-[#7a3246] hover:bg-[#963E56]/10"
                               onClick={() => handleDelete(request)}
                             >
                               <Trash2 className="h-4 w-4" />
