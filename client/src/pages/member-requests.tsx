@@ -671,15 +671,15 @@ export default function MemberRequests() {
               </DialogTitle>
               <div>
                 {selectedRequest?.status === "pending" && (
-                  <Badge variant="outline" className="bg-white/20 text-white border-white/30 px-3 py-1">
+                  <Badge variant="outline" className="bg-amber-500 text-white border-amber-600 shadow-sm px-3 py-1 min-w-[130px] text-center">
                     <div className="flex items-center gap-1.5">
-                      <AlertCircle className="h-3.5 w-3.5" />
+                      <Clock className="h-3.5 w-3.5" />
                       <span>In behandeling</span>
                     </div>
                   </Badge>
                 )}
                 {selectedRequest?.status === "approved" && (
-                  <Badge variant="outline" className="bg-green-600 text-white border-green-700 shadow-sm px-3 py-1">
+                  <Badge variant="outline" className="bg-green-600 text-white border-green-700 shadow-sm px-3 py-1 min-w-[130px] text-center">
                     <div className="flex items-center gap-1.5">
                       <CheckIcon className="h-3.5 w-3.5" />
                       <span>Goedgekeurd</span>
@@ -687,7 +687,7 @@ export default function MemberRequests() {
                   </Badge>
                 )}
                 {selectedRequest?.status === "rejected" && (
-                  <Badge variant="outline" className="bg-red-600 text-white border-red-700 shadow-sm px-3 py-1">
+                  <Badge variant="outline" className="bg-red-600 text-white border-red-700 shadow-sm px-3 py-1 min-w-[130px] text-center">
                     <div className="flex items-center gap-1.5">
                       <XIcon className="h-3.5 w-3.5" />
                       <span>Afgewezen</span>
