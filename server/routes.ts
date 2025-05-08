@@ -302,18 +302,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
       
-      // Stap 2: Controleer of alle vereiste velden aanwezig zijn
-      const requiredFields = ["firstName", "lastName", "phoneNumber", "email"];
-      const missingFields = requiredFields.filter(field => !req.body[field]);
-      
-      if (missingFields.length > 0) {
-        console.error("Fout: Ontbrekende verplichte velden", missingFields);
-        return res.status(400).json({ 
-          error: "Ontbrekende verplichte velden", 
-          required: missingFields,
-          success: false 
-        });
-      }
+      // Stap 2: We halen de verplichte velden uit de bestaande aanvraag
+      // Dit is de nieuwe aanpak waarbij de client alleen het ID stuurt
+      // en de server de rest ophaalt
+      console.log("De nieuwe clientcode stuurt alleen ID en processedBy, we halen alle gegevens op uit storage");
       
       // Stap 3: Ophalen bestaande aanvraag om te controleren of deze al verwerkt is
       const existingRequest = await storage.getMemberRequest(id);
