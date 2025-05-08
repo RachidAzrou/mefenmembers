@@ -1351,11 +1351,11 @@ export default function MembersList() {
                       <TableCell className="py-2 sm:py-4">
                         <Badge 
                           variant={member?.paymentStatus ? "default" : "outline"}
-                          className={`text-[10px] sm:text-xs ${member?.paymentStatus 
+                          className={`text-[10px] sm:text-xs min-w-[94px] text-center ${member?.paymentStatus 
                             ? "bg-green-100 text-green-800 hover:bg-green-200 hover:text-green-900"
                             : "bg-red-50 border-red-200 text-red-700 hover:bg-red-100"}`}
                         >
-                          <div className="flex items-center gap-1">
+                          <div className="flex items-center gap-1 justify-center">
                             {member?.paymentStatus ? (
                               <>
                                 <Banknote className="h-3 w-3 text-green-600" />
