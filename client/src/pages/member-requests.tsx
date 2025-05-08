@@ -42,7 +42,9 @@ import {
   MapPin as MapPinIcon,
   Calendar as CalendarIcon,
   CreditCard as CreditCardIcon,
-  User as UserIcon
+  User as UserIcon,
+  Mail as MailIcon,
+  UserPlus as UserPlusIcon
 } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -663,10 +665,11 @@ export default function MemberRequests() {
                   </div>
                 </div>
                 
-                <div className="bg-white p-4 rounded-md border border-[#963E56]/20 shadow-sm">
-                  <h4 className="font-semibold text-gray-800 mb-3">Adresgegevens</h4>
+                <div className="bg-white p-4 rounded-md border border-[#963E56]/20 shadow-sm relative overflow-hidden">
+                  <div className="absolute inset-0 bg-pattern opacity-5"></div>
+                  <h4 className="font-semibold text-gray-800 mb-3 relative z-10">Adresgegevens</h4>
                   
-                  <div className="space-y-2">
+                  <div className="space-y-2 relative z-10">
                     <div className="flex items-start">
                       <span className="text-gray-600 w-32">Straat + nr:</span>
                       <span className="font-medium">
@@ -691,13 +694,15 @@ export default function MemberRequests() {
             
             {/* Contactgegevens sectie */}
             <div className="mb-6">
-              <h3 className="text-[#963E56] font-semibold text-lg border-b border-[#963E56]/20 pb-2 mb-3">
+              <h3 className="text-[#963E56] font-semibold text-lg border-b border-[#963E56]/20 pb-2 mb-3 flex items-center">
+                <MailIcon className="h-5 w-5 mr-2 text-[#963E56]/70" />
                 Contactgegevens
               </h3>
               
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="bg-white p-4 rounded-md border border-[#963E56]/20 shadow-sm">
-                  <div className="space-y-2">
+                <div className="bg-white p-4 rounded-md border border-[#963E56]/20 shadow-sm relative overflow-hidden">
+                  <div className="absolute inset-0 bg-pattern opacity-5"></div>
+                  <div className="space-y-2 relative z-10">
                     <div className="flex items-start">
                       <span className="text-gray-600 w-32">Email:</span>
                       <span className="font-medium">{selectedRequest?.email}</span>
@@ -714,15 +719,17 @@ export default function MemberRequests() {
             
             {/* Lidmaatschap sectie */}
             <div className="mb-6">
-              <h3 className="text-[#963E56] font-semibold text-lg border-b border-[#963E56]/20 pb-2 mb-3">
+              <h3 className="text-[#963E56] font-semibold text-lg border-b border-[#963E56]/20 pb-2 mb-3 flex items-center">
+                <UserPlusIcon className="h-5 w-5 mr-2 text-[#963E56]/70" />
                 Lidmaatschap
               </h3>
               
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="bg-white p-4 rounded-md border border-[#963E56]/20 shadow-sm">
-                  <h4 className="font-semibold text-gray-800 mb-3">Details</h4>
+                <div className="bg-white p-4 rounded-md border border-[#963E56]/20 shadow-sm relative overflow-hidden">
+                  <div className="absolute inset-0 bg-pattern opacity-5"></div>
+                  <h4 className="font-semibold text-gray-800 mb-3 relative z-10">Details</h4>
                   
-                  <div className="space-y-2">
+                  <div className="space-y-2 relative z-10">
                     <div className="flex items-start">
                       <span className="text-gray-600 w-32">Type:</span>
                       <span className="font-medium">
@@ -732,10 +739,11 @@ export default function MemberRequests() {
                   </div>
                 </div>
                 
-                <div className="bg-white p-4 rounded-md border border-[#963E56]/20 shadow-sm">
-                  <h4 className="font-semibold text-gray-800 mb-3">Betalingsgegevens</h4>
+                <div className="bg-white p-4 rounded-md border border-[#963E56]/20 shadow-sm relative overflow-hidden">
+                  <div className="absolute inset-0 bg-pattern opacity-5"></div>
+                  <h4 className="font-semibold text-gray-800 mb-3 relative z-10">Betalingsgegevens</h4>
                   
-                  <div className="space-y-2">
+                  <div className="space-y-2 relative z-10">
                     <div className="flex items-start">
                       <span className="text-gray-600 w-32">Betaalwijze:</span>
                       <span className="font-medium">
@@ -761,10 +769,11 @@ export default function MemberRequests() {
                 
                 {/* Bankgegevens tonen indien aanwezig of domiciliëring gekozen */}
                 {(selectedRequest?.paymentMethod === "domiciliering" || selectedRequest?.accountNumber) && (
-                  <div className="bg-white p-4 rounded-md border border-[#963E56]/20 shadow-sm sm:col-span-2">
-                    <h4 className="font-semibold text-gray-800 mb-3">Bankgegevens</h4>
+                  <div className="bg-white p-4 rounded-md border border-[#963E56]/20 shadow-sm sm:col-span-2 relative overflow-hidden">
+                    <div className="absolute inset-0 bg-pattern opacity-5"></div>
+                    <h4 className="font-semibold text-gray-800 mb-3 relative z-10">Bankgegevens</h4>
                     
-                    <div className="space-y-2">
+                    <div className="space-y-2 relative z-10">
                       <div className="flex items-start">
                         <span className="text-gray-600 w-32">Rekeningnr:</span>
                         <span className="font-medium">{selectedRequest?.accountNumber || "-"}</span>
