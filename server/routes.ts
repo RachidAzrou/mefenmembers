@@ -260,7 +260,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "Ongeldig of ontbrekend ID" });
       }
 
-      const { status, processedBy } = req.body;
+      const { status, processedBy, notes } = req.body;
       
       if (!status || !['pending', 'approved', 'rejected'].includes(status)) {
         return res.status(400).json({ error: "Ongeldige status. Gebruik 'pending', 'approved' of 'rejected'" });
@@ -274,7 +274,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const updatedRequest = await storage.updateMemberRequestStatus(
         id, 
         status as 'pending' | 'approved' | 'rejected',
-        processedBy ? parseInt(processedBy as string) : undefined
+        processedBy ? parseInt(processedBy as string) : undefined,
+        notes
       );
       
       res.json(updatedRequest);

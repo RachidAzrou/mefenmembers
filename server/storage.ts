@@ -379,8 +379,9 @@ export class DatabaseStorage implements IStorage {
 
   async updateMemberRequestStatus(
     id: number, 
-    status: 'pending' | 'approved' | 'rejected', 
-    processedBy?: number
+    status: 'pending' | 'approved' | 'rejected',
+    processedBy?: number,
+    notes?: string
   ): Promise<MemberRequest> {
     const updateData: Record<string, any> = { 
       status, 
@@ -389,6 +390,10 @@ export class DatabaseStorage implements IStorage {
     
     if (processedBy !== undefined) {
       updateData.processedBy = processedBy;
+    }
+    
+    if (notes !== undefined) {
+      updateData.notes = notes;
     }
 
     const [updated] = await db
