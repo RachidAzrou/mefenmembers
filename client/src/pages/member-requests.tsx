@@ -458,16 +458,15 @@ export default function MemberRequests() {
             <Table className="w-full">
               <TableHeader>
                 <TableRow>
-                  <TableHead className="w-[160px]">Naam</TableHead>
-                  <TableHead className="hidden md:table-cell">Email</TableHead>
-                  <TableHead className="hidden md:table-cell w-[100px]">Datum</TableHead>
-                  <TableHead className="text-right w-[120px]">Acties</TableHead>
+                  <TableHead className="w-[160px] text-center">Naam</TableHead>
+                  <TableHead className="w-[100px] text-center">Datum</TableHead>
+                  <TableHead className="text-center w-[120px]">Acties</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {pendingRequests.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={4} className="text-center py-8 text-gray-500">
+                    <TableCell colSpan={3} className="text-center py-8 text-gray-500">
                       Geen aanvragen in behandeling
                     </TableCell>
                   </TableRow>
@@ -479,14 +478,11 @@ export default function MemberRequests() {
                           {request.firstName} {request.lastName}
                         </div>
                       </TableCell>
-                      <TableCell className="hidden md:table-cell">
-                        {request.email}
-                      </TableCell>
-                      <TableCell className="hidden md:table-cell">
+                      <TableCell>
                         {formatDate(request.requestDate)}
                       </TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex justify-end gap-2">
+                      <TableCell className="text-center">
+                        <div className="flex justify-center gap-2">
                           <Button
                             variant="ghost"
                             size="icon"
@@ -532,17 +528,15 @@ export default function MemberRequests() {
             <Table className="w-full">
               <TableHeader>
                 <TableRow>
-                  <TableHead className="w-[160px]">Naam</TableHead>
-                  <TableHead className="hidden md:table-cell">Email</TableHead>
-                  <TableHead className="hidden md:table-cell w-[100px]">Datum</TableHead>
-                  <TableHead className="w-[100px]">Status</TableHead>
-                  <TableHead className="text-right w-[80px]">Acties</TableHead>
+                  <TableHead className="w-[160px] text-center">Naam</TableHead>
+                  <TableHead className="w-[100px] text-center">Datum</TableHead>
+                  <TableHead className="text-center w-[120px]">Acties</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {processedRequests.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={5} className="text-center py-8 text-gray-500">
+                    <TableCell colSpan={3} className="text-center py-8 text-gray-500">
                       Geen verwerkte aanvragen in de afgelopen 7 dagen
                     </TableCell>
                   </TableRow>
@@ -552,17 +546,11 @@ export default function MemberRequests() {
                       <TableCell className="font-medium">
                         {request.firstName} {request.lastName}
                       </TableCell>
-                      <TableCell className="hidden md:table-cell">
-                        {request.email}
-                      </TableCell>
-                      <TableCell className="hidden md:table-cell">
+                      <TableCell>
                         {formatDate(request.processedDate || request.requestDate)}
                       </TableCell>
-                      <TableCell>
-                        {getStatusBadge(request.status)}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex justify-end">
+                      <TableCell className="text-center">
+                        <div className="flex justify-center">
                           <Button
                             variant="ghost"
                             size="icon"
@@ -1085,7 +1073,7 @@ export default function MemberRequests() {
               ) : (
                 <XIcon className="mr-2 h-4 w-4" />
               )}
-              {!rejectionReason.trim() ? "Reden vereist" : "Bevestig afwijzing"}
+              {!rejectionReason.trim() ? "Reden vereist" : "Afwijzen"}
             </Button>
           </DialogFooter>
         </DialogContent>
