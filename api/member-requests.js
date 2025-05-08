@@ -411,6 +411,21 @@ export default async function handler(req, res) {
           return res.status(404).json({ error: 'Lidmaatschapsaanvraag niet gevonden' });
         }
         
+        console.log("POST /api/member-requests/approve: Aanvraag gegevens:", JSON.stringify(request));
+        
+        // Controleer of alle verplichte velden aanwezig zijn
+        const requiredFields = ['firstName', 'lastName', 'phoneNumber', 'email'];
+        const missingFields = requiredFields.filter(field => !request[field]);
+        
+        if (missingFields.length > 0) {
+          console.error(`POST /api/member-requests/approve: Ontbrekende verplichte velden: ${missingFields.join(", ")}`);
+          return res.status(400).json({ 
+            error: 'Ontbrekende verplichte velden', 
+            required: missingFields,
+            requestData: JSON.stringify(request)
+          });
+        }
+        
         // Haal het volgende beschikbare lidnummer op
         const nextMemberNumber = await generateNextMemberNumber();
         
@@ -422,27 +437,27 @@ export default async function handler(req, res) {
         // Converteer aanvraag naar lid
         const member = {
           memberNumber: nextMemberNumber,
-          firstName: request.firstName,
-          lastName: request.lastName,
-          email: request.email,
-          phoneNumber: request.phoneNumber,
-          street: request.street,
-          houseNumber: request.houseNumber,
-          busNumber: request.busNumber,
-          postalCode: request.postalCode,
-          city: request.city,
-          birthDate: request.birthDate,
-          gender: request.gender,
-          nationality: request.nationality,
+          firstName: request.firstName || "",
+          lastName: request.lastName || "",
+          email: request.email || "",
+          phoneNumber: request.phoneNumber || "",
+          street: request.street || "",
+          houseNumber: request.houseNumber || "",
+          busNumber: request.busNumber || null,
+          postalCode: request.postalCode || "",
+          city: request.city || "",
+          birthDate: request.birthDate || null,
+          gender: request.gender || null,
+          nationality: request.nationality || null,
           membershipType: request.membershipType || 'standaard',
           joinDate: new Date().toISOString(),
           paymentMethod: request.paymentMethod || 'overschrijving',
           paymentStatus: 'unpaid',
           paymentTerm: request.paymentTerm || 'jaarlijks',
           autoRenew: request.autoRenew !== undefined ? request.autoRenew : true,
-          accountNumber: request.accountNumber,
-          accountHolderName: request.accountHolderName,
-          bicSwift: request.bicSwift,
+          accountNumber: request.accountNumber || null,
+          accountHolderName: request.accountHolderName || null,
+          bicSwift: request.bicSwift || null,
           notes: request.notes || '',
           isActive: true
         };
