@@ -47,7 +47,8 @@ import {
   Mail as MailIcon,
   UserPlus as UserPlusIcon,
   Eye,
-  Trash2
+  Trash2,
+  Clock
 } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -388,11 +389,32 @@ export default function MemberRequests() {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "pending":
-        return <Badge variant="outline">In behandeling</Badge>;
+        return (
+          <Badge variant="outline" className="bg-amber-500 text-white border-amber-600 shadow-sm px-2 py-0.5 min-w-[120px] text-center">
+            <div className="flex items-center gap-1.5 justify-center">
+              <Clock className="h-3 w-3" />
+              <span>In behandeling</span>
+            </div>
+          </Badge>
+        );
       case "approved":
-        return <Badge variant="default" className="bg-green-500">Goedgekeurd</Badge>;
+        return (
+          <Badge variant="outline" className="bg-green-600 text-white border-green-700 shadow-sm px-2 py-0.5 min-w-[120px] text-center">
+            <div className="flex items-center gap-1.5 justify-center">
+              <CheckIcon className="h-3 w-3" />
+              <span>Goedgekeurd</span>
+            </div>
+          </Badge>
+        );
       case "rejected":
-        return <Badge variant="destructive">Afgewezen</Badge>;
+        return (
+          <Badge variant="outline" className="bg-red-600 text-white border-red-700 shadow-sm px-2 py-0.5 min-w-[120px] text-center">
+            <div className="flex items-center gap-1.5 justify-center">
+              <XIcon className="h-3 w-3" />
+              <span>Afgewezen</span>
+            </div>
+          </Badge>
+        );
       default:
         return <Badge variant="outline">Onbekend</Badge>;
     }
@@ -596,17 +618,17 @@ export default function MemberRequests() {
                       </TableCell>
                       <TableCell className="text-center">
                         {request.status === "approved" && (
-                          <Badge variant="outline" className="bg-green-600 text-white border-green-700 shadow-sm px-3 py-1">
-                            <div className="flex items-center gap-1.5">
-                              <CheckIcon className="h-3.5 w-3.5" />
+                          <Badge variant="outline" className="bg-green-600 text-white border-green-700 shadow-sm px-2 py-0.5 min-w-[120px] text-center">
+                            <div className="flex items-center gap-1.5 justify-center">
+                              <CheckIcon className="h-3 w-3" />
                               <span>Goedgekeurd</span>
                             </div>
                           </Badge>
                         )}
                         {request.status === "rejected" && (
-                          <Badge variant="outline" className="bg-red-600 text-white border-red-700 shadow-sm px-3 py-1">
-                            <div className="flex items-center gap-1.5">
-                              <XIcon className="h-3.5 w-3.5" />
+                          <Badge variant="outline" className="bg-red-600 text-white border-red-700 shadow-sm px-2 py-0.5 min-w-[120px] text-center">
+                            <div className="flex items-center gap-1.5 justify-center">
+                              <XIcon className="h-3 w-3" />
                               <span>Afgewezen</span>
                             </div>
                           </Badge>
@@ -672,7 +694,7 @@ export default function MemberRequests() {
               <div>
                 {selectedRequest?.status === "pending" && (
                   <Badge variant="outline" className="bg-amber-500 text-white border-amber-600 shadow-sm px-3 py-1 min-w-[130px] text-center">
-                    <div className="flex items-center gap-1.5">
+                    <div className="flex items-center gap-1.5 justify-center">
                       <Clock className="h-3.5 w-3.5" />
                       <span>In behandeling</span>
                     </div>
@@ -680,7 +702,7 @@ export default function MemberRequests() {
                 )}
                 {selectedRequest?.status === "approved" && (
                   <Badge variant="outline" className="bg-green-600 text-white border-green-700 shadow-sm px-3 py-1 min-w-[130px] text-center">
-                    <div className="flex items-center gap-1.5">
+                    <div className="flex items-center gap-1.5 justify-center">
                       <CheckIcon className="h-3.5 w-3.5" />
                       <span>Goedgekeurd</span>
                     </div>
@@ -688,7 +710,7 @@ export default function MemberRequests() {
                 )}
                 {selectedRequest?.status === "rejected" && (
                   <Badge variant="outline" className="bg-red-600 text-white border-red-700 shadow-sm px-3 py-1 min-w-[130px] text-center">
-                    <div className="flex items-center gap-1.5">
+                    <div className="flex items-center gap-1.5 justify-center">
                       <XIcon className="h-3.5 w-3.5" />
                       <span>Afgewezen</span>
                     </div>
