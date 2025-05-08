@@ -11,6 +11,78 @@ const FIREBASE_API_KEY = process.env.FIREBASE_API_KEY || process.env.VITE_FIREBA
 console.log("API Initialization: Firebase DB URL:", FIREBASE_DB_URL ? "Ingesteld (waarde verborgen)" : "ONTBREEKT!");  
 console.log("API Initialization: Firebase API Key:", FIREBASE_API_KEY ? "Ingesteld (waarde verborgen)" : "ONTBREEKT!");
 
+// Helper functie voor het updaten van de status van een aanvraag met meerdere terugvalmechanismen
+async function updateStatusAndVerify(id, status, additionalData = {}) {
+  console.log(`updateStatusAndVerify: Start update van aanvraag ${id} naar status "${status}"`);
+  
+  // Stap 1: Haal de huidige aanvraag op
+  const currentRequest = await firebaseRequest('GET', `member-requests/${id}`);
+  if (!currentRequest) {
+    throw new Error(`Aanvraag ${id} niet gevonden voor status update`);
+  }
+  
+  // Stap 2: Maak een minimaal update object met alleen de essentiële velden
+  const minimumUpdateData = {
+    status,
+    processedDate: new Date().toISOString(),
+    ...additionalData
+  };
+  
+  // Stap 3: Probeer eerst een PATCH (partiële update)
+  console.log(`updateStatusAndVerify: Poging 1 - PATCH minimale data voor aanvraag ${id}`);
+  try {
+    await firebaseRequest('PATCH', `member-requests/${id}`, minimumUpdateData);
+  } catch (patchError) {
+    console.warn(`updateStatusAndVerify: PATCH mislukt, fout: ${patchError.message}`);
+  }
+  
+  // Stap 4: Verifieer of de update is geslaagd
+  let verifyRequest = await firebaseRequest('GET', `member-requests/${id}`);
+  if (verifyRequest && verifyRequest.status === status) {
+    console.log(`updateStatusAndVerify: Status update geslaagd, aanvraag heeft nu status "${status}"`);
+    return true;
+  }
+  
+  // Stap 5: Als PATCH faalde, probeer een PUT (volledige vervanging)
+  console.log(`updateStatusAndVerify: Poging 2 - PUT volledige data voor aanvraag ${id}`);
+  const fullUpdateData = {
+    ...currentRequest,
+    ...minimumUpdateData
+  };
+  
+  try {
+    await firebaseRequest('PUT', `member-requests/${id}`, fullUpdateData);
+  } catch (putError) {
+    console.warn(`updateStatusAndVerify: PUT mislukt, fout: ${putError.message}`);
+  }
+  
+  // Stap 6: Verifieer nogmaals
+  verifyRequest = await firebaseRequest('GET', `member-requests/${id}`);
+  if (verifyRequest && verifyRequest.status === status) {
+    console.log(`updateStatusAndVerify: Status update geslaagd na PUT, aanvraag heeft nu status "${status}"`);
+    return true;
+  }
+  
+  // Stap 7: Laatste poging met een directe update van alleen het status veld
+  console.log(`updateStatusAndVerify: Poging 3 - PATCH alleen status veld voor aanvraag ${id}`);
+  try {
+    await firebaseRequest('PATCH', `member-requests/${id}`, { status });
+  } catch (finalError) {
+    console.warn(`updateStatusAndVerify: Laatste poging mislukt, fout: ${finalError.message}`);
+  }
+  
+  // Stap 8: Laatste verificatie
+  verifyRequest = await firebaseRequest('GET', `member-requests/${id}`);
+  if (verifyRequest && verifyRequest.status === status) {
+    console.log(`updateStatusAndVerify: Status update uiteindelijk geslaagd, aanvraag heeft nu status "${status}"`);
+    return true;
+  }
+  
+  // Als we hier komen is de update niet geslaagd
+  console.error(`updateStatusAndVerify: Alle pogingen mislukt, status blijft "${verifyRequest?.status}"`);
+  return false;
+}
+
 // Helper functie om direct met de Firebase REST API te communiceren
 async function firebaseRequest(method, path, data = null) {
   try {
@@ -311,39 +383,36 @@ export default async function handler(req, res) {
         
         console.log(`PUT /api/member-requests/status: Status update voor aanvraag ${id} naar ${status}`);
         
-        // Haal eerst de aanvraag op
-        const request = await firebaseRequest('GET', `member-requests/${id}`);
-        
-        if (!request) {
-          return res.status(404).json({ error: 'Lidmaatschapsaanvraag niet gevonden' });
-        }
-        
-        // Update status en verwerkingsinformatie
-        const updatedRequest = {
-          ...request,
-          status,
+        // Maak een object met de extra data voor de status update
+        const additionalData = {
           processedDate: new Date().toISOString(),
           processedBy: processedBy || null
         };
         
         // Als status 'rejected' is, voeg eventueel een reden toe
-        // Accepteer zowel notes als rejectionReason voor compatibiliteit
-        if (status === 'rejected') {
-          // Gebruik notes als reden voor afwijzing (notes bevat al rejectionReason indien aanwezig)
-          updatedRequest.rejectionReason = notes || "Geen reden opgegeven";
-          // Log de reden voor debugging
-          console.log("PUT /api/member-requests/status: Reden voor afwijzing:", updatedRequest.rejectionReason);
+        if (status === 'rejected' && notes) {
+          additionalData.rejectionReason = notes;
+          console.log("PUT /api/member-requests/status: Reden voor afwijzing:", notes);
         }
         
-        // Update de aanvraag in Firebase
-        await firebaseRequest('PUT', `member-requests/${id}`, updatedRequest);
+        // Gebruik de nieuwe functie voor meervoudige update pogingen
+        const updateSuccess = await updateStatusAndVerify(id, status, additionalData);
         
-        console.log(`PUT /api/member-requests/status: Aanvraag ${id} succesvol bijgewerkt naar ${status}`);
-        return res.status(200).json({ 
-          id,
-          status,
-          message: `Status succesvol bijgewerkt naar ${status}`
-        });
+        if (updateSuccess) {
+          console.log(`PUT /api/member-requests/status: Aanvraag ${id} succesvol bijgewerkt naar ${status}`);
+          return res.status(200).json({ 
+            id,
+            status,
+            message: `Status succesvol bijgewerkt naar ${status}`
+          });
+        } else {
+          // Als alle pogingen falen, retourneer een fout
+          console.error(`PUT /api/member-requests/status: Kon status niet bijwerken naar ${status} na meerdere pogingen`);
+          return res.status(500).json({ 
+            error: 'Fout bij bijwerken status na meerdere pogingen', 
+            message: `Kon status niet bijwerken naar ${status} na meerdere pogingen`
+          });
+        }
       } catch (error) {
         console.error(`PUT /api/member-requests/status FOUT:`, error.message, error.stack);
         return res.status(500).json({ 
