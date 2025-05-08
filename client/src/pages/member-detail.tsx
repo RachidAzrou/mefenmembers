@@ -5,7 +5,7 @@ import { Member } from "@shared/schema";
 import { Link, useLocation } from "wouter";
 import { 
   User, Phone, CreditCard, ArrowLeft, Edit,
-  Check, X, CircleUser, Glasses, Banknote
+  Check, X, CircleUser, Award, Banknote
 } from "lucide-react";
 import { formatPhoneNumber } from "@/lib/utils";
 import { 
@@ -193,46 +193,32 @@ export default function MemberDetail() {
     <div className="space-y-6">
       {/* Header section met gradient achtergrond */}
       <div className="rounded-lg bg-gradient-to-r from-[#963E56]/90 to-[#963E56] p-6 shadow-lg">
-        <div className="flex justify-between items-start">
-          <div>
-            <div className="flex items-center gap-2">
-              <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-white mb-2">
-                {member.firstName} {member.lastName}
-              </h1>
-              {isVotingEligible(member) && (
-                <Badge className="bg-white/90 text-[#963E56] hover:bg-white text-xs font-semibold">
-                  <Glasses className="h-3 w-3 mr-1" />
-                  Stemgerechtigd
-                </Badge>
-              )}
+        <div>
+          <div className="flex items-center gap-2">
+            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-white mb-2">
+              {member.firstName} {member.lastName}
+            </h1>
+            {isVotingEligible(member) && (
+              <Badge className="bg-white/90 text-[#963E56] hover:bg-white text-xs font-semibold">
+                <Award className="h-3 w-3 mr-1" />
+                Stemgerechtigd
+              </Badge>
+            )}
+          </div>
+          <div className="flex items-center gap-4 text-white/90">
+            <div className="flex items-center">
+              <CreditCard className="h-4 w-4 mr-1.5 opacity-80" />
+              <span>Lid #{member.memberNumber.toString().padStart(4, '0')}</span>
             </div>
-            <div className="flex items-center gap-4 text-white/90">
-              <div className="flex items-center">
-                <CreditCard className="h-4 w-4 mr-1.5 opacity-80" />
-                <span>Lid #{member.memberNumber.toString().padStart(4, '0')}</span>
-              </div>
-              <div className="flex items-center">
-                <User className="h-4 w-4 mr-1.5 opacity-80" />
-                <span>
-                  {calculateAge(member.birthDate) 
-                    ? `${calculateAge(member.birthDate)} jaar` 
-                    : "Leeftijd onbekend"}
-                </span>
-              </div>
+            <div className="flex items-center">
+              <User className="h-4 w-4 mr-1.5 opacity-80" />
+              <span>
+                {calculateAge(member.birthDate) 
+                  ? `${calculateAge(member.birthDate)} jaar` 
+                  : "Leeftijd onbekend"}
+              </span>
             </div>
           </div>
-          
-          <Badge 
-            className={`px-3 py-1 text-sm font-medium ${
-              member.paymentStatus 
-                ? "bg-green-100 text-green-800 hover:bg-green-200" 
-                : "bg-red-100 text-red-800 hover:bg-red-200"
-            }`}
-          >
-            {member.paymentStatus 
-              ? <><Check className="h-3.5 w-3.5 mr-1.5" /> Betaald</> 
-              : <><X className="h-3.5 w-3.5 mr-1.5" /> Niet betaald</>}
-          </Badge>
         </div>
       </div>
       
