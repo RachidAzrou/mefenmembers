@@ -192,24 +192,52 @@ export default function MemberDetail() {
   return (
     <div className="space-y-6">
       {/* Header section met gradient achtergrond */}
-      <div className="rounded-lg bg-gradient-to-r from-[#963E56]/80 to-[#963E56] p-6 shadow-md">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight text-white mb-1 flex items-center">
-            {member.firstName} {member.lastName}
-            {isVotingEligible(member) && (
-              <Badge className="ml-2 bg-white/80 text-[#963E56] hover:bg-white text-xs">
-                Stemgerechtigd
-              </Badge>
-            )}
-          </h1>
-          <p className="text-white/80">
-            Lidnummer: {member.memberNumber.toString().padStart(4, '0')}
-          </p>
+      <div className="rounded-lg bg-gradient-to-r from-[#963E56]/90 to-[#963E56] p-6 shadow-lg">
+        <div className="flex justify-between items-start">
+          <div>
+            <div className="flex items-center gap-2">
+              <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-white mb-2">
+                {member.firstName} {member.lastName}
+              </h1>
+              {isVotingEligible(member) && (
+                <Badge className="bg-white/90 text-[#963E56] hover:bg-white text-xs font-semibold">
+                  <Glasses className="h-3 w-3 mr-1" />
+                  Stemgerechtigd
+                </Badge>
+              )}
+            </div>
+            <div className="flex items-center gap-4 text-white/90">
+              <div className="flex items-center">
+                <CreditCard className="h-4 w-4 mr-1.5 opacity-80" />
+                <span>Lid #{member.memberNumber.toString().padStart(4, '0')}</span>
+              </div>
+              <div className="flex items-center">
+                <User className="h-4 w-4 mr-1.5 opacity-80" />
+                <span>
+                  {calculateAge(member.birthDate) 
+                    ? `${calculateAge(member.birthDate)} jaar` 
+                    : "Leeftijd onbekend"}
+                </span>
+              </div>
+            </div>
+          </div>
+          
+          <Badge 
+            className={`px-3 py-1 text-sm font-medium ${
+              member.paymentStatus 
+                ? "bg-green-100 text-green-800 hover:bg-green-200" 
+                : "bg-red-100 text-red-800 hover:bg-red-200"
+            }`}
+          >
+            {member.paymentStatus 
+              ? <><Check className="h-3.5 w-3.5 mr-1.5" /> Betaald</> 
+              : <><X className="h-3.5 w-3.5 mr-1.5" /> Niet betaald</>}
+          </Badge>
         </div>
       </div>
       
       {/* Knoppen onder de header */}
-      <div className="flex gap-2">
+      <div className="flex gap-3">
         <Button 
           variant="outline" 
           size="sm" 
@@ -217,213 +245,197 @@ export default function MemberDetail() {
           className="border-[#963E56]/20 text-[#963E56] hover:bg-[#963E56]/10"
         >
           <ArrowLeft className="mr-2 h-4 w-4" />
-          Terug
+          Terug naar ledenlijst
         </Button>
         <Button 
-          variant="outline" 
+          variant="default" 
           size="sm" 
           onClick={handleEdit}
-          className="border-[#963E56]/20 text-[#963E56] hover:bg-[#963E56]/10"
+          className="bg-[#963E56] hover:bg-[#963E56]/90 text-white"
         >
           <Edit className="mr-2 h-4 w-4" />
           Bewerken
         </Button>
       </div>
       
-      <Card className="border-none shadow-md">
-        <CardHeader>
-          <CardTitle className="text-lg">Lidgegevens</CardTitle>
-          <CardDescription>
-            Volledige informatie over het lid
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
-            <div>
-              <h3 className="text-base sm:text-lg font-medium text-gray-700 mb-3 flex items-center">
-                <div className="mr-2 bg-[#963E56]/10 p-1.5 sm:p-2 rounded-full">
-                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-[#963E56]">
-                    <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
-                    <circle cx="12" cy="7" r="4" />
-                  </svg>
+      {/* Informatie sectie met verbeterde layout */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Persoonlijke gegevens kaart */}
+        <Card className="border-none shadow-md overflow-hidden">
+          <CardHeader className="bg-[#963E56]/5 pb-3">
+            <CardTitle className="text-lg flex items-center gap-2 text-[#963E56]">
+              <User className="h-5 w-5" />
+              Persoonlijke gegevens
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="pt-5">
+            <div className="space-y-4">
+              <div className="border-b border-gray-100 pb-3">
+                <div className="text-sm font-medium text-gray-500">Volledige naam</div>
+                <div className="font-medium text-gray-900 mt-1">{member.firstName} {member.lastName}</div>
+              </div>
+              
+              <div className="border-b border-gray-100 pb-3">
+                <div className="text-sm font-medium text-gray-500">Geboortedatum</div>
+                <div className="font-medium text-gray-900 mt-1">
+                  {formatDate(member.birthDate)}
+                  {calculateAge(member.birthDate) && (
+                    <span className="text-sm text-gray-500 ml-2">
+                      ({calculateAge(member.birthDate)} jaar)
+                    </span>
+                  )}
                 </div>
-                Persoonlijke gegevens
-              </h3>
-              <div className="space-y-3">
-                <div className="bg-gray-50 rounded-lg p-3">
-                  <div className="text-sm text-gray-500">Naam</div>
-                  <div className="font-medium">{member.firstName} {member.lastName}</div>
+              </div>
+              
+              <div className="border-b border-gray-100 pb-3">
+                <div className="text-sm font-medium text-gray-500">Geslacht</div>
+                <div className="font-medium text-gray-900 mt-1 flex items-center">
+                  {member.gender === "man" ? (
+                    <>
+                      <User className="h-4 w-4 mr-1.5 text-blue-500" />
+                      <span>Man</span>
+                    </>
+                  ) : member.gender === "vrouw" ? (
+                    <>
+                      <CircleUser className="h-4 w-4 mr-1.5 text-pink-500" />
+                      <span>Vrouw</span>
+                    </>
+                  ) : "Niet opgegeven"}
                 </div>
-                
-                <div className="bg-gray-50 rounded-lg p-3">
-                  <div className="text-sm text-gray-500">Geboortedatum</div>
-                  <div className="font-medium">{formatDate(member.birthDate)}</div>
-                </div>
-                
-                <div className="bg-gray-50 rounded-lg p-3">
-                  <div className="text-sm text-gray-500">Geslacht</div>
-                  <div className="font-medium flex items-center">
-                    {member.gender === "man" ? (
-                      <>
-                        <User className="h-4 w-4 mr-1.5 text-blue-500" />
-                        <span>Man</span>
-                      </>
-                    ) : member.gender === "vrouw" ? (
-                      <>
-                        <CircleUser className="h-4 w-4 mr-1.5 text-pink-500" />
-                        <span>Vrouw</span>
-                      </>
-                    ) : "Niet opgegeven"}
-                  </div>
-                </div>
-                
-                <div className="bg-gray-50 rounded-lg p-3">
-                  <div className="text-sm text-gray-500">Nationaliteit</div>
-                  <div className="font-medium">{member.nationality || "Niet opgegeven"}</div>
-                </div>
+              </div>
+              
+              <div>
+                <div className="text-sm font-medium text-gray-500">Nationaliteit</div>
+                <div className="font-medium text-gray-900 mt-1">{member.nationality || "Niet opgegeven"}</div>
               </div>
             </div>
-            
-            <div>
-              <h3 className="text-base sm:text-lg font-medium text-gray-700 mb-3 flex items-center">
-                <div className="mr-2 bg-blue-50 p-1.5 sm:p-2 rounded-full">
-                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-blue-600">
-                    <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
-                  </svg>
-                </div>
-                Contactgegevens
-              </h3>
-              <div className="space-y-3">
-                <div className="bg-gray-50 rounded-lg p-3">
-                  <div className="text-sm text-gray-500">Telefoon</div>
-                  <div className="font-medium">{formatPhoneNumber(member.phoneNumber)}</div>
-                </div>
-                
-                <div className="bg-gray-50 rounded-lg p-3">
-                  <div className="text-sm text-gray-500">E-mail</div>
-                  <div className="font-medium">{member.email || "Niet opgegeven"}</div>
-                </div>
-                
-                {(member.street || member.postalCode || member.city) && (
-                  <div className="bg-gray-50 rounded-lg p-3">
-                    <div className="text-sm text-gray-500">Adres</div>
-                    <div className="font-medium">
-                      {member.street && `${member.street} ${member.houseNumber || ""} ${member.busNumber || ""}`}
-                      {(member.postalCode || member.city) && (
-                        <div>{member.postalCode} {member.city}</div>
-                      )}
-                    </div>
+          </CardContent>
+        </Card>
+        
+        {/* Contactgegevens kaart */}
+        <Card className="border-none shadow-md overflow-hidden">
+          <CardHeader className="bg-blue-50 pb-3">
+            <CardTitle className="text-lg flex items-center gap-2 text-blue-600">
+              <Phone className="h-5 w-5" />
+              Contactgegevens
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="pt-5">
+            <div className="space-y-4">
+              <div className="border-b border-gray-100 pb-3">
+                <div className="text-sm font-medium text-gray-500">Telefoon</div>
+                <div className="font-medium text-gray-900 mt-1">{formatPhoneNumber(member.phoneNumber)}</div>
+              </div>
+              
+              <div className="border-b border-gray-100 pb-3">
+                <div className="text-sm font-medium text-gray-500">E-mail</div>
+                <div className="font-medium text-gray-900 mt-1 break-all">{member.email || "Niet opgegeven"}</div>
+              </div>
+              
+              {(member.street || member.postalCode || member.city) && (
+                <div>
+                  <div className="text-sm font-medium text-gray-500">Adres</div>
+                  <div className="font-medium text-gray-900 mt-1">
+                    {member.street && `${member.street} ${member.houseNumber || ""} ${member.busNumber || ""}`}
+                    {(member.postalCode || member.city) && (
+                      <div>{member.postalCode} {member.city}</div>
+                    )}
                   </div>
-                )}
-              </div>
+                </div>
+              )}
             </div>
-          </div>
-          
-          <div className="mt-6">
-            <h3 className="text-base sm:text-lg font-medium text-gray-700 mb-3 flex items-center">
-              <div className="mr-2 bg-amber-50 p-1.5 sm:p-2 rounded-full">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-amber-600">
-                  <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
-                  <circle cx="9" cy="7" r="4" />
-                  <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
-                  <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-                </svg>
-              </div>
-              Lidmaatschap
-            </h3>
-            
-            <div className="space-y-3">
-              <div className="bg-gray-50 rounded-lg p-3">
-                <div className="text-sm text-gray-500">Lidmaatschapstype</div>
-                <div className="font-medium">
+          </CardContent>
+        </Card>
+        
+        {/* Lidmaatschap & Financiële gegevens kaart */}
+        <Card className="border-none shadow-md overflow-hidden">
+          <CardHeader className="bg-amber-50 pb-3">
+            <CardTitle className="text-lg flex items-center gap-2 text-amber-600">
+              <Banknote className="h-5 w-5" />
+              Lidmaatschap & Financiën
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="pt-5">
+            <div className="space-y-4">
+              <div className="border-b border-gray-100 pb-3">
+                <div className="text-sm font-medium text-gray-500">Lidmaatschapstype</div>
+                <div className="font-medium text-gray-900 mt-1">
                   {member.membershipType === "standaard" ? "Standaard" :
                    member.membershipType === "student" ? "Student" :
                    member.membershipType === "senior" ? "Senior" : "Onbekend"}
                 </div>
               </div>
               
-              <div className="bg-gray-50 rounded-lg p-3">
-                <div className="text-sm text-gray-500">Startdatum lidmaatschap</div>
-                <div className="font-medium">{formatDate(member.startDate)}</div>
-              </div>
-              
-              <div className="bg-gray-50 rounded-lg p-3">
-                <div className="text-sm text-gray-500">Lidmaatschapsduur</div>
-                <div className="font-medium">{calculateMembershipYears(member)} jaar</div>
-              </div>
-            </div>
-          </div>
-          
-          <div className="mt-6">
-            <h3 className="text-base sm:text-lg font-medium text-gray-700 mb-3 flex items-center">
-              <div className="mr-2 bg-green-50 p-1.5 sm:p-2 rounded-full">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-green-600">
-                  <rect x="2" y="5" width="20" height="14" rx="2" />
-                  <line x1="2" y1="10" x2="22" y2="10" />
-                </svg>
-              </div>
-              Financiën
-            </h3>
-            
-            <div className="space-y-3">
-              <div className="bg-gray-50 rounded-lg p-3">
-                <div className="text-sm text-gray-500">Betalingsmethode</div>
-                <div className="font-medium">
-                  {member.paymentMethod === "cash" ? "Contant" :
-                   member.paymentMethod === "domiciliering" ? "Domiciliëring" :
-                   member.paymentMethod === "overschrijving" ? "Overschrijving" :
-                   member.paymentMethod === "bancontact" ? "Bancontact" : "Onbekend"}
+              <div className="border-b border-gray-100 pb-3">
+                <div className="text-sm font-medium text-gray-500">Lidmaatschap</div>
+                <div className="font-medium text-gray-900 mt-1">
+                  <div>Start: {formatDate(member.startDate)}</div>
+                  <div className="text-sm text-gray-600 mt-1">Duur: {calculateMembershipYears(member)} jaar</div>
                 </div>
               </div>
               
-              <div className="bg-gray-50 rounded-lg p-3">
-                <div className="text-sm text-gray-500">Betalingstermijn</div>
-                <div className="font-medium">
-                  {member.paymentTerm === "jaarlijks" ? "Jaarlijks" :
-                   member.paymentTerm === "maandelijks" ? "Maandelijks" :
-                   member.paymentTerm === "driemaandelijks" ? "Driemaandelijks" : "Onbekend"}
-                </div>
-              </div>
-              
-              <div className="flex p-3 rounded-lg bg-gray-50 gap-3">
-                <div className={`p-2 rounded-full ${member.paymentStatus ? 'bg-green-100' : 'bg-red-100'}`}>
-                  {member.paymentStatus ? (
-                    <div className="h-4 w-4 text-green-600">✓</div>
-                  ) : (
-                    <div className="h-4 w-4 text-red-600">✗</div>
-                  )}
-                </div>
-                <div>
-                  <div className="text-sm text-gray-500">Betaalstatus</div>
-                  <div className="font-medium">
-                    {member.paymentStatus ? "Betaald" : "Niet betaald"}
+              <div className="border-b border-gray-100 pb-3">
+                <div className="text-sm font-medium text-gray-500">Betalingsdetails</div>
+                <div className="font-medium text-gray-900 mt-1">
+                  <div className="flex items-center">
+                    <span className="w-32">Methode:</span>
+                    <span>
+                      {member.paymentMethod === "cash" ? "Contant" :
+                      member.paymentMethod === "domiciliering" ? "Domiciliëring" :
+                      member.paymentMethod === "overschrijving" ? "Overschrijving" :
+                      member.paymentMethod === "bancontact" ? "Bancontact" : "Onbekend"}
+                    </span>
+                  </div>
+                  <div className="flex items-center mt-1">
+                    <span className="w-32">Termijn:</span>
+                    <span>
+                      {member.paymentTerm === "jaarlijks" ? "Jaarlijks" :
+                      member.paymentTerm === "maandelijks" ? "Maandelijks" :
+                      member.paymentTerm === "driemaandelijks" ? "Driemaandelijks" : "Onbekend"}
+                    </span>
                   </div>
                 </div>
               </div>
-            </div>
-          </div>
-          
-          {member.notes && (
-            <div className="mt-6">
-              <h3 className="text-base sm:text-lg font-medium text-gray-700 mb-3 flex items-center">
-                <div className="mr-2 bg-gray-100 p-1.5 sm:p-2 rounded-full">
-                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-gray-600">
-                    <path d="M14 3v4a1 1 0 0 0 1 1h4" />
-                    <path d="M17 21H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7l5 5v11a2 2 0 0 1-2 2z" />
-                    <path d="M9 9h1" />
-                    <path d="M9 13h6" />
-                    <path d="M9 17h6" />
-                  </svg>
+              
+              <div>
+                <div className="text-sm font-medium text-gray-500">Betaalstatus</div>
+                <div className="mt-2">
+                  <Badge className={`px-3 py-1 ${
+                    member.paymentStatus 
+                      ? "bg-green-100 text-green-800 hover:bg-green-200" 
+                      : "bg-red-100 text-red-800 hover:bg-red-200"
+                  }`}>
+                    {member.paymentStatus 
+                      ? <><Check className="h-3.5 w-3.5 mr-1.5" /> Betaald</> 
+                      : <><X className="h-3.5 w-3.5 mr-1.5" /> Niet betaald</>}
+                  </Badge>
                 </div>
-                Notities
-              </h3>
-              <div className="bg-gray-50 rounded-lg p-3">
-                <div className="whitespace-pre-wrap">{member.notes}</div>
               </div>
             </div>
-          )}
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      </div>
+      
+      {/* Notities sectie */}
+      {member.notes && (
+        <Card className="border-none shadow-md overflow-hidden">
+          <CardHeader className="bg-gray-50 pb-3">
+            <CardTitle className="text-lg flex items-center gap-2 text-gray-700">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5">
+                <path d="M14 3v4a1 1 0 0 0 1 1h4" />
+                <path d="M17 21H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7l5 5v11a2 2 0 0 1-2 2z" />
+                <path d="M9 9h1" />
+                <path d="M9 13h6" />
+                <path d="M9 17h6" />
+              </svg>
+              Notities
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="pt-4">
+            <div className="bg-gray-50 rounded-lg p-4 whitespace-pre-wrap text-gray-700">{member.notes}</div>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }
