@@ -329,8 +329,10 @@ export default async function handler(req, res) {
         // Als status 'rejected' is, voeg eventueel een reden toe
         // Accepteer zowel notes als rejectionReason voor compatibiliteit
         if (status === 'rejected') {
-          // Prioriteer rejectionReason, val terug op notes als geen rejectionReason aanwezig is
-          updatedRequest.rejectionReason = rejectionReason || notes || "Geen reden opgegeven";
+          // Gebruik notes als reden voor afwijzing (notes bevat al rejectionReason indien aanwezig)
+          updatedRequest.rejectionReason = notes || "Geen reden opgegeven";
+          // Log de reden voor debugging
+          console.log("PUT /api/member-requests/status: Reden voor afwijzing:", updatedRequest.rejectionReason);
         }
         
         // Update de aanvraag in Firebase
