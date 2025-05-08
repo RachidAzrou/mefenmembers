@@ -553,13 +553,19 @@ export default function MemberRequests() {
                       </TableCell>
                       <TableCell className="text-center">
                         {request.status === "approved" && (
-                          <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
-                            Goedgekeurd
+                          <Badge variant="outline" className="bg-green-600 text-white border-green-700 shadow-sm px-3 py-1">
+                            <div className="flex items-center gap-1.5">
+                              <CheckIcon className="h-3.5 w-3.5" />
+                              <span>Goedgekeurd</span>
+                            </div>
                           </Badge>
                         )}
                         {request.status === "rejected" && (
-                          <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200">
-                            Afgewezen
+                          <Badge variant="outline" className="bg-red-600 text-white border-red-700 shadow-sm px-3 py-1">
+                            <div className="flex items-center gap-1.5">
+                              <XIcon className="h-3.5 w-3.5" />
+                              <span>Afgewezen</span>
+                            </div>
                           </Badge>
                         )}
                       </TableCell>
