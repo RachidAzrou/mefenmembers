@@ -79,7 +79,8 @@ import {
 
 // Type voor lidmaatschapsaanvragen
 interface MemberRequest {
-  id: number;
+  // ID kan ofwel een nummer zijn (PostgreSQL) of een string (Firebase)
+  id: number | string;
   status: "pending" | "approved" | "rejected";
   firstName: string;
   lastName: string;
@@ -108,7 +109,7 @@ interface MemberRequest {
   bicSwift?: string | null;
   rejectionReason?: string | null;
   // Velden voor goedgekeurde aanvragen
-  memberId?: number | null;
+  memberId?: number | string | null;
   memberNumber?: string | null;
 }
 
@@ -137,8 +138,8 @@ export default function MemberRequests() {
   const [editedRequest, setEditedRequest] = useState<Partial<EditableMemberRequest> | null>(null);
   const [nextMemberNumber, setNextMemberNumber] = useState<string | null>(null);
   const [isEditing, setIsEditing] = useState(false);
-  const [locallyApprovedIds, setLocallyApprovedIds] = useState<Set<number>>(new Set());
-  const [locallyRejectedIds, setLocallyRejectedIds] = useState<Set<number>>(new Set());
+  const [locallyApprovedIds, setLocallyApprovedIds] = useState<Set<number | string>>(new Set());
+  const [locallyRejectedIds, setLocallyRejectedIds] = useState<Set<number | string>>(new Set());
   const { isAdmin } = useRole();
 
   // Ophalen van alle aanvragen op een nette, efficiënte manier
@@ -196,8 +197,8 @@ export default function MemberRequests() {
 
   // VERBETERDE IMPLEMENTATIE: Goedkeuren van een aanvraag - compatibel met zowel lokaal als Vercel
   const approveMutation = useMutation({
-    mutationFn: async (requestId: number) => {
-      if (!requestId || isNaN(requestId)) {
+    mutationFn: async (requestId: number | string) => {
+      if (!requestId) {
         throw new Error("Ongeldige aanvraag: geen ID gevonden");
       }
       
@@ -205,10 +206,24 @@ export default function MemberRequests() {
       
       // Zoek de volledige aanvraagdata op voor Vercel Firebase compatibiliteit
       const currentRequests = queryClient.getQueryData<MemberRequest[]>(["/api/member-requests"]);
-      const requestData = currentRequests?.find(req => req.id === requestId);
+      
+      // Compatibiliteit met zowel numerieke als string IDs (Firebase gebruikt string IDs)
+      const requestData = currentRequests?.find(req => {
+        if (typeof requestId === 'number' && typeof req.id === 'number') {
+          return req.id === requestId;
+        } else if (typeof requestId === 'string' && typeof req.id === 'string') {
+          return req.id === requestId;
+        } else {
+          // Probeer string conversie als types niet overeenkomen
+          return String(req.id) === String(requestId);
+        }
+      });
       
       if (!requestData) {
         console.error(`Geen aanvraaggegevens gevonden voor ID: ${requestId}`);
+      } else {
+        console.log("Goedkeuring bevestigd voor aanvraag:", requestId);
+        console.log("PREVENTIEF: Aanvraag #" + requestId + " lokaal gemarkeerd als goedgekeurd");
       }
       
       // Verzoek met volledige gegevens voor Vercel compatibiliteit
@@ -274,13 +289,32 @@ export default function MemberRequests() {
 
   // Verbeterde implementatie: Afwijzen van een aanvraag - compatibel met zowel lokaal als Vercel
   const rejectMutation = useMutation({
-    mutationFn: async ({ id, reason }: { id: number; reason: string }) => {
+    mutationFn: async ({ id, reason }: { id: number | string; reason: string }) => {
+      if (!id) {
+        throw new Error("Ongeldige aanvraag: geen ID gevonden");
+      }
+      
+      console.log(`Versturen afwijzingsverzoek voor aanvraag #${id}`);
+      
       // Zoek de volledige aanvraagdata op voor Vercel Firebase compatibiliteit
       const currentRequests = queryClient.getQueryData<MemberRequest[]>(["/api/member-requests"]);
-      const requestData = currentRequests?.find(req => req.id === id);
+      
+      // Compatibiliteit met zowel numerieke als string IDs (Firebase gebruikt string IDs)
+      const requestData = currentRequests?.find(req => {
+        if (typeof id === 'number' && typeof req.id === 'number') {
+          return req.id === id;
+        } else if (typeof id === 'string' && typeof req.id === 'string') {
+          return req.id === id;
+        } else {
+          // Probeer string conversie als types niet overeenkomen
+          return String(req.id) === String(id);
+        }
+      });
       
       if (!requestData) {
         console.error(`Geen aanvraaggegevens gevonden voor ID: ${id}`);
+      } else {
+        console.log("Afwijzing bevestigd voor aanvraag:", id);
       }
       
       const response = await apiRequest("PUT", `/api/member-requests/status?id=${id}`, {
@@ -322,7 +356,7 @@ export default function MemberRequests() {
 
   // Verwijderen van een aanvraag
   const deleteMutation = useMutation({
-    mutationFn: async (id: number) => {
+    mutationFn: async (id: number | string) => {
       await apiRequest("DELETE", `/api/member-requests?id=${id}`);
     },
     onSuccess: () => {
@@ -376,13 +410,15 @@ export default function MemberRequests() {
     // Stap 1: Filter lokaal goedgekeurde aanvragen
     const filteredRequests = requests.filter(req => !locallyApprovedIds.has(req.id));
     
-    // Stap 2: ID-gebaseerde deduplicatie
-    const seenIds = new Set<number>();
+    // Stap 2: ID-gebaseerde deduplicatie (compatibel met zowel string als number IDs)
+    const seenIds = new Set<string>();
     const uniqueById: MemberRequest[] = [];
     
     for (const req of filteredRequests) {
-      if (!seenIds.has(req.id)) {
-        seenIds.add(req.id);
+      // Converteer ID naar string om zowel string als number IDs te ondersteunen
+      const idString = String(req.id);
+      if (!seenIds.has(idString)) {
+        seenIds.add(idString);
         uniqueById.push(req);
       }
     }
@@ -395,11 +431,24 @@ export default function MemberRequests() {
       const key = `${req.firstName}_${req.lastName}_${req.requestDate}`;
       
       if (seenKeys.has(key)) {
-        // Behoud de meest recente versie (hoogste ID)
+        // Behoud de meest recente versie - voor string IDs of gemengde IDs moeten we
+        // een andere vergelijkingsmethode gebruiken
         const existing = seenKeys.get(key)!;
-        if (req.id > existing.id) {
+        
+        // Bepaal welke aanvraag recenter is - voor Firebase string ID's gebruiken we
+        // de requestDate als beslissende factor
+        const existingDate = new Date(existing.requestDate).getTime();
+        const currentDate = new Date(req.requestDate).getTime();
+        
+        // Bij gelijke datums kiezen we voor de aanvraag met het hoogste ID (indien numeriek)
+        const useCurrentRequest = 
+          currentDate > existingDate || 
+          (currentDate === existingDate && 
+            (typeof req.id === 'number' && typeof existing.id === 'number' && req.id > existing.id));
+        
+        if (useCurrentRequest) {
           // Verwijder oudere versie
-          const indexToRemove = result.findIndex(r => r.id === existing.id);
+          const indexToRemove = result.findIndex(r => String(r.id) === String(existing.id));
           if (indexToRemove !== -1) {
             result.splice(indexToRemove, 1);
           }
@@ -424,6 +473,7 @@ export default function MemberRequests() {
   // Basis functie om te controleren of een aanvraag pending is
   function shouldShowAsPending(request: MemberRequest): boolean {
     // Als lokaal goedgekeurd, nooit tonen als pending
+    // Converteer naar string om zowel nummer als string IDs te ondersteunen
     if (locallyApprovedIds.has(request.id)) {
       return false;
     }
