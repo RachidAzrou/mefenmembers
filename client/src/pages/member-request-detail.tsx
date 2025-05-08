@@ -64,10 +64,23 @@ export default function MemberRequestDetail() {
   // Approve member request
   const approveMutation = useMutation({
     mutationFn: async () => {
-      const res = await apiRequest("POST", "/api/member-requests/approve", { 
-        id: Number(id),
+      // Volledige aanvraaggegevens meesturen voor maximale compatibiliteit
+      // tussen lokale en Vercel-omgeving
+      if (!request) throw new Error("Aanvraag data is niet beschikbaar");
+      
+      // Cast naar een type waarbij alle velden optioneel zijn zodat delete werkt
+      const fullRequestData: Record<string, any> = {
+        ...request,
         processedBy: 1 // Hard-coded user ID
-      });
+      };
+      
+      // Verwijder velden die niet meegestuurd moeten worden om conflicten te voorkomen
+      if ('processedDate' in fullRequestData) delete fullRequestData.processedDate;
+      if ('memberId' in fullRequestData) delete fullRequestData.memberId;
+      if ('memberNumber' in fullRequestData) delete fullRequestData.memberNumber;
+      
+      // Zowel ID in query als volledige data in body meesturen
+      const res = await apiRequest("POST", `/api/member-requests/approve?id=${request.id}`, fullRequestData);
       return await res.json();
     },
     onSuccess: () => {
@@ -91,13 +104,24 @@ export default function MemberRequestDetail() {
   // Reject member request
   const rejectMutation = useMutation({
     mutationFn: async (rejectionReason: string) => {
-      const res = await apiRequest("PUT", "/api/member-requests/status", { 
-        id: Number(id),
+      // Volledige aanvraaggegevens meesturen voor maximale compatibiliteit
+      if (!request) throw new Error("Aanvraag data is niet beschikbaar");
+      
+      // Cast naar een type waarbij alle velden optioneel zijn zodat delete werkt
+      const fullRequestData: Record<string, any> = {
+        ...request,
         status: "rejected",
         rejectionReason,
-        notes: rejectionReason, // Toevoegen voor compatibiliteit
+        notes: rejectionReason, // Dubbele opname voor compatibiliteit
         processedBy: 1 // Hard-coded user ID
-      });
+      };
+      
+      // Verwijder velden die niet meegestuurd moeten worden om conflicten te voorkomen
+      if ('processedDate' in fullRequestData) delete fullRequestData.processedDate;
+      if ('memberId' in fullRequestData) delete fullRequestData.memberId;
+      if ('memberNumber' in fullRequestData) delete fullRequestData.memberNumber;
+      
+      const res = await apiRequest("PUT", `/api/member-requests/status?id=${request.id}`, fullRequestData);
       return await res.json();
     },
     onSuccess: () => {
