@@ -1351,7 +1351,7 @@ export default function MembersList() {
                       <TableCell className="py-2 sm:py-4">
                         <Badge 
                           variant={member?.paymentStatus ? "default" : "outline"}
-                          className={`text-[10px] sm:text-xs min-w-[94px] text-center ${member?.paymentStatus 
+                          className={`text-[10px] sm:text-xs min-w-[110px] text-center ${member?.paymentStatus 
                             ? "bg-green-100 text-green-800 hover:bg-green-200 hover:text-green-900"
                             : "bg-red-50 border-red-200 text-red-700 hover:bg-red-100"}`}
                         >
@@ -1359,7 +1359,7 @@ export default function MembersList() {
                             {member?.paymentStatus ? (
                               <>
                                 <Banknote className="h-3 w-3 text-green-600" />
-                                <span className="w-[65px] text-center">Betaald</span>
+                                <span className="w-[80px] text-center">Betaald</span>
                               </>
                             ) : (
                               <>
@@ -1369,7 +1369,7 @@ export default function MembersList() {
                                     <div className="w-4 h-0.5 bg-red-600 rotate-45 transform origin-center"></div>
                                   </div>
                                 </div>
-                                <span className="w-[65px] text-center">Niet betaald</span>
+                                <span className="w-[80px] text-center">Niet betaald</span>
                               </>
                             )}
                           </div>
