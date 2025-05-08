@@ -212,9 +212,11 @@ export default function MemberRequests() {
       }
       
       try {
-        // Vereenvoudigde aanroep - alleen essentiële gegevens sturen
+        // GEFIXTE AANROEP - We sturen ALLE gegevens van de aanvraag mee
+        // om ervoor te zorgen dat alle verplichte velden beschikbaar zijn
+        console.log("Versturen van volledige aanvraaggegevens:", request);
         const response = await apiRequest("POST", `/api/member-requests/approve?id=${request.id}`, {
-          id: request.id,
+          ...request, // Alle velden van de aanvraag worden meegestuurd
           processedBy: 1, // TODO: vervangen door echte gebruikers-ID
         });
         
