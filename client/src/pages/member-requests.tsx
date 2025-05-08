@@ -134,22 +134,55 @@ export default function MemberRequests() {
     }
   });
 
-  // Filter aanvragen voor "In behandeling" lijst - nu met extra validatie
+  // Detecteer aanvragen met inconsistente status (debugging)
+  const inconsistentRequests = requests 
+    ? requests.filter(req => {
+        // Goedgekeurde aanvragen zonder verwerkingsdatum of lidnummer
+        const isInconsistentApproved = req.status === "approved" && 
+                                      (!req.processedDate || !req.memberId);
+        // Afgewezen aanvragen zonder verwerkingsdatum
+        const isInconsistentRejected = req.status === "rejected" && !req.processedDate;
+        // Pending aanvragen met verwerkingsdatum
+        const isInconsistentPending = req.status === "pending" && req.processedDate !== null;
+        
+        return isInconsistentApproved || isInconsistentRejected || isInconsistentPending;
+      })
+    : [];
+  
+  // Log eventuele inconsistente aanvragen voor debugging
+  if (inconsistentRequests.length > 0) {
+    console.warn(`Gevonden ${inconsistentRequests.length} aanvragen met inconsistente status:`, 
+    inconsistentRequests.map(r => ({
+      id: r.id, 
+      status: r.status,
+      processedDate: r.processedDate,
+      memberId: r.memberId
+    })));
+  }
+
+  // Filter aanvragen voor "In behandeling" lijst - STRIKTE DEFINITIE
   const pendingRequests = requests
     ? requests.filter(req => {
-        // Alleen aanvragen die expliciet de status "pending" hebben en geen verwerkingsdatum
-        return req.status === "pending" && !req.processedDate;
+        // DEFINITIE: Een aanvraag is in behandeling ALLEEN als:
+        // 1. De status expliciet "pending" is
+        // 2. Er geen verwerkingsdatum is
+        // 3. Er geen memberId is (extra check)
+        return req.status === "pending" && !req.processedDate && !req.memberId;
       })
     : [];
 
-  // Filter aanvragen voor "Verwerkt" lijst - verbeterde controles
+  // Filter aanvragen voor "Verwerkt" lijst - STRIKTE DEFINITIE
   const processedRequests = requests
     ? requests.filter(req => {
-        // Expliciet controleren op goedgekeurde/afgewezen aanvragen
-        const isProcessed = req.status === "approved" || req.status === "rejected";
-        // Extra controle op verwerkingsdatum en memberId (bij goedkeuring)
-        return isProcessed && req.processedDate !== null && 
-               (req.status !== "approved" || (req.status === "approved" && req.memberId));
+        // DEFINITIE: Een aanvraag is verwerkt ALLEEN als:
+        // 1. De status "approved" of "rejected" is
+        // 2. Er een verwerkingsdatum is 
+        // 3. Als "approved": er moet ook een memberId zijn
+        const hasCorrectStatus = req.status === "approved" || req.status === "rejected";
+        const hasProcessedDate = req.processedDate !== null;
+        const hasMemberIdIfRequired = req.status !== "approved" || (req.status === "approved" && req.memberId);
+        
+        return hasCorrectStatus && hasProcessedDate && hasMemberIdIfRequired;
       })
     : [];
     
@@ -507,7 +540,7 @@ export default function MemberRequests() {
       </div>
 
       <Tabs defaultValue="pending" className="bg-white p-4 rounded-md border shadow-sm">
-        <TabsList className="mb-6 grid w-full grid-cols-2 bg-gray-100 p-1 rounded-md">
+        <TabsList className="mb-6 grid w-full grid-cols-3 bg-gray-100 p-1 rounded-md">
           <TabsTrigger value="pending" className="rounded-md data-[state=active]:bg-white">
             <div className="flex items-center gap-2">
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-amber-500">
@@ -526,6 +559,18 @@ export default function MemberRequests() {
               Verwerkt ({processedRequests.length})
             </div>
           </TabsTrigger>
+          {inconsistentRequests.length > 0 && (
+          <TabsTrigger value="inconsistent" className="rounded-md data-[state=active]:bg-white">
+            <div className="flex items-center gap-2">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-red-500">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="12" y1="8" x2="12" y2="12"></line>
+                <line x1="12" y1="16" x2="12.01" y2="16"></line>
+              </svg>
+              Problemen ({inconsistentRequests.length})
+            </div>
+          </TabsTrigger>
+          )}
         </TabsList>
         
         {/* In behandeling tab */}
@@ -534,28 +579,262 @@ export default function MemberRequests() {
             <Table className="w-full">
               <TableHeader>
                 <TableRow>
-                  <TableHead className="w-[200px] text-left font-semibold">Naam</TableHead>
-                  <TableHead className="w-[120px] text-left font-semibold">Datum</TableHead>
+                  <TableHead className="w-[180px] text-left font-semibold">Naam</TableHead>
+                  <TableHead className="w-[80px] text-left font-semibold">Datum</TableHead>
+                  <TableHead className="w-[80px] text-left font-semibold">Aanvraag ID</TableHead>
+                  <TableHead className="w-[120px] text-left font-semibold">Eerdere aanvragen</TableHead>
                   <TableHead className="text-center w-[120px] font-semibold">Acties</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {pendingRequests.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={3} className="text-center py-8 text-gray-500">
+                    <TableCell colSpan={5} className="text-center py-8 text-gray-500">
                       Geen aanvragen in behandeling
                     </TableCell>
                   </TableRow>
                 ) : (
-                  pendingRequests.map((request) => (
+                  pendingRequests.map((request) => {
+                    // Controleer of deze persoon meerdere aanvragen heeft
+                    const allRequestsFromSamePerson = requests?.filter(req => 
+                      req.firstName === request.firstName && 
+                      req.lastName === request.lastName && 
+                      req.id !== request.id
+                    ) || [];
+                    
+                    // Sorteer de eerdere aanvragen van nieuw naar oud
+                    const previousRequests = allRequestsFromSamePerson
+                      .sort((a, b) => new Date(b.requestDate).getTime() - new Date(a.requestDate).getTime());
+                    
+                    const hasMultipleRequests = previousRequests.length > 0;
+                    
+                    return (
+                      <TableRow key={request.id}>
+                        <TableCell className="font-medium text-left">
+                          <div className="flex items-center gap-2">
+                            {request.firstName} {request.lastName}
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-left">
+                          {formatDate(request.requestDate)}
+                        </TableCell>
+                        <TableCell className="text-left">
+                          #{request.id}
+                        </TableCell>
+                        <TableCell className="text-left">
+                          {hasMultipleRequests ? (
+                            <div className="flex items-center">
+                              <span className="text-amber-600 font-medium text-sm flex items-center gap-1">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                  <circle cx="12" cy="12" r="10"></circle>
+                                  <line x1="12" y1="8" x2="12" y2="12"></line>
+                                  <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                                </svg>
+                                {previousRequests.length} eerdere 
+                                {previousRequests.some(r => r.status === "approved") && 
+                                  <span className="text-green-600 font-medium"> (Lid!)</span>
+                                }
+                              </span>
+                            </div>
+                          ) : "Eerste aanvraag"}
+                        </TableCell>
+                        <TableCell className="text-center">
+                          <div className="flex justify-center gap-2">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8"
+                              onClick={() => handleViewDetails(request)}
+                            >
+                              <Eye className="h-4 w-4" />
+                              <span className="sr-only">Bekijken</span>
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8 text-green-600 hover:text-green-700 hover:bg-green-50"
+                              onClick={() => handleApprove(request)}
+                            >
+                              <CheckIcon className="h-4 w-4" />
+                              <span className="sr-only">Goedkeuren</span>
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50"
+                              onClick={() => handleReject(request)}
+                            >
+                              <XIcon className="h-4 w-4" />
+                              <span className="sr-only">Afwijzen</span>
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })
+                )}
+              </TableBody>
+            </Table>
+          </div>
+        </TabsContent>
+        
+        {/* Verwerkt tab */}
+        <TabsContent value="processed" className="space-y-4">
+          <div className="rounded-md border">
+            <Table className="w-full">
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-[180px] text-left font-semibold">Naam</TableHead>
+                  <TableHead className="w-[80px] text-center font-semibold">Status</TableHead>
+                  <TableHead className="w-[80px] text-left font-semibold">Aanvraag ID</TableHead>
+                  <TableHead className="w-[80px] text-left font-semibold">Verwerkt op</TableHead>
+                  <TableHead className="w-[120px] text-left font-semibold">Andere aanvragen</TableHead>
+                  <TableHead className="text-center w-[100px] font-semibold">Details</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {processedRequests.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={6} className="text-center py-8 text-gray-500">
+                      Geen verwerkte aanvragen
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  processedRequests.map((request) => {
+                    // Controleer of deze persoon meerdere aanvragen heeft
+                    const otherRequestsFromSamePerson = requests?.filter(req => 
+                      req.firstName === request.firstName && 
+                      req.lastName === request.lastName && 
+                      req.id !== request.id
+                    ) || [];
+                    
+                    // Sorteer de overige aanvragen van nieuw naar oud
+                    const otherRequests = otherRequestsFromSamePerson
+                      .sort((a, b) => new Date(b.requestDate).getTime() - new Date(a.requestDate).getTime());
+                    
+                    const hasMembershipApproved = request.status === "approved" && request.memberId;
+                    const hasMultipleRequests = otherRequests.length > 0;
+                    
+                    return (
+                      <TableRow key={request.id}>
+                        <TableCell className="font-medium text-left">
+                          <div className="flex items-center gap-2">
+                            {request.firstName} {request.lastName}
+                            {hasMembershipApproved && 
+                              <span className="text-xs bg-green-100 text-green-700 px-1.5 py-0.5 rounded font-medium">
+                                Lid #{request.memberNumber}
+                              </span>
+                            }
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-center">
+                          {getStatusBadge(request.status)}
+                        </TableCell>
+                        <TableCell className="text-left">
+                          #{request.id}
+                        </TableCell>
+                        <TableCell className="text-left">
+                          {formatDate(request.processedDate)}
+                        </TableCell>
+                        <TableCell className="text-left">
+                          {hasMultipleRequests ? (
+                            <div className="flex items-center">
+                              <span className="text-gray-600 text-sm flex items-center gap-1">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                                  <circle cx="9" cy="7" r="4"></circle>
+                                  <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                                  <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                                </svg>
+                                {otherRequests.length} andere
+                                {otherRequests.some(r => r.status === "pending") &&
+                                  <span className="text-amber-600 font-medium"> (In behandeling)</span>
+                                }
+                              </span>
+                            </div>
+                          ) : "Enige aanvraag"}
+                        </TableCell>
+                        <TableCell className="text-center">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8"
+                            onClick={() => handleViewDetails(request)}
+                          >
+                            <Eye className="h-4 w-4" />
+                            <span className="sr-only">Bekijken</span>
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })
+                )}
+              </TableBody>
+            </Table>
+          </div>
+        </TabsContent>
+
+        {/* Tab voor inconsistente aanvragen met problemen */}
+        {inconsistentRequests.length > 0 && (
+        <TabsContent value="inconsistent" className="space-y-4">
+          <div className="bg-red-50 border border-red-200 rounded-md p-4 mb-4">
+            <h3 className="text-red-700 font-medium mb-2 flex items-center gap-2">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="12" y1="8" x2="12" y2="12"></line>
+                <line x1="12" y1="16" x2="12.01" y2="16"></line>
+              </svg>
+              Aanvragen met inconsistente status
+            </h3>
+            <p className="text-red-700 text-sm">
+              De volgende aanvragen hebben een inconsistente status die handmatige correctie behoeven.
+              Dit kan gebeuren als er een fout optreedt tijdens het verwerken van een aanvraag.
+              U kunt de status resetten naar "In behandeling" om ze opnieuw te verwerken.
+            </p>
+          </div>
+        
+          <div className="rounded-md border">
+            <Table className="w-full">
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-[200px] text-left font-semibold">Naam</TableHead>
+                  <TableHead className="w-[100px] text-center font-semibold">Status</TableHead>
+                  <TableHead className="w-[120px] text-left font-semibold">Datum</TableHead>
+                  <TableHead className="w-[120px] text-left font-semibold">Probleem</TableHead>
+                  <TableHead className="text-center w-[180px] font-semibold">Acties</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {inconsistentRequests.map((request) => {
+                  // Bepaal wat het probleem is
+                  let probleem = "";
+                  if (request.status === "approved" && !request.memberId) {
+                    probleem = "Goedgekeurd zonder lidnummer";
+                  } else if (request.status === "approved" && !request.processedDate) {
+                    probleem = "Goedgekeurd zonder verwerkingsdatum";
+                  } else if (request.status === "rejected" && !request.processedDate) {
+                    probleem = "Afgewezen zonder verwerkingsdatum";
+                  } else if (request.status === "pending" && request.processedDate) {
+                    probleem = "In behandeling maar wel verwerkingsdatum";
+                  } else {
+                    probleem = "Onbekend probleem";
+                  }
+                  
+                  return (
                     <TableRow key={request.id}>
                       <TableCell className="font-medium text-left">
                         <div className="flex items-center gap-2">
                           {request.firstName} {request.lastName}
                         </div>
                       </TableCell>
+                      <TableCell className="text-center">
+                        {getStatusBadge(request.status)}
+                      </TableCell>
                       <TableCell className="text-left">
                         {formatDate(request.requestDate)}
+                      </TableCell>
+                      <TableCell className="text-left text-red-600 font-medium">
+                        {probleem}
                       </TableCell>
                       <TableCell className="text-center">
                         <div className="flex justify-center gap-2">
@@ -569,84 +848,30 @@ export default function MemberRequests() {
                             <span className="sr-only">Bekijken</span>
                           </Button>
                           <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8 text-green-600 hover:text-green-700 hover:bg-green-50"
-                            onClick={() => handleApprove(request)}
+                            variant="outline"
+                            size="sm"
+                            className="text-sm h-8"
+                            onClick={() => {
+                              // TODO: Implementeer reset functionaliteit
+                              toast({
+                                title: "Functionaliteit in ontwikkeling",
+                                description: "Het resetten van aanvragen zal in een toekomstige update beschikbaar zijn.",
+                                variant: "destructive"
+                              });
+                            }}
                           >
-                            <CheckIcon className="h-4 w-4" />
-                            <span className="sr-only">Goedkeuren</span>
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50"
-                            onClick={() => handleReject(request)}
-                          >
-                            <XIcon className="h-4 w-4" />
-                            <span className="sr-only">Afwijzen</span>
+                            Reset naar 'Pending'
                           </Button>
                         </div>
                       </TableCell>
                     </TableRow>
-                  ))
-                )}
+                  );
+                })}
               </TableBody>
             </Table>
           </div>
         </TabsContent>
-        
-        {/* Verwerkt tab */}
-        <TabsContent value="processed" className="space-y-4">
-          <div className="rounded-md border">
-            <Table className="w-full">
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="w-[200px] text-left font-semibold">Naam</TableHead>
-                  <TableHead className="w-[120px] text-center font-semibold">Status</TableHead>
-                  <TableHead className="w-[120px] text-left font-semibold">Verwerkt op</TableHead>
-                  <TableHead className="text-center w-[100px] font-semibold">Details</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {processedRequests.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={4} className="text-center py-8 text-gray-500">
-                      Geen verwerkte aanvragen
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  processedRequests.map((request) => (
-                    <TableRow key={request.id}>
-                      <TableCell className="font-medium text-left">
-                        <div className="flex items-center gap-2">
-                          {request.firstName} {request.lastName}
-                        </div>
-                      </TableCell>
-                      <TableCell className="text-center">
-                        {getStatusBadge(request.status)}
-                      </TableCell>
-                      <TableCell className="text-left">
-                        {formatDate(request.processedDate)}
-                      </TableCell>
-                      <TableCell className="text-center">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8"
-                          onClick={() => handleViewDetails(request)}
-                        >
-                          <Eye className="h-4 w-4" />
-                          <span className="sr-only">Bekijken</span>
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
-          </div>
-        </TabsContent>
+        )}
       </Tabs>
 
       {/* Detail dialog */}
@@ -660,6 +885,44 @@ export default function MemberRequests() {
           </DialogHeader>
           {selectedRequest && (
             <div className="space-y-4">
+              {/* Informatie over aanvraag ID */}
+              <div className="bg-gray-50 border border-gray-200 rounded-md p-3">
+                <p><span className="font-semibold">Aanvraag ID:</span> #{selectedRequest.id}</p>
+                
+                {/* Controleer of deze persoon andere aanvragen heeft */}
+                {(() => {
+                  const otherRequests = requests?.filter(req => 
+                    req.firstName === selectedRequest.firstName && 
+                    req.lastName === selectedRequest.lastName && 
+                    req.id !== selectedRequest.id
+                  ) || [];
+                  
+                  if (otherRequests.length > 0) {
+                    // Check of er al een goedgekeurde aanvraag is
+                    const approvedRequest = otherRequests.find(r => r.status === "approved" && r.memberId);
+                    
+                    return (
+                      <div className="mt-2">
+                        <p className="text-amber-600 font-medium flex items-center gap-1 text-sm">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <line x1="12" y1="8" x2="12" y2="12"></line>
+                            <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                          </svg>
+                          Deze persoon heeft {otherRequests.length} andere aanvra{otherRequests.length === 1 ? 'ag' : 'gen'}
+                        </p>
+                        {approvedRequest && (
+                          <p className="text-green-600 font-medium text-sm mt-1">
+                            ⚠️ Al lid sinds {formatDate(approvedRequest.processedDate)} (Lidnummer: {approvedRequest.memberNumber})
+                          </p>
+                        )}
+                      </div>
+                    );
+                  }
+                  return null;
+                })()}
+              </div>
+            
               <div>
                 <h3 className="font-semibold mb-1">Persoonlijke informatie</h3>
                 <p><span className="font-semibold">Naam:</span> {selectedRequest.firstName} {selectedRequest.lastName}</p>
@@ -714,6 +977,62 @@ export default function MemberRequests() {
               <p className="mb-4">
                 Weet u zeker dat u de aanvraag van <span className="font-semibold">{selectedRequest.firstName} {selectedRequest.lastName}</span> wilt goedkeuren?
               </p>
+              
+              {/* Controleer of deze persoon andere aanvragen heeft die al zijn goedgekeurd */}
+              {(() => {
+                const otherRequests = requests?.filter(req => 
+                  req.firstName === selectedRequest.firstName && 
+                  req.lastName === selectedRequest.lastName && 
+                  req.id !== selectedRequest.id
+                ) || [];
+                
+                // Controleer of er al een goedgekeurde aanvraag is met een lidnummer
+                const approvedRequest = otherRequests.find(r => r.status === "approved" && r.memberId);
+                
+                if (approvedRequest) {
+                  return (
+                    <div className="bg-yellow-50 border border-yellow-200 rounded-md p-3 mb-4">
+                      <p className="text-amber-700 font-medium flex items-center gap-1">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+                          <line x1="12" y1="9" x2="12" y2="13"></line>
+                          <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                        </svg>
+                        Let op: Deze persoon is al lid!
+                      </p>
+                      <p className="text-amber-700 text-sm mt-1">
+                        Deze persoon heeft al een goedgekeurde aanvraag en is lid sinds {formatDate(approvedRequest.processedDate)} met lidnummer #{approvedRequest.memberNumber}.
+                      </p>
+                      <p className="text-amber-700 text-sm mt-1">
+                        Weet u zeker dat u een tweede lidmaatschap wilt toekennen?
+                      </p>
+                    </div>
+                  );
+                }
+                
+                // Controleer of er aanvragen in behandeling zijn
+                const pendingRequests = otherRequests.filter(r => r.status === "pending");
+                if (pendingRequests.length > 0) {
+                  return (
+                    <div className="bg-blue-50 border border-blue-200 rounded-md p-3 mb-4">
+                      <p className="text-blue-700 font-medium flex items-center gap-1">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <circle cx="12" cy="12" r="10"></circle>
+                          <line x1="12" y1="16" x2="12" y2="12"></line>
+                          <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                        </svg>
+                        Let op: Meerdere aanvragen
+                      </p>
+                      <p className="text-blue-700 text-sm mt-1">
+                        Deze persoon heeft nog {pendingRequests.length} andere aanvra{pendingRequests.length === 1 ? 'ag' : 'gen'} in behandeling.
+                      </p>
+                    </div>
+                  );
+                }
+                
+                return null;
+              })()}
+              
               <p className="mb-2">
                 Na goedkeuring:
               </p>
