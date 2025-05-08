@@ -192,6 +192,7 @@ export default function MemberRequests() {
       toast({
         title: "Aanvraag goedgekeurd",
         description: "De aanvraag is succesvol goedgekeurd en het lid is aangemaakt.",
+        variant: "success",
       });
       setSelectedRequest(null);
       setShowApprovalDialog(false);
@@ -220,6 +221,7 @@ export default function MemberRequests() {
       toast({
         title: "Aanvraag afgewezen",
         description: "De aanvraag is succesvol afgewezen.",
+        variant: "destructive",
       });
       setSelectedRequest(null);
       setShowRejectionDialog(false);
