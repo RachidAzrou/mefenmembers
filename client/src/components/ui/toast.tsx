@@ -28,9 +28,9 @@ const toastVariants = cva(
     variants: {
       variant: {
         default: "border bg-background text-foreground",
-        success: "bg-[#F0F8EE] border-[#A3D89C]/20 text-[#4D8A3F]",
-        destructive: "bg-red-50/80 border-red-100 text-red-700",
-        info: "border-blue-100 bg-blue-50/80 text-blue-700",
+        success: "bg-[#F4F9F3] border-[#C3E5BF]/20 text-[#5E9E51]",
+        destructive: "bg-red-50/70 border-red-100/80 text-red-600/90",
+        info: "border-blue-100/80 bg-blue-50/70 text-blue-600/90",
       },
     },
     defaultVariants: {
@@ -95,9 +95,9 @@ const ToastIcon = React.forwardRef<
 >(({ variant = "default" }, ref) => {
   const icons = {
     default: null,
-    success: <Check className="h-5 w-5 text-[#6BB85C]" />,
-    destructive: <AlertCircle className="h-5 w-5 text-red-500" />,
-    info: <Info className="h-5 w-5 text-blue-600" />,
+    success: <Check className="h-5 w-5 text-[#7EC46F]" />,
+    destructive: <AlertCircle className="h-5 w-5 text-red-400" />,
+    info: <Info className="h-5 w-5 text-blue-500" />,
   }
 
   return (
