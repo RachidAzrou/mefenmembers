@@ -393,28 +393,8 @@ export default function MemberRequests() {
     return result.filter(req => req.status === "pending");
   }
   
-  // Effect om goedgekeurde aanvragen bij te houden en te synchroniseren
-  useEffect(() => {
-    if (approveMutation.isSuccess && selectedRequest) {
-      // Voeg goedgekeurde aanvraag toe aan lokale set
-      setLocallyApprovedIds(prev => {
-        const newSet = new Set(prev);
-        newSet.add(selectedRequest.id);
-        return newSet;
-      });
-      
-      // Ververs data na goedkeuring
-      setTimeout(() => {
-        // Onmiddellijk queries invalideren
-        queryClient.invalidateQueries({ queryKey: ["/api/member-requests"] });
-        queryClient.invalidateQueries({ queryKey: ["/api/members"] });
-        
-        // Dan queries herladen
-        queryClient.refetchQueries({ queryKey: ["/api/member-requests"] })
-          .then(() => console.log("Aanvragen ververst na goedkeuring"));
-      }, 1000);
-    }
-  }, [approveMutation.isSuccess, selectedRequest, queryClient]);
+  // Dit effect is niet meer nodig omdat we de locallyApprovedIds nu direct in de onSuccess 
+  // van de approveMutation bijwerken en daar ook de queries verversen
   
   // Basis functie om te controleren of een aanvraag pending is
   function shouldShowAsPending(request: MemberRequest): boolean {
@@ -562,8 +542,8 @@ export default function MemberRequests() {
         return newSet;
       });
       
-      // Stuur de hele aanvraag door in plaats van alleen het ID
-      approveMutation.mutate(selectedRequest);
+      // Stuur alleen het ID - de nieuwe versie van de mutatie gebruikt alleen het ID
+      approveMutation.mutate(selectedRequest.id);
     }
   };
 
