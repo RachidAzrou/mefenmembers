@@ -22,9 +22,9 @@ export function Toaster() {
             {...props}
             className={cn(
               props.variant === "success" 
-                ? "bg-green-600 text-white border-none" 
+                ? "bg-[#963E56] text-white border-none" 
                 : props.variant === "destructive"
-                  ? "bg-red-600 text-white border-none"
+                  ? "bg-[#963E56] text-white border-none"
                   : "bg-[#963E56] text-white border-none"
             )}
           >

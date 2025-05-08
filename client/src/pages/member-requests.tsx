@@ -928,7 +928,7 @@ export default function MemberRequests() {
         <DialogContent className="max-w-md" hideCloseButton>
           <DialogHeader className="bg-gradient-to-r from-[#963E56] to-[#7a3246] p-5 text-white rounded-t-xl -mt-4 -mx-4 shadow-md">
             <div className="flex items-center mb-1">
-              <div className="bg-green-600 h-7 w-7 rounded-full flex items-center justify-center mr-2 shadow-sm">
+              <div className="bg-[#963E56] h-7 w-7 rounded-full flex items-center justify-center mr-2 shadow-sm">
                 <CheckIcon className="h-5 w-5 text-white" />
               </div>
               <DialogTitle className="text-xl font-bold text-white">Aanvraag goedkeuren</DialogTitle>
@@ -1037,7 +1037,7 @@ export default function MemberRequests() {
             </Button>
             <Button 
               onClick={confirmApproval}
-              className="w-full sm:w-auto bg-green-600 hover:bg-green-700 text-white shadow-sm"
+              className="w-full sm:w-auto bg-[#963E56] hover:bg-[#7a3246] text-white shadow-sm"
               disabled={approveMutation.isPending}
             >
               {approveMutation.isPending ? (
@@ -1056,7 +1056,7 @@ export default function MemberRequests() {
         <DialogContent className="max-w-md" hideCloseButton>
           <DialogHeader className="bg-gradient-to-r from-[#963E56] to-[#7a3246] p-5 text-white rounded-t-xl -mt-4 -mx-4 shadow-md">
             <div className="flex items-center mb-1">
-              <div className="bg-red-600 h-7 w-7 rounded-full flex items-center justify-center mr-2 shadow-sm">
+              <div className="bg-[#963E56] h-7 w-7 rounded-full flex items-center justify-center mr-2 shadow-sm">
                 <XIcon className="h-5 w-5 text-white" />
               </div>
               <DialogTitle className="text-xl font-bold text-white">Aanvraag afwijzen</DialogTitle>
