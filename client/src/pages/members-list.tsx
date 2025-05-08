@@ -1359,7 +1359,7 @@ export default function MembersList() {
                             {member?.paymentStatus ? (
                               <>
                                 <Banknote className="h-3 w-3 text-green-600" />
-                                <span>Betaald</span>
+                                <span className="w-[65px] text-center">Betaald</span>
                               </>
                             ) : (
                               <>
@@ -1369,7 +1369,7 @@ export default function MembersList() {
                                     <div className="w-4 h-0.5 bg-red-600 rotate-45 transform origin-center"></div>
                                   </div>
                                 </div>
-                                <span>Niet betaald</span>
+                                <span className="w-[65px] text-center">Niet betaald</span>
                               </>
                             )}
                           </div>
