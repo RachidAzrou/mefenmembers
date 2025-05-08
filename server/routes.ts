@@ -288,33 +288,92 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Route voor het goedkeuren en omzetten van een aanvraag naar een lid
   app.post("/api/member-requests/approve", async (req: Request, res: Response) => {
     try {
+      // Extra logging voor debugging
+      console.log("Aanvraag goedkeuren API route opgeroepen");
+      console.log("Query params:", req.query);
+      console.log("Request body:", req.body);
+      
+      // ID parameter ophalen en valideren
       const id = req.query.id ? parseInt(req.query.id as string) : undefined;
       if (!id || isNaN(id)) {
+        console.error("Goedkeuring gefaald: Ongeldig ID parameter", req.query.id);
         return res.status(400).json({ error: "Ongeldig of ontbrekend ID" });
       }
+      console.log(`Aanvraag ID ${id} gevonden in parameters`);
 
-      const { processedBy } = req.body;
-      
-      if (!processedBy || isNaN(parseInt(processedBy as string))) {
-        return res.status(400).json({ error: "Ontbrekende of ongeldige processedBy parameter" });
+      // ProcessedBy ophalen (de gebruiker die de aanvraag goedkeurt)
+      // Accepteer zowel string als number formaat
+      let processedBy: number;
+      if (typeof req.body.processedBy === 'number') {
+        processedBy = req.body.processedBy;
+      } else if (typeof req.body.processedBy === 'string') {
+        processedBy = parseInt(req.body.processedBy);
+      } else {
+        // Default waarde voor ontwikkeling
+        console.warn("Geen processedBy parameter gevonden, gebruik default waarde 1");
+        processedBy = 1;
       }
-
+      
+      // Controleer of de aanvraag bestaat
       const request = await storage.getMemberRequest(id);
       if (!request) {
+        console.error(`Aanvraag met ID ${id} niet gevonden in database`);
         return res.status(404).json({ error: "Aanvraag niet gevonden" });
       }
-
-      // Convert request to member
-      const member = await storage.approveMemberRequest(id, parseInt(processedBy as string));
+      console.log(`Aanvraag gevonden: ${request.firstName} ${request.lastName} (status: ${request.status})`);
       
+      // Controleer of de aanvraag al is verwerkt
+      if (request.status !== 'pending') {
+        console.warn(`Aanvraag ID ${id} heeft al status ${request.status}`);
+        // Als de aanvraag al is goedgekeurd, retourneer de lidgegevens in plaats van een fout
+        if (request.status === 'approved' && request.memberId && request.memberNumber) {
+          console.log(`Aanvraag ID ${id} is al eerder goedgekeurd, return bestaande gegevens`);
+          return res.status(200).json({
+            message: "Aanvraag was reeds goedgekeurd",
+            memberId: request.memberId,
+            memberNumber: request.memberNumber,
+            alreadyProcessed: true
+          });
+        }
+      }
+
+      // Verwerk de aanvraag
+      console.log(`Start verwerking van aanvraag ID ${id} door gebruiker ${processedBy}`);
+      const member = await storage.approveMemberRequest(id, processedBy);
+      console.log(`Aanvraag succesvol verwerkt: nieuw lid ${member.id} met nummer ${member.memberNumber}`);
+      
+      // Succesvolle response
       res.status(201).json({
         message: "Aanvraag goedgekeurd en lid aangemaakt",
         memberId: member.id,
-        memberNumber: member.memberNumber
+        memberNumber: member.memberNumber,
+        success: true
       });
     } catch (error) {
+      // Uitgebreide foutafhandeling met ondersteuning voor verschillende soorten fouten
       console.error("Fout bij goedkeuren lidmaatschapsaanvraag:", error);
-      res.status(500).json({ error: "Kon aanvraag niet goedkeuren: " + (error instanceof Error ? error.message : String(error)) });
+      
+      // Bepaal het juiste foutbericht en status code
+      let statusCode = 500;
+      let errorMessage = "Kon aanvraag niet goedkeuren";
+      
+      if (error instanceof Error) {
+        errorMessage += ": " + error.message;
+        
+        // Bepaal de status code op basis van het soort fout
+        if (error.message.includes("niet gevonden")) {
+          statusCode = 404;
+        } else if (error.message.includes("is al")) {
+          statusCode = 409;  // Conflict - de aanvraag is al verwerkt
+        }
+      } else {
+        errorMessage += ": " + String(error);
+      }
+      
+      res.status(statusCode).json({ 
+        error: errorMessage,
+        success: false
+      });
     }
   });
 

@@ -200,49 +200,75 @@ export default function MemberRequests() {
   // Goedkeuren van een aanvraag
   const approveMutation = useMutation({
     mutationFn: async (request: MemberRequest) => {
-      console.log("Approving request with ID:", request.id);
+      console.log("Goedkeuren van aanvraag met ID:", request.id);
+      
+      // Controleer of de aanvraag niet al is goedgekeurd
+      if (request.status === "approved" || request.processedDate || request.memberNumber) {
+        console.warn("Aanvraag lijkt al verwerkt te zijn:", {
+          status: request.status,
+          processedDate: request.processedDate,
+          memberNumber: request.memberNumber
+        });
+      }
+      
       try {
-        // Stuur de hele aanvraag mee voor het geval de API de volledige data nodig heeft
+        // Vereenvoudigde aanroep - alleen essentiële gegevens sturen
         const response = await apiRequest("POST", `/api/member-requests/approve?id=${request.id}`, {
           id: request.id,
           processedBy: 1, // TODO: vervangen door echte gebruikers-ID
-          firstName: request.firstName,
-          lastName: request.lastName,
-          email: request.email,
-          phoneNumber: request.phoneNumber,
-          // Voeg alle andere velden toe om er zeker van te zijn dat ze beschikbaar zijn
-          gender: request.gender,
-          birthDate: request.birthDate,
-          nationality: request.nationality,
-          street: request.street,
-          houseNumber: request.houseNumber,
-          busNumber: request.busNumber,
-          postalCode: request.postalCode,
-          city: request.city,
-          membershipType: request.membershipType,
-          paymentMethod: request.paymentMethod,
-          paymentTerm: request.paymentTerm,
-          autoRenew: request.autoRenew,
-          accountNumber: request.accountNumber,
-          accountHolderName: request.accountHolderName,
-          bicSwift: request.bicSwift,
-          privacyConsent: request.privacyConsent,
-          notes: request.notes
         });
+        
+        // Controleer server response
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error("Server fout bij goedkeuren:", response.status, errorText);
+          throw new Error(`Server fout: ${response.status} ${errorText}`);
+        }
+        
         const responseData = await response.json();
-        console.log("Approve API response:", responseData);
+        console.log("Goedkeuring API response:", responseData);
+        
+        // Extra validatie van response data
+        if (!responseData.memberId || !responseData.memberNumber) {
+          console.error("Onvolledige response data:", responseData);
+          throw new Error("Onvolledige response data van server");
+        }
+        
         return responseData;
       } catch (error) {
-        console.error("Error approving request:", error);
+        console.error("Fout bij goedkeuren aanvraag:", error);
         throw error;
       }
     },
-    onSuccess: (data) => {
+    onSuccess: (data, variables) => {
       // Bij goedkeuring ontvangen we memberId en memberNumber
       if (selectedRequest && data.memberId && data.memberNumber) {
-        console.log("Goedkeuring succesvol: Lid aangemaakt met nummer", data.memberNumber);
+        console.log(`Aanvraag #${selectedRequest.id} is goedgekeurd. Nieuw lid #${data.memberNumber} aangemaakt.`);
         
-        // Invalideer eerst beide queries
+        // Handmatig de cache bijwerken om te garanderen dat de status correct is
+        const currentData = queryClient.getQueryData<MemberRequest[]>(["/api/member-requests"]);
+        
+        if (currentData) {
+          const updatedData = currentData.map(req => {
+            if (req.id === selectedRequest.id) {
+              console.log(`Aanvraag #${req.id} status bijwerken naar approved`);
+              return {
+                ...req,
+                status: "approved",
+                processedDate: new Date().toISOString(),
+                processedBy: 1,
+                memberId: data.memberId,
+                memberNumber: data.memberNumber
+              };
+            }
+            return req;
+          });
+          
+          // Update de cache direct
+          queryClient.setQueryData(["/api/member-requests"], updatedData);
+        }
+        
+        // Invalideer de queries om achtergrond verversing te triggeren
         queryClient.invalidateQueries({ queryKey: ["/api/member-requests"] });
         queryClient.invalidateQueries({ queryKey: ["/api/members"] });
         
@@ -252,7 +278,14 @@ export default function MemberRequests() {
           queryClient.refetchQueries({ queryKey: ["/api/members"] })
         ])
         .then(() => {
-          console.log("Alle data is ververst na goedkeuring");
+          console.log("Alle data succesvol ververst na goedkeuring");
+          
+          // Extra check om te zien of de aanvraag correct is bijgewerkt
+          const refreshedData = queryClient.getQueryData<MemberRequest[]>(["/api/member-requests"]);
+          if (refreshedData) {
+            const approvedRequest = refreshedData.find(r => r.id === selectedRequest.id);
+            console.log("Status na verversing:", approvedRequest?.status);
+          }
         })
         .catch((error) => {
           console.error("Fout bij het verversen van data na goedkeuring:", error);
@@ -263,7 +296,7 @@ export default function MemberRequests() {
       
       toast({
         title: "Aanvraag goedgekeurd",
-        description: "De aanvraag is succesvol goedgekeurd en het lid is aangemaakt.",
+        description: `De aanvraag is succesvol goedgekeurd. Lidnummer: ${data.memberNumber}.`,
         variant: "success",
       });
       setSelectedRequest(null);
@@ -394,8 +427,33 @@ export default function MemberRequests() {
   });
 
   // Helper functies voor aanvragen
-  // Striktere filtering voor pendingRequests om zeker te zijn dat we alleen echte "pending" aanvragen hebben
-  const pendingRequests = requests?.filter(req => {
+  // Functie om dubbele aanvragen te verwijderen op basis van naam en datum
+  function removeDuplicates(requests: MemberRequest[]): MemberRequest[] {
+    const seen = new Map<string, MemberRequest>();
+    
+    // Elke aanvraag verwerken
+    for (const req of requests) {
+      // Maak een unieke sleutel op basis van naam en datum
+      const key = `${req.firstName}_${req.lastName}_${req.requestDate}`;
+      
+      // Als we al een aanvraag met deze sleutel hebben gezien, houd dan alleen de meest recente 
+      // (op basis van ID - hogere ID is nieuwer)
+      if (seen.has(key)) {
+        const existing = seen.get(key)!;
+        if (req.id > existing.id) {
+          seen.set(key, req);
+        }
+      } else {
+        seen.set(key, req);
+      }
+    }
+    
+    // Converteer terug naar array
+    return Array.from(seen.values());
+  }
+  
+  // Haal eerst alle pending aanvragen op met strikte filtering
+  const allPendingRequests = requests?.filter(req => {
     // Controleer expliciet of status exact "pending" is, niet null, undefined of iets anders
     if (req.status !== "pending") return false;
     
@@ -407,6 +465,9 @@ export default function MemberRequests() {
     
     return true;
   }) || [];
+  
+  // Verwijder dan dubbele aanvragen
+  const pendingRequests = removeDuplicates(allPendingRequests);
   
   // Filter verwerkte aanvragen op datum (alleen van de afgelopen 7 dagen)
   const processedRequests = requests?.filter(req => {
