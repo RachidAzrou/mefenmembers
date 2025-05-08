@@ -13,7 +13,7 @@ import {
   DialogDescription,
   DialogFooter,
   DialogHeader,
-  DialogTitle,
+  DialogTitle
 } from "@/components/ui/dialog";
 import {
   Card,
@@ -591,7 +591,7 @@ export default function MemberRequests() {
 
       {/* Detail dialog */}
       <Dialog open={showDetailDialog} onOpenChange={setShowDetailDialog}>
-        <DialogContent className="w-full max-w-xl">
+        <DialogContent className="w-full max-w-xl" hideCloseButton={true}>
           <DialogHeader className="bg-gradient-to-r from-[#963E56] to-[#83354A] p-5 sm:p-6 text-white rounded-t-xl -mt-4 -mx-4 shadow-md">
             <div className="flex justify-between items-center">
               <DialogTitle className="text-xl font-bold text-white">
@@ -797,17 +797,15 @@ export default function MemberRequests() {
             )}
           </div>
           
-          <DialogFooter className="flex flex-col sm:flex-row gap-2 sm:justify-between pt-4 border-t border-gray-200">
+          <DialogFooter className="flex justify-end pt-4 border-t border-gray-200">
             <Button 
               variant="outline" 
               type="button" 
               onClick={() => setShowDetailDialog(false)}
-              className="sm:order-1 w-full sm:w-auto"
+              className="w-auto"
             >
               Sluiten
             </Button>
-            
-
           </DialogFooter>
         </DialogContent>
       </Dialog>
