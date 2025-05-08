@@ -532,9 +532,27 @@ export default async function handler(req, res) {
         };
         
         try {
+          // BELANGRIJK: Maak een vereenvoudigd object om statusupdates betrouwbaarder te maken
+          // Door alleen de velden mee te sturen die daadwerkelijk moeten worden bijgewerkt,
+          // verminderen we de kans op conflicten en errors
+          const simpleUpdateRequest = {
+            status: 'approved',
+            processedDate: new Date().toISOString(),
+            processedBy: req.body.processedBy || null,
+            memberId: memberId,
+            memberNumber: nextMemberNumber
+          };
+          
           // Update de aanvraag in Firebase
-          const updateResult = await firebaseRequest('PUT', `member-requests/${id}`, updatedRequest);
+          const updateResult = await firebaseRequest('PATCH', `member-requests/${id}`, simpleUpdateRequest);
           console.log(`POST /api/member-requests/approve: Aanvraag ${id} bijgewerkt naar 'approved' status:`, updateResult ? "Success" : "Geen data");
+          
+          // Maak een tweede poging met PUT als PATCH faalde
+          if (!updateResult) {
+            console.log(`POST /api/member-requests/approve: PATCH gaf geen resultaat, probeer PUT als backup`);
+            const backupResult = await firebaseRequest('PUT', `member-requests/${id}`, updatedRequest);
+            console.log(`POST /api/member-requests/approve: Backup PUT resultaat:`, backupResult ? "Success" : "Nog steeds geen data");
+          }
           
           // Double-check of de aanvraag correct is bijgewerkt
           const verifyRequest = await firebaseRequest('GET', `member-requests/${id}`);
@@ -542,6 +560,12 @@ export default async function handler(req, res) {
             console.log(`POST /api/member-requests/approve: Verificatie succesvol, aanvraag status is nu: ${verifyRequest.status}`);
           } else {
             console.warn(`POST /api/member-requests/approve: Verificatie waarschuwing, aanvraag status is: ${verifyRequest?.status}`);
+            
+            // Als de status nog steeds niet 'approved' is, probeer nogmaals met een simpele update
+            if (verifyRequest && verifyRequest.status !== 'approved') {
+              console.log(`POST /api/member-requests/approve: Laatste poging met minimale data`);
+              await firebaseRequest('PATCH', `member-requests/${id}`, { status: 'approved' });
+            }
           }
           
           console.log(`POST /api/member-requests/approve: Aanvraag ${id} succesvol goedgekeurd en lid aangemaakt met ID ${memberId}`);
