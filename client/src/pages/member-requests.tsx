@@ -460,9 +460,9 @@ export default function MemberRequests() {
             <Table className="w-full">
               <TableHeader>
                 <TableRow>
-                  <TableHead className="w-[160px] text-center">Naam</TableHead>
-                  <TableHead className="w-[100px] text-center">Datum</TableHead>
-                  <TableHead className="text-center w-[120px]">Acties</TableHead>
+                  <TableHead className="w-[200px] text-right font-semibold">Naam</TableHead>
+                  <TableHead className="w-[120px] text-center font-semibold">Datum</TableHead>
+                  <TableHead className="text-center w-[120px] font-semibold">Acties</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -475,8 +475,8 @@ export default function MemberRequests() {
                 ) : (
                   pendingRequests.map((request) => (
                     <TableRow key={request.id}>
-                      <TableCell className="font-medium">
-                        <div className="flex items-center gap-2">
+                      <TableCell className="font-medium text-right">
+                        <div className="flex items-center gap-2 justify-end">
                           {request.firstName} {request.lastName}
                         </div>
                       </TableCell>
@@ -530,7 +530,7 @@ export default function MemberRequests() {
             <Table className="w-full">
               <TableHeader>
                 <TableRow>
-                  <TableHead className="w-[200px] text-center font-semibold">Naam</TableHead>
+                  <TableHead className="w-[200px] text-right font-semibold">Naam</TableHead>
                   <TableHead className="w-[120px] text-center font-semibold">Status</TableHead>
                   <TableHead className="w-[120px] text-center font-semibold">Verwerkt op</TableHead>
                   <TableHead className="text-center w-[120px] font-semibold">Acties</TableHead>
@@ -546,8 +546,10 @@ export default function MemberRequests() {
                 ) : (
                   processedRequests.map((request) => (
                     <TableRow key={request.id}>
-                      <TableCell className="font-medium text-center">
-                        {request.firstName} {request.lastName}
+                      <TableCell className="font-medium text-right">
+                        <div className="flex items-center gap-2 justify-end">
+                          {request.firstName} {request.lastName}
+                        </div>
                       </TableCell>
                       <TableCell className="text-center">
                         {request.status === "approved" && (
@@ -610,13 +612,28 @@ export default function MemberRequests() {
               </DialogTitle>
               <div>
                 {selectedRequest?.status === "pending" && (
-                  <Badge variant="outline" className="bg-white/20 text-white border-white/30">In behandeling</Badge>
+                  <Badge variant="outline" className="bg-white/20 text-white border-white/30 px-3 py-1">
+                    <div className="flex items-center gap-1.5">
+                      <AlertCircle className="h-3.5 w-3.5" />
+                      <span>In behandeling</span>
+                    </div>
+                  </Badge>
                 )}
                 {selectedRequest?.status === "approved" && (
-                  <Badge variant="outline" className="bg-white text-green-600 border-white shadow-sm">Goedgekeurd</Badge>
+                  <Badge variant="outline" className="bg-green-600 text-white border-green-700 shadow-sm px-3 py-1">
+                    <div className="flex items-center gap-1.5">
+                      <CheckIcon className="h-3.5 w-3.5" />
+                      <span>Goedgekeurd</span>
+                    </div>
+                  </Badge>
                 )}
                 {selectedRequest?.status === "rejected" && (
-                  <Badge variant="outline" className="bg-white text-red-600 border-white shadow-sm">Afgewezen</Badge>
+                  <Badge variant="outline" className="bg-red-600 text-white border-red-700 shadow-sm px-3 py-1">
+                    <div className="flex items-center gap-1.5">
+                      <XIcon className="h-3.5 w-3.5" />
+                      <span>Afgewezen</span>
+                    </div>
+                  </Badge>
                 )}
               </div>
             </div>
@@ -808,7 +825,7 @@ export default function MemberRequests() {
                 </h3>
                 
                 <div className="bg-red-50 p-4 rounded-md border border-red-200 shadow-sm">
-                  <p className="text-gray-800">{selectedRequest.notes || "Geen reden opgegeven."}</p>
+                  <p className="text-gray-800">{selectedRequest.rejectionReason || selectedRequest.notes || "Geen reden opgegeven."}</p>
                 </div>
               </div>
             )}
