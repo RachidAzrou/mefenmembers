@@ -209,24 +209,27 @@ export default function MemberRequests() {
           throw new Error("Ongeldige aanvraag: geen ID gevonden");
         }
         
-        // STAP 2: Controleer of alle verplichte gegevens aanwezig zijn
-        const requiredFields = ["firstName", "lastName", "email", "phoneNumber"];
-        const missingFields = requiredFields.filter(field => !request[field as keyof MemberRequest]);
+        // STAP 2: Vroeger controleerden we verplichte velden, maar nu volgen we een nieuwe aanpak
+        // waarbij de server deze gegevens ophaalt uit de opgeslagen aanvraag
         
-        if (missingFields.length > 0) {
-          console.error(`Aanvraag #${request.id} mist verplichte velden:`, missingFields);
-          throw new Error(`Ontbrekende verplichte gegevens: ${missingFields.join(', ')}`);
-        }
+        // STAP 3: Verstuur alle gegevens naar de server voor maximale compatibiliteit
+        // Dit zorgt ervoor dat het werkt in zowel de lokale als de Vercel-omgeving
+        console.log(`Versturen van alle gegevens voor aanvraag #${request.id} voor maximale compatibiliteit`);
         
-        // STAP 3: Verstuur alleen het ID naar de server
-        // De server is nu verantwoordelijk voor het ophalen van de aanvraag en alle controles
-        // Dit vermindert potentiële inconsistenties tussen client en server data
-        console.log(`Versturen van minimale gegevens voor aanvraag #${request.id}`);
-        
-        // Verstuur alleen de processedBy waarde, de server zal de rest ophalen
-        const response = await apiRequest("POST", `/api/member-requests/approve?id=${request.id}`, {
+        // We sturen volledige gegevens om beide server-implementaties te ondersteunen
+        // De lokale Express-server en Vercel-functies kunnen hiermee werken
+        const fullRequestData = {
+          ...request,
           processedBy: 1 // TODO: vervangen door echte gebruikers-ID
-        });
+        };
+        
+        // Verwijder onnodige velden om de payload te verkleinen
+        delete fullRequestData.processedDate;
+        delete fullRequestData.memberId;
+        delete fullRequestData.memberNumber;
+        
+        console.log("Volledige gegevens versturen voor compatibiliteit met beide server-implementaties");
+        const response = await apiRequest("POST", `/api/member-requests/approve?id=${request.id}`, fullRequestData);
         
         // STAP 4: Verwerk de server-respons
         if (!response.ok) {
