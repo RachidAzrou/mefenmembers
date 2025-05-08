@@ -591,7 +591,7 @@ export default function MemberRequests() {
 
       {/* Detail dialog */}
       <Dialog open={showDetailDialog} onOpenChange={setShowDetailDialog}>
-        <DialogContent className="w-full max-w-3xl">
+        <DialogContent className="w-full max-w-xl">
           <DialogHeader className="bg-gradient-to-r from-[#963E56] to-[#83354A] p-5 sm:p-6 text-white rounded-t-xl -mt-4 -mx-4 shadow-md">
             <div className="flex justify-between items-center">
               <DialogTitle className="text-xl font-bold text-white">
@@ -614,7 +614,7 @@ export default function MemberRequests() {
             </DialogDescription>
           </DialogHeader>
           
-          <div className="overflow-y-auto max-h-[calc(100vh-240px)] pr-2 mt-4">
+          <div className="overflow-y-auto max-h-[calc(100vh-280px)] pr-2 mt-4">
             {/* Persoonlijke gegevens sectie */}
             <div className="mb-6">
               <h3 className="text-[#963E56] font-semibold text-lg border-b border-[#963E56]/20 pb-2 mb-3 flex items-center">
@@ -1034,7 +1034,7 @@ export default function MemberRequests() {
               <div className="flex items-start mb-2">
                 <AlertCircle className="text-[#963E56] h-5 w-5 mr-2 mt-0.5" />
                 <p className="text-sm text-[#963E56]">
-                  Deze actie kan niet ongedaan worden gemaakt. Geef een duidelijke reden op.
+                  Deze actie kan niet ongedaan worden gemaakt.
                 </p>
               </div>
               
@@ -1073,7 +1073,7 @@ export default function MemberRequests() {
               ) : (
                 <XIcon className="mr-2 h-4 w-4" />
               )}
-              {!rejectionReason.trim() ? "Reden vereist" : "Afwijzen"}
+Afwijzen
             </Button>
           </DialogFooter>
         </DialogContent>
