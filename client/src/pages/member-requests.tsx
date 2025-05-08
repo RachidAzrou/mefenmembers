@@ -722,6 +722,20 @@ export default function MemberRequests() {
           </DialogHeader>
           
           <div className="overflow-y-auto max-h-[calc(100vh-280px)] pr-2 mt-4">
+            {/* Afwijzingsreden tonen indien afgewezen */}
+            {selectedRequest?.status === "rejected" && selectedRequest?.notes && (
+              <div className="mb-6">
+                <h3 className="text-[#963E56] font-semibold text-lg border-b border-[#963E56]/20 pb-2 mb-3 flex items-center">
+                  <AlertCircle className="h-5 w-5 mr-2 text-[#963E56]/70" />
+                  Reden voor afwijzing
+                </h3>
+                
+                <div className="bg-red-50 p-4 rounded-md border border-red-200 shadow-sm">
+                  <p className="text-gray-800">{selectedRequest.notes}</p>
+                </div>
+              </div>
+            )}
+            
             {/* Persoonlijke gegevens sectie */}
             <div className="mb-6">
               <h3 className="text-[#963E56] font-semibold text-lg border-b border-[#963E56]/20 pb-2 mb-3 flex items-center">
@@ -894,20 +908,6 @@ export default function MemberRequests() {
                 )}
               </div>
             </div>
-            
-            {/* Afwijzingsreden tonen indien afgewezen */}
-            {selectedRequest?.status === "rejected" && selectedRequest?.notes && (
-              <div className="mb-6">
-                <h3 className="text-[#963E56] font-semibold text-lg border-b border-[#963E56]/20 pb-2 mb-3 flex items-center">
-                  <AlertCircle className="h-5 w-5 mr-2 text-[#963E56]/70" />
-                  Reden voor afwijzing
-                </h3>
-                
-                <div className="bg-red-50 p-4 rounded-md border border-red-200 shadow-sm">
-                  <p className="text-gray-800">{selectedRequest.notes}</p>
-                </div>
-              </div>
-            )}
           </div>
           
           <DialogFooter className="flex justify-end pt-4 border-t border-gray-200">
