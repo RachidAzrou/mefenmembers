@@ -678,7 +678,7 @@ export default function MemberRequests() {
                     className="bg-white/30 hover:bg-white/40 transition-colors text-white px-2 py-1 rounded text-sm font-semibold flex items-center"
                   >
                     {selectedRequest.memberNumber}
-                    <ExternalLink className="ml-1 h-3.5 w-3.5" />
+                    <ArrowLeft className="ml-1 h-3.5 w-3.5 -rotate-45" />
                   </button>
                 </div>
               )}
