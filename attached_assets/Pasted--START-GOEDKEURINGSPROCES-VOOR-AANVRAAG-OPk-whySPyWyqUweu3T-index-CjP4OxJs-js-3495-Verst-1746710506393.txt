@@ -1,0 +1,77 @@
+==== START GOEDKEURINGSPROCES VOOR AANVRAAG #-OPk-whySPyWyqUweu3T =====
+index-CjP4OxJs.js:3495 Versturen van minimale gegevens voor aanvraag #-OPk-whySPyWyqUweu3T
+index-CjP4OxJs.js:3495 Totaal: 28 aanvragen, waarvan 3 in behandeling
+index-CjP4OxJs.js:3495 Eerste 3 aanvragen 'In behandeling': (3) [{…}, {…}, {…}]
+index-CjP4OxJs.js:40 
+            
+            
+           POST https://mefenmembers-8u0xvubb6-rachid-as-projects.vercel.app/api/member-requests/approve?id=-OPk-whySPyWyqUweu3T 400 (Bad Request)
+ja @ index-CjP4OxJs.js:40
+mutationFn @ index-CjP4OxJs.js:3495
+fn @ index-CjP4OxJs.js:40
+v @ index-CjP4OxJs.js:40
+start @ index-CjP4OxJs.js:40
+execute @ index-CjP4OxJs.js:40
+await in execute
+mutate @ index-CjP4OxJs.js:40
+(anonymous) @ index-CjP4OxJs.js:40
+ve @ index-CjP4OxJs.js:3495
+dve @ index-CjP4OxJs.js:37
+gve @ index-CjP4OxJs.js:37
+Ave @ index-CjP4OxJs.js:37
+vL @ index-CjP4OxJs.js:37
+iee @ index-CjP4OxJs.js:37
+(anonymous) @ index-CjP4OxJs.js:37
+iR @ index-CjP4OxJs.js:40
+DZ @ index-CjP4OxJs.js:37
+x8 @ index-CjP4OxJs.js:37
+N9 @ index-CjP4OxJs.js:37
+kve @ index-CjP4OxJs.js:37Understand this errorAI
+index-CjP4OxJs.js:3495 FOUT BIJ GOEDKEUREN AANVRAAG #-OPk-whySPyWyqUweu3T: Error: 400: {"error":"Ontbrekende verplichte velden","required":["firstName","lastName","phoneNumber","email"]}
+    at bte (index-CjP4OxJs.js:40:96835)
+    at async ja (index-CjP4OxJs.js:40:97036)
+    at async Object.mutationFn (index-CjP4OxJs.js:3495:59320)
+mutationFn @ index-CjP4OxJs.js:3495
+await in mutationFn
+fn @ index-CjP4OxJs.js:40
+v @ index-CjP4OxJs.js:40
+start @ index-CjP4OxJs.js:40
+execute @ index-CjP4OxJs.js:40
+await in execute
+mutate @ index-CjP4OxJs.js:40
+(anonymous) @ index-CjP4OxJs.js:40
+ve @ index-CjP4OxJs.js:3495
+dve @ index-CjP4OxJs.js:37
+gve @ index-CjP4OxJs.js:37
+Ave @ index-CjP4OxJs.js:37
+vL @ index-CjP4OxJs.js:37
+iee @ index-CjP4OxJs.js:37
+(anonymous) @ index-CjP4OxJs.js:37
+iR @ index-CjP4OxJs.js:40
+DZ @ index-CjP4OxJs.js:37
+x8 @ index-CjP4OxJs.js:37
+N9 @ index-CjP4OxJs.js:37
+kve @ index-CjP4OxJs.js:37Understand this errorAI
+index-CjP4OxJs.js:3495 Totaal: 28 aanvragen, waarvan 3 in behandeling
+index-CjP4OxJs.js:3495 Eerste 3 aanvragen 'In behandeling': (3) [{…}, {…}, {…}]
+index-CjP4OxJs.js:3495 Totaal: 28 aanvragen, waarvan 3 in behandeling
+index-CjP4OxJs.js:3495 Eerste 3 aanvragen 'In behandeling': (3) [{…}, {…}, {…}]
+index-CjP4OxJs.js:2138 WebSocket connection to 'wss://s-euw1b-nss-210.europe-west1.firebasedatabase.app/.ws?v=5&s=HnpA5h6KVcYxtnF2obpMsG9t3MEIZ56c&p=1:780110083561:web:63785c6534c79a46850778&ns=mefen-leden-default-rtdb' failed: WebSocket is closed before the connection is established.
+shutdown_ @ index-CjP4OxJs.js:2138
+close @ index-CjP4OxJs.js:2138
+closeConnections_ @ index-CjP4OxJs.js:2168
+close @ index-CjP4OxJs.js:2168
+l @ index-CjP4OxJs.js:2259
+onAuthRevoked_ @ index-CjP4OxJs.js:2259
+(anonymous) @ index-CjP4OxJs.js:2258
+onDataMessage_ @ index-CjP4OxJs.js:2258
+onDataMessage_ @ index-CjP4OxJs.js:2168
+onPrimaryMessageReceived_ @ index-CjP4OxJs.js:2168
+(anonymous) @ index-CjP4OxJs.js:2168
+(anonymous) @ index-CjP4OxJs.js:2108
+Hx @ index-CjP4OxJs.js:2003
+handleResponse @ index-CjP4OxJs.js:2108
+(anonymous) @ index-CjP4OxJs.js:2123
+pRTLPCB @ VM90 .lp:6
+(anonymous) @ VM92 .lp:1Understand this warningAI
+index-CjP4OxJs.js:653 [2025-05-08T13:21:20.456Z]  @firebase/database: FIREBASE WARNING: Provided authentication credentials for the app named "[DEFAULT]" are invalid. This usually indicates your app was not initialized correctly. Make sure the "apiKey" and "databaseURL" properties provided to initializeApp() match the values provided for your app at https://console.firebase.google.com/. 

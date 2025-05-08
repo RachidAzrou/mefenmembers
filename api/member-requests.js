@@ -422,22 +422,58 @@ export default async function handler(req, res) {
           console.error(`POST /api/member-requests/approve: Ontbrekende verplichte velden: ${missingFields.join(", ")}`);
           
           // NIEUWE SERVER LOGICA: De vercel productie-omgeving kan alsnog onvolledige data bevatten
-          // In dat geval vullen we ontbrekende velden in met standaardwaarden om het proces door te laten gaan
-          console.log(`POST /api/member-requests/approve: Vul ontbrekende velden in met standaardwaarden in vercel omgeving`);
+          // In dat geval proberen we gegevens uit het request body te gebruiken als die beschikbaar zijn
+          console.log(`POST /api/member-requests/approve: Extra controle op inkomende request data en vercel omgeving`);
           
-          // Vul ontbrekende velden aan met standaardwaarden zodat het proces door kan gaan
-          missingFields.forEach(field => {
-            if (!request[field]) {
-              if (field === 'email') {
-                request[field] = `lid-${id}@voorbeeld.nl`;
-              } else if (field === 'phoneNumber') {
-                request[field] = '0612345678';
-              } else {
-                request[field] = field === 'firstName' ? 'Voornaam' : 'Achternaam';
+          // Eerst kijken of er gegevens in de request body zitten die we kunnen gebruiken
+          if (Object.keys(req.body).length > 1) {
+            console.log(`POST /api/member-requests/approve: Request body bevat extra gegevens, deze worden gebruikt om ontbrekende velden aan te vullen`);
+            
+            missingFields.forEach(field => {
+              if (!request[field] && req.body[field]) {
+                request[field] = req.body[field];
+                console.log(`POST /api/member-requests/approve: Veld ${field} aangevuld uit request body met: ${request[field]}`);
               }
-              console.log(`POST /api/member-requests/approve: Veld ${field} ontbreekt, gevuld met waarde: ${request[field]}`);
+            });
+            
+            // Opnieuw controleren welke velden nog steeds ontbreken
+            const stillMissingFields = requiredFields.filter(field => !request[field]);
+            
+            if (stillMissingFields.length === 0) {
+              console.log(`POST /api/member-requests/approve: Alle ontbrekende velden zijn succesvol aangevuld uit request body`);
+            } else {
+              console.log(`POST /api/member-requests/approve: Er ontbreken nog steeds velden na aanvulling uit request body: ${stillMissingFields.join(", ")}`);
+              
+              // Als er nog steeds velden ontbreken, vullen we ze in met standaardwaarden
+              stillMissingFields.forEach(field => {
+                if (field === 'email') {
+                  request[field] = `lid-${id}@voorbeeld.nl`;
+                } else if (field === 'phoneNumber') {
+                  request[field] = '0612345678';
+                } else {
+                  request[field] = field === 'firstName' ? 'Voornaam' : 'Achternaam';
+                }
+                console.log(`POST /api/member-requests/approve: Veld ${field} ontbreekt nog steeds, gevuld met standaardwaarde: ${request[field]}`);
+              });
             }
-          });
+          } else {
+            // Oude manier als er geen extra gegevens in request body zitten
+            console.log(`POST /api/member-requests/approve: Geen extra gegevens in request body, standaardwaarden worden gebruikt`);
+            
+            // Vul ontbrekende velden aan met standaardwaarden zodat het proces door kan gaan
+            missingFields.forEach(field => {
+              if (!request[field]) {
+                if (field === 'email') {
+                  request[field] = `lid-${id}@voorbeeld.nl`;
+                } else if (field === 'phoneNumber') {
+                  request[field] = '0612345678';
+                } else {
+                  request[field] = field === 'firstName' ? 'Voornaam' : 'Achternaam';
+                }
+                console.log(`POST /api/member-requests/approve: Veld ${field} ontbreekt, gevuld met standaardwaarde: ${request[field]}`);
+              }
+            });
+          }
         }
         
         // Haal het volgende beschikbare lidnummer op

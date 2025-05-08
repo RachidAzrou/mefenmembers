@@ -223,13 +223,19 @@ export default function MemberRequests() {
           processedBy: 1 // TODO: vervangen door echte gebruikers-ID
         };
         
-        // Verwijder onnodige velden om de payload te verkleinen
-        delete fullRequestData.processedDate;
-        delete fullRequestData.memberId;
-        delete fullRequestData.memberNumber;
+        // Maak een kopie zonder onnodige velden om de payload te verkleinen
+        const cleanedData = { ...fullRequestData };
+        
+        // Maak een nieuwe kopie zonder de velden die we willen uitsluiten
+        const dataToSend = Object.entries(cleanedData)
+          .filter(([key]) => !['processedDate', 'memberId', 'memberNumber'].includes(key))
+          .reduce((obj, [key, value]) => {
+            obj[key] = value;
+            return obj;
+          }, {} as any);
         
         console.log("Volledige gegevens versturen voor compatibiliteit met beide server-implementaties");
-        const response = await apiRequest("POST", `/api/member-requests/approve?id=${request.id}`, fullRequestData);
+        const response = await apiRequest("POST", `/api/member-requests/approve?id=${request.id}`, dataToSend);
         
         // STAP 4: Verwerk de server-respons
         if (!response.ok) {
