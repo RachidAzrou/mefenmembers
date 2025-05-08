@@ -137,6 +137,37 @@ export default function MemberRequests() {
         req.processedDate !== null
       )
     : [];
+    
+  // Helper functie om de lokale React Query cache direct te updaten
+  // Dit zorgt ervoor dat de UI meteen reageert zonder de server te moeten wachten
+  const updateQueryCacheForApproval = (request: MemberRequest, requestId: number | string) => {
+    try {
+      // Update de request lokaal zodat het meteen uit de "In behandeling" lijst verdwijnt
+      const currentRequests = queryClient.getQueryData<MemberRequest[]>(["/api/member-requests"]);
+      
+      if (currentRequests) {
+        // Maak een kopie van het verzoek en markeer als goedgekeurd
+        const updatedRequest: MemberRequest = {
+          ...request,
+          status: "approved",
+          processedDate: new Date().toISOString(),
+          processedBy: 1
+        };
+        
+        // Vervang de oude versie met de bijgewerkte versie
+        const updatedRequests = currentRequests.map(req => 
+          String(req.id) === String(requestId) ? updatedRequest : req
+        );
+        
+        // Update de cache direct
+        queryClient.setQueryData<MemberRequest[]>(["/api/member-requests"], updatedRequests);
+        console.log("Query cache direct bijgewerkt, aanvraag gemarkeerd als goedgekeurd");
+      }
+    } catch (error) {
+      console.error("Fout bij direct bijwerken van de query cache:", error);
+      // Geen throw hier, omdat dit een optimalisatie is en geen kritieke functie
+    }
+  };
 
   // Functies voor het formatteren van de datum
   const formatDate = (dateString: string | null | undefined) => {
@@ -192,6 +223,20 @@ export default function MemberRequests() {
       }
       
       console.log("Volledige aanvraaggegevens voor goedkeuring:", requestData);
+      
+      // DIRECT DE LOKALE CACHE UPDATEN om een naadloze gebruikerservaring te bieden
+      // Hiermee verdwijnt de aanvraag direct uit de "In behandeling" lijst in de UI, zelfs als de server langzaam is
+      updateQueryCacheForApproval(requestData, requestId);
+      
+      // Log voor debug doeleinden
+      console.log("Gegevens die naar de server worden gestuurd:", {
+        url: `/api/member-requests/approve?id=${requestId}`,
+        data: {
+          ...requestData,
+          id: requestId,
+          processedBy: 1
+        }
+      });
       
       // Stuur alle benodigde gegevens mee
       const response = await apiRequest("POST", `/api/member-requests/approve?id=${requestId}`, {
