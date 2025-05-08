@@ -4,8 +4,12 @@ import axios from 'axios';
 
 // Firebase project gegevens voor Realtime Database REST API toegang 
 // Deze waarden worden uit environment variabelen gelezen als ze beschikbaar zijn
-const FIREBASE_DB_URL = process.env.FIREBASE_DATABASE_URL || "https://mefen-leden-default-rtdb.europe-west1.firebasedatabase.app";
-const FIREBASE_API_KEY = process.env.FIREBASE_API_KEY || "AIzaSyCw3uxCv7SdAa4xtmRimVjXlLjr_4hyeTE";
+const FIREBASE_DB_URL = process.env.FIREBASE_DATABASE_URL || process.env.VITE_FIREBASE_DATABASE_URL || "https://mefen-leden-default-rtdb.europe-west1.firebasedatabase.app";
+const FIREBASE_API_KEY = process.env.FIREBASE_API_KEY || process.env.VITE_FIREBASE_API_KEY || "AIzaSyCw3uxCv7SdAa4xtmRimVjXlLjr_4hyeTE";
+
+// Uitgebreide logging voor Firebase configuratie troubleshooting
+console.log("API Initialization: Firebase DB URL:", FIREBASE_DB_URL ? "Ingesteld (waarde verborgen)" : "ONTBREEKT!");  
+console.log("API Initialization: Firebase API Key:", FIREBASE_API_KEY ? "Ingesteld (waarde verborgen)" : "ONTBREEKT!");
 
 // Helper functie om direct met de Firebase REST API te communiceren
 async function firebaseRequest(method, path, data = null) {
