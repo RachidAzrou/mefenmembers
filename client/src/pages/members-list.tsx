@@ -922,36 +922,7 @@ export default function MembersList() {
                     setSortDirection("asc");
                   }
                 }}>
-                  <DropdownMenuRadioItem value="firstName" className="text-xs sm:text-sm cursor-pointer">
-                    Op voornaam {sortField === "firstName" && (
-                      <span className="ml-auto">
-                        {sortDirection === "asc" ? 
-                          <SortAsc className="h-3.5 w-3.5 text-gray-500" /> : 
-                          <SortDesc className="h-3.5 w-3.5 text-gray-500" />
-                        }
-                      </span>
-                    )}
-                  </DropdownMenuRadioItem>
-                  <DropdownMenuRadioItem value="lastName" className="text-xs sm:text-sm cursor-pointer">
-                    Op naam {sortField === "lastName" && (
-                      <span className="ml-auto">
-                        {sortDirection === "asc" ? 
-                          <SortAsc className="h-3.5 w-3.5 text-gray-500" /> : 
-                          <SortDesc className="h-3.5 w-3.5 text-gray-500" />
-                        }
-                      </span>
-                    )}
-                  </DropdownMenuRadioItem>
-                  <DropdownMenuRadioItem value="name" className="text-xs sm:text-sm cursor-pointer">
-                    Op volledige naam {sortField === "name" && (
-                      <span className="ml-auto">
-                        {sortDirection === "asc" ? 
-                          <SortAsc className="h-3.5 w-3.5 text-gray-500" /> : 
-                          <SortDesc className="h-3.5 w-3.5 text-gray-500" />
-                        }
-                      </span>
-                    )}
-                  </DropdownMenuRadioItem>
+                  {/* Sorteren op lidnummer */}
                   <DropdownMenuRadioItem value="memberNumber" className="text-xs sm:text-sm cursor-pointer">
                     Op lidnummer {sortField === "memberNumber" && (
                       <span className="ml-auto">
@@ -962,6 +933,32 @@ export default function MembersList() {
                       </span>
                     )}
                   </DropdownMenuRadioItem>
+                  
+                  {/* Sorteren op naam */}
+                  <DropdownMenuRadioItem value="lastName" className="text-xs sm:text-sm cursor-pointer">
+                    Op naam {sortField === "lastName" && (
+                      <span className="ml-auto">
+                        {sortDirection === "asc" ? 
+                          <SortAsc className="h-3.5 w-3.5 text-gray-500" /> : 
+                          <SortDesc className="h-3.5 w-3.5 text-gray-500" />
+                        }
+                      </span>
+                    )}
+                  </DropdownMenuRadioItem>
+                  
+                  {/* Sorteren op voornaam */}
+                  <DropdownMenuRadioItem value="firstName" className="text-xs sm:text-sm cursor-pointer">
+                    Op voornaam {sortField === "firstName" && (
+                      <span className="ml-auto">
+                        {sortDirection === "asc" ? 
+                          <SortAsc className="h-3.5 w-3.5 text-gray-500" /> : 
+                          <SortDesc className="h-3.5 w-3.5 text-gray-500" />
+                        }
+                      </span>
+                    )}
+                  </DropdownMenuRadioItem>
+                  
+                  {/* Sorteren op leeftijd */}
                   <DropdownMenuRadioItem value="age" className="text-xs sm:text-sm cursor-pointer">
                     Op leeftijd {sortField === "age" && (
                       <span className="ml-auto">
@@ -972,8 +969,10 @@ export default function MembersList() {
                       </span>
                     )}
                   </DropdownMenuRadioItem>
-                  <DropdownMenuRadioItem value="registrationDate" className="text-xs sm:text-sm cursor-pointer">
-                    Op registratiedatum {sortField === "registrationDate" && (
+                  
+                  {/* Sorteren op betaalstatus */}
+                  <DropdownMenuRadioItem value="paymentStatus" className="text-xs sm:text-sm cursor-pointer">
+                    Op betaalstatus {sortField === "paymentStatus" && (
                       <span className="ml-auto">
                         {sortDirection === "asc" ? 
                           <SortAsc className="h-3.5 w-3.5 text-gray-500" /> : 
@@ -982,8 +981,24 @@ export default function MembersList() {
                       </span>
                     )}
                   </DropdownMenuRadioItem>
-                  <DropdownMenuRadioItem value="paymentStatus" className="text-xs sm:text-sm cursor-pointer">
-                    Op betaalstatus {sortField === "paymentStatus" && (
+                  
+                  {/* Scheidingslijn voor overige sorteeropties */}
+                  <DropdownMenuSeparator />
+                  
+                  {/* Overige sorteeropties */}
+                  <DropdownMenuRadioItem value="name" className="text-xs sm:text-sm cursor-pointer">
+                    Op volledige naam {sortField === "name" && (
+                      <span className="ml-auto">
+                        {sortDirection === "asc" ? 
+                          <SortAsc className="h-3.5 w-3.5 text-gray-500" /> : 
+                          <SortDesc className="h-3.5 w-3.5 text-gray-500" />
+                        }
+                      </span>
+                    )}
+                  </DropdownMenuRadioItem>
+                  
+                  <DropdownMenuRadioItem value="registrationDate" className="text-xs sm:text-sm cursor-pointer">
+                    Op registratiedatum {sortField === "registrationDate" && (
                       <span className="ml-auto">
                         {sortDirection === "asc" ? 
                           <SortAsc className="h-3.5 w-3.5 text-gray-500" /> : 
