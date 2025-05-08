@@ -554,14 +554,24 @@ export default function MemberRequests() {
     
     // 2.3 Extra controle: als memberNumber bestaat, is de aanvraag al goedgekeurd
     if (request.memberNumber) {
-      //console.log(`Aanvraag #${request.id} heeft een memberNumber en is dus goedgekeurd`);
+      console.log(`Aanvraag #${request.id} heeft een memberNumber (${request.memberNumber}) en is dus goedgekeurd`);
       return false;
     }
     
     // 2.4 Extra controle: als memberId bestaat, is de aanvraag al goedgekeurd
     if (request.memberId) {
-      //console.log(`Aanvraag #${request.id} heeft een memberId en is dus goedgekeurd`);
+      console.log(`Aanvraag #${request.id} heeft een memberId (${request.memberId}) en is dus goedgekeurd`);
       return false;
+    }
+    
+    // 2.5 Extra controle voor Vercel productie-omgeving: check of 'id' als string of number wordt opgeslagen
+    // Sommige Firebase implementaties slaan IDs op als string in plaats van number
+    if (typeof request.id === 'string' && request.id.includes('-')) {
+      // Als het een Firebase-stijl ID is, check nog een keer
+      if ((request as any).memberId || (request as any).memberNumber) {
+        console.log(`Aanvraag #${request.id} heeft memberId/memberNumber als niet-standaard veld en is dus goedgekeurd`);
+        return false;
+      }
     }
     
     // Veiligheidscheck: als de aanvraag in behandeling is geweest en langer dan een uur geleden is aangemaakt
@@ -687,6 +697,17 @@ export default function MemberRequests() {
 
   const confirmApproval = () => {
     if (selectedRequest) {
+      console.log("Goedkeuring bevestigd voor aanvraag:", selectedRequest.id);
+      
+      // PREVENTIEF: markeer de aanvraag direct als lokaal goedgekeurd voordat we de server-call doen
+      // Dit zorgt ervoor dat de UI onmiddellijk reageert, zelfs als de server-call lang duurt
+      setLocallyApprovedIds(prev => {
+        const newSet = new Set(prev);
+        newSet.add(selectedRequest.id);
+        console.log(`PREVENTIEF: Aanvraag #${selectedRequest.id} lokaal gemarkeerd als goedgekeurd`);
+        return newSet;
+      });
+      
       // Stuur de hele aanvraag door in plaats van alleen het ID
       approveMutation.mutate(selectedRequest);
     }
