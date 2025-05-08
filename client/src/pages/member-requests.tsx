@@ -35,6 +35,7 @@ import {
   XIcon,
   X,
   AlertCircle,
+  XCircle,
   Search, 
   ArrowLeft,
   PencilIcon,
@@ -709,6 +710,14 @@ export default function MemberRequests() {
                   </button>
                 </div>
               )}
+              {selectedRequest?.status === "rejected" && selectedRequest?.notes && (
+                <div className="mt-2 flex items-center">
+                  <div className="bg-red-700/70 text-white px-3 py-1.5 rounded text-sm font-medium flex items-center">
+                    <XCircle className="h-4 w-4 mr-1.5" />
+                    <span>Reden: {selectedRequest.notes}</span>
+                  </div>
+                </div>
+              )}
             </DialogDescription>
           </DialogHeader>
           
@@ -887,7 +896,7 @@ export default function MemberRequests() {
             </div>
             
             {/* Afwijzingsreden tonen indien afgewezen */}
-            {selectedRequest?.status === "rejected" && (
+            {selectedRequest?.status === "rejected" && selectedRequest?.notes && (
               <div className="mb-6">
                 <h3 className="text-[#963E56] font-semibold text-lg border-b border-[#963E56]/20 pb-2 mb-3 flex items-center">
                   <AlertCircle className="h-5 w-5 mr-2 text-[#963E56]/70" />
@@ -895,7 +904,7 @@ export default function MemberRequests() {
                 </h3>
                 
                 <div className="bg-red-50 p-4 rounded-md border border-red-200 shadow-sm">
-                  <p className="text-gray-800">{selectedRequest.rejectionReason || selectedRequest.notes || "Geen reden opgegeven."}</p>
+                  <p className="text-gray-800">{selectedRequest.notes}</p>
                 </div>
               </div>
             )}
