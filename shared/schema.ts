@@ -72,6 +72,9 @@ export const memberRequests = pgTable("member_requests", {
   
   // Lidmaatschap
   membershipType: text("membership_type").default("standaard"), // standaard, student, senior
+  paymentMethod: text("payment_method"), // cash, domiciliering, overschrijving, bancontact
+  paymentTerm: text("payment_term"), // maandelijks, driemaandelijks, jaarlijks
+  autoRenew: boolean("auto_renew"),
   
   // Bankgegevens
   accountNumber: text("account_number"),
@@ -153,6 +156,9 @@ export const insertMemberRequestSchema = createInsertSchema(memberRequests, {
   
   // Lidmaatschap
   membershipType: z.enum(["standaard", "student", "senior"]).default("standaard"),
+  paymentMethod: z.enum(["cash", "domiciliering", "overschrijving", "bancontact"]).optional(),
+  paymentTerm: z.enum(["maandelijks", "driemaandelijks", "jaarlijks"]).optional(),
+  autoRenew: z.boolean().optional(),
   
   // Bankgegevens
   accountNumber: z.string().optional().nullable()
