@@ -62,7 +62,7 @@ export function formatPaymentTermLabel(paymentTerm: string | undefined | null): 
 export function formatAutoRenewLabel(autoRenew: boolean | undefined | null): string {
   if (autoRenew === true) return "Ja";
   if (autoRenew === false) return "Nee";
-  return "";
+  return "Ja"; // Standaardwaarde voor oude records
 }
 
 export function MembershipCard({ request }: { request: MemberRequest | null }) {
@@ -106,7 +106,7 @@ export function PaymentDetailsCard({ request }: { request: MemberRequest | null 
         </p>
       </div>
       
-      {request.paymentMethod === "domiciliering" && (
+      {(request.paymentMethod === "domiciliering" || request.accountNumber) && (
         <>
           <div className="bg-white p-3 rounded-md border border-[#963E56]/20 mt-2">
             <p className="text-xs text-gray-600 font-medium mb-1">Bankrekeningnummer</p>
