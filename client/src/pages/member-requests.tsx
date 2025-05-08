@@ -96,6 +96,7 @@ interface MemberRequest {
   accountNumber?: string | null;
   accountHolderName?: string | null;
   bicSwift?: string | null;
+  rejectionReason?: string | null;
 }
 
 export default function MemberRequests() {
@@ -445,1157 +446,443 @@ export default function MemberRequests() {
             </div>
           </TabsTrigger>
         </TabsList>
-
-        <TabsContent value="pending">
-          {showDetailView && selectedRequest ? (
-            // Detail view voor een aanvraag
-            <div className="bg-white p-6 rounded-lg border shadow-sm">
-              <div className="flex justify-between items-center mb-6">
-                <Button 
-                  variant="outline" 
-                  className="flex items-center gap-2 border-[#963E56]/30 hover:bg-[#963E56]/5 hover:border-[#963E56]/50 transition-all pl-3 pr-4 py-2"
-                  onClick={() => {
-                    setShowDetailView(false);
-                    setSelectedRequest(null);
-                    setEditedRequest(null);
-                    setIsEditing(false);
-                  }}
-                >
-                  <ArrowLeft size={16} />
-                  <span>Terug naar overzicht</span>
-                </Button>
-                <div className="flex gap-2">
-                  {isEditing ? (
-                    <>
-                      <Button 
-                        variant="outline" 
-                        className="text-gray-600 hover:text-gray-800 border-gray-200 hover:border-gray-400"
-                        onClick={() => {
-                          setIsEditing(false);
-                          setEditedRequest(null);
-                        }}
-                      >
-                        <XIcon className="h-4 w-4 mr-2" />
-                        Annuleren
-                      </Button>
-                      <Button 
-                        className="bg-[#963E56] hover:bg-[#7d3447] text-white"
-                        onClick={() => {
-                          if (editedRequest) {
-                            updateMutation.mutate(editedRequest);
-                          }
-                        }}
-                        disabled={updateMutation.isPending}
-                      >
-                        {updateMutation.isPending ? (
-                          <>
-                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                            Bezig...
-                          </>
-                        ) : (
-                          <>
-                            <Save className="mr-2 h-4 w-4" />
-                            Opslaan
-                          </>
-                        )}
-                      </Button>
-                    </>
-                  ) : (
-                    <>
-                      <Button 
-                        variant="outline" 
-                        className="text-[#963E56] hover:text-[#7d3447] border-[#963E56]/20 hover:border-[#963E56]/40"
-                        onClick={() => {
-                          setIsEditing(true);
-                          setEditedRequest(selectedRequest);
-                        }}
-                      >
-                        <PencilIcon className="mr-2 h-4 w-4" />
-                        Bewerken
-                      </Button>
-                    </>
-                  )}
-                </div>
-              </div>
-              
-              <div className="bg-white p-6 rounded-md border border-gray-100">
-                <h2 className="text-2xl font-semibold text-gray-800 mb-6 flex items-center gap-2">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-primary">
-                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-                    <circle cx="9" cy="7" r="4"></circle>
-                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
-                    <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-                  </svg>
-                  Detail aanvraag
-                </h2>
-                <div className="text-sm text-gray-500 mb-6 flex flex-col gap-1">
-                  <p className="flex items-center gap-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-                      <line x1="16" y1="2" x2="16" y2="6"></line>
-                      <line x1="8" y1="2" x2="8" y2="6"></line>
-                      <line x1="3" y1="10" x2="21" y2="10"></line>
-                    </svg>
-                    <span>Aanvraagdatum: {formatDate(selectedRequest.requestDate)}</span>
-                  </p>
-                  <p className="flex items-center gap-2">{getStatusBadge(selectedRequest.status)}</p>
-                </div>
-                
-                <div className="mb-6">
-                  <h3 className="text-lg font-semibold text-[#963E56] mb-4 flex items-center gap-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                      <circle cx="12" cy="7" r="4"></circle>
-                    </svg>
-                    Persoonlijke gegevens
-                  </h3>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <Label htmlFor="firstName">Voornaam</Label>
-                      <Input
-                        id="firstName"
-                        value={editedRequest?.firstName || selectedRequest.firstName}
-                        onChange={(e) => setEditedRequest({...editedRequest || selectedRequest, firstName: e.target.value})}
-                        className="mt-1"
-                        disabled={!isEditing}
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="lastName">Achternaam</Label>
-                      <Input
-                        id="lastName"
-                        value={editedRequest?.lastName || selectedRequest.lastName}
-                        onChange={(e) => setEditedRequest({...editedRequest || selectedRequest, lastName: e.target.value})}
-                        className="mt-1"
-                        disabled={!isEditing}
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="gender">Geslacht</Label>
-                      <Select
-                        value={editedRequest?.gender || selectedRequest.gender || ""}
-                        onValueChange={(value: string) => setEditedRequest({...editedRequest || selectedRequest, gender: value})}
-                        disabled={!isEditing}
-                      >
-                        <SelectTrigger id="gender" className="mt-1">
-                          <SelectValue placeholder="Selecteer geslacht" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="man">Man</SelectItem>
-                          <SelectItem value="vrouw">Vrouw</SelectItem>
-                          <SelectItem value="anders">Anders</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div>
-                      <Label htmlFor="birthDate">Geboortedatum</Label>
-                      <Input
-                        id="birthDate"
-                        type="date"
-                        value={editedRequest?.birthDate || selectedRequest.birthDate || ""}
-                        onChange={(e) => setEditedRequest({...editedRequest || selectedRequest, birthDate: e.target.value})}
-                        className="mt-1"
-                        disabled={!isEditing}
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="email">E-mailadres</Label>
-                      <Input
-                        id="email"
-                        type="email"
-                        value={editedRequest?.email || selectedRequest.email}
-                        onChange={(e) => setEditedRequest({...editedRequest || selectedRequest, email: e.target.value})}
-                        className="mt-1"
-                        disabled={!isEditing}
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="phoneNumber">Telefoonnummer</Label>
-                      <Input
-                        id="phoneNumber"
-                        value={editedRequest?.phoneNumber || selectedRequest.phoneNumber}
-                        onChange={(e) => setEditedRequest({...editedRequest || selectedRequest, phoneNumber: e.target.value})}
-                        className="mt-1"
-                        disabled={!isEditing}
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="nationality">Nationaliteit</Label>
-                      <Input
-                        id="nationality"
-                        value={editedRequest?.nationality || selectedRequest.nationality || ""}
-                        onChange={(e) => setEditedRequest({...editedRequest || selectedRequest, nationality: e.target.value})}
-                        className="mt-1"
-                        disabled={!isEditing}
-                      />
-                    </div>
-                  </div>
-                </div>
-                
-                <div className="mb-6">
-                  <h3 className="text-lg font-semibold text-[#963E56] mb-4 flex items-center gap-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
-                      <circle cx="12" cy="10" r="3"></circle>
-                    </svg>
-                    Adresgegevens
-                  </h3>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <Label htmlFor="street">Straat</Label>
-                      <Input
-                        id="street"
-                        value={editedRequest?.street || selectedRequest.street || ""}
-                        onChange={(e) => setEditedRequest({...editedRequest || selectedRequest, street: e.target.value})}
-                        className="mt-1"
-                        disabled={!isEditing}
-                      />
-                    </div>
-                    <div className="grid grid-cols-2 gap-2">
-                      <div>
-                        <Label htmlFor="houseNumber">Huisnummer</Label>
-                        <Input
-                          id="houseNumber"
-                          value={editedRequest?.houseNumber || selectedRequest.houseNumber || ""}
-                          onChange={(e) => setEditedRequest({...editedRequest || selectedRequest, houseNumber: e.target.value})}
-                          className="mt-1"
-                          disabled={!isEditing}
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor="busNumber">Bus</Label>
-                        <Input
-                          id="busNumber"
-                          value={editedRequest?.busNumber || selectedRequest.busNumber || ""}
-                          onChange={(e) => setEditedRequest({...editedRequest || selectedRequest, busNumber: e.target.value})}
-                          className="mt-1"
-                          disabled={!isEditing}
-                        />
-                      </div>
-                    </div>
-                    <div>
-                      <Label htmlFor="postalCode">Postcode</Label>
-                      <Input
-                        id="postalCode"
-                        value={editedRequest?.postalCode || selectedRequest.postalCode || ""}
-                        onChange={(e) => setEditedRequest({...editedRequest || selectedRequest, postalCode: e.target.value})}
-                        className="mt-1"
-                        disabled={!isEditing}
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="city">Stad</Label>
-                      <Input
-                        id="city"
-                        value={editedRequest?.city || selectedRequest.city || ""}
-                        onChange={(e) => setEditedRequest({...editedRequest || selectedRequest, city: e.target.value})}
-                        className="mt-1"
-                        disabled={!isEditing}
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                <div className="mb-6">
-                  <h3 className="text-lg font-semibold text-[#963E56] mb-4 flex items-center gap-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" />
-                      <rect width="8" height="6" x="8" y="2" rx="1" />
-                      <path d="M12 11h4" />
-                      <path d="M12 16h4" />
-                      <path d="M8 11h.01" />
-                      <path d="M8 16h.01" />
-                    </svg>
-                    Lidmaatschapsgegevens
-                  </h3>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <Label htmlFor="membershipType">Type lidmaatschap</Label>
-                      <Select 
-                        value={(editedRequest?.membershipType || selectedRequest.membershipType) as "standaard" | "student" | "senior"}
-                        onValueChange={(value: "standaard" | "student" | "senior") => setEditedRequest({...editedRequest || selectedRequest, membershipType: value})}
-                        disabled={!isEditing}
-                      >
-                        <SelectTrigger id="membershipType" className="mt-1">
-                          <SelectValue placeholder="Selecteer type" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="standaard">Standaard</SelectItem>
-                          <SelectItem value="student">Student</SelectItem>
-                          <SelectItem value="senior">Senior</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-                </div>
-                
-                <div className="mb-6">
-                  <h3 className="text-lg font-semibold text-[#963E56] mb-4 flex items-center gap-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <rect x="2" y="5" width="20" height="14" rx="2" />
-                      <line x1="2" y1="10" x2="22" y2="10" />
-                    </svg>
-                    Betaalgegevens
-                  </h3>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <Label htmlFor="paymentMethod">Betaalwijze</Label>
-                      <Select 
-                        value={(editedRequest?.paymentMethod || selectedRequest.paymentMethod || "overschrijving") as "cash" | "domiciliering" | "overschrijving" | "bancontact"}
-                        onValueChange={(value) => setEditedRequest({...editedRequest || selectedRequest, paymentMethod: value as "cash" | "domiciliering" | "overschrijving" | "bancontact"})}
-                        disabled={!isEditing}
-                      >
-                        <SelectTrigger id="paymentMethod" className="mt-1">
-                          <SelectValue placeholder="Selecteer betaalwijze" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="cash">Cash</SelectItem>
-                          <SelectItem value="bancontact">Bancontact</SelectItem>
-                          <SelectItem value="overschrijving">Overschrijving</SelectItem>
-                          <SelectItem value="domiciliering">Domiciliëring</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    
-                    <div>
-                      <Label htmlFor="paymentTerm">Betalingstermijn</Label>
-                      <Select 
-                        value={(editedRequest?.paymentTerm || selectedRequest.paymentTerm || "jaarlijks") as "maandelijks" | "driemaandelijks" | "jaarlijks"}
-                        onValueChange={(value) => setEditedRequest({...editedRequest || selectedRequest, paymentTerm: value as "maandelijks" | "driemaandelijks" | "jaarlijks"})}
-                        disabled={!isEditing}
-                      >
-                        <SelectTrigger id="paymentTerm" className="mt-1">
-                          <SelectValue placeholder="Selecteer betalingstermijn" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="jaarlijks">Jaarlijks</SelectItem>
-                          <SelectItem value="driemaandelijks">Driemaandelijks</SelectItem>
-                          <SelectItem value="maandelijks">Maandelijks</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    
-                    <div className="flex items-center space-x-2">
-                      <Checkbox 
-                        id="autoRenew" 
-                        checked={editedRequest?.autoRenew || selectedRequest.autoRenew || false}
-                        onCheckedChange={(checked: boolean) => 
-                          setEditedRequest({...editedRequest || selectedRequest, autoRenew: checked})
-                        }
-                        disabled={!isEditing}
-                        className="data-[state=checked]:bg-[#963E56] data-[state=checked]:border-[#963E56]"
-                      />
-                      <Label htmlFor="autoRenew" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                        Automatisch verlengen
-                      </Label>
-                    </div>
-                    
-                    {/* Alleen rekeninggegevens tonen als betaalwijze domiciliëring of overschrijving is */}
-                    {((editedRequest?.paymentMethod || selectedRequest.paymentMethod) === "domiciliering" ||
-                      (editedRequest?.paymentMethod || selectedRequest.paymentMethod) === "overschrijving") && (
-                      <>
-                        <div className="col-span-1 md:col-span-2 border-t pt-4 mt-2">
-                          <h4 className="text-sm font-semibold mb-3">Rekeninggegevens</h4>
-                        </div>
-                        
-                        <div>
-                          <Label htmlFor="accountNumber">IBAN</Label>
-                          <Input
-                            id="accountNumber"
-                            value={editedRequest?.accountNumber || selectedRequest.accountNumber || ''}
-                            onChange={(e) => setEditedRequest({...editedRequest || selectedRequest, accountNumber: e.target.value})}
-                            className="mt-1"
-                            disabled={!isEditing}
-                          />
-                        </div>
-                        
-                        <div>
-                          <Label htmlFor="accountHolderName">Naam rekeninghouder</Label>
-                          <Input
-                            id="accountHolderName"
-                            value={editedRequest?.accountHolderName || selectedRequest.accountHolderName || ''}
-                            onChange={(e) => setEditedRequest({...editedRequest || selectedRequest, accountHolderName: e.target.value})}
-                            className="mt-1"
-                            disabled={!isEditing}
-                          />
-                        </div>
-                        
-                        <div>
-                          <Label htmlFor="bicSwift">BIC/SWIFT-code</Label>
-                          <Input
-                            id="bicSwift"
-                            value={editedRequest?.bicSwift || selectedRequest.bicSwift || ''}
-                            onChange={(e) => setEditedRequest({...editedRequest || selectedRequest, bicSwift: e.target.value})}
-                            className="mt-1"
-                            disabled={!isEditing}
-                          />
-                          <p className="text-xs text-gray-500 mt-1">Alleen nodig voor buitenlandse rekeningen</p>
-                        </div>
-                      </>
-                    )}
-                  </div>
-                </div>
-
-                <div className="p-4 border border-[#963E56]/20 bg-[#963E56]/5 rounded-md mb-6">
-                  <h3 className="text-lg font-semibold text-[#963E56] mb-2 flex items-center gap-2">
-                    <AlertCircle className="text-[#963E56] h-5 w-5" />
-                    Reden voor afwijzing
-                  </h3>
-                  <p className="text-sm text-gray-600 mb-2">
-                    Alleen invullen als je deze aanvraag wilt afwijzen. Deze informatie is alleen voor intern gebruik.
-                  </p>
-                  <Textarea 
-                    value={rejectionReason}
-                    onChange={(e) => setRejectionReason(e.target.value)}
-                    placeholder="Beschrijf waarom deze aanvraag wordt afgewezen..."
-                    className="min-h-[100px] border-[#963E56]/20 bg-white focus:ring-[#963E56]"
-                    disabled={!isEditing && selectedRequest.status !== "pending"}
-                  />
-                </div>
-              </div>
-
-              {/* Footer */}
-              <div className="bg-gray-50 px-6 py-4 border-t flex items-center justify-between">
-                <Button 
-                  variant="outline"
-                  className="border-[#963E56]/30 hover:bg-[#963E56]/5 hover:border-[#963E56]/50 transition-all gap-2 pl-3 pr-4 py-2"
-                  onClick={() => setShowDetailView(false)}
-                >
-                  <ArrowLeft className="h-4 w-4" />
-                  <span>Terug naar overzicht</span>
-                </Button>
-                
-                {selectedRequest.status === "pending" && (
-                  <div className="flex items-center gap-2">
-                    {isEditing ? (
-                      <Button 
-                        className="bg-[#963E56] hover:bg-[#7d3447] text-white px-5"
-                        onClick={() => {
-                          // Save changes to the edited request
-                          if (editedRequest) {
-                            updateMutation.mutate(editedRequest);
-                          }
-                          setIsEditing(false);
-                        }}
-                        disabled={updateMutation.isPending}
-                      >
-                        {updateMutation.isPending ? (
-                          <>
-                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                            Opslaan...
-                          </>
-                        ) : (
-                          <>
-                            <Save className="mr-2 h-4 w-4" />
-                            Wijzigingen opslaan
-                          </>
-                        )}
-                      </Button>
-                    ) : (
-                      <>
-                        <Button 
-                          variant="outline"
-                          className="text-red-600 border-red-200 hover:bg-red-50 hover:text-red-700"
-                          onClick={() => {
-                            setShowDetailView(false);
-                            if (rejectionReason.trim()) {
-                              confirmRejection();
-                            } else {
-                              setShowRejectionDialog(true);
-                            }
-                          }}
-                          disabled={rejectMutation.isPending}
-                        >
-                          <XIcon className="mr-2 h-4 w-4" />
-                          Afwijzen
-                        </Button>
-                        <Button 
-                          className="bg-green-600 hover:bg-green-700 text-white"
-                          onClick={() => {
-                            setShowDetailView(false);
-                            setShowApprovalDialog(true);
-                          }}
-                          disabled={approveMutation.isPending}
-                        >
-                          <CheckIcon className="mr-2 h-4 w-4" />
-                          Goedkeuren
-                        </Button>
-                        <Button 
-                          className="bg-blue-600 hover:bg-blue-700 text-white"
-                          onClick={() => setIsEditing(true)}
-                        >
-                          <PencilIcon className="mr-2 h-4 w-4" />
-                          Bewerken
-                        </Button>
-                      </>
-                    )}
-                  </div>
-                )}
-                
-                {selectedRequest.status !== "pending" && (
-                  <div className="text-sm bg-gray-100 px-4 py-2 rounded-md border">
-                    {selectedRequest.status === "approved" ? (
-                      <span className="text-green-600 font-medium flex items-center gap-1">
-                        <CheckIcon className="h-4 w-4" /> Goedgekeurd op {formatDate(selectedRequest.processedDate || '')}
-                      </span>
-                    ) : (
-                      <span className="text-red-600 font-medium flex items-center gap-1">
-                        <XIcon className="h-4 w-4" /> Afgewezen op {formatDate(selectedRequest.processedDate || '')}
-                      </span>
-                    )}
-                  </div>
-                )}
-              </div>
-            </div>
-          ) : (
-            // Lijstweergave van aanvragen
-            <div>
-              {pendingRequests.length === 0 ? (
-                <div className="text-center py-10">
-                  <div className="flex justify-center mb-4">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" className="text-gray-300">
-                      <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path>
-                      <rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect>
-                      <path d="M12 11h4"></path>
-                      <path d="M12 16h4"></path>
-                      <path d="M8 11h.01"></path>
-                      <path d="M8 16h.01"></path>
-                    </svg>
-                  </div>
-                  <h3 className="text-xl font-medium text-gray-500">Geen aanvragen in behandeling</h3>
-                  <p className="text-gray-400 mt-2">
-                    Er zijn momenteel geen openstaande lidmaatschapsaanvragen om te behandelen.
-                  </p>
-                </div>
-              ) : (
-                <div className="overflow-x-auto">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Naam</TableHead>
-                        <TableHead>Datum</TableHead>
-                        <TableHead className="text-center">Acties</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {pendingRequests.map((request) => (
-                        <TableRow key={request.id}>
-                          <TableCell className="font-medium">
-                            {request.firstName} {request.lastName}
-                          </TableCell>
-                          <TableCell>{formatDate(request.requestDate)}</TableCell>
-                          <TableCell className="text-center space-x-1 whitespace-nowrap">
-                            <Button 
-                              variant="ghost" 
-                              size="icon"
-                              onClick={() => {
-                                // Toon details in de dialoog
-                                setSelectedRequest(request);
-                                setEditedRequest(null);
-                                setIsEditing(false);
-                                setShowDetailDialog(true);
-                              }}
-                              className="text-primary hover:text-primary/80"
-                              title="Bekijk details van deze aanvraag"
-                            >
-                              <Search className="h-4 w-4" />
-                            </Button>
-                            <Button 
-                              variant="ghost" 
-                              size="icon"
-                              onClick={() => handleApprove(request)}
-                              className="text-green-600 hover:text-green-800"
-                            >
-                              <svg 
-                                xmlns="http://www.w3.org/2000/svg" 
-                                viewBox="0 0 24 24" 
-                                fill="none" 
-                                stroke="currentColor" 
-                                strokeWidth="2" 
-                                strokeLinecap="round" 
-                                strokeLinejoin="round" 
-                                className="h-4 w-4"
-                              >
-                                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-                                <polyline points="22 4 12 14.01 9 11.01"></polyline>
-                              </svg>
-                            </Button>
-                            <Button 
-                              variant="ghost" 
-                              size="icon"
-                              onClick={() => handleReject(request)}
-                              className="text-red-500 hover:text-red-800"
-                            >
-                              <svg 
-                                xmlns="http://www.w3.org/2000/svg" 
-                                viewBox="0 0 24 24" 
-                                fill="none" 
-                                stroke="currentColor" 
-                                strokeWidth="2" 
-                                strokeLinecap="round" 
-                                strokeLinejoin="round" 
-                                className="h-4 w-4"
-                              >
-                                <path d="M12 22a10 10 0 1 1 0-20 10 10 0 0 1 0 20zm0 0a9.99 9.99 0 0 1-8.94-5.5M12 8v4m0 4h.01"></path>
-                              </svg>
-                            </Button>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </div>
-              )}
-            </div>
-          )}
-        </TabsContent>
-        <TabsContent value="processed">
-          {processedRequests.length === 0 ? (
-            <div className="text-center py-10">
-              <div className="flex justify-center mb-4">
-                <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" className="text-gray-300">
-                  <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path>
-                  <rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect>
-                  <path d="M12 11h4"></path>
-                  <path d="M12 16h4"></path>
-                  <path d="M8 11h.01"></path>
-                  <path d="M8 16h.01"></path>
-                </svg>
-              </div>
-              <h3 className="text-xl font-medium text-gray-500">Geen verwerkte aanvragen</h3>
-              <p className="text-gray-400 mt-2">
-                Er zijn nog geen verwerkte lidmaatschapsaanvragen.
-              </p>
-            </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
+        
+        <TabsContent value="pending" className="space-y-4">
+          <div className="rounded-md border">
+            <Table className="w-full">
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-[160px]">Naam</TableHead>
+                  <TableHead className="hidden md:table-cell">Email</TableHead>
+                  <TableHead className="hidden md:table-cell w-[100px]">Datum</TableHead>
+                  <TableHead className="text-right w-[120px]">Acties</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {pendingRequests.length === 0 ? (
                   <TableRow>
-                    <TableHead>Naam</TableHead>
-                    <TableHead>Datum</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead className="text-center">Acties</TableHead>
+                    <TableCell colSpan={4} className="text-center py-8 text-gray-500">
+                      Geen aanvragen in behandeling
+                    </TableCell>
                   </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {processedRequests.map((request) => (
+                ) : (
+                  pendingRequests.map((request) => (
+                    <TableRow key={request.id}>
+                      <TableCell className="font-medium">
+                        <div className="flex items-center gap-2">
+                          {request.firstName} {request.lastName}
+                        </div>
+                      </TableCell>
+                      <TableCell className="hidden md:table-cell">
+                        {request.email}
+                      </TableCell>
+                      <TableCell className="hidden md:table-cell">
+                        {formatDate(request.requestDate)}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex justify-end gap-2">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8"
+                            onClick={() => {
+                              setSelectedRequest(request);
+                              setShowDetailDialog(true);
+                            }}
+                          >
+                            <Search className="h-4 w-4" />
+                            <span className="sr-only">Bekijken</span>
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 text-green-600 hover:text-green-700 hover:bg-green-50"
+                            onClick={() => handleApprove(request)}
+                          >
+                            <CheckIcon className="h-4 w-4" />
+                            <span className="sr-only">Goedkeuren</span>
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50"
+                            onClick={() => handleReject(request)}
+                          >
+                            <XIcon className="h-4 w-4" />
+                            <span className="sr-only">Afwijzen</span>
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </div>
+        </TabsContent>
+        
+        <TabsContent value="processed" className="space-y-4">
+          <div className="rounded-md border">
+            <Table className="w-full">
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-[160px]">Naam</TableHead>
+                  <TableHead className="hidden md:table-cell">Email</TableHead>
+                  <TableHead className="hidden md:table-cell w-[100px]">Datum</TableHead>
+                  <TableHead className="w-[100px]">Status</TableHead>
+                  <TableHead className="text-right w-[80px]">Acties</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {processedRequests.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={5} className="text-center py-8 text-gray-500">
+                      Geen verwerkte aanvragen in de afgelopen 7 dagen
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  processedRequests.map((request) => (
                     <TableRow key={request.id}>
                       <TableCell className="font-medium">
                         {request.firstName} {request.lastName}
                       </TableCell>
-                      <TableCell>{formatDate(request.requestDate)}</TableCell>
-                      <TableCell>
-                        {request.status === "approved" ? (
-                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                            Goedgekeurd
-                          </span>
-                        ) : (
-                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-rose-100 text-rose-800">
-                            Afgewezen
-                          </span>
-                        )}
+                      <TableCell className="hidden md:table-cell">
+                        {request.email}
                       </TableCell>
-                      <TableCell className="text-center">
-                        <Button 
-                          variant="ghost" 
-                          size="icon"
-                          onClick={() => {
-                            // Toon details in de dialoog
-                            setSelectedRequest(request);
-                            setEditedRequest(null);
-                            setIsEditing(false);
-                            setShowDetailDialog(true);
-                          }}
-                          className="text-primary hover:text-primary/80"
-                          title="Bekijk details van deze aanvraag"
-                        >
-                          <Search className="h-4 w-4" />
-                        </Button>
+                      <TableCell className="hidden md:table-cell">
+                        {formatDate(request.processedDate || request.requestDate)}
+                      </TableCell>
+                      <TableCell>
+                        {getStatusBadge(request.status)}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex justify-end">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8"
+                            onClick={() => {
+                              setSelectedRequest(request);
+                              setShowDetailDialog(true);
+                            }}
+                          >
+                            <Search className="h-4 w-4" />
+                            <span className="sr-only">Bekijken</span>
+                          </Button>
+                          {isAdmin && (
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50"
+                              onClick={() => handleDelete(request)}
+                            >
+                              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M3 6h18"></path>
+                                <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path>
+                                <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path>
+                              </svg>
+                              <span className="sr-only">Verwijderen</span>
+                            </Button>
+                          )}
+                        </div>
                       </TableCell>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-          )}
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </div>
         </TabsContent>
       </Tabs>
 
-      {/* Dialog voor afwijzen */}
-      <Dialog open={showRejectionDialog} onOpenChange={setShowRejectionDialog}>
-        <DialogContent className="max-w-lg">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-xl">
-              <svg 
-                xmlns="http://www.w3.org/2000/svg" 
-                viewBox="0 0 24 24" 
-                fill="none" 
-                stroke="currentColor" 
-                strokeWidth="2" 
-                strokeLinecap="round" 
-                strokeLinejoin="round" 
-                className="h-5 w-5 text-[#963E56]"
-              >
-                <path d="M12 22a10 10 0 1 1 0-20 10 10 0 0 1 0 20zm0 0a9.99 9.99 0 0 1-8.94-5.5M12 8v4m0 4h.01"></path>
-              </svg>
-              Aanvraag afwijzen
-            </DialogTitle>
-            <DialogDescription>
-              Weet je zeker dat je deze aanvraag wilt afwijzen? Dit kan niet ongedaan worden gemaakt.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="mt-2 space-y-4">
-            <div className="bg-gradient-to-r from-[#963E56]/10 to-white p-5 rounded-lg shadow-sm space-y-4 border border-[#963E56]/20 mb-4">
-              <div className="pb-3 border-b border-[#963E56]/20">
-                <p className="text-sm font-medium text-[#963E56] uppercase tracking-wider mb-1">Persoonlijke gegevens</p>
-                <p className="text-xl font-semibold">{selectedRequest?.firstName} {selectedRequest?.lastName}</p>
-                
-                {/* Leeftijd berekenen en tonen */}
-                {selectedRequest?.birthDate && (
-                  <p className="text-sm text-gray-600 mt-1">
-                    Leeftijd: {calculateAge(new Date(selectedRequest.birthDate))} jaar
-                  </p>
-                )}
-              </div>
-              
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-3">
-                <div>
-                  <p className="text-sm font-medium text-[#963E56] mb-2">Locatie</p>
-                  <div className="bg-white p-3 rounded-md border border-[#963E56]/20">
-                    <p className="text-xs text-gray-600 font-medium mb-1">Gemeente</p>
-                    <p className="font-medium">{selectedRequest?.city || "Niet opgegeven"}</p>
-                  </div>
-                  <div className="bg-white p-3 rounded-md border border-[#963E56]/20 mt-2">
-                    <p className="text-xs text-gray-600 font-medium mb-1">Adres</p>
-                    <p className="font-medium">
-                      {selectedRequest?.street} {selectedRequest?.houseNumber}
-                      {selectedRequest?.busNumber && `, bus ${selectedRequest.busNumber}`}
-                    </p>
-                  </div>
-                </div>
-
-                <div>
-                  <p className="text-sm font-medium text-[#963E56] mb-2">Lidmaatschap</p>
-                  <div className="bg-white p-3 rounded-md border border-[#963E56]/20">
-                    <p className="text-xs text-gray-600 font-medium mb-1">Type</p>
-                    <p className="font-medium">
-                      {selectedRequest?.membershipType === "standaard" ? "Standaard" : 
-                       selectedRequest?.membershipType === "student" ? "Student" : 
-                       selectedRequest?.membershipType === "senior" ? "Senior" : "Standaard"}
-                    </p>
-                  </div>
-                  <div className="bg-white p-3 rounded-md border border-[#963E56]/20 mt-2">
-                    <p className="text-xs text-gray-600 font-medium mb-1">Betaalwijze</p>
-                    <p className="font-medium">
-                      {selectedRequest?.paymentMethod === "cash" ? "Cash" : 
-                      selectedRequest?.paymentMethod === "bancontact" ? "Bancontact" : 
-                      selectedRequest?.paymentMethod === "overschrijving" ? "Overschrijving" : 
-                      selectedRequest?.paymentMethod === "domiciliering" ? "Domiciliëring" : "Overschrijving"}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="rejection-reason" className="text-sm font-medium">
-                Reden voor afwijzing <span className="text-[#963E56]">*</span>
-              </Label>
-              <Textarea 
-                id="rejection-reason" 
-                value={rejectionReason}
-                onChange={(e) => setRejectionReason(e.target.value)}
-                placeholder="Beschrijf waarom deze aanvraag wordt afgewezen..."
-                className="min-h-[100px] border-[#963E56]/30 focus:ring-[#963E56]/30"
-              />
-              <p className="text-xs text-gray-500">
-                Deze informatie is alleen voor intern gebruik.
-              </p>
-            </div>
-          </div>
-
-          <DialogFooter className="mt-4">
-            <Button
-              variant="outline"
-              onClick={() => setShowRejectionDialog(false)}
-              className="border-[#963E56]/30 hover:bg-[#963E56]/5 hover:border-[#963E56]/50 transition-all"
-            >
-              Annuleren
-            </Button>
-            <Button
-              variant="destructive"
-              onClick={confirmRejection}
-              disabled={rejectMutation.isPending || !rejectionReason.trim()}
-              className="bg-[#963E56] hover:bg-[#7d3447]"
-            >
-              {rejectMutation.isPending ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Bezig...
-                </>
-              ) : (
-                "Afwijzen"
-              )}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Dialog voor goedkeuren */}
-      <Dialog open={showApprovalDialog} onOpenChange={setShowApprovalDialog}>
-        <DialogContent className="max-w-lg">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-xl">
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-[#963E56]">
-                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-                <polyline points="22 4 12 14.01 9 11.01"></polyline>
-              </svg>
-              Aanvraag goedkeuren
-            </DialogTitle>
-            <DialogDescription>
-              Wil je deze lidmaatschapsaanvraag goedkeuren? Dit lid wordt dan toegevoegd aan het ledenbestand.
-            </DialogDescription>
-            
-            {/* Lidnummer prominent bovenaan */}
-            <div className="mt-2 bg-[#963E56] text-white px-4 py-2 rounded-md w-full text-center">
-              <p className="text-sm font-medium mb-1">Toe te kennen lidnummer</p>
-              <p className="text-xl font-bold">{nextMemberNumber || "Automatisch"}</p>
-            </div>
-          </DialogHeader>
-          
-          <div className="mt-2 space-y-4">
-            <div className="bg-gradient-to-r from-[#963E56]/10 to-white p-5 rounded-lg shadow-sm space-y-4 border border-[#963E56]/20">
-              <div className="pb-3 border-b border-[#963E56]/20">
-                <p className="text-sm font-medium text-[#963E56] uppercase tracking-wider mb-1">Persoonlijke gegevens</p>
-                <p className="text-xl font-semibold">{selectedRequest?.firstName} {selectedRequest?.lastName}</p>
-                
-                {/* Leeftijd berekenen en tonen */}
-                {selectedRequest?.birthDate && (
-                  <p className="text-sm text-gray-600 mt-1">
-                    Leeftijd: {calculateAge(new Date(selectedRequest.birthDate))} jaar
-                  </p>
-                )}
-              </div>
-              
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-3">
-                <div>
-                  <p className="text-sm font-medium text-[#963E56] mb-2">Locatie</p>
-                  <div className="bg-white p-3 rounded-md border border-[#963E56]/20">
-                    <p className="text-xs text-gray-600 font-medium mb-1">Gemeente</p>
-                    <p className="font-medium">{selectedRequest?.city || "Niet opgegeven"}</p>
-                  </div>
-                  <div className="bg-white p-3 rounded-md border border-[#963E56]/20 mt-2">
-                    <p className="text-xs text-gray-600 font-medium mb-1">Adres</p>
-                    <p className="font-medium">
-                      {selectedRequest?.street} {selectedRequest?.houseNumber}
-                      {selectedRequest?.busNumber && `, bus ${selectedRequest.busNumber}`}
-                    </p>
-                  </div>
-                </div>
-
-                <div>
-                  <p className="text-sm font-medium text-[#963E56] mb-2">Lidmaatschap</p>
-                  <div className="bg-white p-3 rounded-md border border-[#963E56]/20">
-                    <p className="text-xs text-gray-600 font-medium mb-1">Type</p>
-                    <p className="font-medium">
-                      {selectedRequest?.membershipType === "standaard" ? "Standaard" : 
-                       selectedRequest?.membershipType === "student" ? "Student" : 
-                       selectedRequest?.membershipType === "senior" ? "Senior" : "Standaard"}
-                    </p>
-                  </div>
-                  <div className="bg-white p-3 rounded-md border border-[#963E56]/20 mt-2">
-                    <p className="text-xs text-gray-600 font-medium mb-1">Betaalwijze</p>
-                    <p className="font-medium">
-                      {selectedRequest?.paymentMethod === "cash" ? "Cash" : 
-                      selectedRequest?.paymentMethod === "bancontact" ? "Bancontact" : 
-                      selectedRequest?.paymentMethod === "overschrijving" ? "Overschrijving" : 
-                      selectedRequest?.paymentMethod === "domiciliering" ? "Domiciliëring" : "Overschrijving"}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-          <DialogFooter className="mt-4">
-            <Button
-              variant="outline"
-              onClick={() => setShowApprovalDialog(false)}
-              className="border-[#963E56]/30 hover:bg-[#963E56]/5 hover:border-[#963E56]/50 transition-all"
-            >
-              Annuleren
-            </Button>
-            <Button
-              variant="default"
-              className="bg-[#963E56] hover:bg-[#7d3447] text-white"
-              onClick={confirmApproval}
-              disabled={approveMutation.isPending}
-            >
-              {approveMutation.isPending ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Bezig...
-                </>
-              ) : (
-                "Goedkeuren"
-              )}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Detail Dialog */}
+      {/* Detail dialog */}
       <Dialog open={showDetailDialog} onOpenChange={setShowDetailDialog}>
-        <DialogContent className="max-w-4xl">
+        <DialogContent className="w-full max-w-3xl">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-xl">
-              <svg 
-                xmlns="http://www.w3.org/2000/svg" 
-                width="20" 
-                height="20" 
-                viewBox="0 0 24 24" 
-                fill="none" 
-                stroke="currentColor" 
-                strokeWidth="2" 
-                strokeLinecap="round" 
-                strokeLinejoin="round" 
-                className="text-primary"
-              >
-                <circle cx="11" cy="11" r="8"></circle>
-                <path d="m21 21-4.3-4.3"></path>
-              </svg>
-              Details aanvraag
+            <DialogTitle className="text-xl font-bold flex items-center gap-2">
+              <span className="text-[#963E56]">Aanvraagdetails</span>
+              {selectedRequest?.status === "pending" && (
+                <Badge variant="outline">In behandeling</Badge>
+              )}
+              {selectedRequest?.status === "approved" && (
+                <Badge variant="default" className="bg-green-500">Goedgekeurd</Badge>
+              )}
+              {selectedRequest?.status === "rejected" && (
+                <Badge variant="destructive">Afgewezen</Badge>
+              )}
             </DialogTitle>
             <DialogDescription>
-              Bekijk de volledige informatie over deze lidmaatschapsaanvraag.
+              Aanvraag ingediend op {selectedRequest && formatDate(selectedRequest.requestDate)}
             </DialogDescription>
           </DialogHeader>
           
-          <div className="mt-2 space-y-4 max-h-[65vh] overflow-y-auto pr-2">
-            <div className="bg-gradient-to-r from-[#963E56]/10 to-white p-5 rounded-lg shadow-sm space-y-4 border border-[#963E56]/20">
-              {/* Status badge */}
-              <div className="flex justify-between items-start">
-                <div className="pb-3 border-b border-[#963E56]/20 w-full">
-                  <p className="text-sm font-medium text-[#963E56] uppercase tracking-wider mb-1">Aanvraagstatus</p>
-                  <div className="flex items-center">
-                    <p className="text-xl font-semibold">{selectedRequest?.firstName} {selectedRequest?.lastName}</p>
-                    <div className="ml-3">
-                      {selectedRequest?.status === "pending" && (
-                        <Badge variant="outline" className="ml-2 border-amber-500 text-amber-700">In behandeling</Badge>
-                      )}
-                      {selectedRequest?.status === "approved" && (
-                        <Badge variant="default" className="ml-2 bg-green-500">Goedgekeurd</Badge>
-                      )}
-                      {selectedRequest?.status === "rejected" && (
-                        <Badge variant="destructive" className="ml-2">Afgewezen</Badge>
-                      )}
-                    </div>
-                  </div>
-                  <p className="text-sm text-gray-500 mt-1">Aanvraag ontvangen op {formatDate(selectedRequest?.requestDate || null)}</p>
-                </div>
-              </div>
-
-              {/* Grid layout voor details */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Persoonlijke gegevens */}
-                <div>
-                  <h3 className="text-md font-semibold text-[#963E56] mb-3 flex items-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
-                      <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path>
-                      <circle cx="12" cy="7" r="4"></circle>
-                    </svg>
-                    Persoonlijke gegevens
-                  </h3>
-                  <div className="space-y-2">
-                    <div className="bg-white p-3 rounded-md border">
-                      <p className="text-xs text-gray-500">Naam</p>
-                      <p className="font-medium">{selectedRequest?.firstName} {selectedRequest?.lastName}</p>
-                    </div>
-                    <div className="bg-white p-3 rounded-md border">
-                      <p className="text-xs text-gray-500">Geboortedatum</p>
-                      <p className="font-medium">{formatDate(selectedRequest?.birthDate || null)}</p>
-                    </div>
-                    <div className="bg-white p-3 rounded-md border">
-                      <p className="text-xs text-gray-500">Geslacht</p>
-                      <p className="font-medium">
-                        {selectedRequest?.gender === "man" ? "Man" : 
-                         selectedRequest?.gender === "vrouw" ? "Vrouw" : "Niet opgegeven"}
-                      </p>
-                    </div>
-                    <div className="bg-white p-3 rounded-md border">
-                      <p className="text-xs text-gray-500">Nationaliteit</p>
-                      <p className="font-medium">{selectedRequest?.nationality || "Niet opgegeven"}</p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Contactgegevens */}
-                <div>
-                  <h3 className="text-md font-semibold text-[#963E56] mb-3 flex items-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
-                      <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
-                    </svg>
-                    Contactgegevens
-                  </h3>
-                  <div className="space-y-2">
-                    <div className="bg-white p-3 rounded-md border">
-                      <p className="text-xs text-gray-500">Telefoon</p>
-                      <p className="font-medium">{selectedRequest?.phoneNumber}</p>
-                    </div>
-                    <div className="bg-white p-3 rounded-md border">
-                      <p className="text-xs text-gray-500">E-mail</p>
-                      <p className="font-medium">{selectedRequest?.email}</p>
-                    </div>
-                    <div className="bg-white p-3 rounded-md border">
-                      <p className="text-xs text-gray-500">Adres</p>
-                      <p className="font-medium">
-                        {selectedRequest?.street} {selectedRequest?.houseNumber} {selectedRequest?.busNumber && `(bus ${selectedRequest.busNumber})`}<br />
-                        {selectedRequest?.postalCode} {selectedRequest?.city}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Tweede rij - Lidmaatschaps- en betalingsgegevens */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
-                {/* Lidmaatschapsgegevens */}
-                <div>
-                  <h3 className="text-md font-semibold text-[#963E56] mb-3 flex items-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
-                      <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-                      <circle cx="8.5" cy="7" r="4"></circle>
-                      <polyline points="17 11 19 13 23 9"></polyline>
-                    </svg>
-                    Lidmaatschapsgegevens
-                  </h3>
-                  <div className="space-y-2">
-                    <div className="bg-white p-3 rounded-md border">
-                      <p className="text-xs text-gray-500">Type lidmaatschap</p>
-                      <p className="font-medium">
-                        {selectedRequest?.membershipType === "standaard" ? "Standaard" :
-                        selectedRequest?.membershipType === "student" ? "Student" :
-                        selectedRequest?.membershipType === "senior" ? "Senior" : "Standaard"}
-                      </p>
-                    </div>
-                    <div className="bg-white p-3 rounded-md border">
-                      <p className="text-xs text-gray-500">Automatische verlenging</p>
-                      <p className="font-medium">
-                        {selectedRequest?.autoRenew === true ? "Ja" : "Nee"}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Betalingsgegevens */}
-                <div>
-                  <h3 className="text-md font-semibold text-[#963E56] mb-3 flex items-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
-                      <rect x="2" y="5" width="20" height="14" rx="2"></rect>
-                      <line x1="2" y1="10" x2="22" y2="10"></line>
-                    </svg>
-                    Betalingsgegevens
-                  </h3>
-                  <div className="space-y-2">
-                    <div className="bg-white p-3 rounded-md border">
-                      <p className="text-xs text-gray-500">Betalingsmethode</p>
-                      <p className="font-medium">
-                        {selectedRequest?.paymentMethod === "cash" ? "Contant" :
-                        selectedRequest?.paymentMethod === "domiciliering" ? "Domiciliëring" :
-                        selectedRequest?.paymentMethod === "overschrijving" ? "Overschrijving" :
-                        selectedRequest?.paymentMethod === "bancontact" ? "Bancontact" : "Overschrijving"}
-                      </p>
-                    </div>
-                    <div className="bg-white p-3 rounded-md border">
-                      <p className="text-xs text-gray-500">Betalingstermijn</p>
-                      <p className="font-medium">
-                        {selectedRequest?.paymentTerm === "jaarlijks" ? "Jaarlijks" :
-                        selectedRequest?.paymentTerm === "maandelijks" ? "Maandelijks" :
-                        selectedRequest?.paymentTerm === "driemaandelijks" ? "Driemaandelijks" : "Jaarlijks"}
-                      </p>
-                    </div>
-                  </div>
-                </div>
+          <div className="overflow-y-auto max-h-[calc(100vh-240px)] pr-2">
+            <div className="bg-slate-50 p-4 rounded-lg mb-4">
+              <div className="flex flex-col">
+                <p className="text-sm font-medium text-[#963E56] uppercase tracking-wider mb-1">Persoonlijke gegevens</p>
+                <p className="text-xl font-semibold">{selectedRequest?.firstName} {selectedRequest?.lastName}</p>
+                
+                {/* Leeftijd berekenen en tonen */}
+                {selectedRequest?.birthDate && (
+                  <p className="text-sm text-gray-600 mt-1">
+                    Leeftijd: {calculateAge(new Date(selectedRequest.birthDate))} jaar
+                  </p>
+                )}
               </div>
               
-              {/* Bankgegevens (indien van toepassing) */}
-              {(selectedRequest?.paymentMethod === "domiciliering" || selectedRequest?.accountNumber) && (
-                <div className="mt-6">
-                  <h3 className="text-md font-semibold text-[#963E56] mb-3 flex items-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
-                      <rect x="2" y="5" width="20" height="14" rx="2"></rect>
-                      <line x1="2" y1="10" x2="22" y2="10"></line>
-                    </svg>
-                    Bankgegevens
-                  </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="bg-white p-3 rounded-md border">
-                      <p className="text-xs text-gray-500">Rekeninghouder</p>
-                      <p className="font-medium">{selectedRequest?.accountHolderName || "Niet opgegeven"}</p>
-                    </div>
-                    <div className="bg-white p-3 rounded-md border">
-                      <p className="text-xs text-gray-500">Rekeningnummer</p>
-                      <p className="font-medium">{selectedRequest?.accountNumber || "Niet opgegeven"}</p>
-                    </div>
-                    {selectedRequest?.bicSwift && (
-                      <div className="bg-white p-3 rounded-md border">
-                        <p className="text-xs text-gray-500">BIC/SWIFT</p>
-                        <p className="font-medium">{selectedRequest.bicSwift}</p>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )}
-
-              {/* Afwijzingsreden tonen als de aanvraag is afgewezen */}
-              {selectedRequest?.status === "rejected" && selectedRequest?.notes && (
-                <div className="mt-6">
-                  <h3 className="text-md font-semibold text-[#963E56] mb-3 flex items-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
-                      <circle cx="12" cy="12" r="10"></circle>
-                      <line x1="12" y1="8" x2="12" y2="12"></line>
-                      <line x1="12" y1="16" x2="12.01" y2="16"></line>
-                    </svg>
-                    Reden voor afwijzing
-                  </h3>
-                  <div className="bg-rose-50 p-4 rounded-md border border-rose-200">
-                    <p className="text-gray-700">{selectedRequest.notes}</p>
-                  </div>
-                </div>
-              )}
-
-              {/* Notities veld (indien aanwezig) */}
-              {selectedRequest?.notes && selectedRequest?.status !== "rejected" && (
-                <div className="mt-6">
-                  <h3 className="text-md font-semibold text-[#963E56] mb-3 flex items-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
-                      <path d="M14 3v4a1 1 0 0 0 1 1h4"></path>
-                      <path d="M17 21H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7l5 5v11a2 2 0 0 1-2 2z"></path>
-                      <line x1="9" y1="9" x2="10" y2="9"></line>
-                      <line x1="9" y1="13" x2="15" y2="13"></line>
-                      <line x1="9" y1="17" x2="15" y2="17"></line>
-                    </svg>
-                    Notities
-                  </h3>
-                  <div className="bg-white p-4 rounded-md border">
-                    <p className="text-gray-700">{selectedRequest.notes}</p>
-                  </div>
-                </div>
-              )}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-3">
+                <LocationCard request={selectedRequest} />
+                <MembershipCard request={selectedRequest} />
+              </div>
             </div>
+            
+            {/* Contactgegevens */}
+            <div className="bg-slate-50 p-4 rounded-lg mb-4">
+              <p className="text-sm font-medium text-[#963E56] uppercase tracking-wider mb-3">Contactgegevens</p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="bg-white p-3 rounded-md border border-[#963E56]/20">
+                  <p className="text-xs text-gray-600 font-medium mb-1">Email</p>
+                  <p className="font-medium">{selectedRequest?.email}</p>
+                </div>
+                <div className="bg-white p-3 rounded-md border border-[#963E56]/20">
+                  <p className="text-xs text-gray-600 font-medium mb-1">Telefoon</p>
+                  <p className="font-medium">{selectedRequest?.phoneNumber}</p>
+                </div>
+              </div>
+            </div>
+            
+            {/* Extra informatie */}
+            <div className="bg-slate-50 p-4 rounded-lg mb-4">
+              <p className="text-sm font-medium text-[#963E56] uppercase tracking-wider mb-3">Extra informatie</p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="bg-white p-3 rounded-md border border-[#963E56]/20">
+                  <p className="text-xs text-gray-600 font-medium mb-1">Geslacht</p>
+                  <p className="font-medium">
+                    {selectedRequest?.gender === "man" ? "Man" : 
+                     selectedRequest?.gender === "vrouw" ? "Vrouw" : ""}
+                  </p>
+                </div>
+                <div className="bg-white p-3 rounded-md border border-[#963E56]/20">
+                  <p className="text-xs text-gray-600 font-medium mb-1">Nationaliteit</p>
+                  <p className="font-medium">{selectedRequest?.nationality || ""}</p>
+                </div>
+                <div className="bg-white p-3 rounded-md border border-[#963E56]/20">
+                  <p className="text-xs text-gray-600 font-medium mb-1">Geboortedatum</p>
+                  <p className="font-medium">{selectedRequest?.birthDate ? formatDate(selectedRequest.birthDate) : ""}</p>
+                </div>
+              </div>
+            </div>
+            
+            {/* Betalingsdetails */}
+            <div className="bg-slate-50 p-4 rounded-lg mb-4">
+              <p className="text-sm font-medium text-[#963E56] uppercase tracking-wider mb-3">Betalingsdetails</p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <PaymentDetailsCard request={selectedRequest} />
+              </div>
+            </div>
+            
+            {/* Afwijzingsreden tonen indien afgewezen */}
+            {selectedRequest?.status === "rejected" && selectedRequest?.notes && (
+              <div className="bg-red-50 p-4 rounded-lg mb-4 border border-red-200">
+                <p className="text-sm font-medium text-red-700 uppercase tracking-wider mb-2">Reden voor afwijzing</p>
+                <p className="text-gray-800">{selectedRequest.notes}</p>
+              </div>
+            )}
           </div>
-
-          <DialogFooter className="mt-4">
-            <Button
-              variant="outline"
+          
+          <DialogFooter className="flex flex-col sm:flex-row gap-2 sm:justify-between">
+            <Button 
+              variant="outline" 
+              type="button" 
               onClick={() => setShowDetailDialog(false)}
-              className="border-[#963E56]/30 text-[#963E56] hover:bg-[#963E56]/5"
+              className="sm:order-1 w-full sm:w-auto"
             >
               Sluiten
+            </Button>
+            
+            {selectedRequest?.status === "pending" && (
+              <div className="flex gap-2 w-full sm:w-auto">
+                <Button 
+                  variant="outline" 
+                  type="button" 
+                  onClick={() => {
+                    setShowDetailDialog(false);
+                    handleReject(selectedRequest);
+                  }}
+                  className="flex-1 bg-red-50 border-red-200 text-red-700 hover:bg-red-100 hover:text-red-800"
+                >
+                  <XIcon className="mr-2 h-4 w-4" />
+                  Afwijzen
+                </Button>
+                <Button 
+                  type="button"
+                  onClick={() => {
+                    setShowDetailDialog(false);
+                    handleApprove(selectedRequest);
+                  }}
+                  className="flex-1 bg-green-600 hover:bg-green-700"
+                >
+                  <CheckIcon className="mr-2 h-4 w-4" />
+                  Goedkeuren
+                </Button>
+              </div>
+            )}
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      
+      {/* Goedkeuren dialog */}
+      <Dialog open={showApprovalDialog} onOpenChange={setShowApprovalDialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-lg">Aanvraag goedkeuren</DialogTitle>
+            <DialogDescription>
+              Bevestig om deze aanvraag goed te keuren en een nieuw lid aan te maken.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="bg-white border border-green-200 rounded-md p-4 mb-4">
+            {nextMemberNumber && (
+              <div className="mb-3 bg-green-50 p-2 border border-green-100 rounded-md text-center">
+                <p className="text-sm text-green-700 font-medium">Nieuw lidnummer</p>
+                <p className="text-xl font-bold text-green-800">{nextMemberNumber}</p>
+              </div>
+            )}
+
+            <div className="flex flex-col space-y-2">
+              <p className="font-medium">{selectedRequest?.firstName} {selectedRequest?.lastName}</p>
+              
+              {/* Leeftijd berekenen en tonen */}
+              {selectedRequest?.birthDate && (
+                <p className="text-sm text-gray-600">
+                  Leeftijd: {calculateAge(new Date(selectedRequest.birthDate))} jaar
+                </p>
+              )}
+              
+              {/* Gemeente tonen */}
+              {selectedRequest?.city && (
+                <p className="text-sm text-gray-600">
+                  Gemeente: {selectedRequest.city}
+                </p>
+              )}
+
+              {/* Lidmaatschapstype tonen */}
+              <div className="pt-2">
+                <p className="text-sm font-medium">Type lidmaatschap:</p>
+                <p>{formatMembershipTypeLabel(selectedRequest?.membershipType)}</p>
+              </div>
+
+              {/* Betalingsmethode tonen */}
+              <div>
+                <p className="text-sm font-medium">Betalingsmethode:</p>
+                <p>{formatPaymentMethodLabel(selectedRequest?.paymentMethod)}</p>
+              </div>
+              
+              {/* Betalingstermijn tonen */}
+              <div>
+                <p className="text-sm font-medium">Betalingstermijn:</p>
+                <p>{formatPaymentTermLabel(selectedRequest?.paymentTerm)}</p>
+              </div>
+              
+              {/* Automatische vernieuwing tonen */}
+              <div>
+                <p className="text-sm font-medium">Automatische verlenging:</p>
+                <p>{formatAutoRenewLabel(selectedRequest?.autoRenew)}</p>
+              </div>
+            </div>
+          </div>
+          
+          <DialogFooter>
+            <Button 
+              variant="outline"
+              onClick={() => setShowApprovalDialog(false)}
+              className="w-full sm:w-auto mb-2 sm:mb-0"
+            >
+              Annuleren
+            </Button>
+            <Button 
+              onClick={confirmApproval}
+              className="w-full sm:w-auto bg-green-600 hover:bg-green-700"
+              disabled={approveMutation.isPending}
+            >
+              {approveMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Bevestig goedkeuring
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      
+      {/* Afwijzen dialog */}
+      <Dialog open={showRejectionDialog} onOpenChange={setShowRejectionDialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-lg">Aanvraag afwijzen</DialogTitle>
+            <DialogDescription>
+              Geef een reden op voor de afwijzing van deze aanvraag.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="bg-white border border-red-200 rounded-md p-4 mb-4">
+            <div className="flex flex-col space-y-2">
+              <p className="font-medium">{selectedRequest?.firstName} {selectedRequest?.lastName}</p>
+              
+              {/* Leeftijd berekenen en tonen */}
+              {selectedRequest?.birthDate && (
+                <p className="text-sm text-gray-600">
+                  Leeftijd: {calculateAge(new Date(selectedRequest.birthDate))} jaar
+                </p>
+              )}
+              
+              {/* Gemeente tonen */}
+              {selectedRequest?.city && (
+                <p className="text-sm text-gray-600">
+                  Gemeente: {selectedRequest.city}
+                </p>
+              )}
+
+              {/* Lidmaatschapstype tonen */}
+              <div className="pt-2">
+                <p className="text-sm font-medium">Type lidmaatschap:</p>
+                <p>{formatMembershipTypeLabel(selectedRequest?.membershipType)}</p>
+              </div>
+
+              {/* Betalingsmethode tonen */}
+              <div>
+                <p className="text-sm font-medium">Betalingsmethode:</p>
+                <p>{formatPaymentMethodLabel(selectedRequest?.paymentMethod)}</p>
+              </div>
+            </div>
+          </div>
+          
+          <div>
+            <Label htmlFor="rejection-reason" className="text-red-600 font-medium">
+              Reden voor afwijzing (verplicht)
+            </Label>
+            <Textarea
+              id="rejection-reason"
+              placeholder="Geef een reden..."
+              className="mt-1 border-red-200"
+              value={rejectionReason}
+              onChange={(e) => setRejectionReason(e.target.value)}
+            />
+          </div>
+          
+          <DialogFooter>
+            <Button 
+              variant="outline" 
+              onClick={() => setShowRejectionDialog(false)}
+              className="w-full sm:w-auto mb-2 sm:mb-0"
+            >
+              Annuleren
+            </Button>
+            <Button 
+              variant="destructive" 
+              onClick={confirmRejection}
+              className="w-full sm:w-auto"
+              disabled={rejectMutation.isPending || !rejectionReason.trim()}
+            >
+              {rejectMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Bevestig afwijzing
             </Button>
           </DialogFooter>
         </DialogContent>
