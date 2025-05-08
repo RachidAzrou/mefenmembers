@@ -605,18 +605,22 @@ export default function MemberRequests() {
       <Dialog open={showDetailDialog} onOpenChange={setShowDetailDialog}>
         <DialogContent className="w-full max-w-3xl">
           <DialogHeader className="bg-gradient-to-r from-[#963E56] to-[#83354A] p-5 sm:p-6 text-white rounded-t-xl -mt-4 -mx-4 shadow-md">
-            <DialogTitle className="text-xl font-bold flex items-center gap-2">
-              <span>Aanvraagdetails</span>
-              {selectedRequest?.status === "pending" && (
-                <Badge variant="outline" className="bg-white text-[#963E56] border-white shadow-sm">In behandeling</Badge>
-              )}
-              {selectedRequest?.status === "approved" && (
-                <Badge variant="outline" className="bg-white text-green-600 border-white shadow-sm">Goedgekeurd</Badge>
-              )}
-              {selectedRequest?.status === "rejected" && (
-                <Badge variant="outline" className="bg-white text-red-600 border-white shadow-sm">Afgewezen</Badge>
-              )}
-            </DialogTitle>
+            <div className="flex justify-between items-center">
+              <DialogTitle className="text-xl font-bold text-white">
+                {selectedRequest?.firstName} {selectedRequest?.lastName}
+              </DialogTitle>
+              <div>
+                {selectedRequest?.status === "pending" && (
+                  <Badge variant="outline" className="bg-white/20 text-white border-white/30">In behandeling</Badge>
+                )}
+                {selectedRequest?.status === "approved" && (
+                  <Badge variant="outline" className="bg-white text-green-600 border-white shadow-sm">Goedgekeurd</Badge>
+                )}
+                {selectedRequest?.status === "rejected" && (
+                  <Badge variant="outline" className="bg-white text-red-600 border-white shadow-sm">Afgewezen</Badge>
+                )}
+              </div>
+            </div>
             <DialogDescription className="text-white/90 mt-1">
               Aanvraag ingediend op {selectedRequest && formatDate(selectedRequest.requestDate)}
             </DialogDescription>
@@ -815,33 +819,7 @@ export default function MemberRequests() {
               Sluiten
             </Button>
             
-            {selectedRequest?.status === "pending" && (
-              <div className="flex gap-2 w-full sm:w-auto">
-                <Button 
-                  variant="outline" 
-                  type="button" 
-                  onClick={() => {
-                    setShowDetailDialog(false);
-                    handleReject(selectedRequest);
-                  }}
-                  className="flex-1 bg-red-50 border-red-200 text-red-700 hover:bg-red-100 hover:text-red-800"
-                >
-                  <XIcon className="mr-2 h-4 w-4" />
-                  Afwijzen
-                </Button>
-                <Button 
-                  type="button"
-                  onClick={() => {
-                    setShowDetailDialog(false);
-                    handleApprove(selectedRequest);
-                  }}
-                  className="flex-1 bg-[#963E56] hover:bg-[#7a3246]"
-                >
-                  <CheckIcon className="mr-2 h-4 w-4" />
-                  Goedkeuren
-                </Button>
-              </div>
-            )}
+
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -851,8 +829,8 @@ export default function MemberRequests() {
         <DialogContent className="max-w-md">
           <DialogHeader className="bg-gradient-to-r from-[#963E56] to-[#7a3246] p-5 text-white rounded-t-xl -mt-4 -mx-4 shadow-md">
             <div className="flex items-center mb-1">
-              <CheckIcon className="h-6 w-6 bg-white text-[#963E56] p-1 rounded-full mr-2" />
-              <DialogTitle className="text-xl font-bold">Aanvraag goedkeuren</DialogTitle>
+              <CheckIcon className="h-6 w-6 bg-white text-green-600 p-1 rounded-full mr-2" />
+              <DialogTitle className="text-xl font-bold text-white">Aanvraag goedkeuren</DialogTitle>
             </div>
             <DialogDescription className="text-white/90 mt-1">
               Bevestig om deze aanvraag goed te keuren en een nieuw lid aan te maken.
@@ -958,7 +936,7 @@ export default function MemberRequests() {
             </Button>
             <Button 
               onClick={confirmApproval}
-              className="w-full sm:w-auto bg-[#963E56] hover:bg-[#7a3246] text-white shadow-sm"
+              className="w-full sm:w-auto bg-green-600 hover:bg-green-700 text-white shadow-sm"
               disabled={approveMutation.isPending}
             >
               {approveMutation.isPending ? (
@@ -978,10 +956,10 @@ export default function MemberRequests() {
           <DialogHeader className="bg-gradient-to-r from-[#963E56] to-[#7a3246] p-5 text-white rounded-t-xl -mt-4 -mx-4 shadow-md">
             <div className="flex items-center mb-1">
               <XIcon className="h-6 w-6 bg-white text-[#963E56] p-1 rounded-full mr-2" />
-              <DialogTitle className="text-xl font-bold">Aanvraag afwijzen</DialogTitle>
+              <DialogTitle className="text-xl font-bold text-white">Aanvraag afwijzen</DialogTitle>
             </div>
             <DialogDescription className="text-white/90 mt-1">
-              Geef een reden op voor de afwijzing van deze aanvraag.
+              Reden voor afwijzing van deze aanvraag
             </DialogDescription>
           </DialogHeader>
           
