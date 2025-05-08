@@ -410,130 +410,172 @@ export class DatabaseStorage implements IStorage {
   }
 
   async approveMemberRequest(id: number, processedBy: number): Promise<Member> {
-    // Verbeterde foutafhandeling en transactie voor atomaire bewerkingen
+    console.log(`===== START APPROVEMEMBERREQUEST voor aanvraag ID ${id} =====`);
+    
     try {
-      console.log(`Goedkeuren van lidmaatschapsaanvraag met ID ${id} door gebruiker ${processedBy}`);
-      
-      // Haal het verzoek op met strikte controles
+      // Stap 1: Controleer of de aanvraag bestaat en nog niet is verwerkt
+      console.log(`Ophalen aanvraag met ID ${id}`);
       const request = await this.getMemberRequest(id);
+      
       if (!request) {
+        console.error(`Aanvraag met ID ${id} niet gevonden in de database`);
         throw new Error(`Lidmaatschapsaanvraag met ID ${id} niet gevonden`);
       }
-
-      // Dubbele verwerking voorkomen - voeg meer logging toe voor betere diagnostiek
-      if (request.status !== 'pending') {
-        console.warn(`Poging tot goedkeuren van reeds verwerkte aanvraag: ID=${id}, status=${request.status}`);
-        throw new Error(`Lidmaatschapsaanvraag met ID ${id} is al ${request.status}`);
+      
+      console.log(`Aanvraag gevonden: ${request.firstName} ${request.lastName}, status: ${request.status}`);
+      
+      // Stap 2: Check of de aanvraag al is verwerkt
+      if (request.status === "approved") {
+        console.log(`Aanvraag ${id} is al goedgekeurd`);
+        
+        // Als de aanvraag al is goedgekeurd EN we hebben een memberId, dan kunnen we dat lid opzoeken
+        if (request.memberId) {
+          console.log(`Ophalen bestaand lid met ID ${request.memberId}`);
+          const existingMember = await this.getMember(request.memberId);
+          
+          if (existingMember) {
+            console.log(`Bestaand lid gevonden voor aanvraag ${id}: ${existingMember.firstName} ${existingMember.lastName}`);
+            return existingMember;
+          } else {
+            console.error(`FOUT: Aanvraag ${id} verwijst naar niet-bestaand lid ${request.memberId}`);
+            throw new Error(`Inconsistente data: lid bestaat niet maar aanvraag is goedgekeurd`);
+          }
+        } else {
+          console.error(`FOUT: Aanvraag ${id} is gemarkeerd als goedgekeurd maar heeft geen memberId`);
+          throw new Error(`Inconsistente data: aanvraag is goedgekeurd maar mist lid referentie`);
+        }
       }
       
-      // Controleer of dit verzoek al een memberId of memberNumber heeft
-      if (request.memberId || request.memberNumber) {
-        console.warn(`Aanvraag ID=${id} heeft al een memberId=${request.memberId} of memberNumber=${request.memberNumber}`);
-      }
-
-      console.log(`Aanvraag gevonden en gevalideerd: ${request.firstName} ${request.lastName}`);
-      
-      // Creëer een volledig nieuw partieel InsertMember object om type/null issues te vermijden
-      const partialMemberData: Partial<InsertMember> = {};
-      
-      // Verplichte velden met directe validatie
-      if (!request.firstName || !request.lastName || !request.phoneNumber) {
-        throw new Error('Verplichte velden ontbreken in de aanvraag (naam, telefoonnummer)');
+      if (request.status === "rejected") {
+        console.error(`Aanvraag ${id} is al afgewezen en kan niet worden goedgekeurd`);
+        throw new Error(`Lidmaatschapsaanvraag met ID ${id} is al afgewezen`);
       }
       
-      partialMemberData.firstName = request.firstName;
-      partialMemberData.lastName = request.lastName;
-      partialMemberData.phoneNumber = request.phoneNumber;
+      // Stap 3: Validatie van verplichte velden
+      console.log("Valideren verplichte velden");
+      const requiredFields = ["firstName", "lastName", "phoneNumber", "email"];
+      const missingFields = requiredFields.filter(field => !request[field as keyof typeof request]);
       
-      // Optionele velden met betere null-handling
-      partialMemberData.email = request.email || null;
-      
-      // Verwerk gender expliciet
-      if (request.gender === "man" || request.gender === "vrouw") {
-        partialMemberData.gender = request.gender;
-      } else {
-        partialMemberData.gender = null; // Expliciet null in plaats van undefined
+      if (missingFields.length > 0) {
+        console.error(`Validatiefout: Ontbrekende verplichte velden: ${missingFields.join(', ')}`);
+        throw new Error(`Verplichte velden ontbreken: ${missingFields.join(', ')}`);
       }
       
-      // Datum conversie met betere error handling
+      // Stap 4: Bereid de gegevens voor een nieuw lid voor
+      console.log("Voorbereiden van lidgegevens");
+      
+      // Basis lid object
+      const memberData: InsertMember = {
+        memberNumber: "", // Wordt later toegewezen
+        firstName: request.firstName,
+        lastName: request.lastName,
+        email: request.email,
+        phoneNumber: request.phoneNumber,
+        
+        // Adres gegevens
+        street: request.street || null,
+        houseNumber: request.houseNumber || null,
+        busNumber: request.busNumber || null,
+        postalCode: request.postalCode || null,
+        city: request.city || null,
+        
+        // Persoonlijke gegevens met expliciete type casting
+        gender: (request.gender === "man" || request.gender === "vrouw") ? request.gender : null,
+        birthDate: toDateObject(request.birthDate),
+        nationality: request.nationality || null,
+        
+        // Lidmaatschapsgegevens
+        membershipType: (request.membershipType === "standaard" || 
+                        request.membershipType === "student" || 
+                        request.membershipType === "senior") 
+                        ? request.membershipType : "standaard",
+        startDate: new Date(),
+        endDate: null,
+        
+        // Betalingsgegevens
+        paymentStatus: false,
+        autoRenew: request.autoRenew === undefined ? true : Boolean(request.autoRenew),
+        paymentTerm: (request.paymentTerm === "maandelijks" || 
+                      request.paymentTerm === "driemaandelijks" || 
+                      request.paymentTerm === "jaarlijks") 
+                      ? request.paymentTerm : "jaarlijks",
+        paymentMethod: (request.paymentMethod === "cash" || 
+                        request.paymentMethod === "domiciliering" || 
+                        request.paymentMethod === "overschrijving" || 
+                        request.paymentMethod === "bancontact") 
+                        ? request.paymentMethod : "cash",
+        
+        // Bankgegevens
+        accountNumber: request.accountNumber || null,
+        accountHolderName: request.accountHolderName || null,
+        bicSwift: request.bicSwift || null,
+        
+        // Metadata
+        registrationDate: new Date(),
+        privacyConsent: Boolean(request.privacyConsent),
+        notes: request.notes || null,
+        
+        // Auditgegevens
+        createdBy: processedBy
+      };
+      
+      // Stap 5: Genereer een nieuw lidnummer en wijs het toe
+      console.log("Genereren nieuw lidnummer");
+      const memberNumber = await this.generateMemberNumber();
+      memberData.memberNumber = memberNumber.toString().padStart(4, '0');
+      console.log(`Nieuw lidnummer gegenereerd: ${memberData.memberNumber}`);
+      
+      // Stap 6: Maak het nieuwe lid aan
+      console.log("Aanmaken nieuw lid in database");
+      const newMember = await this.createMember(memberData);
+      console.log(`Nieuw lid aangemaakt met ID ${newMember.id}`);
+      
+      // Stap 7: Update de aanvraagstatus
+      console.log(`Bijwerken status van aanvraag ${id} naar 'approved'`);
       try {
-        partialMemberData.birthDate = toDateObject(request.birthDate);
-      } catch (error) {
-        console.error(`Fout bij converteren geboortedatum '${request.birthDate}':`, error);
-        partialMemberData.birthDate = null;
+        const [updated] = await db
+          .update(memberRequests)
+          .set({
+            status: 'approved' as const,
+            processedDate: new Date(),
+            processedBy: processedBy,
+            memberId: newMember.id,
+            memberNumber: memberData.memberNumber
+          })
+          .where(eq(memberRequests.id, id))
+          .returning();
+        
+        if (!updated) {
+          console.error(`KRITIEKE FOUT: Kon aanvraag ${id} niet bijwerken - bestaat deze nog?`);
+          throw new Error(`Kon aanvraagstatus niet bijwerken naar 'approved'`);
+        }
+        
+        console.log(`Aanvraag ${id} succesvol bijgewerkt naar 'approved'`);
+      } catch (updateError) {
+        console.error(`FOUT bij bijwerken aanvraagstatus:`, updateError);
+        throw new Error(`Kon aanvraagstatus niet bijwerken: ${updateError.message}`);
       }
       
-      // Overige velden met expliciete null checks
-      partialMemberData.nationality = request.nationality || null;
-      partialMemberData.street = request.street || null;
-      partialMemberData.houseNumber = request.houseNumber || null;
-      partialMemberData.busNumber = request.busNumber || null;
-      partialMemberData.postalCode = request.postalCode || null;
-      partialMemberData.city = request.city || null;
-      
-      // Lidmaatschap met fallback naar standaardwaarden
-      partialMemberData.membershipType = (request.membershipType === "standaard" || 
-                                        request.membershipType === "student" || 
-                                        request.membershipType === "senior") 
-                                        ? request.membershipType : "standaard";
-      
-      // Standaard betaalgegevens
-      partialMemberData.startDate = new Date();
-      partialMemberData.autoRenew = request.autoRenew === undefined ? true : Boolean(request.autoRenew);
-      partialMemberData.paymentTerm = request.paymentTerm || "jaarlijks";
-      partialMemberData.paymentMethod = request.paymentMethod || "cash";
-      partialMemberData.paymentStatus = false;
-      partialMemberData.registrationDate = new Date();
-      partialMemberData.privacyConsent = Boolean(request.privacyConsent);
-      partialMemberData.notes = request.notes || `Aangemaakt vanuit aanvraag #${id}`;
-      
-      // Bankrekeninggegevens met expliciete null checks
-      partialMemberData.accountNumber = request.accountNumber || null;
-      partialMemberData.bicSwift = request.bicSwift || null;
-      partialMemberData.accountHolderName = request.accountHolderName || null;
-      
-      // Converteer naar volledig InsertMember object
-      const memberData = partialMemberData as InsertMember;
-      
-      console.log(`Lid aanmaken met gegevens: ${memberData.firstName} ${memberData.lastName}`);
-      
-      // Maak een nieuw lid aan
-      const member = await this.createMember(memberData);
-      console.log(`Nieuw lid aangemaakt met ID=${member.id}, lidnummer=${member.memberNumber}`);
-      
-      // Update de status van het verzoek naar 'approved' met de member gegevens
-      const currentTime = new Date();
-      console.log(`Aanvraag bijwerken naar 'approved' met lidnummer: ${member.memberNumber}`);
-      
-      // Update het verzoek met de lidnummer en memberId met expliciete type conversies
-      const [updated] = await db
-        .update(memberRequests)
-        .set({
-          status: 'approved' as const,
-          processedDate: currentTime,
-          processedBy: processedBy,
-          memberId: member.id,
-          // Altijd string conversie voor memberNumber (zorgt dat het consistent is in de database)
-          memberNumber: String(member.memberNumber)
-        })
-        .where(eq(memberRequests.id, id))
-        .returning();
-      
-      if (!updated) {
-        console.error(`Kon aanvraag ID=${id} niet bijwerken na goedkeuring`);
-        throw new Error(`Aanvraag status update mislukt na goedkeuring`);
-      }
-      
-      console.log(`Aanvraag ID=${id} succesvol bijgewerkt naar 'approved', processedDate=${currentTime}`);
-      
-      // Optioneel: Expliciet de bijgewerkte aanvraag ophalen als verificatie
+      // Stap 8: Extra verificatie
       const verifiedRequest = await this.getMemberRequest(id);
-      console.log(`Verificatie van status na update: ${verifiedRequest?.status}, memberNumber=${verifiedRequest?.memberNumber}`);
+      if (verifiedRequest?.status !== 'approved' || verifiedRequest?.memberId !== newMember.id) {
+        console.warn(`WAARSCHUWING: Verificatie toont mogelijk inconsistente status: 
+          status=${verifiedRequest?.status}, 
+          memberId=${verifiedRequest?.memberId}, 
+          memberNumber=${verifiedRequest?.memberNumber}`);
+      } else {
+        console.log(`Verificatie succesvol: aanvraag ${id} is correct bijgewerkt`);
+      }
       
-      return member;
+      // Stap 9: Retourneer het nieuwe lid als resultaat
+      console.log(`Proces succesvol voltooid: aanvraag ${id} -> lid ${newMember.id}`);
+      return newMember;
+      
     } catch (error) {
-      console.error(`Fout bij goedkeuren aanvraag ID=${id}:`, error);
+      console.error(`FOUT BIJ GOEDKEUREN AANVRAAG ${id}:`, error);
       throw error;
+    } finally {
+      console.log(`===== EINDE APPROVEMEMBERREQUEST voor aanvraag ID ${id} =====`);
     }
   }
 }

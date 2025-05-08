@@ -285,95 +285,142 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Route voor het goedkeuren en omzetten van een aanvraag naar een lid
+  // VOLLEDIG HERSCHREVEN: Route voor het goedkeuren en omzetten van een aanvraag naar een lid
   app.post("/api/member-requests/approve", async (req: Request, res: Response) => {
     try {
-      // Extra logging voor debugging
-      console.log("Aanvraag goedkeuren API route opgeroepen");
+      console.log("===== START GOEDKEURING PROCEDURE =====");
+      console.log("Request body:", JSON.stringify(req.body));
       console.log("Query params:", req.query);
-      console.log("Request body:", req.body);
       
-      // ID parameter ophalen en valideren
+      // Stap 1: ID parameter valideren
       const id = req.query.id ? parseInt(req.query.id as string) : undefined;
       if (!id || isNaN(id)) {
-        console.error("Goedkeuring gefaald: Ongeldig ID parameter", req.query.id);
-        return res.status(400).json({ error: "Ongeldig of ontbrekend ID" });
+        console.error("Fout: Ongeldig ID", req.query.id);
+        return res.status(400).json({ 
+          error: "Ongeldig of ontbrekend ID", 
+          success: false 
+        });
       }
-      console.log(`Aanvraag ID ${id} gevonden in parameters`);
+      
+      // Stap 2: Controleer of alle vereiste velden aanwezig zijn
+      const requiredFields = ["firstName", "lastName", "phoneNumber", "email"];
+      const missingFields = requiredFields.filter(field => !req.body[field]);
+      
+      if (missingFields.length > 0) {
+        console.error("Fout: Ontbrekende verplichte velden", missingFields);
+        return res.status(400).json({ 
+          error: "Ontbrekende verplichte velden", 
+          required: missingFields,
+          success: false 
+        });
+      }
+      
+      // Stap 3: Ophalen bestaande aanvraag om te controleren of deze al verwerkt is
+      const existingRequest = await storage.getMemberRequest(id);
+      if (!existingRequest) {
+        console.error(`Fout: Aanvraag ${id} niet gevonden`);
+        return res.status(404).json({ 
+          error: "Aanvraag niet gevonden", 
+          success: false 
+        });
+      }
 
-      // ProcessedBy ophalen (de gebruiker die de aanvraag goedkeurt)
-      // Accepteer zowel string als number formaat
-      let processedBy: number;
-      if (typeof req.body.processedBy === 'number') {
-        processedBy = req.body.processedBy;
-      } else if (typeof req.body.processedBy === 'string') {
-        processedBy = parseInt(req.body.processedBy);
-      } else {
-        // Default waarde voor ontwikkeling
-        console.warn("Geen processedBy parameter gevonden, gebruik default waarde 1");
-        processedBy = 1;
-      }
+      console.log(`Bestaande aanvraag gevonden: ${existingRequest.firstName} ${existingRequest.lastName} (status: ${existingRequest.status})`);
       
-      // Controleer of de aanvraag bestaat
-      const request = await storage.getMemberRequest(id);
-      if (!request) {
-        console.error(`Aanvraag met ID ${id} niet gevonden in database`);
-        return res.status(404).json({ error: "Aanvraag niet gevonden" });
-      }
-      console.log(`Aanvraag gevonden: ${request.firstName} ${request.lastName} (status: ${request.status})`);
-      
-      // Controleer of de aanvraag al is verwerkt
-      if (request.status !== 'pending') {
-        console.warn(`Aanvraag ID ${id} heeft al status ${request.status}`);
-        // Als de aanvraag al is goedgekeurd, retourneer de lidgegevens in plaats van een fout
-        if (request.status === 'approved' && request.memberId && request.memberNumber) {
-          console.log(`Aanvraag ID ${id} is al eerder goedgekeurd, return bestaande gegevens`);
+      // Stap 4: Controleer of de aanvraag al verwerkt is
+      if (existingRequest.status === 'approved') {
+        console.log(`Aanvraag ${id} is al goedgekeurd, stuur bestaande gegevens terug`);
+        
+        // Controleer of we alle nodige informatie hebben
+        if (existingRequest.memberId && existingRequest.memberNumber) {
           return res.status(200).json({
-            message: "Aanvraag was reeds goedgekeurd",
-            memberId: request.memberId,
-            memberNumber: request.memberNumber,
-            alreadyProcessed: true
+            message: "Aanvraag was al goedgekeurd",
+            memberId: existingRequest.memberId,
+            memberNumber: existingRequest.memberNumber,
+            success: true,
+            alreadyApproved: true
           });
         }
+        
+        // Als de aanvraag approved is maar we geen memberNumber hebben, is er iets mis
+        console.warn(`Aanvraag ${id} is gemarkeerd als approved maar mist memberNumber`);
       }
-
-      // Verwerk de aanvraag
-      console.log(`Start verwerking van aanvraag ID ${id} door gebruiker ${processedBy}`);
-      const member = await storage.approveMemberRequest(id, processedBy);
-      console.log(`Aanvraag succesvol verwerkt: nieuw lid ${member.id} met nummer ${member.memberNumber}`);
       
-      // Succesvolle response
-      res.status(201).json({
-        message: "Aanvraag goedgekeurd en lid aangemaakt",
-        memberId: member.id,
-        memberNumber: member.memberNumber,
-        success: true
-      });
+      if (existingRequest.status === 'rejected') {
+        console.error(`Aanvraag ${id} is al afgewezen en kan niet meer worden goedgekeurd`);
+        return res.status(409).json({
+          error: "Aanvraag is al afgewezen en kan niet worden goedgekeurd",
+          success: false
+        });
+      }
+      
+      // Stap 5: Verwerk de aanvraag - gebruik de gegevens uit het verzoek voor het geval dat
+      // ze zijn bijgewerkt ten opzichte van de opgeslagen versie
+      console.log(`Verwerken van goedkeuring voor aanvraag ${id}`);
+      
+      const processedBy = typeof req.body.processedBy === 'number' 
+        ? req.body.processedBy 
+        : (typeof req.body.processedBy === 'string' 
+          ? parseInt(req.body.processedBy)
+          : 1); // Default waarde
+      
+      try {
+        // Gebruik de gecombineerde data (origineel + updates)
+        const requestData = {
+          ...existingRequest,  // Begin met bestaande data als basis
+          ...req.body,         // Overschrijf met eventuele updates
+          id                   // Zorg dat ID niet wordt overschreven
+        };
+        
+        // Zorg ervoor dat velden het juiste type hebben
+        if (typeof requestData.id !== 'number') requestData.id = id;
+        
+        console.log("Aanroepen approveMemberRequest met gecombineerde data");
+        const member = await storage.approveMemberRequest(id, processedBy);
+        
+        console.log(`Aanvraag succesvol goedgekeurd: lid #${member.id} met nummer ${member.memberNumber} aangemaakt`);
+        
+        // Stuur een complete en consistente response terug
+        return res.status(201).json({
+          message: "Aanvraag goedgekeurd en lid aangemaakt",
+          memberId: member.id,
+          memberNumber: member.memberNumber,
+          member: member,      // Stuur het volledige lid mee voor extra controle
+          success: true
+        });
+      } catch (approvalError) {
+        console.error("Fout tijdens goedkeuring:", approvalError);
+        throw approvalError;  // Doorsturen naar de algemene error handler
+      }
     } catch (error) {
-      // Uitgebreide foutafhandeling met ondersteuning voor verschillende soorten fouten
-      console.error("Fout bij goedkeuren lidmaatschapsaanvraag:", error);
+      console.error("FOUT BIJ GOEDKEURING:", error);
       
-      // Bepaal het juiste foutbericht en status code
+      // Verbeterde foutafhandeling
       let statusCode = 500;
       let errorMessage = "Kon aanvraag niet goedkeuren";
       
       if (error instanceof Error) {
         errorMessage += ": " + error.message;
         
-        // Bepaal de status code op basis van het soort fout
         if (error.message.includes("niet gevonden")) {
           statusCode = 404;
         } else if (error.message.includes("is al")) {
-          statusCode = 409;  // Conflict - de aanvraag is al verwerkt
+          statusCode = 409;
+        } else if (error.message.includes("verplicht")) {
+          statusCode = 400;
         }
       } else {
         errorMessage += ": " + String(error);
       }
       
-      res.status(statusCode).json({ 
+      console.error(`Status ${statusCode} wordt teruggestuurd: ${errorMessage}`);
+      
+      return res.status(statusCode).json({ 
         error: errorMessage,
         success: false
       });
+    } finally {
+      console.log("===== EINDE GOEDKEURING PROCEDURE =====");
     }
   });
 
