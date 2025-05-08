@@ -161,10 +161,18 @@ export default function MemberRequests() {
   // Goedkeuren van een aanvraag
   const approveMutation = useMutation({
     mutationFn: async (id: number) => {
-      const response = await apiRequest("POST", `/api/member-requests/approve?id=${id}`, {
-        processedBy: 1 // TODO: vervangen door echte gebruikers-ID
-      });
-      return await response.json();
+      console.log("Approving request with ID:", id);
+      try {
+        const response = await apiRequest("POST", `/api/member-requests/approve?id=${id}`, {
+          processedBy: 1 // TODO: vervangen door echte gebruikers-ID
+        });
+        const responseData = await response.json();
+        console.log("Approve API response:", responseData);
+        return responseData;
+      } catch (error) {
+        console.error("Error approving request:", error);
+        throw error;
+      }
     },
     onSuccess: (data) => {
       // Bij goedkeuring ontvangen we memberId en memberNumber
@@ -334,11 +342,20 @@ export default function MemberRequests() {
     setSelectedRequest(request);
     
     try {
-      // Eerst het volgende beschikbare lidnummer ophalen
-      const response = await fetch('/api/members/generate-number');
-      if (!response.ok) throw new Error('Kon geen lidnummer genereren');
+      console.log("Ophalen lidnummer gestart voor aanvraag ID:", request.id);
+      
+      // Eerst het volgende beschikbare lidnummer ophalen via apiRequest
+      const response = await apiRequest("GET", '/api/members/generate-number');
       const data = await response.json();
-      setNextMemberNumber(data.memberNumber);
+      console.log("Ontvangen lidnummer data:", data);
+      
+      if (data && data.memberNumber) {
+        setNextMemberNumber(data.memberNumber);
+        console.log("Lidnummer ingesteld op:", data.memberNumber);
+      } else {
+        console.error('Ontvangen lidnummer data heeft geen memberNumber:', data);
+        throw new Error('Ongeldig formaat lidnummer ontvangen');
+      }
     } catch (error) {
       console.error('Fout bij het ophalen van lidnummer:', error);
       toast({
@@ -747,7 +764,7 @@ export default function MemberRequests() {
                 </h3>
                 
                 <div className="bg-red-50 p-4 rounded-md border border-red-200 shadow-sm">
-                  <p className="text-gray-800">{selectedRequest.notes || "Geen reden opgegeven"}</p>
+                  <p className="text-gray-800">{selectedRequest.rejectionReason || selectedRequest.notes || "Geen reden opgegeven"}</p>
                 </div>
               </div>
             )}
