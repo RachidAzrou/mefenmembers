@@ -190,6 +190,30 @@ export default function MemberRequests() {
         throw new Error("Ongeldig API antwoord formaat: geen array");
       }
       
+      console.log(`API antwoord: ${data.length} aanvragen ontvangen`);
+      
+      // Stap 1: Simpele ID-deduplicatie op de API response
+      const seenIds = new Set<string>();
+      const uniqueItems: any[] = [];
+      
+      for (const item of data) {
+        if (!item || !item.id) continue; // Skip invalid items
+        
+        const idString = String(item.id);
+        if (!seenIds.has(idString)) {
+          seenIds.add(idString);
+          uniqueItems.push(item);
+        } else {
+          console.log(`API Response duplicaat ID: ${idString}`);
+        }
+      }
+      
+      if (data.length !== uniqueItems.length) {
+        console.log(`API Response bevatte ${data.length - uniqueItems.length} duplicaten op basis van ID`);
+        data.length = 0; // Leeg de originele array
+        data.push(...uniqueItems); // Vul met unieke items
+      }
+      
       // Normaliseer en valideer elke aanvraag
       return data.map(item => {
         // Maak kopie om onbedoelde referentieproblemen te vermijden
@@ -486,31 +510,26 @@ export default function MemberRequests() {
   // Helper functies voor aanvragen
   // Clean, efficiënte functie om dubbele aanvragen te verwijderen
   function removeDuplicates(requests: MemberRequest[]): MemberRequest[] {
-    // Stap 1: Filter lokaal goedgekeurde en afgewezen aanvragen
-    const filteredRequests = requests.filter(req => {
-      // Verwijder lokaal goedgekeurde en afgewezen aanvragen
-      return !locallyApprovedIds.has(req.id) && !locallyRejectedIds.has(req.id);
-    });
+    console.log(`Deduplicatie: start met ${requests.length} aanvragen`);
     
-    // Stap 2: Filter op status - alleen pending-aanvragen in de lijst 'In behandeling'
-    const pendingRequests = filteredRequests.filter(req => {
-      return req.status === "pending" && !req.processedDate && !req.memberNumber && !req.memberId;
-    });
-    
-    // Stap 3: ID-gebaseerde deduplicatie (compatibel met zowel string als number IDs)
+    // Stap 1: ID-gebaseerde deduplicatie (compatibel met zowel string als number IDs)
     const seenIds = new Set<string>();
     const uniqueById: MemberRequest[] = [];
     
-    for (const req of pendingRequests) {
+    for (const req of requests) {
       // Converteer ID naar string om zowel string als number IDs te ondersteunen
       const idString = String(req.id);
       if (!seenIds.has(idString)) {
         seenIds.add(idString);
         uniqueById.push(req);
+      } else {
+        console.log(`Duplicaat ID gevonden: ${idString}`);
       }
     }
     
-    // Stap 4: Naam+datum deduplicatie (voor verschillende ID's maar zelfde persoon)
+    console.log(`Deduplicatie: na ID filtering ${uniqueById.length} aanvragen`);
+    
+    // Stap 2: Naam+datum deduplicatie (voor verschillende ID's maar zelfde persoon)
     const seenKeys = new Map<string, MemberRequest>();
     const result: MemberRequest[] = [];
     
@@ -538,6 +557,7 @@ export default function MemberRequests() {
           const indexToRemove = result.findIndex(r => String(r.id) === String(existing.id));
           if (indexToRemove !== -1) {
             result.splice(indexToRemove, 1);
+            console.log(`Duplicaat naam/datum: vervang ${existing.id} door ${req.id}`);
           }
           
           // Voeg nieuwe versie toe
@@ -550,6 +570,7 @@ export default function MemberRequests() {
       }
     }
     
+    console.log(`Deduplicatie: na naam/datum deduplicatie ${result.length} aanvragen`);
     return result;
   }
   
@@ -605,11 +626,34 @@ export default function MemberRequests() {
     return reqCopy;
   }) || [];
   
+  // Eerst filteren we alle goedgekeurde en afgewezen aanvragen uit de schone dataset
+  const rawPendingRequests = cleanedRequests.filter(req => {
+    // Expliciet controleren of aanvraag niet in een van de volgende categorieën valt:
+    // 1. Aanvraag niet lokaal goedgekeurd of afgewezen
+    if (locallyApprovedIds.has(req.id) || locallyRejectedIds.has(req.id)) return false;
+    
+    // 2. Aanvraag moet status "pending" hebben
+    if (req.status !== "pending") return false;
+    
+    // 3. Aanvraag mag niet al verwerkt zijn
+    if (req.processedDate) return false;
+    
+    // 4. Aanvraag mag geen lidnummer of memberId hebben
+    if (req.memberNumber || req.memberId) return false;
+    
+    // Alle voorwaarden gepasseerd, aanvraag is echt "pending"
+    return true;
+  });
+  
+  console.log(`Na eerste filtering: ${rawPendingRequests.length} aanvragen met status "pending"`);
+  
   // Filter aanvragen voor "In behandeling" lijst
-  const allPendingRequests = cleanedRequests.filter(shouldShowAsPending) || [];
+  const allPendingRequests = rawPendingRequests || [];
   
   // Verwijder dubbele aanvragen
   const pendingRequests = removeDuplicates(allPendingRequests);
+  
+  console.log(`Na deduplicatie: ${pendingRequests.length} unieke aanvragen in behandeling`);
   
   // Filter aanvragen voor "Verwerkt" lijst 
   const processedRequests = cleanedRequests.filter(req => {
@@ -815,7 +859,7 @@ export default function MemberRequests() {
         </div>
       </div>
 
-      <div className="stats grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+      <div className="stats grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
         <Card className="bg-white border shadow-sm hover:shadow transition-shadow duration-200">
           <CardHeader className="pb-2">
             <CardTitle className="text-lg flex items-center gap-2">
@@ -827,6 +871,15 @@ export default function MemberRequests() {
           </CardHeader>
           <CardContent>
             <p className="text-3xl font-bold text-primary">{requests?.length || 0}</p>
+            <div className="text-xs mt-1 text-gray-500">
+              {requests && (
+                <div className="space-y-1">
+                  <div>Status pending: {requests.filter(r => r.status === "pending").length}</div>
+                  <div>Status approved: {requests.filter(r => r.status === "approved").length}</div>
+                  <div>Status rejected: {requests.filter(r => r.status === "rejected").length}</div>
+                </div>
+              )}
+            </div>
           </CardContent>
         </Card>
         <Card className="bg-white border shadow-sm hover:shadow transition-shadow duration-200">
@@ -841,6 +894,9 @@ export default function MemberRequests() {
           </CardHeader>
           <CardContent>
             <p className="text-3xl font-bold text-amber-500">{pendingRequests.length}</p>
+            <div className="text-xs mt-1 text-gray-500">
+              Gefilterd uit {allPendingRequests.length} aanvragen met status "pending"
+            </div>
           </CardContent>
         </Card>
         <Card className="bg-white border shadow-sm hover:shadow transition-shadow duration-200">
@@ -855,6 +911,36 @@ export default function MemberRequests() {
           </CardHeader>
           <CardContent>
             <p className="text-3xl font-bold text-green-600">{processedRequests.length}</p>
+            <div className="text-xs mt-1 text-gray-500">
+              <div className="space-y-1">
+                <div>Goedgekeurd: {processedRequests.filter(r => r.status === "approved").length}</div>
+                <div>Afgewezen: {processedRequests.filter(r => r.status === "rejected").length}</div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card className="bg-white border shadow-sm hover:shadow transition-shadow duration-200">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-lg flex items-center gap-2">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-600">
+                <path d="M2 20h.01M6 20h.01M10 20h.01M14 20h.01M18 20h.01M22 20h.01"></path>
+                <path d="M2 12h20"></path>
+                <path d="M10 2v10"></path>
+                <path d="M14 2v10"></path>
+              </svg>
+              Lokaal verwerkt
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-3xl font-bold text-gray-600">
+              {locallyApprovedIds.size + locallyRejectedIds.size}
+            </p>
+            <div className="text-xs mt-1 text-gray-500">
+              <div className="space-y-1">
+                <div>Goedgekeurd: {locallyApprovedIds.size}</div>
+                <div>Afgewezen: {locallyRejectedIds.size}</div>
+              </div>
+            </div>
           </CardContent>
         </Card>
       </div>
