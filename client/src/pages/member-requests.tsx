@@ -195,167 +195,45 @@ export default function MemberRequests() {
   });
 
   // VOLLEDIG HERSCHREVEN: Goedkeuren van een aanvraag
-  // VOLLEDIG HERSCHREVEN en VERBETERD: Goedkeuren van een aanvraag en aanmaken van een nieuw lid
+  // Eenvoudige en effectieve goedkeuringsmutatie
   const approveMutation = useMutation({
     mutationFn: async (request: MemberRequest) => {
-      console.log(`===== START GOEDKEURINGSPROCES VOOR AANVRAAG #${request.id} =====`);
-      
-      try {
-        // STAP 1: Controleer of de aanvraag geldig is voor goedkeuring
-        if (!request || !request.id) {
-          throw new Error("Ongeldige aanvraag: geen ID gevonden");
-        }
-        
-        // STAP 2: Vroeger controleerden we verplichte velden, maar nu volgen we een nieuwe aanpak
-        // waarbij de server deze gegevens ophaalt uit de opgeslagen aanvraag
-        
-        // STAP 3: Verstuur alle gegevens naar de server voor maximale compatibiliteit
-        // Dit zorgt ervoor dat het werkt in zowel de lokale als de Vercel-omgeving
-        console.log(`Versturen van alle gegevens voor aanvraag #${request.id} voor maximale compatibiliteit`);
-        
-        // We sturen volledige gegevens om beide server-implementaties te ondersteunen
-        // De lokale Express-server en Vercel-functies kunnen hiermee werken
-        const fullRequestData = {
-          ...request,
-          processedBy: 1 // TODO: vervangen door echte gebruikers-ID
-        };
-        
-        // Maak een kopie zonder onnodige velden om de payload te verkleinen
-        const cleanedData = { ...fullRequestData };
-        
-        // Maak een nieuwe kopie zonder de velden die we willen uitsluiten
-        const dataToSend = Object.entries(cleanedData)
-          .filter(([key]) => !['processedDate', 'memberId', 'memberNumber'].includes(key))
-          .reduce((obj, [key, value]) => {
-            obj[key] = value;
-            return obj;
-          }, {} as any);
-        
-        console.log("Volledige gegevens versturen voor compatibiliteit met beide server-implementaties");
-        const response = await apiRequest("POST", `/api/member-requests/approve?id=${request.id}`, dataToSend);
-        
-        // STAP 4: Verwerk de server-respons
-        if (!response.ok) {
-          let errorMessage = "Server fout bij goedkeuren";
-          
-          try {
-            // Probeer de foutmelding als JSON te parsen
-            const errorData = await response.json();
-            errorMessage = errorData.error || errorMessage;
-          } catch {
-            // Als het geen JSON is, gebruik de plaintext response
-            errorMessage = `${errorMessage}: ${await response.text()}`;
-          }
-          
-          console.error(`Server fout (${response.status}):`, errorMessage);
-          throw new Error(errorMessage);
-        }
-        
-        // STAP 5: Verwerk de succesvolle respons
-        const responseData = await response.json();
-        console.log("Succesvolle server respons:", responseData);
-        
-        // BELANGRIJK: Voorkom problemen door garanties in te bouwen voor ontbrekende velden
-        const result = {
-          ...responseData,
-          // Garandeer dat we minimaal deze velden hebben, zelfs als de server ze niet terugstuurt
-          success: responseData.success !== false,
-          memberId: responseData.memberId || responseData.member?.id || 0,
-          memberNumber: responseData.memberNumber || responseData.member?.memberNumber || "0000",
-          message: responseData.message || "Aanvraag goedgekeurd",
-          // Garandeer dat de lokale aanvraag ID beschikbaar is voor latere stappen
-          requestId: request.id
-        };
-        
-        console.log(`===== EINDE GOEDKEURINGSPROCES VOOR AANVRAAG #${request.id} =====`);
-        return result;
-      } catch (error) {
-        console.error(`FOUT BIJ GOEDKEUREN AANVRAAG #${request.id}:`, error);
-        throw error;
+      if (!request || !request.id) {
+        throw new Error("Ongeldige aanvraag: geen ID gevonden");
       }
+      
+      // Stuur volledige aanvraag naar het approve endpoint
+      const response = await apiRequest("POST", `/api/member-requests/approve?id=${request.id}`, {
+        ...request,
+        processedBy: 1 // TODO: vervangen door echte gebruikers-ID
+      });
+      
+      if (!response.ok) {
+        let errorText = await response.text();
+        try {
+          const errorData = JSON.parse(errorText);
+          throw new Error(errorData.error || "Fout bij goedkeuren");
+        } catch {
+          throw new Error(`Fout bij goedkeuren: ${errorText}`);
+        }
+      }
+      
+      return await response.json();
     },
-    onSuccess: (data, variables) => {
-      console.log("Ontvangen data van server:", data);
+    onSuccess: (data) => {
+      // Haal benodigde gegevens uit de response
+      const memberNumber = data.memberNumber || data.member?.memberNumber || "onbekend";
       
-      // Check welk formaat de server terugstuurt
-      // We accepteren verschillende formats om flexibel te zijn
-      const memberId = data.memberId || data.member?.id;
-      const memberNumber = data.memberNumber || data.member?.memberNumber;
-      const message = data.message || "Aanvraag goedgekeurd";
-      
-      // Bij goedkeuring accepteren we verschillende formaten van de respons
-      if (selectedRequest) {
-        console.log(`Aanvraag #${selectedRequest.id} is verwerkt. Server response: ${message}`);
-        
-        // FIX: Ondanks eventuele ontbrekende waarden toch doorgaan
-        // De server heeft de aanvraag verwerkt, we zorgen ervoor dat de UI correct wordt bijgewerkt
-        
-        // Handmatig de cache bijwerken
-        const currentData = queryClient.getQueryData<MemberRequest[]>(["/api/member-requests"]);
-        
-        if (currentData) {
-          const updatedData = currentData.map(req => {
-            if (req.id === selectedRequest.id) {
-              console.log(`Aanvraag #${req.id} status bijwerken naar approved`);
-              return {
-                ...req,
-                status: "approved",
-                processedDate: new Date().toISOString(),
-                processedBy: 1,
-                // Gebruik de waarden uit response indien beschikbaar, anders default
-                memberId: memberId || 0,
-                memberNumber: memberNumber || "Onbekend" 
-              };
-            }
-            return req;
-          });
-          
-          // Update de cache direct
-          queryClient.setQueryData(["/api/member-requests"], updatedData);
-        }
-        
-        // Invalideer de queries - CRUCIALE STAP
-        console.log("Queries invalideren");
-        queryClient.invalidateQueries({ queryKey: ["/api/member-requests"] });
-        queryClient.invalidateQueries({ queryKey: ["/api/members"] });
-        
-        // Herladen van queries
-        Promise.all([
-          queryClient.refetchQueries({ queryKey: ["/api/member-requests"] }),
-          queryClient.refetchQueries({ queryKey: ["/api/members"] })
-        ])
-        .then(() => {
-          console.log("Alle data succesvol ververst na goedkeuring");
-          
-          // Controleer of de lokale status aanpassing is doorgekomen
-          const refreshedData = queryClient.getQueryData<MemberRequest[]>(["/api/member-requests"]);
-          if (refreshedData) {
-            const approvedRequest = refreshedData.find(r => r.id === selectedRequest.id);
-            console.log("Status na verversing:", approvedRequest?.status);
-            
-            // FORCEER AANVRAAG UIT PENDING LIJST MET EXTRA SET
-            // Dit zorgt ervoor dat de UI onmiddellijk wordt bijgewerkt, ongeacht de server-respons
-            setLocallyApprovedIds(prev => {
-              const newSet = new Set(prev);
-              newSet.add(selectedRequest.id);
-              console.log(`Lokaal gemarkeerd als goedgekeurd: ${selectedRequest.id}`);
-              return newSet;
-            });
-          }
-        })
-        .catch((error) => {
-          console.error("Fout bij het verversen van data na goedkeuring:", error);
-        });
-      }
-      
-      // Toon altijd een succes bericht, zelfs als we niet alle data hebben
+      // Toon succesmelding
       toast({
         title: "Aanvraag goedgekeurd",
-        description: memberNumber 
-          ? `De aanvraag is succesvol goedgekeurd. Lidnummer: ${memberNumber}.`
-          : "De aanvraag is succesvol goedgekeurd.",
+        description: `De aanvraag is succesvol goedgekeurd. Lidnummer: ${memberNumber}.`,
         variant: "success",
       });
+      
+      // Ververs alle data om de lijsten bij te werken
+      queryClient.invalidateQueries({ queryKey: ["/api/member-requests"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/members"] });
       
       // Reset UI
       setSelectedRequest(null);
@@ -370,58 +248,29 @@ export default function MemberRequests() {
     },
   });
 
-  // Afwijzen van een aanvraag
+  // Afwijzen van een aanvraag - eenvoudige implementatie
   const rejectMutation = useMutation({
     mutationFn: async ({ id, reason }: { id: number; reason: string }) => {
       const response = await apiRequest("PUT", `/api/member-requests/status?id=${id}`, {
         status: "rejected",
         processedBy: 1, // TODO: vervangen door echte gebruikers-ID
         notes: reason,
-        rejectionReason: reason // Toevoegen van beide parameters voor compatibiliteit
+        rejectionReason: reason // Beide parameters voor compatibiliteit
       });
       return await response.json();
     },
-    onSuccess: (data) => {
-      // Bij afwijzing ontvangen we de bijgewerkte aanvraag status
-      if (selectedRequest) {
-        console.log("Afwijzing succesvol verwerkt voor aanvraag ID:", selectedRequest.id);
-        
-        // Invalideer eerst de query
-        queryClient.invalidateQueries({ queryKey: ["/api/member-requests"] });
-        
-        // Wacht tot de query is ververst
-        queryClient.refetchQueries({ queryKey: ["/api/member-requests"] })
-          .then(() => {
-            console.log("Alle aanvragen zijn ververst na afwijzing");
-            
-            // Controleer of de aanvraag correct is bijgewerkt
-            const refetchedData = queryClient.getQueryData(["/api/member-requests"]) as MemberRequest[] | undefined;
-            
-            if (refetchedData) {
-              const updatedRequest = refetchedData.find(req => req.id === selectedRequest.id);
-              if (updatedRequest) {
-                console.log("Bijgewerkte aanvraag status:", updatedRequest.status);
-                
-                if (updatedRequest.status !== "rejected") {
-                  console.warn("Aanvraag status is niet bijgewerkt naar 'rejected'");
-                }
-              } else {
-                console.warn("Kon de bijgewerkte aanvraag niet vinden in de data");
-              }
-            }
-          })
-          .catch((error) => {
-            console.error("Fout bij het verversen van data na afwijzing:", error);
-          });
-      } else {
-        console.warn("Geen geselecteerde aanvraag gevonden bij afwijzing");
-      }
+    onSuccess: () => {
+      // Ververs data
+      queryClient.invalidateQueries({ queryKey: ["/api/member-requests"] });
       
+      // Toon succes bericht
       toast({
         title: "Aanvraag afgewezen",
         description: "De aanvraag is succesvol afgewezen.",
         variant: "destructive",
       });
+      
+      // Reset UI
       setSelectedRequest(null);
       setShowRejectionDialog(false);
       setRejectionReason("");
@@ -533,8 +382,7 @@ export default function MemberRequests() {
     return result.filter(req => req.status === "pending");
   }
   
-  // Effect om de locallyApprovedIds set bij te werken wanneer een aanvraag wordt goedgekeurd
-  // en data te verversen na een korte vertraging
+  // Effect om goedgekeurde aanvragen bij te houden en te synchroniseren
   useEffect(() => {
     if (approveMutation.isSuccess && selectedRequest) {
       // Voeg goedgekeurde aanvraag toe aan lokale set
@@ -544,64 +392,42 @@ export default function MemberRequests() {
         return newSet;
       });
       
-      // Forceer data verversing na korte vertraging
-      const delayedRefresh = setTimeout(() => {
-        // Haal verse data op met timestamp om cache te omzeilen
-        const timestamp = new Date().getTime(); 
-        fetch(`/api/member-requests?_=${timestamp}`)
-          .then(response => response.json())
-          .then(data => {
-            queryClient.setQueryData(["/api/member-requests"], data);
-          })
-          .catch(error => console.error("Fout bij verversing:", error));
-      }, 2000);
-      
-      return () => clearTimeout(delayedRefresh);
+      // Ververs data na goedkeuring
+      setTimeout(() => {
+        // Onmiddellijk queries invalideren
+        queryClient.invalidateQueries({ queryKey: ["/api/member-requests"] });
+        queryClient.invalidateQueries({ queryKey: ["/api/members"] });
+        
+        // Dan queries herladen
+        queryClient.refetchQueries({ queryKey: ["/api/member-requests"] })
+          .then(() => console.log("Aanvragen ververst na goedkeuring"));
+      }, 1000);
     }
   }, [approveMutation.isSuccess, selectedRequest, queryClient]);
   
-  // Functie die bepaalt of een aanvraag als "pending" moet worden weergegeven
+  // Basis functie om te controleren of een aanvraag pending is
   function shouldShowAsPending(request: MemberRequest): boolean {
-    // 1. Check lokale status - deze heeft voorrang
+    // Als lokaal goedgekeurd, nooit tonen als pending
     if (locallyApprovedIds.has(request.id)) {
       return false;
     }
     
-    // 2. Controleer status veld
+    // Als status niet "pending" is, niet tonen
     if (request.status !== "pending") {
       return false;
     }
     
-    // 3. Controleer verwerkingsindicatoren
-    if (request.processedDate || request.memberNumber || request.memberId) {
+    // Als aanvraag al verwerkt is (heeft processedDate), niet tonen
+    if (request.processedDate) {
       return false;
     }
     
-    // 4. Compatibiliteit voor verschillende ID formaten
-    if (typeof request.id === 'string') {
-      const idStr = String(request.id);
-      if (idStr.indexOf('-') !== -1 && ((request as any).memberId || (request as any).memberNumber)) {
-        return false;
-      }
+    // Als aanvraag een lidnummer of lid-ID heeft, is het al goedgekeurd
+    if (request.memberNumber || request.memberId) {
+      return false;
     }
     
-    // 5. Filter verouderde aanvragen
-    if (request.requestDate) {
-      const requestDate = new Date(request.requestDate);
-      const oneHourAgo = new Date();
-      oneHourAgo.setHours(oneHourAgo.getHours() - 1);
-      
-      // Behoud aanvragen die momenteel worden verwerkt
-      if (approveMutation.isPending && selectedRequest?.id === request.id) {
-        return true;
-      }
-      
-      // Filter mogelijk vastgelopen oude aanvragen
-      if (requestDate < oneHourAgo && selectedRequest?.id !== request.id) {
-        return false;
-      }
-    }
-    
+    // Toon alle overige aanvragen met status "pending"
     return true;
   }
   
