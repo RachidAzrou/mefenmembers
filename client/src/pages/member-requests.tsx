@@ -815,7 +815,7 @@ export default function MemberRequests() {
         <DialogContent className="max-w-md" hideCloseButton>
           <DialogHeader className="bg-gradient-to-r from-[#963E56] to-[#7a3246] p-5 text-white rounded-t-xl -mt-4 -mx-4 shadow-md">
             <div className="flex items-center mb-1">
-              <CheckIcon className="h-6 w-6 bg-white text-green-600 p-1 rounded-full mr-2" />
+              <CheckIcon className="h-6 w-6 bg-green-600 text-white p-1 rounded-full mr-2" />
               <DialogTitle className="text-xl font-bold text-white">Aanvraag goedkeuren</DialogTitle>
             </div>
             <DialogDescription className="text-white/90 mt-1">
@@ -941,7 +941,7 @@ export default function MemberRequests() {
         <DialogContent className="max-w-md" hideCloseButton>
           <DialogHeader className="bg-gradient-to-r from-[#963E56] to-[#7a3246] p-5 text-white rounded-t-xl -mt-4 -mx-4 shadow-md">
             <div className="flex items-center mb-1">
-              <XIcon className="h-6 w-6 bg-white text-[#963E56] p-1 rounded-full mr-2" />
+              <XIcon className="h-6 w-6 bg-red-600 text-white p-1 rounded-full mr-2" />
               <DialogTitle className="text-xl font-bold text-white">Aanvraag afwijzen</DialogTitle>
             </div>
             <DialogDescription className="text-white/90 mt-1">
