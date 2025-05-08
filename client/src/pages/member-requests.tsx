@@ -246,6 +246,7 @@ export default function MemberRequests() {
       toast({
         title: "Aanvraag verwijderd",
         description: "De aanvraag is succesvol verwijderd.",
+        variant: "success",
       });
       setSelectedRequest(null);
     },
@@ -272,6 +273,7 @@ export default function MemberRequests() {
       toast({
         title: "Aanvraag bijgewerkt",
         description: "De aanvraag is succesvol bijgewerkt.",
+        variant: "success",
       });
       setIsEditing(false);
     },
