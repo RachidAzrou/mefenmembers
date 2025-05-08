@@ -697,7 +697,7 @@ export default function MemberRequests() {
                 <div className="mt-2 flex items-center">
                   <span className="bg-white/20 text-white px-2 py-1 rounded text-sm font-medium mr-2">Lidnummer:</span>
                   <button 
-                    onClick={() => setLocation(`/members/${selectedRequest.memberId}`)}
+                    onClick={() => setLocation(`/member-detail?id=${selectedRequest.memberId}`)}
                     className="bg-white/30 hover:bg-white/40 transition-colors text-white px-2 py-1 rounded text-sm font-semibold flex items-center"
                   >
                     {selectedRequest.memberNumber}
