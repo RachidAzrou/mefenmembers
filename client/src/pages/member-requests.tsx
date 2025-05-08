@@ -194,33 +194,28 @@ export default function MemberRequests() {
     refetchOnWindowFocus: true,
   });
 
-  // VOLLEDIG HERSCHREVEN: Goedkeuren van een aanvraag
-  // Eenvoudige en effectieve goedkeuringsmutatie
+  // VOLLEDIG NIEUWE IMPLEMENTATIE: Goedkeuren van een aanvraag
   const approveMutation = useMutation({
-    mutationFn: async (request: MemberRequest) => {
-      if (!request || !request.id) {
+    mutationFn: async (requestId: number) => {
+      if (!requestId || isNaN(requestId)) {
         throw new Error("Ongeldige aanvraag: geen ID gevonden");
       }
       
-      // Stuur volledige aanvraag naar het approve endpoint
-      const response = await apiRequest("POST", `/api/member-requests/approve?id=${request.id}`, {
-        ...request,
+      console.log(`Versturen goedkeuringsverzoek voor aanvraag #${requestId}`);
+      
+      // Verzoek met alleen essentiële gegevens
+      const response = await apiRequest("POST", `/api/member-requests/approve?id=${requestId}`, {
         processedBy: 1 // TODO: vervangen door echte gebruikers-ID
       });
       
-      if (!response.ok) {
-        let errorText = await response.text();
-        try {
-          const errorData = JSON.parse(errorText);
-          throw new Error(errorData.error || "Fout bij goedkeuren");
-        } catch {
-          throw new Error(`Fout bij goedkeuren: ${errorText}`);
-        }
-      }
+      const responseData = await response.json();
+      console.log("Server response:", responseData);
       
-      return await response.json();
+      return responseData;
     },
     onSuccess: (data) => {
+      console.log("Goedkeuring succesvol verwerkt", data);
+      
       // Haal benodigde gegevens uit de response
       const memberNumber = data.memberNumber || data.member?.memberNumber || "onbekend";
       
@@ -231,15 +226,31 @@ export default function MemberRequests() {
         variant: "success",
       });
       
-      // Ververs alle data om de lijsten bij te werken
+      // Expliciet lokaal goedgekeurde aanvragen bijhouden
+      if (selectedRequest) {
+        setLocallyApprovedIds(prev => {
+          const newSet = new Set(prev);
+          newSet.add(selectedRequest.id);
+          return newSet;
+        });
+      }
+      
+      // Forceer volledige data refresh
       queryClient.invalidateQueries({ queryKey: ["/api/member-requests"] });
       queryClient.invalidateQueries({ queryKey: ["/api/members"] });
       
       // Reset UI
       setSelectedRequest(null);
       setShowApprovalDialog(false);
+      
+      // Extra verversing met vertraging om te zorgen dat server updates verwerkt zijn
+      setTimeout(() => {
+        console.log("Extra verversing van aanvragen data");
+        queryClient.refetchQueries({ queryKey: ["/api/member-requests"] });
+      }, 1000);
     },
     onError: (error: Error) => {
+      console.error("Fout bij goedkeuren:", error);
       toast({
         title: "Fout bij goedkeuren",
         description: error.message,
