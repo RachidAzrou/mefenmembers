@@ -139,23 +139,62 @@ export default function MemberRequests() {
   const [isEditing, setIsEditing] = useState(false);
   const { isAdmin } = useRole();
 
-  // Ophalen van alle aanvragen
+  // Ophalen van alle aanvragen met verbeterde validatie en foutafhandeling
   const { data: requests, isLoading } = useQuery<MemberRequest[]>({
     queryKey: ["/api/member-requests"],
     queryFn: async () => {
+      console.log("Ophalen van lidmaatschapsaanvragen gestart...");
       const response = await fetch('/api/member-requests');
+      
       if (!response.ok) {
-        throw new Error('Network response was not ok');
+        console.error("API fout bij ophalen aanvragen:", response.status, response.statusText);
+        throw new Error(`Network response was not ok: ${response.status} ${response.statusText}`);
       }
+      
       const data = await response.json();
-      // Debug log om te zien wat we krijgen van de server
-      console.log("API response data:", data);
-      if (data.length > 0) {
-        console.log("First request in response:", data[0]);
-        console.log("Approved requests:", data.filter((r: MemberRequest) => r.status === "approved"));
+      
+      // Uitgebreide logging voor betere diagnostiek
+      console.log(`API response data: ${data.length} items ontvangen`);
+      
+      // Validatie van de ontvangen data
+      if (!Array.isArray(data)) {
+        console.error("Ongeldig API antwoord formaat, verwacht array:", data);
+        throw new Error("Ongeldig API antwoord formaat, verwacht array");
       }
-      return data;
+      
+      // Data naverwerking en validatie per item
+      const validatedData = data.map(item => {
+        // Zorg dat status altijd een geldige waarde heeft
+        if (!item.status || !["pending", "approved", "rejected"].includes(item.status)) {
+          console.warn(`Aanvraag ${item.id} heeft ongeldige status: ${item.status}, standaard op "pending" gezet`);
+          item.status = "pending";
+        }
+        
+        // Controleer en normaliseer andere essentiële velden
+        if (item.status === "approved" && !item.processedDate) {
+          console.warn(`Goedgekeurde aanvraag ${item.id} mist processedDate`);
+          item.processedDate = item.processedDate || new Date().toISOString();
+        }
+        
+        if (item.status === "rejected" && !item.processedDate) {
+          console.warn(`Afgewezen aanvraag ${item.id} mist processedDate`);
+          item.processedDate = item.processedDate || new Date().toISOString();
+        }
+        
+        return item;
+      });
+      
+      // Voeg extra diagnostische logging toe
+      console.log("Aanvragen per status:", {
+        "pending": validatedData.filter(r => r.status === "pending").length,
+        "approved": validatedData.filter(r => r.status === "approved").length,
+        "rejected": validatedData.filter(r => r.status === "rejected").length
+      });
+      
+      return validatedData;
     },
+    staleTime: 30000, // 30 seconden cache
+    refetchOnWindowFocus: true, // Ververs bij focus van browser venster
   });
 
   // Goedkeuren van een aanvraag
@@ -250,20 +289,40 @@ export default function MemberRequests() {
       });
       return await response.json();
     },
-    onSuccess: () => {
-      // Invalideer de query en refetch
+    onSuccess: (data) => {
+      // Bij afwijzing ontvangen we de bijgewerkte aanvraag status
       if (selectedRequest) {
-        // Invalideer de queries direct
+        console.log("Afwijzing succesvol verwerkt voor aanvraag ID:", selectedRequest.id);
+        
+        // Invalideer eerst de query
         queryClient.invalidateQueries({ queryKey: ["/api/member-requests"] });
         
-        // Wacht tot de queries opnieuw zijn opgehaald
+        // Wacht tot de query is ververst
         queryClient.refetchQueries({ queryKey: ["/api/member-requests"] })
           .then(() => {
-            console.log("Member requests refetched after rejection");
+            console.log("Alle aanvragen zijn ververst na afwijzing");
+            
+            // Controleer of de aanvraag correct is bijgewerkt
+            const refetchedData = queryClient.getQueryData(["/api/member-requests"]) as MemberRequest[] | undefined;
+            
+            if (refetchedData) {
+              const updatedRequest = refetchedData.find(req => req.id === selectedRequest.id);
+              if (updatedRequest) {
+                console.log("Bijgewerkte aanvraag status:", updatedRequest.status);
+                
+                if (updatedRequest.status !== "rejected") {
+                  console.warn("Aanvraag status is niet bijgewerkt naar 'rejected'");
+                }
+              } else {
+                console.warn("Kon de bijgewerkte aanvraag niet vinden in de data");
+              }
+            }
           })
           .catch((error) => {
-            console.error("Error refetching member requests:", error);
+            console.error("Fout bij het verversen van data na afwijzing:", error);
           });
+      } else {
+        console.warn("Geen geselecteerde aanvraag gevonden bij afwijzing");
       }
       
       toast({
@@ -335,15 +394,30 @@ export default function MemberRequests() {
   });
 
   // Helper functies voor aanvragen
-  const pendingRequests = requests?.filter(req => req.status === "pending") || [];
+  // Striktere filtering voor pendingRequests om zeker te zijn dat we alleen echte "pending" aanvragen hebben
+  const pendingRequests = requests?.filter(req => {
+    // Controleer expliciet of status exact "pending" is, niet null, undefined of iets anders
+    if (req.status !== "pending") return false;
+    
+    // Extra controle om te zorgen dat verwerkte aanvragen (met processedDate) niet in pending terechtkomen
+    if (req.processedDate) return false;
+    
+    // Extra controle om er zeker van te zijn dat aanvragen met memberNumber niet in pending terechtkomen
+    if (req.memberNumber) return false;
+    
+    return true;
+  }) || [];
   
   // Filter verwerkte aanvragen op datum (alleen van de afgelopen 7 dagen)
   const processedRequests = requests?.filter(req => {
-    // Alleen niet-pending aanvragen
-    if (req.status === "pending") return false;
+    // Alleen aanvragen met status "approved" of "rejected"
+    if (req.status !== "approved" && req.status !== "rejected") return false;
+    
+    // Extra controle: aanvragen met processedDate zijn verwerkt
+    if (!req.processedDate) return false;
     
     // Check of aanvraag niet ouder is dan 7 dagen
-    const requestDate = req.processedDate ? new Date(req.processedDate) : new Date(req.requestDate);
+    const requestDate = new Date(req.processedDate);
     const sevenDaysAgo = new Date();
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
     
