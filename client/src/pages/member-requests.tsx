@@ -513,29 +513,77 @@ export default function MemberRequests() {
   });
 
   // NIEUWE AANPAK: Helper functies voor aanvragen
-  // Functie om dubbele aanvragen te verwijderen op basis van naam en datum
+  // FUNDAMENTELE OPLOSSING: Volledig nieuwe deduplicate functie met sterke garanties
   function removeDuplicates(requests: MemberRequest[]): MemberRequest[] {
-    const seen = new Map<string, MemberRequest>();
+    // FASE 1: LOKAAL GOEDGEKEURDE AANVRAGEN ALTIJD UITSLUITEN
+    // Absolute topprioriteit: lokaal goedgekeurde aanvragen mogen NOOIT in de pending lijst verschijnen
+    const filteredRequests = requests.filter(req => !locallyApprovedIds.has(req.id));
     
-    // Elke aanvraag verwerken
-    for (const req of requests) {
-      // Maak een unieke sleutel op basis van naam en datum
-      const key = `${req.firstName}_${req.lastName}_${req.requestDate}`;
-      
-      // Als we al een aanvraag met deze sleutel hebben gezien, houd dan alleen de meest recente 
-      // (op basis van ID - hogere ID is nieuwer)
-      if (seen.has(key)) {
-        const existing = seen.get(key)!;
-        if (req.id > existing.id) {
-          seen.set(key, req);
-        }
+    if (filteredRequests.length < requests.length) {
+      console.log(`DEDUPLICATIE FASE 1: ${requests.length - filteredRequests.length} lokaal goedgekeurde aanvragen verwijderd uit pending lijst`);
+    }
+    
+    // FASE 2: STRICTE ID-GEBASEERDE DEDUPLICATIE
+    // Behoud slechts één instantie van elke ID
+    const seenIds = new Set<number>();
+    const uniqueById: MemberRequest[] = [];
+    
+    for (const req of filteredRequests) {
+      if (!seenIds.has(req.id)) {
+        seenIds.add(req.id);
+        uniqueById.push(req);
       } else {
-        seen.set(key, req);
+        console.log(`DEDUPLICATIE FASE 2: Verwijder duplicaat met ID ${req.id}`);
       }
     }
     
-    // Converteer terug naar array
-    return Array.from(seen.values());
+    if (uniqueById.length < filteredRequests.length) {
+      console.log(`DEDUPLICATIE FASE 2: ${filteredRequests.length - uniqueById.length} dubbele ID's verwijderd`);
+    }
+    
+    // FASE 3: AANVULLENDE NAAM+DATUM GEBASEERDE DEDUPLICATIE
+    // Dit vangt eventuele duplicaten die verschillende IDs hebben maar dezelfde persoon zijn
+    const seenKeys = new Map<string, MemberRequest>();
+    const finalResult: MemberRequest[] = [];
+    
+    for (const req of uniqueById) {
+      const key = `${req.firstName}_${req.lastName}_${req.requestDate}`;
+      
+      if (seenKeys.has(key)) {
+        // Voor dubbele naam+datum combinaties houd de meest recente (hoogste ID)
+        const existing = seenKeys.get(key)!;
+        if (req.id > existing.id) {
+          // Verwijder oudere versie die al is toegevoegd
+          const indexToRemove = finalResult.findIndex(r => r.id === existing.id);
+          if (indexToRemove !== -1) {
+            finalResult.splice(indexToRemove, 1);
+          }
+          
+          // Voeg nieuwe versie toe en update de map
+          finalResult.push(req);
+          seenKeys.set(key, req);
+          console.log(`DEDUPLICATIE FASE 3: Vervang ${existing.id} door nieuwere versie ${req.id} voor ${req.firstName} ${req.lastName}`);
+        } else {
+          console.log(`DEDUPLICATIE FASE 3: Behoud bestaande versie ${existing.id} en negeer oudere ${req.id} voor ${req.firstName} ${req.lastName}`);
+        }
+      } else {
+        seenKeys.set(key, req);
+        finalResult.push(req);
+      }
+    }
+    
+    // FASE 4: LAATSTE CONTROLE - verwijder alle aanvragen met status "approved"
+    const trulyPending = finalResult.filter(req => {
+      if (req.status !== "pending") {
+        console.log(`DEDUPLICATIE FASE 4: Verwijder niet-pending aanvraag #${req.id} met status ${req.status}`);
+        return false;
+      }
+      return true;
+    });
+    
+    console.log(`DEDUPLICATIE COMPLEET: Van ${requests.length} aanvragen naar ${trulyPending.length} unieke pending aanvragen`);
+    
+    return trulyPending;
   }
   
   // VOLLEDIG HERSCHREVEN: Management van lokale status tracking voor goedgekeurde aanvragen
