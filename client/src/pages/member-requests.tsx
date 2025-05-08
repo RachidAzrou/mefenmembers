@@ -201,28 +201,18 @@ export default function MemberRequests() {
     onSuccess: (data) => {
       // Bij goedkeuring ontvangen we memberId en memberNumber
       if (selectedRequest && data.memberId && data.memberNumber) {
-        // Sync aanvraag bij met lidgegevens
-        const updatedRequest: MemberRequest = {
-          ...selectedRequest,
-          status: "approved",
-          memberId: data.memberId,
-          memberNumber: data.memberNumber
-        };
+        // Eerst de queries invalideren om nieuwe data op te halen
+        queryClient.invalidateQueries({ queryKey: ["/api/member-requests"] });
+        queryClient.invalidateQueries({ queryKey: ["/api/members"] });
         
-        // We moeten handmatig de cache bijwerken omdat de server niet automatisch memberNumber teruggeeft bij ophalen
-        queryClient.setQueriesData(
-          { queryKey: ["/api/member-requests"] },
-          (oldData: MemberRequest[] | undefined) => {
-            if (!oldData) return [];
-            return oldData.map(req => 
-              req.id === updatedRequest.id ? updatedRequest : req
-            );
-          }
-        );
+        // Even wachten om de cache tijd te geven om te verversen
+        setTimeout(() => {
+          // Fris de pagina na een korte vertraging op om zeker te zijn dat de 
+          // gecachte data wordt bijgewerkt vanuit de database
+          queryClient.refetchQueries({ queryKey: ["/api/member-requests"] });
+        }, 500);
       }
       
-      queryClient.invalidateQueries({ queryKey: ["/api/member-requests"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/members"] });
       toast({
         title: "Aanvraag goedgekeurd",
         description: "De aanvraag is succesvol goedgekeurd en het lid is aangemaakt.",
