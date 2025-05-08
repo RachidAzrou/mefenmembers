@@ -168,25 +168,44 @@ export default function MemberRequests() {
       }
       
       // Data naverwerking en validatie per item
+      // CRUCIALE FIX: gebruik immutable approach met volledige kopieën van ieder item
       const validatedData = data.map(item => {
+        // Maak een volledige diepe kopie van item om referentieproblemen te voorkomen
+        const itemCopy = JSON.parse(JSON.stringify(item)); 
+        
         // Zorg dat status altijd een geldige waarde heeft
-        if (!item.status || !["pending", "approved", "rejected"].includes(item.status)) {
-          console.warn(`Aanvraag ${item.id} heeft ongeldige status: ${item.status}, standaard op "pending" gezet`);
-          item.status = "pending";
+        if (!itemCopy.status || !["pending", "approved", "rejected"].includes(itemCopy.status)) {
+          console.warn(`Aanvraag ${itemCopy.id} heeft ongeldige status: ${itemCopy.status}, standaard op "pending" gezet`);
+          itemCopy.status = "pending";
+        }
+        
+        // CRUCIALE CONSISTENTIE CHECK: forced validatie van goedgekeurde aanvragen
+        // Als een aanvraag een memberId of memberNumber heeft, MOET deze approved zijn
+        if ((itemCopy.memberId || itemCopy.memberNumber) && itemCopy.status !== "approved") {
+          console.warn(`CORRECTIE: Aanvraag ${itemCopy.id} heeft memberId/memberNumber maar status is ${itemCopy.status}, gecorrigeerd naar "approved"`);
+          itemCopy.status = "approved";
+          itemCopy.processedDate = itemCopy.processedDate || new Date().toISOString();
         }
         
         // Controleer en normaliseer andere essentiële velden
-        if (item.status === "approved" && !item.processedDate) {
-          console.warn(`Goedgekeurde aanvraag ${item.id} mist processedDate`);
-          item.processedDate = item.processedDate || new Date().toISOString();
+        if (itemCopy.status === "approved" && !itemCopy.processedDate) {
+          console.warn(`Goedgekeurde aanvraag ${itemCopy.id} mist processedDate`);
+          itemCopy.processedDate = new Date().toISOString();
         }
         
-        if (item.status === "rejected" && !item.processedDate) {
-          console.warn(`Afgewezen aanvraag ${item.id} mist processedDate`);
-          item.processedDate = item.processedDate || new Date().toISOString();
+        if (itemCopy.status === "rejected" && !itemCopy.processedDate) {
+          console.warn(`Afgewezen aanvraag ${itemCopy.id} mist processedDate`);
+          itemCopy.processedDate = new Date().toISOString();
         }
         
-        return item;
+        // LAATSTE CONTROLE: lokaal goedgekeurde items MOETEN de status "approved" hebben
+        if (locallyApprovedIds.has(itemCopy.id) && itemCopy.status !== "approved") {
+          console.warn(`OVERRIDE: Aanvraag ${itemCopy.id} is lokaal gemarkeerd als goedgekeurd maar status is ${itemCopy.status}`);
+          itemCopy.status = "approved";
+          itemCopy.processedDate = itemCopy.processedDate || new Date().toISOString();
+        }
+        
+        return itemCopy;
       });
       
       // Voeg extra diagnostische logging toe
@@ -493,7 +512,7 @@ export default function MemberRequests() {
     },
   });
 
-  // Helper functies voor aanvragen
+  // NIEUWE AANPAK: Helper functies voor aanvragen
   // Functie om dubbele aanvragen te verwijderen op basis van naam en datum
   function removeDuplicates(requests: MemberRequest[]): MemberRequest[] {
     const seen = new Map<string, MemberRequest>();
@@ -523,6 +542,7 @@ export default function MemberRequests() {
   // Deze staat wordt al eerder aangemaakt, dus we verwijderen de dubbele declaratie
   
   // Effect om de locallyApprovedIds set bij te werken wanneer een aanvraag wordt goedgekeurd
+  // EN we forceren een extra verversing na een vertraging om caching problemen te voorkomen
   useEffect(() => {
     if (approveMutation.isSuccess && selectedRequest) {
       console.log(`Aanvraag #${selectedRequest.id} toevoegen aan locally approved set`);
@@ -531,8 +551,26 @@ export default function MemberRequests() {
         newSet.add(selectedRequest.id);
         return newSet;
       });
+      
+      // Schedule een herhaalde controle om te zorgen dat de data écht ververst wordt
+      const delayedRefresh = setTimeout(() => {
+        console.log("GEFORCEERDE HERVERVERSING na 2 seconden voor aanvraag:", selectedRequest.id);
+        
+        // FORCEER extra verversing met een timestamp parameter om cache te omzeilen
+        const timestamp = new Date().getTime(); 
+        fetch(`/api/member-requests?forcedRefresh=${timestamp}`)
+          .then(response => response.json())
+          .then(data => {
+            console.log("Extra data opgehaald:", data.length, "aanvragen");
+            queryClient.setQueryData(["/api/member-requests"], data);
+          })
+          .catch(error => console.error("Fout bij geforceerde verversing:", error));
+      }, 2000);
+      
+      // Cleanup timer bij unmount
+      return () => clearTimeout(delayedRefresh);
     }
-  }, [approveMutation.isSuccess, selectedRequest]);
+  }, [approveMutation.isSuccess, selectedRequest, queryClient]);
   
   // Function om te controleren of een aanvraag in de UI moet worden weergegeven als pending
   function shouldShowAsPending(request: MemberRequest): boolean {
@@ -608,13 +646,22 @@ export default function MemberRequests() {
   
   // EXTREEM ROBUUSTE MAATREGELEN OM DUBBELE WEERGAVE TE VOORKOMEN
   
-  // STAP 1: Controleer of er onlangs goedgekeurde aanvragen zijn die NIET correct als "approved" zijn gemarkeerd
+  // FUNDAMENTEEL GEWIJZIGDE AANPAK: Controleer of het cachen van requests correct gebeurt
+  // We gaan niet meer de originele data aanpassen, maar maken altijd veilige kopieën
+  
+  // Debug log om alle IDs van lokaal goedgekeurde aanvragen te tonen 
+  if (locallyApprovedIds.size > 0) {
+    console.log("LOKAAL GOEDGEKEURDE AANVRAGEN:", Array.from(locallyApprovedIds));
+  }
+  
+  // Uitgebreide diagnostiek voor alle aanvragen
   requests?.forEach(req => {
-    if (locallyApprovedIds.has(req.id) && req.status !== "approved") {
-      console.warn(`HERSTEL: Aanvraag #${req.id} lokaal goedgekeurd maar status niet bijgewerkt in API (${req.status})`);
-      // Force status update voor rendering
-      req.status = "approved";
-      req.processedDate = req.processedDate || new Date().toISOString();
+    // Toon details van aanvragen die gemarkeerd zijn als lokaal goedgekeurd
+    if (locallyApprovedIds.has(req.id)) {
+      console.warn(`DIAGNOSTIEK: Aanvraag #${req.id} lokaal gemarkeerd als goedgekeurd, huidige status: ${req.status}`);
+      if (req.status !== "approved") {
+        console.warn(`PROBLEEM GEDETECTEERD: API status (${req.status}) komt niet overeen met lokale markering (approved)`);
+      }
     }
   });
   
