@@ -647,7 +647,17 @@ export default function MemberRequests() {
       </Tabs>
 
       {/* Detail dialog */}
-      <Dialog open={showDetailDialog} onOpenChange={setShowDetailDialog}>
+      <Dialog 
+        open={showDetailDialog} 
+        onOpenChange={(isOpen) => {
+          if (isOpen && selectedRequest) {
+            console.log("DetailDialog geopend met:", selectedRequest);
+            console.log("Status:", selectedRequest.status);
+            console.log("memberNumber:", selectedRequest.memberNumber);
+            console.log("memberId:", selectedRequest.memberId);
+          }
+          setShowDetailDialog(isOpen);
+        }}>
         <DialogContent className="w-full max-w-xl" hideCloseButton>
           <DialogHeader className="bg-gradient-to-r from-[#963E56] to-[#83354A] p-5 sm:p-6 text-white rounded-t-xl -mt-4 -mx-4 shadow-md">
             <div className="flex justify-between items-center">

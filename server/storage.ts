@@ -488,7 +488,7 @@ export class DatabaseStorage implements IStorage {
         processedDate: new Date(),
         processedBy: processedBy,
         memberId: member.id,
-        memberNumber: member.memberNumber
+        memberNumber: String(member.memberNumber)
       })
       .where(eq(memberRequests.id, id))
       .returning();
