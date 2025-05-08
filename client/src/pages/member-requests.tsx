@@ -460,7 +460,7 @@ export default function MemberRequests() {
             <Table className="w-full">
               <TableHeader>
                 <TableRow>
-                  <TableHead className="w-[200px] text-right font-semibold">Naam</TableHead>
+                  <TableHead className="w-[200px] text-left font-semibold">Naam</TableHead>
                   <TableHead className="w-[120px] text-center font-semibold">Datum</TableHead>
                   <TableHead className="text-center w-[120px] font-semibold">Acties</TableHead>
                 </TableRow>
@@ -475,8 +475,8 @@ export default function MemberRequests() {
                 ) : (
                   pendingRequests.map((request) => (
                     <TableRow key={request.id}>
-                      <TableCell className="font-medium text-right">
-                        <div className="flex items-center gap-2 justify-end">
+                      <TableCell className="font-medium text-left">
+                        <div className="flex items-center gap-2">
                           {request.firstName} {request.lastName}
                         </div>
                       </TableCell>
@@ -530,7 +530,7 @@ export default function MemberRequests() {
             <Table className="w-full">
               <TableHeader>
                 <TableRow>
-                  <TableHead className="w-[200px] text-right font-semibold">Naam</TableHead>
+                  <TableHead className="w-[200px] text-left font-semibold">Naam</TableHead>
                   <TableHead className="w-[120px] text-center font-semibold">Status</TableHead>
                   <TableHead className="w-[120px] text-center font-semibold">Verwerkt op</TableHead>
                   <TableHead className="text-center w-[120px] font-semibold">Acties</TableHead>
@@ -546,8 +546,8 @@ export default function MemberRequests() {
                 ) : (
                   processedRequests.map((request) => (
                     <TableRow key={request.id}>
-                      <TableCell className="font-medium text-right">
-                        <div className="flex items-center gap-2 justify-end">
+                      <TableCell className="font-medium text-left">
+                        <div className="flex items-center gap-2">
                           {request.firstName} {request.lastName}
                         </div>
                       </TableCell>
