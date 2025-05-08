@@ -603,8 +603,34 @@ export default function MemberRequests() {
     return true;
   }
   
+  // EXTREEM ROBUUSTE MAATREGELEN OM DUBBELE WEERGAVE TE VOORKOMEN
+  
+  // STAP 1: Controleer of er onlangs goedgekeurde aanvragen zijn die NIET correct als "approved" zijn gemarkeerd
+  requests?.forEach(req => {
+    if (locallyApprovedIds.has(req.id) && req.status !== "approved") {
+      console.warn(`HERSTEL: Aanvraag #${req.id} lokaal goedgekeurd maar status niet bijgewerkt in API (${req.status})`);
+      // Force status update voor rendering
+      req.status = "approved";
+      req.processedDate = req.processedDate || new Date().toISOString();
+    }
+  });
+  
+  // STAP 2: Forceer ACTIEVE cache opschoning voor "In behandeling" lijst
+  const cleanedRequests = requests?.filter(req => {
+    // Als een aanvraag al lokaal gemarkeerd is als goedgekeurd, verwijder deze volledig uit de pending lijst
+    if (locallyApprovedIds.has(req.id)) {
+      console.log(`FILTER: Aanvraag #${req.id} verwijderd uit 'In behandeling' lijst vanwege lokale goedkeuring`);
+      // Zet ook EXPLICIET de status op approved voor het geval de server dit niet heeft gedaan
+      req.status = "approved";
+      req.processedDate = req.processedDate || new Date().toISOString();
+      // Niet volledig verwijderen uit de dataset, maar wel uit de pending lijst
+      return true; 
+    }
+    return true;
+  }) || [];
+  
   // Filter alle aanvragen die echt pending zijn
-  const allPendingRequests = requests?.filter(shouldShowAsPending) || [];
+  const allPendingRequests = cleanedRequests.filter(shouldShowAsPending) || [];
   
   // Verwijder dan dubbele aanvragen
   const pendingRequests = removeDuplicates(allPendingRequests);
@@ -621,8 +647,14 @@ export default function MemberRequests() {
     })));
   }
   
-  // Filter verwerkte aanvragen op datum (alleen van de afgelopen 7 dagen)
-  const processedRequests = requests?.filter(req => {
+  // Filter verwerkte aanvragen met ZWAARDERE MAATREGELEN
+  const processedRequests = cleanedRequests.filter(req => {
+    // Controleer eerst of de aanvraag al lokaal is goedgekeurd - deze moet dan worden weergegeven als verwerkt
+    if (locallyApprovedIds.has(req.id)) {
+      console.log(`PROCESSED FILTER: Aanvraag #${req.id} lokaal gemarkeerd als goedgekeurd, tonen in verwerkte lijst`);
+      return true;
+    }
+    
     // Alleen aanvragen met status "approved" of "rejected"
     if (req.status !== "approved" && req.status !== "rejected") return false;
     
