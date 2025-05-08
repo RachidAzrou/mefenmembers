@@ -38,7 +38,11 @@ import {
   Search, 
   ArrowLeft,
   PencilIcon,
-  Save
+  Save,
+  MapPin as MapPinIcon,
+  Calendar as CalendarIcon,
+  CreditCard as CreditCardIcon,
+  User as UserIcon
 } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -948,63 +952,85 @@ export default function MemberRequests() {
       {/* Afwijzen dialog */}
       <Dialog open={showRejectionDialog} onOpenChange={setShowRejectionDialog}>
         <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle className="text-lg">Aanvraag afwijzen</DialogTitle>
-            <DialogDescription>
+          <DialogHeader className="bg-red-600 p-5 text-white rounded-t-xl -mt-4 -mx-4">
+            <DialogTitle className="text-xl font-bold">Aanvraag afwijzen</DialogTitle>
+            <DialogDescription className="text-white/90 mt-1">
               Geef een reden op voor de afwijzing van deze aanvraag.
             </DialogDescription>
           </DialogHeader>
           
-          <div className="bg-white border border-red-200 rounded-md p-4 mb-4">
-            <div className="flex flex-col space-y-2">
-              <p className="font-medium">{selectedRequest?.firstName} {selectedRequest?.lastName}</p>
-              
-              {/* Leeftijd berekenen en tonen */}
-              {selectedRequest?.birthDate && (
-                <p className="text-sm text-gray-600">
-                  Leeftijd: {calculateAge(new Date(selectedRequest.birthDate))} jaar
-                </p>
-              )}
-              
-              {/* Gemeente tonen */}
-              {selectedRequest?.city && (
-                <p className="text-sm text-gray-600">
-                  Gemeente: {selectedRequest.city}
-                </p>
-              )}
-
-              {/* Lidmaatschapstype tonen */}
-              <div className="pt-2">
-                <p className="text-sm font-medium">Type lidmaatschap:</p>
-                <p>{formatMembershipTypeLabel(selectedRequest?.membershipType)}</p>
+          <div className="my-4">
+            <div className="bg-white rounded-md border border-gray-200 overflow-hidden shadow-sm">
+              <div className="p-4 border-b border-gray-100 bg-gray-50">
+                <h3 className="font-semibold text-gray-800 text-lg">
+                  {selectedRequest?.firstName} {selectedRequest?.lastName}
+                </h3>
+                <div className="flex flex-wrap gap-2 mt-1">
+                  {selectedRequest?.birthDate && (
+                    <span className="inline-flex items-center text-xs bg-gray-100 text-gray-800 rounded-full px-2 py-1">
+                      <CalendarIcon className="mr-1 h-3 w-3" />
+                      {calculateAge(new Date(selectedRequest.birthDate))} jaar
+                    </span>
+                  )}
+                  
+                  {selectedRequest?.city && (
+                    <span className="inline-flex items-center text-xs bg-gray-100 text-gray-800 rounded-full px-2 py-1">
+                      <MapPinIcon className="mr-1 h-3 w-3" />
+                      {selectedRequest.city}
+                    </span>
+                  )}
+                </div>
               </div>
-
-              {/* Betalingsmethode tonen */}
-              <div>
-                <p className="text-sm font-medium">Betalingsmethode:</p>
-                <p>{formatPaymentMethodLabel(selectedRequest?.paymentMethod)}</p>
+              
+              <div className="p-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-xs font-medium text-gray-500 mb-1">Type lidmaatschap</p>
+                    <p className="font-medium text-gray-800">
+                      {formatMembershipTypeLabel(selectedRequest?.membershipType)}
+                    </p>
+                  </div>
+                  
+                  <div>
+                    <p className="text-xs font-medium text-gray-500 mb-1">Betalingsmethode</p>
+                    <p className="font-medium text-gray-800">
+                      {formatPaymentMethodLabel(selectedRequest?.paymentMethod)}
+                    </p>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
           
-          <div>
-            <Label htmlFor="rejection-reason" className="text-red-600 font-medium">
-              Reden voor afwijzing (verplicht)
+          <div className="bg-red-50 p-4 rounded-md border border-red-200 mb-4">
+            <div className="flex items-start mb-2">
+              <AlertCircle className="text-red-600 h-5 w-5 mr-2 mt-0.5" />
+              <p className="text-sm text-red-700">
+                Deze actie kan niet ongedaan worden gemaakt. Geef een duidelijke reden op.
+              </p>
+            </div>
+            
+            <Label htmlFor="rejection-reason" className="text-gray-700 font-medium">
+              Reden voor afwijzing <span className="text-red-600">*</span>
             </Label>
             <Textarea
               id="rejection-reason"
-              placeholder="Geef een reden..."
-              className="mt-1 border-red-200"
+              placeholder="Geef een reden voor de afwijzing..."
+              className="mt-1 border-red-200 focus:border-red-400 focus:ring-red-400"
               value={rejectionReason}
               onChange={(e) => setRejectionReason(e.target.value)}
+              rows={4}
             />
           </div>
           
-          <DialogFooter>
+          <DialogFooter className="flex flex-col sm:flex-row gap-2 sm:justify-between pt-4 border-t border-gray-200">
             <Button 
               variant="outline" 
-              onClick={() => setShowRejectionDialog(false)}
-              className="w-full sm:w-auto mb-2 sm:mb-0"
+              onClick={() => {
+                setShowRejectionDialog(false);
+                setRejectionReason("");
+              }}
+              className="w-full sm:w-auto"
             >
               Annuleren
             </Button>
@@ -1015,7 +1041,7 @@ export default function MemberRequests() {
               disabled={rejectMutation.isPending || !rejectionReason.trim()}
             >
               {rejectMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Bevestig afwijzing
+              {!rejectionReason.trim() ? "Reden vereist" : "Bevestig afwijzing"}
             </Button>
           </DialogFooter>
         </DialogContent>
