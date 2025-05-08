@@ -150,7 +150,7 @@ export default function MemberRequests() {
       console.log("API response data:", data);
       if (data.length > 0) {
         console.log("First request in response:", data[0]);
-        console.log("Approved requests:", data.filter(r => r.status === "approved"));
+        console.log("Approved requests:", data.filter((r: MemberRequest) => r.status === "approved"));
       }
       return data;
     },
