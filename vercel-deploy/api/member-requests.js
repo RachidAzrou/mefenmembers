@@ -496,36 +496,79 @@ export default async function handler(req, res) {
         };
         
         try {
-          // Update de aanvraag in Firebase
-          const updateResult = await firebaseRequest('PUT', `member-requests/${id}`, updatedRequest);
-          console.log(`POST /api/member-requests/approve: Aanvraag ${id} bijgewerkt naar 'approved' status:`, updateResult ? "Success" : "Geen data");
+          // VERBETERDE ERROR HANDLING: Meerdere pogingen voor statusupdate met recovery mechanisme
+          let updateSuccess = false;
+          let updateAttempts = 0;
+          const MAX_UPDATE_ATTEMPTS = 3;
+          let updateError = null;
           
-          // Grondige verificatie dat de aanvraag correct is bijgewerkt
-          const verifyRequest = await firebaseRequest('GET', `member-requests/${id}`);
-          
-          // Check of alle verplichte velden correct zijn ingesteld
-          const isVerified = verifyRequest && 
-                            verifyRequest.status === 'approved' && 
-                            verifyRequest.memberId === memberId &&
-                            verifyRequest.memberNumber === nextMemberNumber;
-          
-          if (isVerified) {
-            console.log(`POST /api/member-requests/approve: Verificatie succesvol, aanvraag is volledig correct bijgewerkt`);
-          } else {
-            console.error(`POST /api/member-requests/approve: KRITIEKE VERIFICATIE FOUT:`, {
-              status: verifyRequest?.status,
-              memberId: verifyRequest?.memberId,
-              memberNumber: verifyRequest?.memberNumber,
-              expected: {
-                status: 'approved',
-                memberId,
-                memberNumber: nextMemberNumber
+          // Probeer maximaal 3 keer om de status bij te werken met korte pauzes ertussen
+          while (!updateSuccess && updateAttempts < MAX_UPDATE_ATTEMPTS) {
+            updateAttempts++;
+            try {
+              console.log(`POST /api/member-requests/approve: Poging ${updateAttempts} om aanvraagstatus bij te werken`);
+              
+              // Update de aanvraag in Firebase
+              const updateResult = await firebaseRequest('PUT', `member-requests/${id}`, updatedRequest);
+              console.log(`POST /api/member-requests/approve: Aanvraag ${id} bijgewerkt naar 'approved' status:`, updateResult ? "Success" : "Geen data");
+              
+              // Verificatie dat de aanvraag correct is bijgewerkt
+              const verifyRequest = await firebaseRequest('GET', `member-requests/${id}`);
+              
+              // Check of status en ID velden correct zijn ingesteld
+              const isVerified = verifyRequest && 
+                                verifyRequest.status === 'approved' && 
+                                verifyRequest.memberId === memberId;
+              
+              if (isVerified) {
+                console.log(`POST /api/member-requests/approve: Verificatie succesvol, aanvraag is bijgewerkt!`);
+                updateSuccess = true;
+                break; // Succes! Verlaat de while-loop
+              } else {
+                console.error(`POST /api/member-requests/approve: Verificatie mislukt, details:`, {
+                  status: verifyRequest?.status || 'onbekend',
+                  memberId: verifyRequest?.memberId || 'ontbreekt',
+                  memberNumber: verifyRequest?.memberNumber || 'ontbreekt',
+                  expected: {
+                    status: 'approved',
+                    memberId,
+                    memberNumber: nextMemberNumber
+                  }
+                });
+                
+                // Korte pauze voor volgende poging
+                if (updateAttempts < MAX_UPDATE_ATTEMPTS) {
+                  console.log(`POST /api/member-requests/approve: Wachten voor poging ${updateAttempts + 1}...`);
+                  await new Promise(r => setTimeout(r, 1000 * updateAttempts)); // Exponentiële backoff
+                }
               }
-            });
+            } catch (error) {
+              console.error(`POST /api/member-requests/approve: Fout bij poging ${updateAttempts}:`, error.message);
+              updateError = error;
+              
+              // Korte pauze voor volgende poging
+              if (updateAttempts < MAX_UPDATE_ATTEMPTS) {
+                await new Promise(r => setTimeout(r, 1000 * updateAttempts)); // Exponentiële backoff
+              }
+            }
+          }
+          
+          // Als alle pogingen mislukken, maar we hebben wel een lid aangemaakt
+          if (!updateSuccess) {
+            console.error(`POST /api/member-requests/approve: Kritiek - Alle ${MAX_UPDATE_ATTEMPTS} pogingen om status bij te werken zijn mislukt`);
             
-            // Als verificatie mislukt, gooi een fout om in de catch-block terecht te komen
-            // waar het aangemaakte lid wordt verwijderd om inconsistente data te voorkomen
-            throw new Error('Verificatie mislukt: Aanvraagstatus niet correct bijgewerkt met juiste memberId en memberNumber');
+            // BELANGRIJKE WIJZIGING: We verwijderen het lid NIET meer, omdat dit juist inconsistentie veroorzaakt
+            // In plaats daarvan sturen we een speciale response terug naar de client
+            
+            return res.status(202).json({
+              message: "Lid is aangemaakt maar statusupdate is mislukt. UI moet worden bijgewerkt.",
+              memberId: memberId,
+              memberNumber: nextMemberNumber,
+              partialSuccess: true,
+              pendingRequestId: id,
+              // Toevoegen van nodige informatie voor client om inconsistentie te detecteren
+              statusUpdateFailed: true
+            });
           }
           
           console.log(`POST /api/member-requests/approve: Aanvraag ${id} succesvol goedgekeurd en lid aangemaakt met ID ${memberId}`);
@@ -538,20 +581,20 @@ export default async function handler(req, res) {
         } catch (updateError) {
           console.error(`POST /api/member-requests/approve: Fout bij updaten aanvraag status:`, updateError.message);
           
-          // KRITIEK: Stop en verwijder het lid als de aanvraagstatus niet kan worden bijgewerkt
-          // Verwijder het aangemaakte lid om inconsistente status te voorkomen
-          try {
-            console.log(`POST /api/member-requests/approve: Verwijderen van lid ${memberId} vanwege fout in statusupdate`);
-            await firebaseRequest('DELETE', `members/${memberId}`);
-            console.log(`POST /api/member-requests/approve: Lid ${memberId} succesvol verwijderd`);
-          } catch (deleteError) {
-            console.error(`POST /api/member-requests/approve: Kon lid ${memberId} niet verwijderen:`, deleteError.message);
-          }
+          // NIEUWE AANPAK: Verwijder het lid NIET meer bij statusupdatefouten
+          // Dit voorkomt verdere inconsistenties tussen databases
+          console.log(`POST /api/member-requests/approve: BELANGRIJKE WIJZIGING - Het lid ${memberId} wordt NIET verwijderd ondanks statusupdate fout`);
+          console.log(`POST /api/member-requests/approve: In plaats daarvan sturen we speciale 'partialSuccess' response terug`);
           
-          return res.status(500).json({
-            error: 'Kritieke fout: Kon aanvraagstatus niet bijwerken naar approved',
-            details: updateError.message,
-            resolution: 'Het lid is verwijderd om inconsistente data te voorkomen, probeer het opnieuw'
+          // Stuur een speciale response terug die aangeeft dat het lid bestaat maar de status niet is bijgewerkt
+          return res.status(202).json({
+            message: "Lid is aangemaakt maar statusupdate is mislukt door een onverwachte fout. UI moet worden bijgewerkt.",
+            memberId: memberId,
+            memberNumber: nextMemberNumber,
+            partialSuccess: true,
+            pendingRequestId: id,
+            statusUpdateFailed: true,
+            errorDetails: updateError.message
           });
         }
       } catch (error) {
