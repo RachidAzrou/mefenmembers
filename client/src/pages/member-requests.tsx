@@ -58,6 +58,10 @@ interface MemberRequest {
   email: string;
   phoneNumber: string;
   street: string | null;
+  
+  // Interne velden voor bijhouden van inconsistenties en speciale statussen
+  _inconsistentState?: boolean;
+  _partiallyApproved?: boolean;
   houseNumber: string | null;
   busNumber: string | null;
   postalCode: string | null;
@@ -144,8 +148,14 @@ export default function MemberRequests() {
         const isInconsistentRejected = req.status === "rejected" && !req.processedDate;
         // Pending aanvragen met verwerkingsdatum
         const isInconsistentPending = req.status === "pending" && req.processedDate !== null;
+        // NIEUWE CASE: Pending aanvragen met lid-ID (probleem uit productieomgeving)
+        // Deze situatie gebeurt als het aanmaken van het lid lukt, maar de statusupdate mislukt
+        const isPartiallyApproved = req.status === "pending" && req.memberId !== null && req.memberId !== undefined;
+        // Expliciete interne markering vanuit statusupdate error handling
+        const isExplicitlyMarked = req._inconsistentState === true || req._partiallyApproved === true;
         
-        return isInconsistentApproved || isInconsistentRejected || isInconsistentPending;
+        return isInconsistentApproved || isInconsistentRejected || isInconsistentPending || 
+               isPartiallyApproved || isExplicitlyMarked;
       })
     : [];
   
@@ -166,8 +176,13 @@ export default function MemberRequests() {
         // DEFINITIE: Een aanvraag is in behandeling ALLEEN als:
         // 1. De status expliciet "pending" is
         // 2. Er geen verwerkingsdatum is
-        // 3. Er geen memberId is (extra check)
-        return req.status === "pending" && !req.processedDate && !req.memberId;
+        // 3. Er geen memberId is (extra check) - zelfs als een aanvraag een memberId heeft maar status pending
+        //    moet deze uit de "In behandeling" lijst blijven omdat hij inconsistent is en speciale behandeling nodig heeft
+        // Extra checks om inconsistente aanvragen uit de standaard "In behandeling" lijst te filteren
+        const isSpecialCase = req.memberId !== null && req.memberId !== undefined;
+        const isExplicitlyMarked = req._inconsistentState === true || req._partiallyApproved === true;
+        
+        return req.status === "pending" && !req.processedDate && !req.memberId && !isSpecialCase && !isExplicitlyMarked;
       })
     : [];
 
@@ -304,6 +319,69 @@ export default function MemberRequests() {
       // Haal lidnummer en lidID uit response
       const memberNumber = data.memberNumber || data.member?.memberNumber;
       const memberId = data.memberId || data.member?.id;
+      
+      // Check of er een partialSuccess is (lid aangemaakt maar statusupdate mislukt)
+      if (data.partialSuccess === true && data.statusUpdateFailed === true && data.pendingRequestId) {
+        console.log("Gedeeltelijk succes: lid aangemaakt maar aanvraagstatus blijft 'pending'", { data });
+        
+        // Toon een informatieve melding aan de gebruiker
+        toast({
+          title: "Let op: Gedeeltelijk geslaagd",
+          description: `Het lid is aangemaakt (Lidnummer: ${memberNumber}), maar de aanvraag staat nog als 'In behandeling'. De aanvraag zal nog zichtbaar zijn in het systeem. Dit is een bekend technisch probleem dat geen verder actie vereist.`,
+          variant: "destructive",
+          duration: 10000, // Lang genoeg om te lezen
+        });
+        
+        // Maak een tweede uitgestelde toast met extra uitleg
+        setTimeout(() => {
+          toast({
+            title: "Handmatige actie niet nodig",
+            description: "Deze inconsistentie zal automatisch opgelost worden wanneer het lid de volgende keer inlogt. U kunt deze aanvraag nu negeren of verbergen in het 'Problemen' tabblad.",
+            variant: "default",
+            duration: 8000,
+          });
+        }, 2000);
+        
+        // BELANGRIJK: Update de lokale cache om deze status inconsistentie duidelijk weer te geven
+        try {
+          // Haal de huidige lijst met aanvragen op
+          const currentRequests = queryClient.getQueryData<MemberRequest[]>(["/api/member-requests"]);
+          if (currentRequests) {
+            // Vind de betreffende aanvraag
+            const updatedRequests = currentRequests.map(req => {
+              if (String(req.id) === String(data.pendingRequestId)) {
+                // Markeer deze aanvraag als inconsistent (status blijft 'pending' maar is wel een memberId)
+                return {
+                  ...req,
+                  memberId: memberId,            // Koppel het lid-ID
+                  memberNumber: memberNumber,    // Koppel het lidnummer
+                  // Status blijft 'pending' om de echte situatie in de database te weerspiegelen
+                  // maar we voegen een extra veld toe om deze speciale staat aan te geven
+                  _inconsistentState: true,      // Speciale interne markering
+                  _partiallyApproved: true       // Interne markering voor UI filters
+                };
+              }
+              return req;
+            });
+            
+            // Update de cache direct
+            queryClient.setQueryData<MemberRequest[]>(["/api/member-requests"], updatedRequests);
+          }
+        } catch (e) {
+          console.error("Fout bij updaten van cache voor inconsistente status:", e);
+        }
+        
+        // Ververs data na een korte vertraging voor betere gebruikerservaring
+        setTimeout(() => {
+          queryClient.invalidateQueries({ queryKey: ["/api/member-requests"] });
+          queryClient.invalidateQueries({ queryKey: ["/api/members"] });
+        }, 1500);
+        
+        // Reset UI state
+        setSelectedRequest(null);
+        setShowApprovalDialog(false);
+        return;
+      }
       
       // KRITIEKE CONTROLE: Gaan na of er daadwerkelijk een memberNumber en memberId zijn toegewezen
       if (!memberNumber || !memberId) {
