@@ -476,16 +476,22 @@ export default async function handler(req, res) {
           isActive: true
         };
         
-        // Sla het nieuwe lid op
-        const result = await firebaseRequest('POST', 'members', member);
+        // NIEUWE ATOMAIRE TRANSACTIE IMPLEMENTATIE
+        // Stap 1: Verkrijg een nieuw leeg lid-ID van Firebase door een tijdelijk placeholder object aan te maken
+        const emptyMemberResult = await firebaseRequest('POST', 'members', { 
+          temp: true, 
+          createdAt: new Date().toISOString() 
+        });
         
-        if (!result || !result.name) {
-          throw new Error('Geen geldige ID ontvangen van Firebase voor het nieuwe lid');
+        if (!emptyMemberResult || !emptyMemberResult.name) {
+          throw new Error('Kon geen nieuw lid ID verkrijgen van Firebase');
         }
         
-        const memberId = result.name;
+        const memberId = emptyMemberResult.name;
+        console.log(`POST /api/member-requests/approve: Nieuw lid ID verkregen: ${memberId}`);
         
-        // Update de aanvraag status
+        // NIEUWE ATOMAIRE TRANSACTIE IMPLEMENTATIE
+        // Voorbereid de bijgewerkte aanvraagstatus
         const updatedRequest = {
           ...request,
           status: 'approved',
@@ -496,105 +502,177 @@ export default async function handler(req, res) {
         };
         
         try {
-          // VERBETERDE ERROR HANDLING: Meerdere pogingen voor statusupdate met recovery mechanisme
-          let updateSuccess = false;
-          let updateAttempts = 0;
-          const MAX_UPDATE_ATTEMPTS = 3;
-          let updateError = null;
+          console.log(`POST /api/member-requests/approve: Start atomaire transactie voor aanvraag ${id} en lid ${memberId}`);
           
-          // Probeer maximaal 3 keer om de status bij te werken met korte pauzes ertussen
-          while (!updateSuccess && updateAttempts < MAX_UPDATE_ATTEMPTS) {
-            updateAttempts++;
-            try {
-              console.log(`POST /api/member-requests/approve: Poging ${updateAttempts} om aanvraagstatus bij te werken`);
+          // In Firebase kunnen we multi-path updates gebruiken als atomaire transactie
+          // We bouwen een object met alle wijzigingen die we in één keer willen doorvoeren
+          const atomicUpdates = {};
+          
+          // Update voor het lid (vervang tijdelijk lid met alle gegevens)
+          atomicUpdates[`members/${memberId}`] = member;
+          
+          // Update voor de aanvraagstatus
+          atomicUpdates[`member-requests/${id}`] = updatedRequest;
+          
+          // Voer de update uit als één atomaire operatie
+          console.log(`POST /api/member-requests/approve: Uitvoeren van atomaire multi-path update`);
+          
+          const updateResult = await firebaseRequest('PATCH', '', atomicUpdates);
+          console.log(`POST /api/member-requests/approve: Atomaire update voltooid, resultaat:`, updateResult ? "Success" : "Geen data");
+          
+          // Verificatie dat beide updates zijn toegepast
+          console.log(`POST /api/member-requests/approve: Verificatie van atomaire transactie`);
+          
+          const verifyRequest = await firebaseRequest('GET', `member-requests/${id}`);
+          const verifyMember = await firebaseRequest('GET', `members/${memberId}`);
+          
+          const requestVerified = verifyRequest && 
+                               verifyRequest.status === 'approved' && 
+                               verifyRequest.memberId === memberId;
+                               
+          const memberVerified = verifyMember && 
+                              verifyMember.firstName === member.firstName;
+          
+          // Controleer of de hele transactie is geslaagd
+          if (requestVerified && memberVerified) {
+            console.log(`POST /api/member-requests/approve: Verificatie succesvol! Atomaire transactie compleet.`);
+            
+            // Alles is goed gegaan - stuur een succesvolle response
+            return res.status(201).json({
+              success: true,
+              atomicTransaction: true,
+              message: `Aanvraag ${id} succesvol goedgekeurd en lid ${memberId} aangemaakt in één atomaire transactie`,
+              member: {
+                id: memberId,
+                ...member
+              }
+            });
+          } else {
+            // Iets is niet goed gegaan, probeer te herstellen
+            console.warn(`POST /api/member-requests/approve: Verificatie mislukt, details:`, {
+              requestVerified: requestVerified ? 'OK' : 'Mislukt',
+              memberVerified: memberVerified ? 'OK' : 'Mislukt'
+            });
+            
+            // Implementeer herstellogica - probeer meerdere keren
+            let recovered = false;
+            let recoveryAttempts = 0;
+            const MAX_RECOVERY_ATTEMPTS = 3;
+            
+            while (!recovered && recoveryAttempts < MAX_RECOVERY_ATTEMPTS) {
+              recoveryAttempts++;
+              try {
+                console.log(`POST /api/member-requests/approve: Herstelpoging ${recoveryAttempts}...`);
+                
+                // Bepaal wat er hersteld moet worden
+                if (!requestVerified && !memberVerified) {
+                  // Beide updates zijn mislukt, probeer opnieuw de volledige update
+                  await firebaseRequest('PATCH', '', atomicUpdates);
+                } else if (!requestVerified) {
+                  // Alleen de aanvraag is niet bijgewerkt
+                  await firebaseRequest('PUT', `member-requests/${id}`, updatedRequest);
+                } else if (!memberVerified) {
+                  // Alleen het lid is niet volledig aangemaakt/bijgewerkt
+                  await firebaseRequest('PUT', `members/${memberId}`, member);
+                }
+                
+                // Controleer of herstel is gelukt
+                const checkRequest = await firebaseRequest('GET', `member-requests/${id}`);
+                const checkMember = await firebaseRequest('GET', `members/${memberId}`);
+                
+                const requestFixed = checkRequest && 
+                                  checkRequest.status === 'approved' && 
+                                  checkRequest.memberId === memberId;
+                                  
+                const memberFixed = checkMember && 
+                                 checkMember.firstName === member.firstName;
+                
+                recovered = requestFixed && memberFixed;
+                
+                if (recovered) {
+                  console.log(`POST /api/member-requests/approve: Herstel succesvol bij poging ${recoveryAttempts}`);
+                  break;
+                } else {
+                  console.log(`POST /api/member-requests/approve: Herstelpoging ${recoveryAttempts} niet volledig geslaagd`);
+                  await new Promise(r => setTimeout(r, 1000 * recoveryAttempts)); // Exponentiële backoff
+                }
+              } catch (recoveryError) {
+                console.error(`POST /api/member-requests/approve: Fout bij herstelpoging ${recoveryAttempts}:`, recoveryError.message);
+                await new Promise(r => setTimeout(r, 1000 * recoveryAttempts)); // Exponentiële backoff
+              }
+            }
+            
+            // Na alle herstelpogingen, bepaal de huidige staat en rapporteer
+            if (recovered) {
+              // Herstel is gelukt
+              return res.status(200).json({
+                success: true,
+                atomicTransaction: false,
+                recoveryRequired: true,
+                message: `Aanvraag ${id} succesvol goedgekeurd en lid ${memberId} aangemaakt na ${recoveryAttempts} herstelpoging(en)`,
+                member: {
+                  id: memberId,
+                  ...member
+                }
+              });
+            } else {
+              // Bepaal wat er wel en niet is bijgewerkt na alle pogingen
+              const finalRequest = await firebaseRequest('GET', `member-requests/${id}`);
+              const finalMember = await firebaseRequest('GET', `members/${memberId}`);
               
-              // Update de aanvraag in Firebase
-              const updateResult = await firebaseRequest('PUT', `member-requests/${id}`, updatedRequest);
-              console.log(`POST /api/member-requests/approve: Aanvraag ${id} bijgewerkt naar 'approved' status:`, updateResult ? "Success" : "Geen data");
+              const requestUpdated = finalRequest && finalRequest.status === 'approved';
+              const memberUpdated = finalMember && finalMember.firstName;
               
-              // Verificatie dat de aanvraag correct is bijgewerkt
-              const verifyRequest = await firebaseRequest('GET', `member-requests/${id}`);
-              
-              // Check of status en ID velden correct zijn ingesteld
-              const isVerified = verifyRequest && 
-                                verifyRequest.status === 'approved' && 
-                                verifyRequest.memberId === memberId;
-              
-              if (isVerified) {
-                console.log(`POST /api/member-requests/approve: Verificatie succesvol, aanvraag is bijgewerkt!`);
-                updateSuccess = true;
-                break; // Succes! Verlaat de while-loop
-              } else {
-                console.error(`POST /api/member-requests/approve: Verificatie mislukt, details:`, {
-                  status: verifyRequest?.status || 'onbekend',
-                  memberId: verifyRequest?.memberId || 'ontbreekt',
-                  memberNumber: verifyRequest?.memberNumber || 'ontbreekt',
-                  expected: {
-                    status: 'approved',
-                    memberId,
-                    memberNumber: nextMemberNumber
+              if (requestUpdated && memberUpdated) {
+                // Beide zijn toch bijgewerkt, mogelijk een verificatieprobleem
+                return res.status(200).json({
+                  success: true,
+                  verificationInconsistent: true,
+                  message: `Aanvraag ${id} en lid ${memberId} lijken correct aangemaakt, maar verificatie faalde`,
+                  member: {
+                    id: memberId,
+                    ...finalMember
                   }
                 });
+              } else if (memberUpdated) {
+                // VERBETERING: Lid is aangemaakt maar aanvraag is niet bijgewerkt
+                // Dit is de situatie die tot nu toe problemen veroorzaakte
+                console.log(`POST /api/member-requests/approve: BELANGRIJKE SITUATIE - Lid aangemaakt maar status niet bijgewerkt`);
                 
-                // Korte pauze voor volgende poging
-                if (updateAttempts < MAX_UPDATE_ATTEMPTS) {
-                  console.log(`POST /api/member-requests/approve: Wachten voor poging ${updateAttempts + 1}...`);
-                  await new Promise(r => setTimeout(r, 1000 * updateAttempts)); // Exponentiële backoff
-                }
-              }
-            } catch (error) {
-              console.error(`POST /api/member-requests/approve: Fout bij poging ${updateAttempts}:`, error.message);
-              updateError = error;
-              
-              // Korte pauze voor volgende poging
-              if (updateAttempts < MAX_UPDATE_ATTEMPTS) {
-                await new Promise(r => setTimeout(r, 1000 * updateAttempts)); // Exponentiële backoff
+                return res.status(207).json({
+                  partialSuccess: true,
+                  statusUpdateFailed: true,
+                  message: `Lid is aangemaakt met ID ${memberId} maar aanvraagstatus kon niet worden bijgewerkt. 
+                         Dit lid is WEL aangemaakt en actief in het systeem, maar de aanvraag staat nog steeds als 'pending'.`,
+                  member: {
+                    id: memberId,
+                    ...finalMember
+                  },
+                  request: finalRequest
+                });
+              } else if (requestUpdated) {
+                // Aanvraag is bijgewerkt maar lid is niet volledig aangemaakt
+                return res.status(207).json({
+                  partialSuccess: true,
+                  memberCreationFailed: true,
+                  message: `Aanvraagstatus is bijgewerkt maar lidgegevens konden niet volledig worden opgeslagen`,
+                  memberId: memberId,
+                  request: finalRequest
+                });
+              } else {
+                // Beide updates zijn volledig mislukt
+                return res.status(500).json({
+                  error: 'Atomaire transactie en alle herstelpogingen zijn mislukt',
+                  memberId: memberId
+                });
               }
             }
           }
-          
-          // Als alle pogingen mislukken, maar we hebben wel een lid aangemaakt
-          if (!updateSuccess) {
-            console.error(`POST /api/member-requests/approve: Kritiek - Alle ${MAX_UPDATE_ATTEMPTS} pogingen om status bij te werken zijn mislukt`);
-            
-            // BELANGRIJKE WIJZIGING: We verwijderen het lid NIET meer, omdat dit juist inconsistentie veroorzaakt
-            // In plaats daarvan sturen we een speciale response terug naar de client
-            
-            return res.status(202).json({
-              message: "Lid is aangemaakt maar statusupdate is mislukt. UI moet worden bijgewerkt.",
-              memberId: memberId,
-              memberNumber: nextMemberNumber,
-              partialSuccess: true,
-              pendingRequestId: id,
-              // Toevoegen van nodige informatie voor client om inconsistentie te detecteren
-              statusUpdateFailed: true
-            });
-          }
-          
-          console.log(`POST /api/member-requests/approve: Aanvraag ${id} succesvol goedgekeurd en lid aangemaakt met ID ${memberId}`);
-          
-          return res.status(201).json({
-            message: "Aanvraag goedgekeurd en lid aangemaakt",
-            memberId: memberId,
-            memberNumber: nextMemberNumber
-          });
-        } catch (updateError) {
-          console.error(`POST /api/member-requests/approve: Fout bij updaten aanvraag status:`, updateError.message);
-          
-          // NIEUWE AANPAK: Verwijder het lid NIET meer bij statusupdatefouten
-          // Dit voorkomt verdere inconsistenties tussen databases
-          console.log(`POST /api/member-requests/approve: BELANGRIJKE WIJZIGING - Het lid ${memberId} wordt NIET verwijderd ondanks statusupdate fout`);
-          console.log(`POST /api/member-requests/approve: In plaats daarvan sturen we speciale 'partialSuccess' response terug`);
-          
-          // Stuur een speciale response terug die aangeeft dat het lid bestaat maar de status niet is bijgewerkt
-          return res.status(202).json({
-            message: "Lid is aangemaakt maar statusupdate is mislukt door een onverwachte fout. UI moet worden bijgewerkt.",
-            memberId: memberId,
-            memberNumber: nextMemberNumber,
-            partialSuccess: true,
-            pendingRequestId: id,
-            statusUpdateFailed: true,
-            errorDetails: updateError.message
+        } catch (transactionError) {
+          console.error(`POST /api/member-requests/approve: Fout bij atomaire transactie:`, transactionError.message);
+          return res.status(500).json({ 
+            error: `Transactiefout: ${transactionError.message}`,
+            details: `De atomaire transactie voor aanvraag ${id} en lid ${memberId} is mislukt.`
           });
         }
       } catch (error) {

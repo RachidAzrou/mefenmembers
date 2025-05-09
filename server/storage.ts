@@ -412,36 +412,46 @@ export class DatabaseStorage implements IStorage {
   async approveMemberRequest(id: number, processedBy: number): Promise<Member> {
     console.log(`===== START APPROVEMEMBERREQUEST voor aanvraag ID ${id} =====`);
     
+    // Gebruik een transactie voor atomaire operaties
     try {
-      // Stap 1: Controleer of de aanvraag bestaat
-      console.log(`Ophalen aanvraag met ID ${id}`);
-      const request = await this.getMemberRequest(id);
-      
-      if (!request) {
-        console.error(`Aanvraag met ID ${id} niet gevonden in de database`);
-        throw new Error(`Lidmaatschapsaanvraag met ID ${id} niet gevonden`);
-      }
-      
-      console.log(`Aanvraag gevonden: ${request.firstName} ${request.lastName}, status: ${request.status}`);
-      
-      // Stap 2: Check of de aanvraag al is verwerkt
-      if (request.status === "approved") {
-        console.log(`Aanvraag ${id} is al gemarkeerd als goedgekeurd`);
+      // Voer de gehele operatie uit binnen één transactie
+      const result = await db.transaction(async (tx) => {
+        // Stap 1: Ophalen aanvraag uit database binnen de transactie
+        console.log(`Ophalen aanvraag met ID ${id}`);
+        const [request] = await tx
+          .select()
+          .from(memberRequests)
+          .where(eq(memberRequests.id, id));
         
-        // Als de aanvraag al is goedgekeurd EN we hebben een memberId, dan kunnen we dat lid opzoeken
-        if (request.memberId) {
-          console.log(`Ophalen bestaand lid met ID ${request.memberId}`);
-          const existingMember = await this.getMember(request.memberId);
+        if (!request) {
+          console.error(`Aanvraag met ID ${id} niet gevonden in de database`);
+          throw new Error(`Lidmaatschapsaanvraag met ID ${id} niet gevonden`);
+        }
+        
+        console.log(`Aanvraag gevonden: ${request.firstName} ${request.lastName}, status: ${request.status}`);
+        
+        // Stap 2: Check of de aanvraag al is verwerkt
+        if (request.status === "approved") {
+          console.log(`Aanvraag ${id} is al gemarkeerd als goedgekeurd`);
           
-          if (existingMember) {
-            console.log(`Bestaand lid gevonden voor aanvraag ${id}: ${existingMember.firstName} ${existingMember.lastName}`);
-            return existingMember;
-          } else {
+          // Als de aanvraag al is goedgekeurd EN we hebben een memberId, dan kunnen we dat lid opzoeken
+          if (request.memberId) {
+            const [existingMember] = await tx
+              .select()
+              .from(members)
+              .where(eq(members.id, request.memberId));
+            
+            if (existingMember) {
+              console.log(`Bestaand lid gevonden voor aanvraag ${id}: ${existingMember.firstName} ${existingMember.lastName}`);
+              return existingMember;
+            }
+            
+            // Als het lid niet bestaat, reset de aanvraag binnen de transactie
             console.warn(`WAARSCHUWING: Aanvraag ${id} verwijst naar niet-bestaand lid ${request.memberId}`);
             console.log(`We gaan het probleem herstellen door de aanvraag opnieuw te verwerken`);
             
-            // Reset de status en memberId
-            await db
+            // Reset status binnen de transactie
+            await tx
               .update(memberRequests)
               .set({ 
                 status: 'pending' as const,
@@ -449,156 +459,150 @@ export class DatabaseStorage implements IStorage {
                 memberNumber: null
               })
               .where(eq(memberRequests.id, id));
-              
-            console.log(`De aanvraag is teruggezet naar 'pending' en zal opnieuw worden verwerkt`);
-            // Haal de aanvraag opnieuw op met bijgewerkte status
-            const updatedRequest = await this.getMemberRequest(id);
-            if (!updatedRequest) {
-              throw new Error(`Kan bijgewerkte aanvraag niet vinden na status reset`);
-            }
             
-            // Ga verder met de bijgewerkte aanvraag
-            request.status = 'pending';
-            request.memberId = null;
-            request.memberNumber = null;
+            console.log(`De aanvraag is teruggezet naar 'pending' en zal opnieuw worden verwerkt`);
+          } else {
+            console.warn(`WAARSCHUWING: Aanvraag ${id} is gemarkeerd als goedgekeurd maar heeft geen memberId`);
+            console.log(`We gaan het probleem herstellen door de aanvraag alsnog te verwerken`);
           }
-        } else {
-          console.warn(`WAARSCHUWING: Aanvraag ${id} is gemarkeerd als goedgekeurd maar heeft geen memberId`);
-          console.log(`We gaan het probleem herstellen door de aanvraag alsnog te verwerken`);
-          // Ga door met verwerken zonder fouten te geven
         }
-      }
-      
-      if (request.status === "rejected") {
-        console.error(`Aanvraag ${id} is al afgewezen en kan niet worden goedgekeurd`);
-        throw new Error(`Lidmaatschapsaanvraag met ID ${id} is al afgewezen`);
-      }
-      
-      // Stap 3: Validatie van verplichte velden
-      console.log("Valideren verplichte velden");
-      const requiredFields = ["firstName", "lastName", "phoneNumber", "email"];
-      const missingFields = requiredFields.filter(field => !request[field as keyof typeof request]);
-      
-      if (missingFields.length > 0) {
-        console.error(`Validatiefout: Ontbrekende verplichte velden: ${missingFields.join(', ')}`);
-        throw new Error(`Verplichte velden ontbreken: ${missingFields.join(', ')}`);
-      }
-      
-      // Stap 4: Bereid de gegevens voor een nieuw lid voor
-      console.log("Voorbereiden van lidgegevens");
-      
-      // Basis lid object
-      const memberData: InsertMember = {
-        memberNumber: "", // Wordt later toegewezen
-        firstName: request.firstName,
-        lastName: request.lastName,
-        email: request.email,
-        phoneNumber: request.phoneNumber,
         
-        // Adres gegevens
-        street: request.street || null,
-        houseNumber: request.houseNumber || null,
-        busNumber: request.busNumber || null,
-        postalCode: request.postalCode || null,
-        city: request.city || null,
+        if (request.status === "rejected") {
+          console.error(`Aanvraag ${id} is al afgewezen en kan niet worden goedgekeurd`);
+          throw new Error(`Lidmaatschapsaanvraag met ID ${id} is al afgewezen`);
+        }
         
-        // Persoonlijke gegevens met expliciete type casting
-        gender: (request.gender === "man" || request.gender === "vrouw") ? request.gender : null,
-        birthDate: toDateObject(request.birthDate),
-        nationality: request.nationality || null,
+        // Stap 3: Validatie van verplichte velden
+        console.log("Valideren verplichte velden");
+        const requiredFields = ["firstName", "lastName", "phoneNumber", "email"];
+        const missingFields = requiredFields.filter(field => !request[field as keyof typeof request]);
         
-        // Lidmaatschapsgegevens
-        membershipType: (request.membershipType === "standaard" || 
-                        request.membershipType === "student" || 
-                        request.membershipType === "senior") 
-                        ? request.membershipType : "standaard",
-        startDate: new Date(),
-        endDate: null,
+        if (missingFields.length > 0) {
+          console.error(`Validatiefout: Ontbrekende verplichte velden: ${missingFields.join(', ')}`);
+          throw new Error(`Verplichte velden ontbreken: ${missingFields.join(', ')}`);
+        }
         
-        // Betalingsgegevens
-        paymentStatus: false,
-        autoRenew: request.autoRenew === undefined ? true : Boolean(request.autoRenew),
-        paymentTerm: (request.paymentTerm === "maandelijks" || 
-                      request.paymentTerm === "driemaandelijks" || 
-                      request.paymentTerm === "jaarlijks") 
-                      ? request.paymentTerm : "jaarlijks",
-        paymentMethod: (request.paymentMethod === "cash" || 
-                        request.paymentMethod === "domiciliering" || 
-                        request.paymentMethod === "overschrijving" || 
-                        request.paymentMethod === "bancontact") 
-                        ? request.paymentMethod : "cash",
+        // Stap 4: Genereer een nieuw lidnummer binnen de transactie
+        console.log("Genereren nieuw lidnummer");
+        // Eerst controleren of er verwijderde nummers zijn om te hergebruiken
+        const [deletedNumberRecord] = await tx
+          .select()
+          .from(deletedMemberNumbers)
+          .orderBy(asc(deletedMemberNumbers.memberNumber))
+          .limit(1);
         
-        // Bankgegevens
-        accountNumber: request.accountNumber || null,
-        accountHolderName: request.accountHolderName || null,
-        bicSwift: request.bicSwift || null,
+        let memberNumber;
         
-        // Metadata
-        registrationDate: new Date(),
-        privacyConsent: Boolean(request.privacyConsent),
-        notes: request.notes || null,
+        if (deletedNumberRecord) {
+          // Gebruik een verwijderd nummer
+          memberNumber = deletedNumberRecord.memberNumber;
+          console.log(`Hergebruiken van verwijderd lidnummer: ${memberNumber}`);
+          
+          // Verwijder het nummer uit de tabel met verwijderde nummers
+          await tx
+            .delete(deletedMemberNumbers)
+            .where(eq(deletedMemberNumbers.id, deletedNumberRecord.id));
+        } else {
+          // Zoek het hoogste bestaande nummer
+          const [highestRecord] = await tx
+            .select({ maxNumber: sql<number>`MAX(${members.memberNumber})` })
+            .from(members);
+          
+          // Het volgende nummer is één hoger dan het hoogste bestaande
+          memberNumber = (highestRecord?.maxNumber || 0) + 1;
+          console.log(`Nieuw sequentieel lidnummer: ${memberNumber}`);
+        }
         
-        // Auditgegevens
-        createdBy: processedBy
-      };
-      
-      // Stap 5: Genereer een nieuw lidnummer en wijs het toe
-      console.log("Genereren nieuw lidnummer");
-      const memberNumber = await this.generateMemberNumber();
-      memberData.memberNumber = memberNumber.toString().padStart(4, '0');
-      console.log(`Nieuw lidnummer gegenereerd: ${memberData.memberNumber}`);
-      
-      // Stap 6: Maak het nieuwe lid aan
-      console.log("Aanmaken nieuw lid in database");
-      const newMember = await this.createMember(memberData);
-      console.log(`Nieuw lid aangemaakt met ID ${newMember.id}`);
-      
-      // Stap 7: Update de aanvraagstatus
-      console.log(`Bijwerken status van aanvraag ${id} naar 'approved'`);
-      try {
-        const [updated] = await db
+        const formattedMemberNumber = memberNumber.toString().padStart(4, '0');
+        console.log(`Lidnummer geformatteerd: ${formattedMemberNumber}`);
+        
+        // Stap 5: Bereid de gegevens voor een nieuw lid voor
+        console.log("Voorbereiden van lidgegevens");
+        
+        // We gebruiken direct een SQL query om typeproblemen te vermijden
+        console.log(`Bereiden nieuw lid voor met nummer ${memberNumber}`);
+        
+        // Stap 6: Maak het nieuwe lid aan binnen dezelfde transactie
+        console.log("Aanmaken nieuw lid in database (binnen transactie)");
+        // Gebruik direct insert met values maar met expliciete selecties uit het request object
+        const newMemberResult = await tx
+          .insert(members)
+          .values({
+            memberNumber: memberNumber,
+            firstName: request.firstName,
+            lastName: request.lastName,
+            email: request.email,
+            phoneNumber: request.phoneNumber,
+            street: request.street || null,
+            houseNumber: request.houseNumber || null,
+            busNumber: request.busNumber || null,
+            postalCode: request.postalCode || null,
+            city: request.city || null,
+            gender: request.gender === "man" || request.gender === "vrouw" ? request.gender : null,
+            birthDate: toDateObject(request.birthDate),
+            nationality: request.nationality || null,
+            membershipType: request.membershipType === "standaard" || request.membershipType === "student" || request.membershipType === "senior" 
+                           ? request.membershipType : "standaard",
+            startDate: new Date(),
+            endDate: null,
+            paymentStatus: false,
+            autoRenew: request.autoRenew === undefined ? true : !!request.autoRenew,
+            paymentTerm: request.paymentTerm === "maandelijks" || request.paymentTerm === "driemaandelijks" || request.paymentTerm === "jaarlijks" 
+                       ? request.paymentTerm : "jaarlijks",
+            paymentMethod: request.paymentMethod === "cash" || request.paymentMethod === "domiciliering" || 
+                          request.paymentMethod === "overschrijving" || request.paymentMethod === "bancontact" 
+                          ? request.paymentMethod : "cash",
+            accountNumber: request.accountNumber || null,
+            accountHolderName: request.accountHolderName || null,
+            bicSwift: request.bicSwift || null,
+            registrationDate: new Date(),
+            privacyConsent: !!request.privacyConsent,
+            notes: request.notes || null,
+            createdBy: processedBy
+          })
+          .returning();
+        
+        const newMember = newMemberResult[0];
+        
+        if (!newMember || !newMember.id) {
+          throw new Error("Kan geen nieuw lid aanmaken, database gaf geen resultaat terug");
+        }
+        
+        console.log(`Nieuw lid aangemaakt met ID ${newMember.id} en nummer ${formattedMemberNumber}`);
+        
+        // Stap 7: Update de aanvraagstatus binnen dezelfde transactie
+        console.log(`Bijwerken status van aanvraag ${id} naar 'approved' (binnen dezelfde transactie)`);
+        const [updatedRequest] = await tx
           .update(memberRequests)
           .set({
             status: 'approved' as const,
             processedDate: new Date(),
             processedBy: processedBy,
             memberId: newMember.id,
-            memberNumber: memberData.memberNumber
+            memberNumber: formattedMemberNumber
           })
           .where(eq(memberRequests.id, id))
           .returning();
         
-        if (!updated) {
-          console.error(`KRITIEKE FOUT: Kon aanvraag ${id} niet bijwerken - bestaat deze nog?`);
+        if (!updatedRequest) {
           throw new Error(`Kon aanvraagstatus niet bijwerken naar 'approved'`);
         }
         
-        console.log(`Aanvraag ${id} succesvol bijgewerkt naar 'approved'`);
-      } catch (updateError) {
-        console.error(`FOUT bij bijwerken aanvraagstatus:`, updateError);
-        throw new Error(`Kon aanvraagstatus niet bijwerken: ${updateError.message}`);
-      }
+        // Binnen de transactie, logica succesvol afgerond
+        console.log(`Aanvraag ${id} succesvol bijgewerkt naar 'approved' in dezelfde transactie als het aanmaken van lid ${newMember.id}`);
+        return newMember;
+      });
       
-      // Stap 8: Extra verificatie
-      const verifiedRequest = await this.getMemberRequest(id);
-      if (verifiedRequest?.status !== 'approved' || verifiedRequest?.memberId !== newMember.id) {
-        console.warn(`WAARSCHUWING: Verificatie toont mogelijk inconsistente status: 
-          status=${verifiedRequest?.status}, 
-          memberId=${verifiedRequest?.memberId}, 
-          memberNumber=${verifiedRequest?.memberNumber}`);
-      } else {
-        console.log(`Verificatie succesvol: aanvraag ${id} is correct bijgewerkt`);
-      }
-      
-      // Stap 9: Retourneer het nieuwe lid als resultaat
-      console.log(`Proces succesvol voltooid: aanvraag ${id} -> lid ${newMember.id}`);
-      return newMember;
-      
-    } catch (error) {
-      console.error(`FOUT BIJ GOEDKEUREN AANVRAAG ${id}:`, error);
-      throw error;
-    } finally {
+      // Transactie is succesvol afgesloten
+      console.log(`Proces succesvol voltooid: Aanvraag ${id} geconverteerd naar lid met transactie-bescherming`);
       console.log(`===== EINDE APPROVEMEMBERREQUEST voor aanvraag ID ${id} =====`);
+      
+      return result;
+    } catch (error) {
+      // Fout in transactie, alles wordt automatisch teruggedraaid
+      console.error(`FOUT BIJ GOEDKEUREN AANVRAAG ${id}:`, error);
+      console.log(`===== EINDE APPROVEMEMBERREQUEST voor aanvraag ID ${id} MET FOUT =====`);
+      throw error;
     }
   }
 }
